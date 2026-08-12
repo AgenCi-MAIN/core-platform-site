@@ -36,5 +36,7 @@ test("server-renders the Core operating model", async () => {
   assert.match(html, /Scripts should learn/);
   assert.match(html, /N-001/);
   assert.match(html, /GOAL ENGINE/);
+  assert.match(html, /J\.A\.R\.V\.I\.S\. \/ COMMAND/);
+  assert.doesNotMatch(html, /Mr\. C/i);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Starter Project/i);
 });

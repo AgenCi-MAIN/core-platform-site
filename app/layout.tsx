@@ -10,8 +10,8 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase,
-    title: "Core — The In-House Signal Exchange",
-    description: "Core connects verified in-house opportunity, carrier intelligence, call coaching, scripts, compensation ranks, and accountable outcomes in one operating system.",
+    title: "CORE J.A.R.V.I.S. — The In-House Signal Exchange",
+    description: "J.A.R.V.I.S. connects verified in-house opportunity, carrier intelligence, call coaching, scripts, compensation ranks, and accountable outcomes in one CORE operating system.",
     icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
     openGraph: {
       title: "From rented demand to owned intelligence.",

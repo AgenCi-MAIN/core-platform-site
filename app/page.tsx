@@ -368,7 +368,7 @@ export default function Home() {
 
         <div className="control-plane" aria-label="Core control plane preview">
           <div className="plane-topline">
-            <div><span className="pulse" /> CORE / CONTROL PLANE</div>
+            <div><span className="pulse" /> J.A.R.V.I.S. / CONTROL PLANE</div>
             <span>RANK 05 / ZENITH</span>
           </div>
           <div className="signal-orbit" aria-hidden="true">
@@ -590,7 +590,7 @@ export default function Home() {
       <section className="command-system" id="command-system">
         <div className="command-heading">
           <div>
-            <p className="kicker">Core command / closed-loop intelligence</p>
+            <p className="kicker">J.A.R.V.I.S. command / closed-loop intelligence</p>
             <h2>Every signal becomes<br /><em>the next move.</em></h2>
           </div>
           <p>Production tells you what happened. Core tells you what deserves attention now—and learns from what happens next.</p>
@@ -598,7 +598,7 @@ export default function Home() {
 
         <div className="command-shell">
           <aside className="command-nav">
-            <div className="command-brand"><span className="pulse" /> CORE / COMMAND</div>
+            <div className="command-brand"><span className="pulse" /> J.A.R.V.I.S. / COMMAND</div>
             <p>Mission view</p>
             {(Object.keys(commandViews) as Array<keyof typeof commandViews>).map((view, index) => (
               <button key={view} onClick={() => setActiveCommandView(view)} className={activeCommandView === view ? "active" : ""}>
