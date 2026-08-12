@@ -1,24 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --ink: #0b1917;
-  --ink-soft: #132522;
-  --paper: #f2f0e8;
-  --paper-deep: #e7e4da;
-  --white: #fbfaf5;
-  --lime: #c9ff3d;
-  --mint: #7de3bf;
-  --orange: #ff6a3d;
-  --line-light: rgba(255, 255, 255, 0.14);
-  --line-dark: rgba(11, 25, 23, 0.17);
+  --ink: #050505;
+  --ink-soft: #111111;
+  --paper: #ffffff;
+  --paper-deep: #f2f2f2;
+  --white: #ffffff;
+  --lime: #e10600;
+  --mint: #ffffff;
+  --orange: #e10600;
+  --red: #e10600;
+  --line-light: rgba(255, 255, 255, 0.22);
+  --line-dark: rgba(5, 5, 5, 0.22);
 }
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; background: var(--ink); }
-body { margin: 0; background: var(--paper); color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: "Segoe UI Variable Text", "Segoe UI", Inter, "Helvetica Neue", Arial, sans-serif; font-feature-settings: "kern" 1, "liga" 1; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; }
-em { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
+em { font-family: "Iowan Old Style", Baskerville, Georgia, "Times New Roman", serif; font-weight: 500; }
 
 .site-nav {
   position: absolute; inset: 0 0 auto; z-index: 20; height: 96px; padding: 0 5vw;
@@ -96,7 +97,7 @@ em { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
 .section-heading > p { margin: 0 0 4px; max-width: 500px; font-size: 15px; line-height: 1.7; color: #53615d; }
 .kicker { color: #60736c; }
 
-.scenario-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark); }
+.scenario-tabs { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark); }
 .scenario-tabs button { cursor: pointer; min-height: 126px; padding: 24px 26px; text-align: left; color: var(--ink); background: transparent; border: 0; border-right: 1px solid var(--line-dark); position: relative; transition: background .25s ease, color .25s ease; }
 .scenario-tabs button:last-child { border-right: 0; }
 .scenario-tabs button span { position: absolute; right: 20px; top: 18px; font-size: 8px; letter-spacing: .14em; opacity: .45; }
@@ -659,4 +660,113 @@ footer > p { margin: 0; max-width: 900px; color: rgba(251,250,245,.4); font-size
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* CORE monochrome signal theme */
+body, .section-light, .command-system, .script-vault, .scale { background: #fff; }
+.hero, .signal-exchange, .carrier-intelligence, .call-intelligence, .quality, .leadership, footer { background: #050505; }
+.hero-glow { background: radial-gradient(circle, rgba(225,6,0,.28), rgba(225,6,0,.08) 42%, transparent 70%); }
+.hero::before { opacity: .2; background-image: linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(225,6,0,.18) 1px, transparent 1px); }
+.control-plane { background: rgba(5,5,5,.9); border: 1px solid rgba(225,6,0,.72); box-shadow: 0 36px 90px rgba(225,6,0,.12); }
+.orbit { border-color: rgba(225,6,0,.42); }
+.orbit::before, .orbit::after { background: rgba(255,255,255,.12); }
+.signal-dot { background: #fff; box-shadow: 0 0 18px #e10600; }
+.signal-core { color: #fff; background: #e10600; box-shadow: 0 0 70px rgba(225,6,0,.42); }
+.plane-metrics div, .signal-loop, .call-memory-loop, .script-proof { background: #111; }
+.transition-strip, .exchange-standard, .proof-point, .scale-card-accent { color: #fff; background: #e10600; }
+.transition-strip div span { border-color: #fff; }
+.section-heading h2 em, .quality h2 em, .partner h2 em, .leadership h2 em,
+.carrier-heading h2 em, .call-heading h2 em { color: #e10600; }
+.kicker, .micro-label, .section-heading > p, .scenario-story > p, .scenario-number > span,
+.rank-economics span, .carrier-heading > p, .command-heading > p, .script-heading > p { color: #555 !important; }
+.kicker-dark, .eyebrow, .command-brand, .live-chip, .queue-label span, .call-lab-topline > div:first-child,
+.script-index-label span, .script-sync, .script-proof > span, .carrier-disclaimer span { color: #fff !important; }
+.scenario-marker span { color: #e10600; font-family: "Iowan Old Style", Baskerville, Georgia, serif; }
+.scenario-facts span, .carrier-explainer, .winning-pattern, .call-learning-grid > div, .script-shell,
+.call-lab-shell, .call-list, .call-model-note, .script-note { background: #f2f2f2; }
+.rank-economics, .rank-economics div, .scenario-panel, .pipeline-list, .pipeline-row,
+.script-document-head, .script-evidence, .script-steps > div, .call-detail-head, .call-vitals,
+.call-summary, .call-timeline { border-color: rgba(5,5,5,.28); }
+.mini-bars i { background: #050505; opacity: .38; }
+.mini-bars i:nth-child(n+6) { background: #e10600; opacity: 1; }
+.exchange-shell, .command-shell { background: #0b0b0b; border-color: rgba(225,6,0,.48); }
+.exchange-flow article, .command-nav, .script-index { background: #050505; }
+.exchange-calculator, .goal-engine { color: #fff; background: #e10600; }
+.exchange-calculator input[type="range"], .goal-engine input[type="range"] { accent-color: #050505; }
+.exchange-calculator > p, .engine-note, .next-move, .script-guardrail { color: #fff; background: #050505 !important; border: 1px solid rgba(255,255,255,.3); }
+.carrier-shell { border: 1px solid rgba(225,6,0,.6); box-shadow: 0 42px 100px rgba(225,6,0,.12); }
+.carrier-rail, .carrier-overview, .carrier-disclaimer { background: #050505; }
+.carrier-overview::after { background: linear-gradient(90deg, #050505 10%, rgba(5,5,5,.82) 52%, rgba(225,6,0,.14)); }
+.carrier-score { border-color: #e10600; box-shadow: inset 0 0 40px rgba(225,6,0,.12); }
+.carrier-workspace, .carrier-panel, .carrier-tablist, .underwriting-panel { background: #fff; }
+.carrier-rail-item.active { background: rgba(225,6,0,.16); box-shadow: inset 3px 0 #e10600; }
+.carrier-rail-item.active > span, .carrier-tablist button.active, .command-nav > button.active,
+.call-filters button.active, .script-index > button.active { color: #fff; background: #e10600; border-color: #e10600; }
+.carrier-rail-item.active small, .carrier-rail-item.active > i { color: #fff; }
+.tier-card.lime, .tier-card.mint, .tier-card.orange, .tier-card.paper { box-shadow: inset 0 4px #e10600; background: #fff; }
+.underwriting-search { background: #050505; }
+.underwriting-search input { color: #fff; border-bottom-color: rgba(255,255,255,.5); }
+.command-nav, .script-index { border-color: rgba(255,255,255,.18); }
+.command-rank { border-color: rgba(225,6,0,.65); background: rgba(225,6,0,.14); }
+.priority { color: #fff; border: 1px solid rgba(255,255,255,.55); }
+.priority-p1, .priority-p2, .priority-p3 { background: #e10600; }
+.call-lab-topline, .call-score, .next-move, .script-index, .script-proof { background: #050505 !important; }
+.call-filters, .call-list { background: #ededed; }
+.call-filters button.active span { color: #e10600; background: #fff; }
+.call-list > button.active { background: #fff; box-shadow: inset 4px 0 #e10600; }
+.call-outcome, .call-outcome.lost, .call-outcome.needs-review { color: #fff; background: #e10600; }
+.call-vitals i, .moment i, .moment-risk i, .moment-outcome i { background: #e10600; }
+.moment i { border-color: #fff; box-shadow: 0 0 0 1px #050505; }
+.script-document { background: #fff; }
+.script-status { color: #fff; background: #050505; border: 1px solid #e10600; }
+.script-status i { background: #e10600; }
+.proof-radar { border-color: rgba(225,6,0,.6); }
+.proof-radar i { border-color: rgba(255,255,255,.22); }
+.proof-radar i:nth-child(3) { border-color: transparent; border-top-color: #e10600; }
+.partner { background: #fff; }
+.scale-card { background: #fff; }
+.scale-card-accent p, .proof-point p, .proof-label { color: rgba(255,255,255,.78); }
+
+h1, h2, h3, h4, strong, .brand-wordmark, .target-number, .scenario-number strong,
+.call-score strong, .goal-outputs strong, .exchange-ledger strong {
+  font-family: "Segoe UI Variable Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+}
+h1, h2 { font-weight: 800; }
+button, .button, .nav-cta, .text-link {
+  font-family: "Segoe UI Variable Text", "Segoe UI", Inter, Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+.button, .nav-cta, .text-link, .carrier-tablist button, .command-nav > button,
+.call-filters button, .call-list > button, .script-index > button, .next-move button,
+.script-proof > button, .script-steps button {
+  border-radius: 0;
+  outline: 1px solid transparent;
+  outline-offset: -1px;
+  transition: color .2s ease, background .2s ease, border-color .2s ease, outline-color .2s ease, transform .2s ease;
+}
+.button-primary { color: #fff; background: #e10600; border: 1px solid #e10600; }
+.button-primary:hover { color: #e10600; background: #fff; border-color: #fff; box-shadow: 0 14px 34px rgba(225,6,0,.28); }
+.nav-cta { padding: 12px 12px 12px 18px; border: 1px solid rgba(255,255,255,.48); }
+.nav-cta:hover { color: #fff; border-color: #e10600; outline-color: #e10600; }
+.nav-cta span { color: #fff; background: #e10600; border: 1px solid #e10600; border-radius: 0; }
+.text-link { border: 1px solid rgba(255,255,255,.42); padding: 13px 15px; }
+.text-link:hover { color: #fff; border-color: #e10600; outline-color: #e10600; }
+.scenario-tabs button, .carrier-tablist button, .command-nav > button, .call-filters button,
+.call-list > button, .script-index > button, .script-steps button { border-color: rgba(5,5,5,.25); }
+.scenario-tabs button:focus-visible, .carrier-tablist button:focus-visible, .command-nav > button:focus-visible,
+.call-filters button:focus-visible, .call-list > button:focus-visible, .script-index > button:focus-visible,
+.button:focus-visible, .nav-cta:focus-visible, .text-link:focus-visible {
+  outline: 2px solid #e10600;
+  outline-offset: 3px;
+}
+.scenario-tabs button:hover:not(.active), .carrier-tablist button:hover:not(.active),
+.call-filters button:hover:not(.active) { color: #e10600; background: #f4f4f4; outline-color: #e10600; }
+.command-nav > button:hover:not(.active), .script-index > button:hover:not(.active) { color: #fff; background: #1a1a1a; outline-color: #e10600; }
+.next-move button, .script-proof > button { color: #fff; border: 1px solid #e10600; padding: 10px 12px; }
+.next-move button:hover, .script-proof > button:hover { color: #fff; background: #e10600; }
+
+@media (max-width: 680px) {
+  .scenario-tabs { grid-template-columns: repeat(5, minmax(82px, 1fr)); overflow-x: auto; }
+  .scenario-tabs button { min-width: 82px; }
 }
