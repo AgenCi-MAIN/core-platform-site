@@ -96,7 +96,7 @@ em { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
 .section-heading > p { margin: 0 0 4px; max-width: 500px; font-size: 15px; line-height: 1.7; color: #53615d; }
 .kicker { color: #60736c; }
 
-.scenario-tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark); }
+.scenario-tabs { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark); }
 .scenario-tabs button { cursor: pointer; min-height: 126px; padding: 24px 26px; text-align: left; color: var(--ink); background: transparent; border: 0; border-right: 1px solid var(--line-dark); position: relative; transition: background .25s ease, color .25s ease; }
 .scenario-tabs button:last-child { border-right: 0; }
 .scenario-tabs button span { position: absolute; right: 20px; top: 18px; font-size: 8px; letter-spacing: .14em; opacity: .45; }
@@ -104,9 +104,10 @@ em { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
 .scenario-tabs button small { display: block; margin-top: 7px; color: #65716d; }
 .scenario-tabs button.active { background: var(--ink); color: var(--white); }
 .scenario-tabs button.active small { color: var(--mint); }
+.scenario-tabs button.active::after { content: "CURRENT"; position: absolute; right: 18px; bottom: 17px; color: var(--lime); font-size: 7px; font-weight: 900; letter-spacing: .16em; }
 .scenario-panel { min-height: 410px; display: grid; grid-template-columns: .23fr 1fr .64fr; gap: 4vw; align-items: center; border-bottom: 1px solid var(--line-dark); }
 .scenario-marker { align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid var(--line-dark); }
-.scenario-marker span { font: italic 106px/.8 Georgia, serif; color: #58786b; }
+.scenario-marker span { font: italic 92px/.8 Georgia, serif; color: #58786b; letter-spacing: -.09em; }
 .scenario-marker small { margin-top: 20px; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .18em; }
 .micro-label { margin: 0 0 14px !important; color: #60736c !important; text-transform: uppercase; letter-spacing: .15em; font-size: 9px !important; font-weight: 800; }
 .scenario-story h3 { max-width: 600px; margin: 0 0 22px; font-size: clamp(30px, 3vw, 48px); line-height: 1.03; letter-spacing: -.04em; }
@@ -236,6 +237,7 @@ footer > p { margin: 0; max-width: 900px; color: rgba(251,250,245,.4); font-size
   .scenario-tabs button span { display: none; }
   .scenario-tabs button strong { font-size: 13px; }
   .scenario-tabs button small { font-size: 8px; }
+  .scenario-tabs button.active::after { display: none; }
   .scenario-panel { grid-template-columns: 1fr; padding: 44px 0; gap: 32px; }
   .scenario-marker { min-height: 130px; border-right: 0; border-bottom: 1px solid var(--line-dark); }
   .scenario-marker span { font-size: 80px; }

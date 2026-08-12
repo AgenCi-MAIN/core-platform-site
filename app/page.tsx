@@ -2,36 +2,50 @@
 
 import { useState } from "react";
 
-const scenarios = [
+const ranks = [
   {
-    id: "A",
-    name: "Paid baseline",
-    phase: "Acquire",
-    headline: "Know the real cost of rented demand.",
-    body: "Scenario A makes the paid-lead economics visible before scale. The agency tracks what each opportunity costs, where conversion breaks, and whether placed business supports the operating load.",
+    id: "01",
+    mark: "I",
+    name: "Origin",
+    phase: "Calibrate",
+    headline: "Map the cost of rented demand.",
+    body: "Rank 01 starts with visibility. The agency proves it can trace paid-lead economics, identify the break-even line, and see whether placed business can carry the operating load.",
     metric: "500",
     unit: "paid leads / month",
     facts: ["$30 cost per lead", "20% planning close rate", "≈18.4% modeled break-even"],
   },
   {
-    id: "B",
-    name: "Core operational",
+    id: "02",
+    mark: "II",
+    name: "Signal",
     phase: "Prove",
     headline: "Prove quality before replacing spend.",
-    body: "At Day 60, Core earns confidence by routing useful, permissioned conversations—not by counting raw calls. Paid spend steps down only when self-generated demand produces equal or better placed and retained outcomes.",
+    body: "Rank 02 unlocks when Core routes useful, permissioned conversations—not raw call volume. Paid spend steps down only when self-generated demand produces equal or better placed and retained outcomes.",
     metric: "140",
     unit: "quality calls / day",
     facts: ["20 active agents", "7 routed calls per agent", "Source-to-outcome tracking"],
   },
   {
-    id: "C",
-    name: "Stable control",
-    phase: "Scale",
+    id: "03",
+    mark: "III",
+    name: "Command",
+    phase: "Control",
     headline: "Own the signal from source to retention.",
-    body: "After three months of stable production, Core becomes the quality-control layer: preserving context, improving routing, measuring carrier outcomes, and creating a disciplined path toward partner-agency distribution.",
+    body: "Rank 03 requires more than three months of stable production. Core becomes the control layer: preserving context, improving routing, and measuring outcomes through placement and retention.",
     metric: "210+",
     unit: "insurance calls / day",
-    facts: ["250+ calls Mon–Wed", "$180K planning investment", "Partner-ready quality ledger"],
+    facts: ["90+ days stable", "250+ calls Mon–Wed", "Full quality ledger"],
+  },
+  {
+    id: "04",
+    mark: "IV",
+    name: "Network",
+    phase: "Distribute",
+    headline: "Turn proven quality into network power.",
+    body: "Rank 04 extends the proven internal system to partner agencies. Every opportunity carries its source, permission, need, qualification, handoff, and downstream result.",
+    metric: "300",
+    unit: "quality calls / day",
+    facts: ["30 producing agents", "6,600 calls per month", "Accountable partner handoffs"],
   },
 ];
 
@@ -56,8 +70,8 @@ const leadershipMetrics = [
 ];
 
 export default function Home() {
-  const [activeScenario, setActiveScenario] = useState(1);
-  const scenario = scenarios[activeScenario];
+  const [activeRank, setActiveRank] = useState(1);
+  const rank = ranks[activeRank];
 
   return (
     <main>
@@ -67,11 +81,11 @@ export default function Home() {
           <span className="brand-wordmark">CORE <i>Operating system</i></span>
         </a>
         <div className="nav-links">
-          <a href="#scenarios">Model</a>
+          <a href="#ranks">Ranks</a>
           <a href="#quality">Quality</a>
           <a href="#scale">Scale</a>
         </div>
-        <a className="nav-cta" href="#scenarios">View the model <span>↘</span></a>
+        <a className="nav-cta" href="#ranks">View the ranks <span>↘</span></a>
       </nav>
 
       <section className="hero" id="top">
@@ -81,7 +95,7 @@ export default function Home() {
           <h1>From rented demand<br />to owned <em>intelligence.</em></h1>
           <p className="hero-lede">Core turns every lead, handoff, and carrier outcome into a visible operating system—so the agency can scale what works without losing the customer thread.</p>
           <div className="hero-actions">
-            <a className="button button-primary" href="#scenarios">Explore the operating model <span>↓</span></a>
+            <a className="button button-primary" href="#ranks">Enter the rank system <span>↓</span></a>
             <a className="text-link" href="#quality">See the quality standard <span>↗</span></a>
           </div>
         </div>
@@ -89,7 +103,7 @@ export default function Home() {
         <div className="control-plane" aria-label="Core control plane preview">
           <div className="plane-topline">
             <div><span className="pulse" /> CORE / CONTROL PLANE</div>
-            <span>LIVE SYSTEM</span>
+            <span>RANK 02 / SIGNAL</span>
           </div>
           <div className="signal-orbit" aria-hidden="true">
             <div className="orbit orbit-one" />
@@ -109,57 +123,59 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="hero-index" aria-hidden="true">01 — 03</div>
+        <div className="hero-index" aria-hidden="true">CORE RANK / 01 — 04</div>
       </section>
 
-      <section className="transition-strip" aria-label="Core transition model">
-        <p>THE TRANSITION</p>
-        <div><span>A</span><strong>Rented demand</strong></div>
+      <section className="transition-strip" aria-label="Core rank progression">
+        <p>CORE RANK SYSTEM</p>
+        <div><span>I</span><strong>Origin</strong></div>
         <i>→</i>
-        <div><span>B</span><strong>Proven quality</strong></div>
+        <div><span>II</span><strong>Signal</strong></div>
         <i>→</i>
-        <div><span>C</span><strong>Owned control</strong></div>
+        <div><span>III</span><strong>Command</strong></div>
+        <i>→</i>
+        <div><span>IV</span><strong>Network</strong></div>
       </section>
 
-      <section className="scenarios section-light" id="scenarios">
+      <section className="scenarios section-light" id="ranks">
         <div className="section-heading">
           <div>
-            <p className="kicker">The operating model</p>
-            <h2>Three scenarios.<br /><em>One disciplined transition.</em></h2>
+            <p className="kicker">Core maturity index</p>
+            <h2>Four ranks.<br /><em>No shortcuts.</em></h2>
           </div>
-          <p>Core does not jump from buying leads to selling them. It advances only when the quality record proves the next stage is earned.</p>
+          <p>Ranks are not titles. They are operating unlocks. Core advances only when the quality record proves the next level has been earned.</p>
         </div>
 
-        <div className="scenario-tabs" role="tablist" aria-label="Operating scenarios">
-          {scenarios.map((item, index) => (
+        <div className="scenario-tabs" role="tablist" aria-label="Core operating ranks">
+          {ranks.map((item, index) => (
             <button
               key={item.id}
-              className={index === activeScenario ? "active" : ""}
-              onClick={() => setActiveScenario(index)}
+              className={index === activeRank ? "active" : ""}
+              onClick={() => setActiveRank(index)}
               role="tab"
-              aria-selected={index === activeScenario}
+              aria-selected={index === activeRank}
               aria-controls="scenario-panel"
             >
-              <span>0{index + 1}</span>
-              <strong>Scenario {item.id}</strong>
-              <small>{item.name}</small>
+              <span>{item.mark}</span>
+              <strong>Rank {item.id}</strong>
+              <small>{item.name} / {item.phase}</small>
             </button>
           ))}
         </div>
 
         <div className="scenario-panel" id="scenario-panel" role="tabpanel" aria-live="polite">
-          <div className="scenario-marker"><span>{scenario.id}</span><small>{scenario.phase}</small></div>
+          <div className="scenario-marker"><span>{rank.mark}</span><small>Rank {rank.id}</small></div>
           <div className="scenario-story">
-            <p className="micro-label">Scenario {scenario.id} / {scenario.name}</p>
-            <h3>{scenario.headline}</h3>
-            <p>{scenario.body}</p>
+            <p className="micro-label">Core rank {rank.id} / {rank.name} / {rank.phase}</p>
+            <h3>{rank.headline}</h3>
+            <p>{rank.body}</p>
             <div className="scenario-facts">
-              {scenario.facts.map((fact) => <span key={fact}>✓ {fact}</span>)}
+              {rank.facts.map((fact) => <span key={fact}>✓ {fact}</span>)}
             </div>
           </div>
           <div className="scenario-number">
-            <strong>{scenario.metric}</strong>
-            <span>{scenario.unit}</span>
+            <strong>{rank.metric}</strong>
+            <span>{rank.unit}</span>
             <div className="mini-bars" aria-hidden="true">
               {[38, 55, 47, 72, 66, 84, 78, 96].map((height, i) => <i key={i} style={{ height: `${height}%` }} />)}
             </div>
@@ -187,7 +203,7 @@ export default function Home() {
       </section>
 
       <section className="proof-point">
-        <div className="proof-label"><span>DAY 60</span><small>Operational proof point</small></div>
+        <div className="proof-label"><span>SIGNAL</span><small>Rank 02 / Day 60 proof</small></div>
         <div className="proof-equation" aria-label="20 agents times 7 quality calls equals 140 calls per day">
           <div><strong>20</strong><span>active agents</span></div><i>×</i>
           <div><strong>7</strong><span>quality calls</span></div><i>=</i>
@@ -199,7 +215,7 @@ export default function Home() {
       <section className="scale section-light" id="scale">
         <div className="section-heading scale-heading">
           <div>
-            <p className="kicker">Scenario C / capacity</p>
+            <p className="kicker">Rank 03 / Command</p>
             <h2>Scale without<br /><em>losing the thread.</em></h2>
           </div>
           <p>Stable production means the operating record survives every transition—from customer intent to licensed advice, carrier decision, and long-term policy outcome.</p>
@@ -231,7 +247,7 @@ export default function Home() {
       </section>
 
       <section className="partner">
-        <p className="kicker kicker-partner">Future direction</p>
+        <p className="kicker kicker-partner">Rank 04 / Network</p>
         <div className="partner-grid">
           <h2>Turn proven quality into a <em>partner advantage.</em></h2>
           <div>
@@ -262,8 +278,8 @@ export default function Home() {
 
       <footer>
         <div className="footer-brand"><span className="brand-mark">C</span><strong>CORE</strong></div>
-        <p>This site describes internal operating scenarios and editable planning assumptions. It is not an income claim, insurance offer, legal advice, or a promise of lead volume, placement, or commission. Carrier terms, licensing requirements, consumer-consent rules, and actual operating records control real-world results.</p>
-        <div className="footer-meta"><span>OPERATING MODEL / A—C</span><a href="#top">Back to top ↑</a></div>
+        <p>This site describes internal operating ranks and editable planning assumptions. It is not an income claim, insurance offer, legal advice, or a promise of lead volume, placement, or commission. Carrier terms, licensing requirements, consumer-consent rules, and actual operating records control real-world results.</p>
+        <div className="footer-meta"><span>CORE RANK / 01—04</span><a href="#top">Back to top ↑</a></div>
       </footer>
     </main>
   );
