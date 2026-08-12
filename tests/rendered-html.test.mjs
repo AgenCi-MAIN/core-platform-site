@@ -20,11 +20,21 @@ test("server-renders the Core operating model", async () => {
 
   const html = await response.text();
   assert.match(html, /From rented demand/);
-  assert.match(html, /Four ranks/);
+  assert.match(html, /Five ranks/);
   assert.match(html, /Volume is noise/);
-  assert.match(html, /Origin/);
-  assert.match(html, /Signal/);
-  assert.match(html, /Command/);
-  assert.match(html, /Network/);
+  assert.match(html, /Ember/);
+  assert.match(html, /Vector/);
+  assert.match(html, /Apex/);
+  assert.match(html, /Dominion/);
+  assert.match(html, /Zenith/);
+  assert.match(html, /110%/);
+  assert.match(html, /Fund a verified signal/);
+  assert.match(html, /Every carrier answer/);
+  assert.match(html, /Every signal becomes/);
+  assert.match(html, /Find the five minutes that matter/);
+  assert.match(html, /Portfolio memory gets smarter/);
+  assert.match(html, /Scripts should learn/);
+  assert.match(html, /N-001/);
+  assert.match(html, /GOAL ENGINE/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Starter Project/i);
 });

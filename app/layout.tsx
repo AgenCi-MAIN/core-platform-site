@@ -10,19 +10,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase,
-    title: "Core Agency — From Rented Demand to Owned Intelligence",
-    description: "The Core Agency operating model: a measurable transition from paid lead acquisition to quality-controlled, self-generated demand.",
+    title: "Core — The In-House Signal Exchange",
+    description: "Core connects verified in-house opportunity, carrier intelligence, call coaching, scripts, compensation ranks, and accountable outcomes in one operating system.",
     icons: { icon: "/favicon.svg", shortcut: "/favicon.svg" },
     openGraph: {
       title: "From rented demand to owned intelligence.",
-      description: "A disciplined operating model for traceable demand, quality routing, and durable agency growth.",
+      description: "A verified signal exchange and agency intelligence system for traceable demand, quality routing, call learning, and durable growth.",
       type: "website",
       images: [{ url: "/og.png", width: 1536, height: 1024, alt: "Core Agency operating model" }],
     },
     twitter: {
       card: "summary_large_image",
       title: "From rented demand to owned intelligence.",
-      description: "The four-rank Core Agency operating system.",
+      description: "The five-rank Core signal exchange and agency operating system.",
       images: ["/og.png"],
     },
   };
