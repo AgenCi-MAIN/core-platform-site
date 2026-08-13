@@ -1,5 +1,6 @@
 import { chatGPTSignOutPath } from "../chatgpt-auth";
 import { ROLE_LABELS, can, type Capability, type PortalSession } from "./access";
+import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
 import { PortalThemeControl } from "../theme-control";
 
@@ -217,6 +218,7 @@ export function PortalShell({
             >
               <span aria-hidden="true" />
             </button>
+            <PortalBackControl />
             <span className="portal-topbar-copy">
               <strong className="portal-section-name">{section}</strong>
               <small className="portal-section-context">THRIVE operating portal</small>
