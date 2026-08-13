@@ -1,4 +1,8 @@
-import { ROLE_LABELS, requireCapability } from "./access";
+import { count } from "drizzle-orm";
+import { getDb } from "../../db";
+import { portalMembers } from "../../db/schema";
+import { CAPABILITIES, ROLE_LABELS, requireCapability } from "./access";
+import { METAL_FOR_ROLE, RankMedallion } from "../rank-medallion";
 import {
   PortalCardHeader,
   PortalPageIntro,
@@ -9,6 +13,27 @@ import {
 
 export const dynamic = "force-dynamic";
 
+/** The full capability set, so the dashboard shows held-of-total. */
+const TOTAL_CAPABILITIES = CAPABILITIES.length;
+
+/**
+ * Principal seats: Shawn, Ryan, Nate, Oscar. Stated by the owner rather than
+ * derived, because it is an intent about who should hold access — the filled
+ * count below is read from the database and can disagree with it, which is the
+ * point.
+ */
+const TOTAL_SEATS = 4;
+
+/** Roman numeral per role, struck into its medallion. */
+const ROLE_NUMERAL: Record<string, string> = {
+  owner: "V",
+  admin: "IV",
+  manager: "III",
+  reviewer: "III",
+  agent: "I",
+  support: "I",
+};
+
 /**
  * Personal portal dashboard. Every value is derived from the authenticated
  * session or describes a known system boundary. Production metrics stay absent
@@ -17,6 +42,23 @@ export const dynamic = "force-dynamic";
 export default async function PortalDashboard() {
   const session = await requireCapability("dashboard.view.self", "/portal");
   const roleLabel = ROLE_LABELS[session.role];
+  const metal = METAL_FOR_ROLE[session.role] ?? "steel";
+  const numeral = ROLE_NUMERAL[session.role] ?? "I";
+
+  const granted = session.capabilities.length;
+  const grantTone = granted >= TOTAL_CAPABILITIES ? "good" : granted < 5 ? "bad" : "warn";
+
+  // Seats actually granted. A failure here must not take the dashboard down —
+  // the count is informational, and the page has already passed authorization.
+  let seatsFilled = 0;
+  try {
+    const [row] = await getDb().select({ value: count() }).from(portalMembers);
+    seatsFilled = row?.value ?? 0;
+  } catch {
+    seatsFilled = 0;
+  }
+  const seatsTone =
+    seatsFilled >= TOTAL_SEATS ? "good" : seatsFilled >= TOTAL_SEATS - 1 ? "warn" : "bad";
 
   return (
     <PortalShell session={session} current="/portal" section="Dashboard">
@@ -40,22 +82,52 @@ export default async function PortalDashboard() {
         </div>
 
         <section className="portal-metric-grid" aria-label="Session overview">
-          <article className="portal-metric">
+          {/* Membership: green when active, red otherwise. Status is the one
+              value a member should be able to read from across the room. */}
+          <article
+            className={`portal-metric portal-metric-${session.status === "active" ? "good" : "bad"}`}
+          >
             <span className="portal-metric-label">Membership</span>
-            <strong className="portal-metric-value">{session.status}</strong>
-            <span className="portal-metric-detail">Verified against your CORE member record</span>
+            <strong className="portal-metric-value portal-metric-shout">{session.status}</strong>
+            <span className="portal-metric-detail">Verified against your THRIVE member record</span>
           </article>
-          <article className="portal-metric">
+
+          {/* Operating role, struck in its rank metal. Owner is gold. */}
+          <article className={`portal-metric portal-metric-metal portal-metric-${metal}`}>
             <span className="portal-metric-label">Operating role</span>
-            <strong className="portal-metric-value">{roleLabel}</strong>
+            <span className="portal-metric-rank">
+              <RankMedallion metal={metal} numeral={numeral} size={38} title={roleLabel} />
+              <strong className="portal-metric-value">{roleLabel}</strong>
+            </span>
             <span className="portal-metric-detail">Controls which portal routes you can open</span>
           </article>
-          <article className="portal-metric">
+
+          {/* Grants: ten is the full set. Fewer than five is a narrow seat. */}
+          <article className={`portal-metric portal-metric-${grantTone}`}>
             <span className="portal-metric-label">Capability grants</span>
-            <strong className="portal-metric-value">{session.capabilities.length}</strong>
+            <strong className="portal-metric-value">
+              {granted}
+              <small className="portal-metric-of"> / {TOTAL_CAPABILITIES}</small>
+            </strong>
             <span className="portal-metric-detail">Deny-by-default permissions held now</span>
           </article>
-          <article className="portal-metric">
+
+          {/* Seats: how many people hold portal access, out of the four
+              principals. Read from the membership table, not asserted. */}
+          <article className={`portal-metric portal-metric-${seatsTone}`}>
+            <span className="portal-metric-label">Seats</span>
+            <strong className="portal-metric-value">
+              {seatsFilled}
+              <small className="portal-metric-of"> / {TOTAL_SEATS}</small>
+            </strong>
+            <span className="portal-metric-detail">
+              {seatsFilled === TOTAL_SEATS
+                ? "All principal seats granted"
+                : `${TOTAL_SEATS - seatsFilled} seat${TOTAL_SEATS - seatsFilled === 1 ? "" : "s"} pending an address`}
+            </span>
+          </article>
+
+          <article className="portal-metric portal-metric-bad">
             <span className="portal-metric-label">Business sources</span>
             <strong className="portal-metric-value">Not connected</strong>
             <span className="portal-metric-detail">CRM, carrier, dialer feeds, and financial data stay absent</span>

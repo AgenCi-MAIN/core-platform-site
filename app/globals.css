@@ -2764,3 +2764,168 @@ html[data-portal-performance="boost"] .button:hover .key-glyph { transform: none
   .portal-back-label, .portal-back-key { display: none; }
   .portal-back { padding: 5px 8px; }
 }
+
+/* ============================================================
+   RANK METALS
+   Bronze, silver, gold, diamond, obsidian, steel. Rank is the
+   thing an agent is working toward, so it should look struck,
+   not printed.
+   ============================================================ */
+
+.portal {
+  --m-bronze-light: #f0c9a0;  --m-bronze: #c67c3e;  --m-bronze-deep: #8a4a1c;
+  --m-silver-light: #ffffff;  --m-silver: #c9d2da;  --m-silver-deep: #8b98a5;
+  --m-gold-light:   #fdf3d2;  --m-gold:   #e0b64e;  --m-gold-deep:   #a97b1d;
+  --m-diamond-light:#ffffff;  --m-diamond:#bfe6f5;  --m-diamond-deep:#6fa8c9;
+  --m-obsidian-light:#7b6bb0; --m-obsidian:#3a2f5c; --m-obsidian-deep:#1d1730;
+  --m-steel-light:  #e8edf2;  --m-steel:  #9aa7b4;  --m-steel-deep:  #66727e;
+}
+
+@keyframes rank-shine {
+  0%   { transform: translateX(-150%) skewX(-8deg); }
+  60%  { transform: translateX(180%)  skewX(-8deg); }
+  100% { transform: translateX(180%)  skewX(-8deg); }
+}
+
+.rank-medallion { display: block; flex: none; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .35)); }
+.rank-medallion-shine { animation: rank-shine 5s cubic-bezier(.4, 0, .2, 1) infinite; }
+.rank-medallion-gold     { filter: drop-shadow(0 3px 10px rgba(224, 182, 78, .45)); }
+.rank-medallion-diamond  { filter: drop-shadow(0 3px 10px rgba(111, 168, 201, .45)); }
+.rank-medallion-bronze   { filter: drop-shadow(0 3px 8px rgba(198, 124, 62, .40)); }
+.rank-medallion-obsidian { filter: drop-shadow(0 3px 10px rgba(123, 107, 176, .40)); }
+
+/* ============================================================
+   DASHBOARD METRIC STATES
+   Green means good, amber means partial, red means absent. The
+   card carries the colour so it reads before the words do.
+   ============================================================ */
+
+.portal-metric { position: relative; overflow: hidden; }
+.portal-metric::before {
+  content: "";
+  position: absolute; inset: 0 auto 0 0; width: 3px;
+  background: var(--portal-line-strong);
+}
+
+.portal-metric-good::before { background: linear-gradient(180deg, #2fbf71 0%, #157347 100%); }
+.portal-metric-warn::before { background: linear-gradient(180deg, #e0a72c 0%, #8a5700 100%); }
+.portal-metric-bad::before  { background: linear-gradient(180deg, #e5544b 0%, #a52620 100%); }
+
+.portal-metric-good .portal-metric-value { color: #157347; }
+.portal-metric-warn .portal-metric-value { color: #8a5700; }
+.portal-metric-bad  .portal-metric-value { color: var(--portal-danger); }
+
+html[data-portal-theme="dark"] .portal-metric-good .portal-metric-value { color: #79dfad; }
+html[data-portal-theme="dark"] .portal-metric-warn .portal-metric-value { color: #f0c775; }
+html[data-portal-theme="dark"] .portal-metric-bad  .portal-metric-value { color: #f28b84; }
+
+/* ACTIVE, shouted. */
+.portal-metric-shout {
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 850;
+}
+
+.portal-metric-of {
+  font-size: .5em; font-weight: 800; letter-spacing: .02em;
+  color: var(--portal-subtle); margin-left: 2px;
+}
+
+/* --- The role card, struck in its metal --------------------- */
+.portal-metric-rank { display: flex; align-items: center; gap: 11px; }
+.portal-metric-rank .portal-metric-value { margin: 0; }
+
+.portal-metric-metal::before { width: 4px; }
+
+.portal-metric-gold::before {
+  background: linear-gradient(180deg, var(--m-gold-light) 0%, var(--m-gold) 45%, var(--m-gold-deep) 100%);
+}
+.portal-metric-gold .portal-metric-value {
+  background: linear-gradient(100deg, var(--m-gold-deep) 0%, var(--m-gold) 42%, #fff6d8 58%, var(--m-gold-deep) 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rank-shine-text 5.5s ease-in-out infinite;
+  font-weight: 850;
+}
+@keyframes rank-shine-text {
+  0%, 100% { background-position: 0% 0; }
+  55%      { background-position: 180% 0; }
+}
+html[data-portal-theme="dark"] .portal-metric-gold .portal-metric-value {
+  background: linear-gradient(100deg, var(--m-gold) 0%, #f7e3a1 42%, #fffaf0 58%, var(--m-gold) 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.portal-metric-diamond::before { background: linear-gradient(180deg, var(--m-diamond-light) 0%, var(--m-diamond) 45%, var(--m-diamond-deep) 100%); }
+.portal-metric-diamond .portal-metric-value { color: var(--m-diamond-deep); }
+html[data-portal-theme="dark"] .portal-metric-diamond .portal-metric-value { color: var(--m-diamond); }
+
+.portal-metric-silver::before { background: linear-gradient(180deg, var(--m-silver-light) 0%, var(--m-silver) 45%, var(--m-silver-deep) 100%); }
+.portal-metric-silver .portal-metric-value { color: var(--m-silver-deep); }
+html[data-portal-theme="dark"] .portal-metric-silver .portal-metric-value { color: var(--m-silver); }
+
+.portal-metric-bronze::before { background: linear-gradient(180deg, var(--m-bronze-light) 0%, var(--m-bronze) 45%, var(--m-bronze-deep) 100%); }
+.portal-metric-bronze .portal-metric-value { color: var(--m-bronze-deep); }
+html[data-portal-theme="dark"] .portal-metric-bronze .portal-metric-value { color: var(--m-bronze-light); }
+
+.portal-metric-obsidian::before { background: linear-gradient(180deg, var(--m-obsidian-light) 0%, var(--m-obsidian) 45%, var(--m-obsidian-deep) 100%); }
+.portal-metric-obsidian .portal-metric-value { color: var(--m-obsidian); }
+html[data-portal-theme="dark"] .portal-metric-obsidian .portal-metric-value { color: var(--m-obsidian-light); }
+
+.portal-metric-steel::before { background: linear-gradient(180deg, var(--m-steel-light) 0%, var(--m-steel) 45%, var(--m-steel-deep) 100%); }
+.portal-metric-steel .portal-metric-value { color: var(--m-steel-deep); }
+html[data-portal-theme="dark"] .portal-metric-steel .portal-metric-value { color: var(--m-steel-light); }
+
+/* ============================================================
+   RANK CARDS on the public overview
+   Each card wears its own metal: bezel, numeral, and the
+   contract figure.
+   ============================================================ */
+
+.rank-card { position: relative; overflow: hidden; }
+.rank-card::after {
+  content: "";
+  position: absolute; inset: 0 0 auto 0; height: 3px;
+  background: var(--portal-line-strong);
+}
+.rank-card-bronze::after   { background: linear-gradient(90deg, var(--m-bronze-deep), var(--m-bronze-light), var(--m-bronze-deep)); }
+.rank-card-silver::after   { background: linear-gradient(90deg, var(--m-silver-deep), var(--m-silver-light), var(--m-silver-deep)); }
+.rank-card-gold::after     { background: linear-gradient(90deg, var(--m-gold-deep), var(--m-gold-light), var(--m-gold-deep)); }
+.rank-card-diamond::after  { background: linear-gradient(90deg, var(--m-diamond-deep), var(--m-diamond-light), var(--m-diamond-deep)); }
+.rank-card-obsidian::after { background: linear-gradient(90deg, var(--m-obsidian-deep), var(--m-obsidian-light), var(--m-obsidian-deep)); }
+
+.rank-card-bronze   .rank-metric strong { color: var(--m-bronze-deep); }
+.rank-card-silver   .rank-metric strong { color: var(--m-silver-deep); }
+.rank-card-gold     .rank-metric strong { color: var(--m-gold-deep); }
+.rank-card-diamond  .rank-metric strong { color: var(--m-diamond-deep); }
+.rank-card-obsidian .rank-metric strong { color: var(--m-obsidian); }
+
+html[data-portal-theme="dark"] .rank-card-bronze   .rank-metric strong { color: var(--m-bronze-light); }
+html[data-portal-theme="dark"] .rank-card-silver   .rank-metric strong { color: var(--m-silver); }
+html[data-portal-theme="dark"] .rank-card-gold     .rank-metric strong { color: var(--m-gold); }
+html[data-portal-theme="dark"] .rank-card-diamond  .rank-metric strong { color: var(--m-diamond); }
+html[data-portal-theme="dark"] .rank-card-obsidian .rank-metric strong { color: var(--m-obsidian-light); }
+
+/* The onboarding ladder gets the same treatment. */
+.onboard-ranks li.rank-row-bronze   { border-left: 4px solid var(--m-bronze); }
+.onboard-ranks li.rank-row-silver   { border-left: 4px solid var(--m-silver-deep); }
+.onboard-ranks li.rank-row-gold     { border-left: 4px solid var(--m-gold); }
+.onboard-ranks li.rank-row-diamond  { border-left: 4px solid var(--m-diamond-deep); }
+.onboard-ranks li.rank-row-obsidian { border-left: 4px solid var(--m-obsidian); }
+
+/* Motion opt-outs. */
+@media (prefers-reduced-motion: reduce) {
+  .rank-medallion-shine { animation: none; }
+  .portal-metric-gold .portal-metric-value { animation: none; }
+}
+html[data-portal-performance="boost"] .rank-medallion-shine { animation: none; }
+html[data-portal-performance="boost"] .rank-medallion { filter: none; }
+html[data-portal-performance="boost"] .portal-metric-gold .portal-metric-value {
+  animation: none; background: none; color: var(--m-gold-deep); -webkit-text-fill-color: currentColor;
+}
+html[data-portal-theme="dark"][data-portal-performance="boost"] .portal-metric-gold .portal-metric-value { color: var(--m-gold); }

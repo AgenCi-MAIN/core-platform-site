@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { KeyGlyph } from "../key-glyph";
 import { PortalGovernanceFooter } from "../portal-chrome";
+import { RankMedallion, type Metal } from "../rank-medallion";
 import { SiteTopbar } from "../site-chrome";
 
 export const dynamic = "force-static";
@@ -67,11 +68,11 @@ const SUPPORT = [
 ] as const;
 
 const RANK_STEPS = [
-  { mark: "I", name: "Ember", phase: "Bronze / Captive", note: "Where you start. Learn the full policy economy and protect the first dollar." },
-  { mark: "II", name: "Vector", phase: "Silver / Producer", note: "Earned through repeatable production — not one hot month." },
-  { mark: "III", name: "Apex", phase: "Gold / Thrive", note: "Production earns altitude. Quality keeps it." },
-  { mark: "IV", name: "Dominion", phase: "Diamond / Core 1.0", note: "Own the book, not just the leaderboard." },
-  { mark: "V", name: "Zenith", phase: "Obsidian / Core 2.0", note: "The system compounds through you." },
+  { mark: "I", name: "Ember", phase: "Bronze / Captive", note: "Where you start. Learn the full policy economy and protect the first dollar.", metal: "bronze" as Metal },
+  { mark: "II", name: "Vector", phase: "Silver / Producer", note: "Earned through repeatable production — not one hot month.", metal: "silver" as Metal },
+  { mark: "III", name: "Apex", phase: "Gold / Thrive", note: "Production earns altitude. Quality keeps it.", metal: "gold" as Metal },
+  { mark: "IV", name: "Dominion", phase: "Diamond / Core 1.0", note: "Own the book, not just the leaderboard.", metal: "diamond" as Metal },
+  { mark: "V", name: "Zenith", phase: "Obsidian / Core 2.0", note: "The system compounds through you.", metal: "obsidian" as Metal },
 ] as const;
 
 export default function OnboardingPage() {
@@ -188,8 +189,8 @@ export default function OnboardingPage() {
           </header>
           <ol className="onboard-ranks">
             {RANK_STEPS.map((rank, i) => (
-              <li key={rank.name} className={i === 0 ? "onboard-rank-current" : undefined}>
-                <span className="rank-mark" aria-hidden="true">{rank.mark}</span>
+              <li key={rank.name} className={`rank-row-${rank.metal}${i === 0 ? " onboard-rank-current" : ""}`}>
+                <RankMedallion metal={rank.metal} numeral={rank.mark} size={40} />
                 <span className="onboard-rank-copy">
                   <strong>{rank.name}</strong>
                   <small>{rank.phase}</small>

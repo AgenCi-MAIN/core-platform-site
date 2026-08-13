@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { KeyGlyph } from "./key-glyph";
 import { PortalGovernanceFooter } from "./portal-chrome";
+import { RankMedallion, type Metal } from "./rank-medallion";
 import { SiteTopbar } from "./site-chrome";
 
 /**
@@ -24,6 +25,7 @@ const RANKS = [
     headline: "Learn to protect the first dollar.",
     body: "The foundation rank teaches the full policy economy: annual premium, advance exposure, residual value, placement, and the cost of losing a case before month nine.",
     metric: "50%",
+    metal: "bronze" as Metal,
   },
   {
     id: "02",
@@ -33,6 +35,7 @@ const RANKS = [
     headline: "Consistency creates direction.",
     body: "Vector is earned through repeatable production, not one hot month. AP, commission, advance, lead cost, and deposited cash stay separated so an agent can see what performance actually survives.",
     metric: "80%",
+    metal: "silver" as Metal,
   },
   {
     id: "03",
@@ -42,6 +45,7 @@ const RANKS = [
     headline: "Production earns altitude. Quality keeps it.",
     body: "Apex recognizes the producer who can place business without hollowing out the book. Promotion blends sustained AP with retention, chargeback control, clean files, and customer outcomes.",
     metric: "95%",
+    metal: "gold" as Metal,
   },
   {
     id: "04",
@@ -51,6 +55,7 @@ const RANKS = [
     headline: "Own the book, not just the leaderboard.",
     body: "Dominion is the first complete operator rank: production, retention, coaching, and operational discipline move together. It rewards durable influence, not only personal output.",
     metric: "100%",
+    metal: "diamond" as Metal,
   },
   {
     id: "05",
@@ -60,6 +65,7 @@ const RANKS = [
     headline: "The system compounds through you.",
     body: "Zenith is not simply the highest contract. It is the operator who produces, protects the book, upgrades the team, and leaves the intelligence layer stronger after every call and every case.",
     metric: "110%",
+    metal: "obsidian" as Metal,
   },
 ] as const;
 
@@ -160,9 +166,9 @@ export default function Home() {
 
           <div className="rank-grid">
             {RANKS.map((rank) => (
-              <article className="portal-card rank-card" key={rank.id}>
+              <article className={`portal-card rank-card rank-card-${rank.metal}`} key={rank.id}>
                 <div className="rank-top">
-                  <span className="rank-mark" aria-hidden="true">{rank.mark}</span>
+                  <RankMedallion metal={rank.metal} numeral={rank.mark} size={42} />
                   <span className="rank-id">
                     <strong>{rank.name}</strong>
                     <small>{rank.phase}</small>
