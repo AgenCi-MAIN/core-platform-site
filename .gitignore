@@ -36,7 +36,13 @@ yarn-error.log*
 
 # typescript
 next-env.d.ts
+*.tsbuildinfo
 /dist/
 /.wrangler/
 /outputs/
 /work/
+
+# deployment packages produced by the hosting control plane. `.openai/hosting.json`
+# is real configuration and stays tracked; these are regenerated build output.
+/.openai/package-*/
+/.openai/*.tar.gz

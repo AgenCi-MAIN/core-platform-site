@@ -350,6 +350,7 @@ export default function Home() {
           <a href="#carrier-intelligence">CarrierOS</a>
           <a href="#command-system">Command</a>
           <a href="#call-intelligence">Call Lab</a>
+          <a href="/portal">Portal</a>
         </div>
         <a className="nav-cta" href="#command-system">Enter Core <span>↘</span></a>
       </nav>
@@ -460,7 +461,7 @@ export default function Home() {
         <div className="exchange-heading">
           <div>
             <p className="kicker kicker-dark">In-house leads / commercial model</p>
-            <h2>Don't sell a list.<br /><em>Fund a verified signal.</em></h2>
+            <h2>Don&apos;t sell a list.<br /><em>Fund a verified signal.</em></h2>
           </div>
           <p>Core separates lead money from policy money. Partners reserve capacity, billing releases against a documented opportunity standard, and a quality reserve stays visible until delivery issues are reconciled.</p>
         </div>
@@ -654,7 +655,7 @@ export default function Home() {
         <div className="call-heading">
           <div>
             <p className="kicker kicker-dark">Core call lab / portfolio intelligence</p>
-            <h2>Don't replay the hour.<br /><em>Find the five minutes that matter.</em></h2>
+            <h2>Don&apos;t replay the hour.<br /><em>Find the five minutes that matter.</em></h2>
           </div>
           <p>Core studies every inbound outcome as a connected portfolio. It contrasts wins with losses, spots the moment momentum changed, and turns the finding into a ranked coaching move&mdash;no prompt required.</p>
         </div>
