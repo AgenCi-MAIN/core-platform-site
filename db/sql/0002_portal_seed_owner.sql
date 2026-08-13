@@ -9,8 +9,9 @@
 --
 -- 1. `email` must be the address the person actually signs in with at the
 --    hosting platform's identity provider, lowercased. It is NOT necessarily
---    the address on file elsewhere in CORE records. Verify it first — seeding
---    the wrong address grants nothing and looks like a broken portal.
+--    the address on file elsewhere in CORE records. Seeding the wrong address
+--    grants nothing and looks like a broken portal.
+--    bankerrunners@gmail.com was CONFIRMED by the owner on August 13, 2026.
 -- 2. Oscar Valencia and Nate Nguyen are named as owners in the agreement record
 --    but their sign-in addresses were not available when this file was written.
 --    Their rows are left commented out. Fill in the verified addresses and
@@ -32,7 +33,7 @@ VALUES
     'owner',
     'active',
     'bootstrap',
-    'Initial owner seeded at portal provisioning. Verify this is the correct sign-in address.'
+    'Initial owner seeded at portal provisioning. Sign-in address confirmed by the owner on 2026-08-13.'
   );
 
 -- Pending verified sign-in addresses — uncomment after confirming each one:

@@ -110,9 +110,31 @@ public presentation page at `app/page.tsx`.
   grants nothing.
 - `db/schema.ts` — `portal_members` (the allowlist) and `audit_events`
   (append-only allow/deny record).
-- `db/sql/0001_portal_init.sql` — schema DDL, applied with `wrangler d1 execute`.
+- `db/sql/0001_portal_init.sql` — the same schema as hand-written DDL, for
+  applying manually with `wrangler d1 execute`.
 - `db/sql/0002_portal_seed_owner.sql` — first-owner bootstrap. **Read its header
   comments before applying.**
+
+### How the schema actually reaches a deployed database
+
+`build/sites-vite-plugin.ts` copies `.openai/hosting.json` and the whole
+`drizzle/` directory into `dist/.openai/` at build time. The Sites platform
+provisions the `DB` binding declared in `hosting.json` and applies the packaged
+**drizzle** migrations — `db/sql/` is not part of the deployment package.
+
+Two consequences worth knowing before deploying:
+
+1. `drizzle/` is the migration path that ships. Run `npm run db:generate` after
+   any change to `db/schema.ts`, and make sure `drizzle/meta/_journal.json` is
+   not empty — an empty journal means no migration is applied.
+2. **The owner seed does not ship.** A fresh deployment therefore has the schema
+   but zero members, and the portal fails closed, so nobody can sign in —
+   including the owners. Seeding the first owner is a deliberate manual step
+   after the database exists.
+
+Applying `db/sql/0001_portal_init.sql` by hand *and* letting the platform apply
+the drizzle migration will collide: `0001` uses `CREATE TABLE IF NOT EXISTS`,
+the generated migration does not. Pick one path per database.
 
 Capabilities are deny-by-default; roles are `owner`, `admin`, `manager`,
 `reviewer`, `agent`, `support`. Guard a page with `requireCapability(...)` and a
