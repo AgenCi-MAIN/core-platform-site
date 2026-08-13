@@ -127,6 +127,14 @@ function describeDenial(denial: AccessDenial) {
         showRecruiter: true,
         showEmailRule: true,
       };
+    case "identity_ambiguous":
+      return {
+        heading: "Two memberships match you",
+        body: `Your sign-in account is already bound to one THRIVE membership, and ${denial.email} belongs to a different one. The portal cannot tell which is yours.`,
+        next: "Access is refused rather than guessed, so neither membership can be taken over by mistake. An owner or administrator must merge or remove one of the two records.",
+        showRecruiter: true,
+        showEmailRule: false,
+      };
     case "invalid_role":
       return {
         heading: "Membership needs repair",

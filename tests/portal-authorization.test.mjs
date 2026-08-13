@@ -119,9 +119,17 @@ test("an unmigrated database never serves portal content", async () => {
       subject: "subject-x",
       email: "someone@example.com",
     });
-    assert.notEqual(response.status, 200, "must not render the dashboard");
+    // Assert the actual contract, not merely "not 200". The looser form
+    // accepted an HTTP 500 — which is precisely what the portal was doing:
+    // an unhandled missing-table error on every route, rather than a refusal.
+    assert.equal(response.status, 307, `expected a redirect, got ${response.status}`);
+    assert.match(
+      response.headers.get("location") ?? "",
+      /\/portal\/no-access$/,
+      "must route to the explanation page",
+    );
     const body = await response.text();
-    assert.doesNotMatch(body, /Capabilities held/);
+    assert.equal(body, "", "must not emit a body");
   } finally {
     await portal.dispose();
   }
@@ -651,3 +659,113 @@ test("an owner can remove a track", async (t) => {
   assert.equal(await portal.recordings.get(key), null, "the object must be gone from R2");
 });
 
+
+/* ============================================================
+   Identity resolution.
+
+   Both keys are unique, so a lookup by subject and a lookup by
+   email each return at most one row — but they can return two
+   DIFFERENT rows. The previous single or(email, subject) query
+   with limit(1) and no ordering resolved that arbitrarily.
+   ============================================================ */
+
+test("subject binding wins when the provider address has changed", async (t) => {
+  const portal = await startPortal({ seed: false });
+  t.after(portal.dispose);
+
+  // One membership, already bound, whose recorded address is now stale.
+  await portal.addMember("old-address@example.com", "manager", "active", "subject-stable");
+
+  const response = await portal.get("/portal", {
+    subject: "subject-stable",
+    email: "new-address@example.com",
+  });
+
+  assert.equal(response.status, 200, "the bound subject is the person's identity");
+
+  const rows = await portal.audit();
+  const allow = rows.find((r) => r.action === "portal.access" && r.decision === "allow");
+  assert.ok(allow, "the sign-in must be audited");
+  assert.equal(allow.actor_role, "manager", "the role must come from the bound row");
+});
+
+test("a caller matching two different memberships is refused, not guessed", async (t) => {
+  // No seed: this test owns the whole table, so the row count below is exact.
+  const portal = await startPortal({ seed: false });
+  t.after(portal.dispose);
+
+  // Row A: the address being presented now, never signed in.
+  await portal.addMember("alice@example.com", "owner", "active", null);
+  // Row B: a different membership this subject is already bound to.
+  await portal.addMember("alice.old@example.com", "support", "active", "subject-alice");
+
+  const response = await portal.get("/portal", {
+    subject: "subject-alice",
+    email: "alice@example.com",
+  });
+
+  assert.equal(response.status, 307, "an ambiguous identity must not be resolved");
+  assert.match(response.headers.get("location") ?? "", /\/portal\/no-access$/);
+
+  const rows = await portal.audit();
+  const deny = rows.find((r) => r.reason === "identity_ambiguous");
+  assert.ok(deny, "the ambiguity must be audited by name");
+  assert.equal(deny.decision, "deny");
+
+  // Neither membership was granted, and neither was mutated. Without the fix
+  // one of these rows would have been claimed by the wrong person.
+  const members = (
+    await portal.db
+      .prepare("SELECT email, role, subject_id FROM portal_members ORDER BY email")
+      .all()
+  ).results;
+  // Look them up by address rather than by position: "alice.old@" sorts before
+  // "alice@" because '.' precedes '@', which is easy to get backwards.
+  const byEmail = Object.fromEntries(members.map((m) => [m.email, m]));
+  assert.equal(members.length, 2, "no row may be created or removed");
+  assert.equal(
+    byEmail["alice@example.com"].subject_id,
+    null,
+    "the unbound row must NOT have been claimed",
+  );
+  assert.equal(
+    byEmail["alice.old@example.com"].subject_id,
+    "subject-alice",
+    "the bound row must be untouched",
+  );
+
+  // The refusal page names the situation rather than showing a generic error.
+  const page = await portal.get("/portal/no-access", {
+    subject: "subject-alice",
+    email: "alice@example.com",
+  });
+  assert.match(await page.text(), /Two memberships match you/);
+});
+
+test("the ordinary single-match paths still resolve", async (t) => {
+  const portal = await startPortal({ seed: false });
+  t.after(portal.dispose);
+
+  // Matched by email only: first sign-in binds the subject.
+  await portal.addMember("fresh@example.com", "agent");
+  const first = await portal.get("/portal", {
+    subject: "subject-fresh",
+    email: "fresh@example.com",
+  });
+  assert.equal(first.status, 200, "an unbound email row must bind and admit");
+
+  const bound = (
+    await portal.db
+      .prepare("SELECT subject_id FROM portal_members WHERE email = ?")
+      .bind("fresh@example.com")
+      .all()
+  ).results[0];
+  assert.equal(bound.subject_id, "subject-fresh");
+
+  // Matched by neither: still refused.
+  const stranger = await portal.get("/portal", {
+    subject: "subject-nobody",
+    email: "nobody@example.com",
+  });
+  assert.equal(stranger.status, 307);
+});

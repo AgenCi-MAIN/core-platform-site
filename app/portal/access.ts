@@ -1,4 +1,4 @@
-import { eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "../../db";
@@ -119,6 +119,7 @@ export type AccessDenial =
   | { kind: "not_a_member"; email: string }
   | { kind: "suspended"; email: string; status: MemberStatus; note: string | null }
   | { kind: "subject_conflict"; email: string }
+  | { kind: "identity_ambiguous"; email: string }
   | { kind: "invalid_role"; email: string };
 
 export type AccessResult =
@@ -151,14 +152,91 @@ export async function resolvePortalAccess(): Promise<AccessResult> {
   if (!db) {
     // The membership table is the only thing that can grant access. If it is
     // unreachable we fail closed rather than guessing.
+    await recordAudit({
+      action: "portal.access",
+      decision: "deny",
+      reason: "not_provisioned",
+      actorEmail: email,
+      actorSubjectId: user.userId,
+      requestPath,
+    });
     return { ok: false, denial: { kind: "not_provisioned" } };
   }
 
-  const [member] = await db
-    .select()
-    .from(portalMembers)
-    .where(or(eq(portalMembers.email, email), eq(portalMembers.subjectId, user.userId)))
-    .limit(1);
+  /**
+   * Resolve the membership row by SUBJECT FIRST, then by email.
+   *
+   * Both `email` and `subject_id` are unique, so each lookup returns at most
+   * one row — but they can return two DIFFERENT rows. That happens when a
+   * subject is already bound to one membership and the address they now
+   * present belongs to another: an address was reassigned, or a second row was
+   * created for someone who already had one.
+   *
+   * The previous single `or(email, subject)` query with `limit(1)` and no
+   * ordering resolved that case arbitrarily. Whichever row the database
+   * happened to return decided whether the person was let in, refused as
+   * revoked, or — worse — bound to a membership that was never theirs.
+   *
+   * The subject is the strong identity: it is issued by the provider and, once
+   * bound, is permanent. An address is not. So the subject wins, and a genuine
+   * conflict between the two is refused rather than guessed.
+   */
+  let subjectRow: typeof portalMembers.$inferSelect | undefined;
+  let emailRow: typeof portalMembers.$inferSelect | undefined;
+
+  try {
+    [subjectRow] = await db
+      .select()
+      .from(portalMembers)
+      .where(eq(portalMembers.subjectId, user.userId))
+      .limit(1);
+
+    [emailRow] = await db
+      .select()
+      .from(portalMembers)
+      .where(eq(portalMembers.email, email))
+      .limit(1);
+  } catch (error) {
+    // A bound database whose migration has not been applied has no
+    // portal_members table. That used to escape as an unhandled error and
+    // surface as HTTP 500 on every portal route. It is the same situation as
+    // an absent binding — membership cannot be verified — so it fails closed
+    // the same way, with an explanation instead of a stack trace.
+    if (isMissingTableError(error)) {
+      await recordAudit({
+        action: "portal.access",
+        decision: "deny",
+        reason: "not_provisioned_schema_missing",
+        actorEmail: email,
+        actorSubjectId: user.userId,
+        requestPath,
+      });
+      return { ok: false, denial: { kind: "not_provisioned" } };
+    }
+    // Anything else is a real fault. Do not disguise it as "not provisioned" —
+    // that would be a false statement about the deployment.
+    throw error;
+  }
+
+  // Two different rows matched. Refuse; a human must resolve which membership
+  // this person actually holds.
+  if (subjectRow && emailRow && subjectRow.id !== emailRow.id) {
+    await recordAudit({
+      action: "portal.access",
+      decision: "deny",
+      reason: "identity_ambiguous",
+      actorEmail: email,
+      actorSubjectId: user.userId,
+      requestPath,
+      detail: JSON.stringify({
+        subjectBoundMemberId: subjectRow.id,
+        emailMemberId: emailRow.id,
+      }),
+    });
+    return { ok: false, denial: { kind: "identity_ambiguous", email } };
+  }
+
+  const member = subjectRow ?? emailRow;
 
   if (!member) {
     await recordAudit({
@@ -378,6 +456,24 @@ function tryGetDb(): PortalDb | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * True when a query failed because the table does not exist — a bound database
+ * whose migration has not been applied.
+ *
+ * Matched on the message because D1 and SQLite surface this as a plain error
+ * with no stable code. The match is deliberately narrow: only a missing table
+ * is treated as "not provisioned". A missing column, a constraint violation, or
+ * a connection fault must not be swallowed by this.
+ */
+function isMissingTableError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? `${error.message} ${String((error as { cause?: unknown }).cause ?? "")}`
+      : String(error);
+
+  return /no such table|does not exist|D1_ERROR.*no such table/i.test(message);
 }
 
 async function bindSubjectOnFirstSignIn(
