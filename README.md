@@ -98,3 +98,28 @@ actions tied to the current ChatGPT user. Leave public content anonymous.
 
 - [vinext Documentation](https://github.com/cloudflare/vinext)
 - [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+
+## CORE Portal (Phase 2)
+
+The authenticated CORE application lives under `app/portal/`, separate from the
+public presentation page at `app/page.tsx`.
+
+- `app/portal/access.ts` — server-side authorization. Two checks run on every
+  request: Sign in with ChatGPT establishes identity, and an active
+  `portal_members` row establishes CORE membership and role. Identity alone
+  grants nothing.
+- `db/schema.ts` — `portal_members` (the allowlist) and `audit_events`
+  (append-only allow/deny record).
+- `db/sql/0001_portal_init.sql` — schema DDL, applied with `wrangler d1 execute`.
+- `db/sql/0002_portal_seed_owner.sql` — first-owner bootstrap. **Read its header
+  comments before applying.**
+
+Capabilities are deny-by-default; roles are `owner`, `admin`, `manager`,
+`reviewer`, `agent`, `support`. Guard a page with `requireCapability(...)` and a
+write with `assertCapability(...)`. Never import `app/portal/access.ts` from a
+`"use client"` file.
+
+The portal fails closed: if the `DB` binding is unreachable, access is refused
+rather than assumed. Full design notes, provisioning steps, verification state,
+and open decisions are in `CORE_JARVIS_PORTAL_ARCHITECTURE.md` in the workspace
+root.

@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated build output and prior deployment packages. These are bundled
+    // artifacts, not source, and linting them reports rule violations from
+    // vendored library code that we neither wrote nor can fix.
+    "dist/**",
+    ".openai/**",
+    ".wrangler/**",
   ]),
 ]);
 
