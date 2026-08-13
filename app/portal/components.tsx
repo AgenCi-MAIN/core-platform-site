@@ -1,9 +1,14 @@
 import { chatGPTSignOutPath } from "../chatgpt-auth";
 import { ROLE_LABELS, can, type Capability, type PortalSession } from "./access";
-import { PortalThemeControl } from "./theme-control";
+import { PortalPerformanceControl } from "../performance-control";
+import { PortalThemeControl } from "../theme-control";
 
 type PortalIconName =
   | "dashboard"
+  | "library"
+  | "announcements"
+  | "quoter"
+  | "radio"
   | "book"
   | "calls"
   | "scripts"
@@ -21,6 +26,8 @@ type NavItem = {
   group: "Workspace" | "Operations" | "Administration";
   description: string;
   state: "live" | "pending";
+  /** Set for third-party tools opened outside the portal. */
+  external?: boolean;
   stateLabel: string;
 };
 
@@ -31,7 +38,27 @@ const NAV: readonly NavItem[] = [
     capability: "dashboard.view.self",
     icon: "dashboard",
     group: "Workspace",
-    description: "Your authenticated CORE command surface.",
+    description: "Your authenticated THRIVE command surface.",
+    state: "live",
+    stateLabel: "Available",
+  },
+  {
+    href: "/portal/announcements",
+    label: "Announcements",
+    capability: "dashboard.view.self",
+    icon: "announcements",
+    group: "Workspace",
+    description: "Releases, roadmap, and operating notes from the agency.",
+    state: "live",
+    stateLabel: "Available",
+  },
+  {
+    href: "/portal/library",
+    label: "Library",
+    capability: "dashboard.view.self",
+    icon: "library",
+    group: "Workspace",
+    description: "Who THRIVE is, what we believe, training, and the incentive plan.",
     state: "live",
     stateLabel: "Available",
   },
@@ -86,6 +113,27 @@ const NAV: readonly NavItem[] = [
     stateLabel: "Sources pending",
   },
   {
+    href: "/portal/music",
+    label: "Radio",
+    capability: "dashboard.view.self",
+    icon: "radio",
+    group: "Workspace",
+    description: "Music for the floor. Owner-uploaded tracks only.",
+    state: "live",
+    stateLabel: "Available",
+  },
+  {
+    href: "https://app.insurancetoolkits.com/fex/quoter",
+    label: "Quoter",
+    capability: "book.view.self",
+    icon: "quoter",
+    group: "Operations",
+    description: "Final expense quoting via InsuranceToolkits. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
     href: "/portal/members",
     label: "Members",
     capability: "members.view",
@@ -131,14 +179,14 @@ export function PortalShell({
         aria-label="Toggle portal navigation"
       />
 
-      <aside className="portal-sidebar portal-sidebar-desktop" aria-label="CORE portal sidebar">
+      <aside className="portal-sidebar portal-sidebar-desktop" aria-label="THRIVE portal sidebar">
         <PortalSidebarContent session={session} current={current} visible={visible} />
       </aside>
 
       <aside
         className="portal-sidebar portal-sidebar-mobile"
         id="portal-mobile-navigation"
-        aria-label="CORE mobile navigation"
+        aria-label="THRIVE mobile navigation"
         popover="auto"
       >
         <button
@@ -171,12 +219,13 @@ export function PortalShell({
             </button>
             <span className="portal-topbar-copy">
               <strong className="portal-section-name">{section}</strong>
-              <small className="portal-section-context">CORE operating portal</small>
+              <small className="portal-section-context">THRIVE operating portal</small>
             </span>
           </div>
 
           <div className="portal-topbar-end" aria-label={`Signed in as ${session.displayName}`}>
             <PortalThemeControl />
+            <PortalPerformanceControl />
             <span className="portal-connection">
               <span aria-hidden="true" /> Secure session
             </span>
@@ -211,10 +260,10 @@ function PortalSidebarContent({
   return (
     <>
       <div className="portal-sidebar-head">
-        <a className="portal-brand" href="/portal" aria-label="CORE portal dashboard">
-          <span className="portal-brand-mark" aria-hidden="true">C</span>
+        <a className="portal-brand" href="/portal" aria-label="THRIVE portal dashboard">
+          <span className="portal-brand-mark" aria-hidden="true">T</span>
           <span className="portal-brand-copy">
-            <strong>CORE</strong>
+            <strong>THRIVE</strong>
             <small>Operating portal</small>
           </span>
         </a>
@@ -234,7 +283,10 @@ function PortalSidebarContent({
                   key={item.href}
                   href={item.href}
                   aria-current={item.href === current ? "page" : undefined}
-                  title={item.label}
+                  title={item.external ? `${item.label} — opens in a new tab` : item.label}
+                  {...(item.external
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
                 >
                   <span className="portal-nav-icon" aria-hidden="true">
                     <PortalNavMark name={item.icon} />
@@ -358,7 +410,12 @@ export function PortalWorkspaceDirectory({ session }: { session: PortalSession }
   return (
     <div className="portal-workspace-list">
       {visible.map((item) => (
-        <a className="portal-workspace-item" href={item.href} key={item.href}>
+        <a
+          className="portal-workspace-item"
+          href={item.href}
+          key={item.href}
+          {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+        >
           <span className="portal-workspace-symbol" aria-hidden="true">
             <PortalNavMark name={item.icon} />
           </span>
@@ -406,6 +463,10 @@ export function EmptyState({
 function PortalNavMark({ name }: { name: PortalIconName }) {
   const marks: Record<PortalIconName, string> = {
     dashboard: "D",
+    library: "R",
+    announcements: "!",
+    quoter: "Q",
+    radio: "♪",
     book: "B",
     calls: "C",
     scripts: "S",
@@ -425,5 +486,5 @@ function initials(name: string): string {
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
-    .join("") || "C";
+    .join("") || "T";
 }

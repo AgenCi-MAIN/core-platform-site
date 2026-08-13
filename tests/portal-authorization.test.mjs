@@ -378,3 +378,276 @@ test("the database rejects a role the application does not recognise", async () 
     await portal.dispose();
   }
 });
+
+/* ============================================================
+   THRIVE Radio — upload, list, stream, delete.
+
+   These exercise the real R2 binding in Miniflare. The security
+   property that matters most is the last one: the music routes
+   share a bucket with call recordings, so a key outside the
+   music/ prefix must be refused. If that ever regresses, a
+   member could read a recording without passing the consent gate.
+   ============================================================ */
+
+/** A tiny but structurally valid payload. Content is irrelevant to these routes. */
+function audioBytes(seed = "core") {
+  return new Uint8Array([0x49, 0x44, 0x33, 0x04, ...Buffer.from(seed)]);
+}
+
+function multipart(parts) {
+  // Build the body by hand. Miniflare does not derive a Content-Type boundary
+  // from a FormData body, so the worker sees a POST it cannot parse and
+  // request.formData() throws. Constructing the body explicitly is what a real
+  // browser sends, and it is what this route must handle.
+  const CRLF = "\r\n";
+  const boundary = "----thriveboundary" + parts.length + "x" + parts[0].name.length;
+  const enc = new TextEncoder();
+  const chunks = [];
+
+  for (const part of parts) {
+    chunks.push(enc.encode("--" + boundary + CRLF));
+    if (part.filename !== undefined) {
+      chunks.push(
+        enc.encode(
+          'Content-Disposition: form-data; name="' +
+            part.name +
+            '"; filename="' +
+            part.filename +
+            '"' +
+            CRLF +
+            "Content-Type: " +
+            (part.type || "application/octet-stream") +
+            CRLF +
+            CRLF,
+        ),
+      );
+      chunks.push(part.data);
+    } else {
+      chunks.push(
+        enc.encode('Content-Disposition: form-data; name="' + part.name + '"' + CRLF + CRLF),
+      );
+      chunks.push(enc.encode(String(part.value)));
+    }
+    chunks.push(enc.encode(CRLF));
+  }
+  chunks.push(enc.encode("--" + boundary + "--" + CRLF));
+
+  const total = chunks.reduce((n, c) => n + c.length, 0);
+  const body = new Uint8Array(total);
+  let at = 0;
+  for (const c of chunks) {
+    body.set(c, at);
+    at += c.length;
+  }
+
+  return { body, contentType: "multipart/form-data; boundary=" + boundary };
+}
+
+function uploadRequest(portal, identity, filename, fields = {}) {
+  const parts = [{ name: "file", filename, type: "audio/mpeg", data: audioBytes(filename) }];
+  for (const [name, value] of Object.entries(fields)) parts.push({ name, value });
+
+  const { body, contentType } = multipart(parts);
+
+  return portal.mf.dispatchFetch("http://localhost/portal/music/upload", {
+    method: "POST",
+    body,
+    redirect: "manual",
+    headers: {
+      "content-type": contentType,
+      ...(identity
+        ? {
+            "oai-authenticated-user-id": identity.subject,
+            "oai-authenticated-user-email": identity.email,
+          }
+        : {}),
+    },
+  });
+}
+
+function jsonGet(portal, pathname, identity) {
+  return portal.mf.dispatchFetch(`http://localhost${pathname}`, {
+    redirect: "manual",
+    headers: identity
+      ? {
+          "oai-authenticated-user-id": identity.subject,
+          "oai-authenticated-user-email": identity.email,
+        }
+      : {},
+  });
+}
+
+test("anonymous visitors cannot upload or list music", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  const upload = await uploadRequest(portal, null, "anon.mp3");
+  assert.equal(upload.status, 401, "anonymous upload must be refused");
+
+  const list = await jsonGet(portal, "/portal/music/list", null);
+  assert.equal(list.status, 401, "anonymous list must be refused");
+});
+
+test("a member without members.manage cannot upload, and the refusal is audited", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("agent@example.com", "agent");
+
+  const res = await uploadRequest(
+    portal,
+    { subject: "sub-agent", email: "agent@example.com" },
+    "agent-track.mp3",
+  );
+  assert.equal(res.status, 403, "an agent must not be able to upload");
+
+  const rows = await portal.audit();
+  const deny = rows.find((r) => r.action === "music.upload" && r.decision === "deny");
+  assert.ok(deny, "the refused upload must be audited");
+  assert.equal(deny.reason, "capability_not_held");
+  assert.equal(deny.actor_role, "agent");
+});
+
+test("an owner uploads a track, and every member can list and play it", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("owner@example.com", "owner");
+  await portal.addMember("support@example.com", "support");
+
+  const owner = { subject: "sub-owner", email: "owner@example.com" };
+  const upload = await uploadRequest(portal, owner, "Crystalize Radio Edit.MP3", {
+    title: "Crystalize",
+    artist: "Lexurus",
+  });
+
+  // Read the body once: consuming it for the failure message and then again
+  // for the payload throws "Body has already been read".
+  const uploadBody = await upload.text();
+  assert.equal(upload.status, 201, uploadBody);
+  const created = JSON.parse(uploadBody);
+  assert.equal(created.key, "music/crystalize-radio-edit.mp3", "filename must be normalised");
+
+  // It really is in the bucket, under the music prefix.
+  const stored = await portal.recordings.get(created.key);
+  assert.ok(stored, "object must exist in R2");
+
+  // The upload is attributable.
+  const rows = await portal.audit();
+  const allow = rows.find((r) => r.action === "music.upload" && r.decision === "allow");
+  assert.ok(allow, "the upload must be audited");
+  assert.equal(allow.actor_email, "owner@example.com");
+
+  // Support holds dashboard.view.self but not members.manage: can listen, cannot upload.
+  const support = { subject: "sub-support", email: "support@example.com" };
+
+  const list = await jsonGet(portal, "/portal/music/list", support);
+  assert.equal(list.status, 200);
+  const body = await list.json();
+  assert.equal(body.tracks.length, 1);
+  assert.equal(body.tracks[0].title, "Crystalize");
+  assert.equal(body.tracks[0].artist, "Lexurus");
+
+  const play = await jsonGet(
+    portal,
+    `/portal/music/track?key=${encodeURIComponent(created.key)}`,
+    support,
+  );
+  assert.equal(play.status, 200, "a member must be able to stream");
+  assert.match(play.headers.get("content-type") ?? "", /^audio\//);
+
+  const supportUpload = await uploadRequest(portal, support, "nope.mp3");
+  assert.equal(supportUpload.status, 403, "support must not be able to upload");
+});
+
+test("the music routes cannot be used to read a call recording", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("owner@example.com", "owner");
+  const owner = { subject: "sub-owner", email: "owner@example.com" };
+
+  // Put an object outside the music prefix, exactly where a recording lives.
+  await portal.recordings.put("recordings/secret-call.mp3", audioBytes("secret"));
+
+  for (const key of [
+    "recordings/secret-call.mp3",
+    "music/../recordings/secret-call.mp3",
+    "MUSIC/secret.mp3",
+    "music/",
+  ]) {
+    const res = await jsonGet(
+      portal,
+      `/portal/music/track?key=${encodeURIComponent(key)}`,
+      owner,
+    );
+    assert.equal(res.status, 400, `key "${key}" must be refused, got ${res.status}`);
+  }
+
+  // And the refusal is recorded.
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.action === "music.play" && r.decision === "deny"),
+    "an out-of-prefix key must be audited as a denial",
+  );
+
+  // The listing must not surface it either.
+  const list = await jsonGet(portal, "/portal/music/list", owner);
+  const body = await list.json();
+  assert.equal(body.tracks.length, 0, "a non-music object must never appear in the library");
+});
+
+test("unsupported and empty files are refused", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("owner@example.com", "owner");
+  const owner = { subject: "sub-owner", email: "owner@example.com" };
+
+  const exe = await uploadRequest(portal, owner, "payload.exe");
+  assert.equal(exe.status, 415, "a non-audio extension must be refused");
+
+  const noExt = await uploadRequest(portal, owner, "trackwithoutextension");
+  assert.equal(noExt.status, 415, "a file with no extension must be refused");
+
+  const emptyPayload = multipart([
+    { name: "file", filename: "empty.mp3", type: "audio/mpeg", data: new Uint8Array(0) },
+  ]);
+  const res = await portal.mf.dispatchFetch("http://localhost/portal/music/upload", {
+    method: "POST",
+    body: emptyPayload.body,
+    redirect: "manual",
+    headers: {
+      "content-type": emptyPayload.contentType,
+      "oai-authenticated-user-id": owner.subject,
+      "oai-authenticated-user-email": owner.email,
+    },
+  });
+  assert.equal(res.status, 400, "an empty file must be refused");
+});
+
+test("an owner can remove a track", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("owner@example.com", "owner");
+  const owner = { subject: "sub-owner", email: "owner@example.com" };
+
+  const upload = await uploadRequest(portal, owner, "temp.mp3");
+  const { key } = await upload.json();
+
+  const del = await portal.mf.dispatchFetch(
+    `http://localhost/portal/music/upload?key=${encodeURIComponent(key)}`,
+    {
+      method: "DELETE",
+      redirect: "manual",
+      headers: {
+        "oai-authenticated-user-id": owner.subject,
+        "oai-authenticated-user-email": owner.email,
+      },
+    },
+  );
+  assert.equal(del.status, 200);
+  assert.equal(await portal.recordings.get(key), null, "the object must be gone from R2");
+});
+

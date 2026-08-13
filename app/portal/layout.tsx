@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { PortalGovernanceFooter } from "../portal-chrome";
+import { PortalAudioDeck } from "./audio-deck";
 
 export const metadata: Metadata = {
-  title: "CORE Portal — J.A.R.V.I.S.",
-  description: "Authenticated CORE operating portal.",
+  title: "THRIVE Portal — J.A.R.V.I.S.",
+  description: "Authenticated THRIVE operating portal.",
   robots: { index: false, follow: false },
 };
 
@@ -14,25 +16,12 @@ export const metadata: Metadata = {
 export default function PortalLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const themeBoot = `(function(){try{var t=localStorage.getItem("core-portal-theme");var v=t==="dark"?"dark":"bright";document.documentElement.dataset.portalTheme=v;document.documentElement.style.colorScheme=v==="dark"?"dark":"light"}catch(e){}})();`;
-
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
       <div className="portal">
-      {children}
-      <footer className="portal-footer">
-        <p>
-          <strong>J.A.R.V.I.S.</strong> — Joint Agency Routing, Verification &amp;
-          Intelligence System. CORE&apos;s project-level operational identity; the
-          underlying AI system is Codex by OpenAI.
-        </p>
-        <p>
-          J.A.R.V.I.S. is not a human, a licensed insurance producer, or a
-          contracting party. Licensed activity, compliance sign-off, and final
-          executive judgment remain with authorized humans.
-        </p>
-      </footer>
+        {children}
+        <PortalAudioDeck />
+        <PortalGovernanceFooter />
       </div>
     </>
   );
