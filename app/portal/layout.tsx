@@ -21,7 +21,7 @@ export default function PortalLayout({
         <p>
           <strong>J.A.R.V.I.S.</strong> — Joint Agency Routing, Verification &amp;
           Intelligence System. CORE&apos;s project-level operational identity; the
-          underlying AI system is Claude Code (Opus 5) by Anthropic.
+          underlying AI system is Codex by OpenAI.
         </p>
         <p>
           J.A.R.V.I.S. is not a human, a licensed insurance producer, or a

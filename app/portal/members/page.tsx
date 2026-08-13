@@ -2,7 +2,7 @@ import { asc } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { portalMembers } from "../../../db/schema";
 import { ROLE_LABELS, can, requireCapability } from "../access";
-import { EmptyState, PortalHeader } from "../components";
+import { EmptyState, PortalCardHeader, PortalPageIntro, PortalShell } from "../components";
 
 export const dynamic = "force-dynamic";
 
@@ -21,25 +21,26 @@ export default async function MembersPage() {
     .orderBy(asc(portalMembers.role), asc(portalMembers.email));
 
   return (
-    <>
-      <PortalHeader session={session} current="/portal/members" />
-
+    <PortalShell session={session} current="/portal/members" section="Members">
       <main className="portal-main">
-        <section className="portal-intro">
-          <p className="eyebrow">
-            <span /> Access control
-          </p>
-          <h1>
-            Portal <em>members</em>
-          </h1>
-          <p className="portal-lede">
+        <PortalPageIntro
+          eyebrow="Access control"
+          title={<>Portal <em>members</em></>}
+          subtitle={
+            <>
             Signing in proves identity only. A person reaches the portal solely
             because they hold an active row here, granted by an authorized human
             before their first sign-in.
-          </p>
-        </section>
+            </>
+          }
+        />
 
         <section className="portal-card">
+          <PortalCardHeader
+            icon="◇"
+            title="Member roster"
+            description={`${members.length} verified membership record${members.length === 1 ? "" : "s"} in the portal database.`}
+          />
           {members.length === 0 ? (
             <EmptyState
               title="No members provisioned"
@@ -90,7 +91,11 @@ export default async function MembersPage() {
         </section>
 
         <section className="portal-card">
-          <h2>Granting and revoking access</h2>
+          <PortalCardHeader
+            icon="＋"
+            title="Granting and revoking access"
+            description="Governed membership changes remain reviewed database operations."
+          />
           {manages ? (
             <>
               <p className="portal-lede">
@@ -116,6 +121,6 @@ export default async function MembersPage() {
           )}
         </section>
       </main>
-    </>
+    </PortalShell>
   );
 }

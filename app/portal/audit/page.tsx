@@ -2,7 +2,7 @@ import { desc } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { auditEvents } from "../../../db/schema";
 import { requireCapability } from "../access";
-import { EmptyState, PortalHeader } from "../components";
+import { EmptyState, PortalCardHeader, PortalPageIntro, PortalShell } from "../components";
 
 export const dynamic = "force-dynamic";
 
@@ -22,26 +22,27 @@ export default async function AuditPage() {
     .limit(PAGE_SIZE);
 
   return (
-    <>
-      <PortalHeader session={session} current="/portal/audit" />
-
+    <PortalShell session={session} current="/portal/audit" section="Audit">
       <main className="portal-main">
-        <section className="portal-intro">
-          <p className="eyebrow">
-            <span /> Accountability
-          </p>
-          <h1>
-            Audit <em>log</em>
-          </h1>
-          <p className="portal-lede">
+        <PortalPageIntro
+          eyebrow="Accountability"
+          title={<>Audit <em>log</em></>}
+          subtitle={
+            <>
             The {PAGE_SIZE} most recent authorization decisions. Rows are
             append-only — the portal never updates or deletes them. Retention,
             export, and legal-hold procedures are still pending an authorized
             human decision.
-          </p>
-        </section>
+            </>
+          }
+        />
 
         <section className="portal-card">
+          <PortalCardHeader
+            icon="◷"
+            title="Authorization events"
+            description="Newest decisions first; access outcomes are append-only."
+          />
           {events.length === 0 ? (
             <EmptyState
               title="No events recorded"
@@ -94,6 +95,6 @@ export default async function AuditPage() {
           or private keys.
         </p>
       </main>
-    </>
+    </PortalShell>
   );
 }
