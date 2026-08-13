@@ -14,8 +14,12 @@ export const metadata: Metadata = {
 export default function PortalLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const themeBoot = `(function(){try{var t=localStorage.getItem("core-portal-theme");var v=t==="dark"?"dark":"bright";document.documentElement.dataset.portalTheme=v;document.documentElement.style.colorScheme=v==="dark"?"dark":"light"}catch(e){}})();`;
+
   return (
-    <div className="portal">
+    <>
+      <script dangerouslySetInnerHTML={{ __html: themeBoot }} />
+      <div className="portal">
       {children}
       <footer className="portal-footer">
         <p>
@@ -29,6 +33,7 @@ export default function PortalLayout({
           executive judgment remain with authorized humans.
         </p>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }

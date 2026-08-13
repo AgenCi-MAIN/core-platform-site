@@ -47,3 +47,28 @@ CREATE TABLE IF NOT EXISTS `audit_events` (
 CREATE INDEX IF NOT EXISTS `audit_events_occurred_idx` ON `audit_events` (`occurred_at`);
 CREATE INDEX IF NOT EXISTS `audit_events_actor_idx` ON `audit_events` (`actor_email`);
 CREATE INDEX IF NOT EXISTS `audit_events_action_idx` ON `audit_events` (`action`);
+
+CREATE TABLE IF NOT EXISTS `dialer_transfers` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`transfer_id` text NOT NULL,
+	`source_system` text NOT NULL,
+	`external_call_id` text,
+	`direction` text NOT NULL CHECK (`direction` IN ('inbound','outbound')),
+	`status` text DEFAULT 'received' NOT NULL CHECK (`status` IN ('received','processing','ready','needs_review','failed')),
+	`consent_status` text DEFAULT 'pending' NOT NULL CHECK (`consent_status` IN ('pending','verified','restricted')),
+	`caller_number_masked` text,
+	`agent_email` text,
+	`queue_name` text,
+	`started_at` text,
+	`ended_at` text,
+	`duration_seconds` integer CHECK (`duration_seconds` IS NULL OR `duration_seconds` >= 0),
+	`recording_object_key` text,
+	`recording_mime_type` text,
+	`received_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS `dialer_transfers_transfer_id_idx` ON `dialer_transfers` (`transfer_id`);
+CREATE INDEX IF NOT EXISTS `dialer_transfers_received_idx` ON `dialer_transfers` (`received_at`);
+CREATE INDEX IF NOT EXISTS `dialer_transfers_status_idx` ON `dialer_transfers` (`status`);
+CREATE INDEX IF NOT EXISTS `dialer_transfers_agent_idx` ON `dialer_transfers` (`agent_email`);

@@ -55,6 +55,21 @@ export const MEMBER_STATUSES = ["active", "suspended", "revoked"] as const;
 
 export type MemberStatus = (typeof MEMBER_STATUSES)[number];
 
+export const DIALER_TRANSFER_DIRECTIONS = ["inbound", "outbound"] as const;
+export type DialerTransferDirection = (typeof DIALER_TRANSFER_DIRECTIONS)[number];
+
+export const DIALER_TRANSFER_STATUSES = [
+  "received",
+  "processing",
+  "ready",
+  "needs_review",
+  "failed",
+] as const;
+export type DialerTransferStatus = (typeof DIALER_TRANSFER_STATUSES)[number];
+
+export const CALL_CONSENT_STATUSES = ["pending", "verified", "restricted"] as const;
+export type CallConsentStatus = (typeof CALL_CONSENT_STATUSES)[number];
+
 export const portalMembers = sqliteTable(
   "portal_members",
   {
@@ -137,6 +152,56 @@ export const auditEvents = sqliteTable(
     check(
       "audit_events_decision_check",
       sql`${table.decision} IN (${literalSet(AUDIT_DECISIONS)})`,
+    ),
+  ],
+);
+
+/**
+ * Metadata for calls transferred from an approved dialer into CORE.
+ * Recording bytes live in the CALL_RECORDINGS R2 bucket; D1 keeps only the
+ * protected index and lifecycle state needed by the Call Lab inbox.
+ */
+export const dialerTransfers = sqliteTable(
+  "dialer_transfers",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    transferId: text("transfer_id").notNull(),
+    sourceSystem: text("source_system").notNull(),
+    externalCallId: text("external_call_id"),
+    direction: text("direction").$type<DialerTransferDirection>().notNull(),
+    status: text("status").$type<DialerTransferStatus>().notNull().default("received"),
+    consentStatus: text("consent_status").$type<CallConsentStatus>().notNull().default("pending"),
+    callerNumberMasked: text("caller_number_masked"),
+    agentEmail: text("agent_email"),
+    queueName: text("queue_name"),
+    startedAt: text("started_at"),
+    endedAt: text("ended_at"),
+    durationSeconds: integer("duration_seconds"),
+    recordingObjectKey: text("recording_object_key"),
+    recordingMimeType: text("recording_mime_type"),
+    receivedAt: text("received_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("dialer_transfers_transfer_id_idx").on(table.transferId),
+    index("dialer_transfers_received_idx").on(table.receivedAt),
+    index("dialer_transfers_status_idx").on(table.status),
+    index("dialer_transfers_agent_idx").on(table.agentEmail),
+    check(
+      "dialer_transfers_direction_check",
+      sql`${table.direction} IN (${literalSet(DIALER_TRANSFER_DIRECTIONS)})`,
+    ),
+    check(
+      "dialer_transfers_status_check",
+      sql`${table.status} IN (${literalSet(DIALER_TRANSFER_STATUSES)})`,
+    ),
+    check(
+      "dialer_transfers_consent_check",
+      sql`${table.consentStatus} IN (${literalSet(CALL_CONSENT_STATUSES)})`,
+    ),
+    check(
+      "dialer_transfers_duration_check",
+      sql`${table.durationSeconds} IS NULL OR ${table.durationSeconds} >= 0`,
     ),
   ],
 );

@@ -58,7 +58,7 @@ export default async function PortalDashboard() {
           <article className="portal-metric">
             <span className="portal-metric-label">Business sources</span>
             <strong className="portal-metric-value">Not connected</strong>
-            <span className="portal-metric-detail">CRM, carrier, call, and financial data stay absent</span>
+            <span className="portal-metric-detail">CRM, carrier, dialer feeds, and financial data stay absent</span>
           </article>
         </section>
 
@@ -93,7 +93,7 @@ export default async function PortalDashboard() {
                   <span className="portal-system-dot portal-system-dot-pending" aria-hidden="true" />
                   <span className="portal-readiness-copy">
                     <strong>Operating intelligence</strong>
-                    <small>Policy, call, script, team, and leadership sources await connection.</small>
+                    <small>Dialer Beta storage is ready; external business sources await connection.</small>
                   </span>
                   <span className="portal-readiness-status portal-state portal-state-pending">Pending</span>
                 </div>

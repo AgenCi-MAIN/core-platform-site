@@ -1,5 +1,6 @@
 import { chatGPTSignOutPath } from "../chatgpt-auth";
 import { ROLE_LABELS, can, type Capability, type PortalSession } from "./access";
+import { PortalThemeControl } from "./theme-control";
 
 type PortalIconName =
   | "dashboard"
@@ -50,9 +51,9 @@ const NAV: readonly NavItem[] = [
     capability: "calls.review",
     icon: "calls",
     group: "Operations",
-    description: "Permissioned call evidence and coaching review.",
-    state: "pending",
-    stateLabel: "Governance pending",
+    description: "Transferred call access and permissioned coaching review.",
+    state: "live",
+    stateLabel: "Beta ready",
   },
   {
     href: "/portal/scripts",
@@ -175,6 +176,7 @@ export function PortalShell({
           </div>
 
           <div className="portal-topbar-end" aria-label={`Signed in as ${session.displayName}`}>
+            <PortalThemeControl />
             <span className="portal-connection">
               <span aria-hidden="true" /> Secure session
             </span>

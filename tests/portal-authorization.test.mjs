@@ -69,10 +69,12 @@ async function startPortal({ migrate = true, seed = true } = {}) {
     compatibilityDate: "2026-05-15",
     compatibilityFlags: ["nodejs_compat"],
     d1Databases: { DB: "site-creator-d1" },
+    r2Buckets: { CALL_RECORDINGS: "core-call-recordings" },
     serviceBindings: { ASSETS: () => new Response("Not found", { status: 404 }) },
   });
 
   const db = await mf.getD1Database("DB");
+  const recordings = await mf.getR2Bucket("CALL_RECORDINGS");
   if (migrate) for (const s of INIT_SQL) await db.prepare(s).run();
   if (migrate && seed) for (const s of SEED_SQL) await db.prepare(s).run();
 
@@ -105,7 +107,7 @@ async function startPortal({ migrate = true, seed = true } = {}) {
       .bind(email, subjectId, email.split("@")[0], role, status)
       .run();
 
-  return { mf, db, get, audit, addMember, dispose: () => mf.dispose() };
+  return { mf, db, recordings, get, audit, addMember, dispose: () => mf.dispose() };
 }
 
 test("an unmigrated database never serves portal content", async () => {
@@ -292,6 +294,56 @@ test("a manager can read the roster but an owner is required to see audit", asyn
 
     const audit = await portal.get("/portal/audit", identity);
     assert.equal(audit.status, 307, "manager must not hold audit.view");
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("Dialer Beta lists transferred calls and gates protected recording playback", async () => {
+  const portal = await startPortal();
+  try {
+    await portal.addMember("reviewer@example.com", "reviewer");
+    await portal.addMember("agent-calls@example.com", "agent");
+    await portal.db
+      .prepare(
+        `INSERT INTO dialer_transfers
+          (transfer_id, source_system, direction, status, consent_status,
+           caller_number_masked, agent_email, queue_name, duration_seconds,
+           recording_object_key, recording_mime_type)
+         VALUES (?, 'test-dialer', 'inbound', 'ready', 'verified', ?, ?, ?, 83, ?, 'audio/mpeg')`,
+      )
+      .bind(
+        "transfer-test-001",
+        "(***) ***-0142",
+        "reviewer@example.com",
+        "Inbound transfer",
+        "calls/transfer-test-001.mp3",
+      )
+      .run();
+    await portal.recordings.put(
+      "calls/transfer-test-001.mp3",
+      new Uint8Array([73, 68, 51, 4]),
+      { httpMetadata: { contentType: "audio/mpeg" } },
+    );
+
+    const reviewer = { subject: "subject-reviewer", email: "reviewer@example.com" };
+    const page = await portal.get("/portal/calls", reviewer);
+    assert.equal(page.status, 200);
+    const html = await page.text();
+    assert.match(html, /Dialer transfer/);
+    assert.match(html, /transfer-test-001/);
+    assert.match(html, /Open recording/);
+
+    const recording = await portal.get("/portal/calls/recording?id=1", reviewer);
+    assert.equal(recording.status, 200);
+    assert.equal(recording.headers.get("content-type"), "audio/mpeg");
+    assert.deepEqual(new Uint8Array(await recording.arrayBuffer()), new Uint8Array([73, 68, 51, 4]));
+
+    const refused = await portal.get("/portal/calls/recording?id=1", {
+      subject: "subject-agent-calls",
+      email: "agent-calls@example.com",
+    });
+    assert.equal(refused.status, 403, "an agent without calls.review cannot open a recording");
   } finally {
     await portal.dispose();
   }

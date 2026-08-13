@@ -85,6 +85,7 @@ const PROTECTED_ROUTES = [
   ["/portal", "%2Fportal"],
   ["/portal/members", "%2Fportal%2Fmembers"],
   ["/portal/audit", "%2Fportal%2Faudit"],
+  ["/portal/calls", "%2Fportal%2Fcalls"],
 ];
 
 test("protected portal routes refuse anonymous visitors and render nothing", async () => {
