@@ -69,6 +69,11 @@ Sign in with Google establishes identity only; it does not prove membership.
 
 ## Deploying to your own Cloudflare account
 
+**Already deployed once.** [DEPLOYMENT.md](DEPLOYMENT.md) records what is live —
+URL, database and bucket ids, how the schema was applied, the redeploy command,
+and the Windows-specific traps worth reading before touching any of this again.
+The runbook below is the from-scratch path.
+
 One-time setup:
 
 1. **OAuth client** — In [Google Cloud console](https://console.cloud.google.com/apis/credentials)
