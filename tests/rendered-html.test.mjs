@@ -99,8 +99,10 @@ const PROTECTED_ROUTES = [
   "/portal/leadership",
   "/portal/library",
   "/portal/members",
+  "/portal/pay-rates",
   "/portal/music",
   "/portal/scripts",
+  "/portal/shop",
   "/portal/team",
 ].map((pathname) => [pathname, encodeURIComponent(pathname)]);
 

@@ -2929,3 +2929,112 @@ html[data-portal-performance="boost"] .portal-metric-gold .portal-metric-value {
   animation: none; background: none; color: var(--m-gold-deep); -webkit-text-fill-color: currentColor;
 }
 html[data-portal-theme="dark"][data-portal-performance="boost"] .portal-metric-gold .portal-metric-value { color: var(--m-gold); }
+
+/* --- THRIVE Exchange ---------------------------------------- */
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.shop-card { display: grid; gap: 13px; align-content: start; position: relative; overflow: hidden; }
+.shop-card::after { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; }
+.shop-card-steel::after  { background: linear-gradient(90deg, var(--m-steel-deep), var(--m-steel-light), var(--m-steel-deep)); }
+.shop-card-bronze::after { background: linear-gradient(90deg, var(--m-bronze-deep), var(--m-bronze-light), var(--m-bronze-deep)); }
+.shop-card-silver::after { background: linear-gradient(90deg, var(--m-silver-deep), var(--m-silver-light), var(--m-silver-deep)); }
+.shop-card-gold::after   { background: linear-gradient(90deg, var(--m-gold-deep), var(--m-gold-light), var(--m-gold-deep)); }
+
+.shop-head { display: flex; align-items: center; gap: 12px; }
+.shop-head h2 { margin: 0; font-size: var(--portal-type-title); font-weight: 820; letter-spacing: -.015em; }
+.shop-head p { margin: 2px 0 0; color: var(--portal-muted); font-size: var(--portal-type-label); }
+
+.shop-trade { display: grid; grid-template-columns: 1fr auto 1fr; gap: 11px; align-items: center;
+  padding: 13px; border: 1px solid var(--portal-line); border-radius: var(--portal-radius); background: var(--portal-raised); }
+.shop-trade-side { display: grid; gap: 2px; min-width: 0; }
+.shop-trade-label { font-size: 9.5px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; color: var(--portal-subtle); }
+.shop-trade-side strong { font-size: 16px; font-weight: 850; letter-spacing: -.02em; line-height: 1.2; }
+.shop-trade-side small { color: var(--portal-muted); font-size: var(--portal-type-label); line-height: 1.4; }
+.shop-give { color: var(--portal-danger); }
+.shop-get  { color: var(--portal-success); }
+.shop-trade-arrow { font-size: 17px; color: var(--portal-subtle); }
+
+.shop-perks { display: grid; gap: 6px; margin: 0; padding-left: 18px; color: var(--portal-muted); font-size: var(--portal-type-body); line-height: 1.5; }
+
+.shop-agent-math { display: grid; gap: 4px; padding: 11px 13px; border-radius: var(--portal-radius);
+  border: 1px solid var(--portal-line); border-left: 3px solid var(--portal-accent); background: var(--portal-panel); }
+.shop-agent-math p { margin: 0; color: var(--portal-muted); font-size: var(--portal-type-body); line-height: 1.55; }
+.shop-uplift { color: var(--portal-accent-strong); }
+
+.shop-margin { display: grid; gap: 2px; padding: 11px 13px; border-radius: var(--portal-radius); border: 1px solid var(--portal-line); }
+.shop-margin strong { font-size: 19px; font-weight: 850; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.shop-margin small { color: var(--portal-muted); font-size: var(--portal-type-label); }
+.shop-margin.is-good { background: var(--portal-success-ring); border-color: #add7c1; }
+.shop-margin.is-good strong { color: var(--portal-success); }
+.shop-margin.is-bad { background: var(--portal-accent-soft); border-color: var(--portal-accent); }
+.shop-margin.is-bad strong { color: var(--portal-accent-strong); }
+
+.shop-chart-card { display: grid; gap: 14px; }
+.shop-chart { width: 100%; height: auto; overflow: visible; }
+.shop-axis { stroke: var(--portal-line-strong); stroke-width: 1; stroke-dasharray: 4 4; }
+.shop-glab { font-size: 11px; fill: var(--portal-subtle); font-weight: 700; }
+.shop-glab-strong { fill: var(--portal-text); font-weight: 820; font-size: 12px; }
+.shop-glab-value { fill: var(--portal-text); font-weight: 850; font-size: 12px; }
+.shop-bar-good { fill: var(--portal-success); opacity: .9; }
+.shop-bar-bad  { fill: var(--portal-accent); opacity: .9; }
+
+.shop-equation { display: grid; gap: 7px; padding: 14px; border-radius: var(--portal-radius);
+  border: 1px solid var(--portal-line); background: var(--portal-raised); }
+.shop-equation code { display: block; padding: 9px 12px; border-radius: var(--portal-radius-sm);
+  background: var(--portal-panel); border: 1px solid var(--portal-line);
+  font-family: ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: var(--portal-type-body); color: var(--portal-text); }
+.shop-equation-key { border-left: 3px solid var(--portal-accent) !important; font-weight: 700; }
+.shop-equation p { margin: 0; }
+
+.shop-assumptions { display: grid; gap: 9px; margin: 0; }
+.shop-assumptions > div { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;
+  padding-bottom: 8px; border-bottom: 1px solid var(--portal-line); }
+.shop-assumptions dt { font-weight: 800; font-size: var(--portal-type-body); }
+.shop-assumptions dd { margin: 0; color: var(--portal-muted); font-size: var(--portal-type-body); }
+
+html[data-portal-theme="dark"] .shop-margin.is-good { background: #173325; border-color: #3d7659; }
+html[data-portal-theme="dark"] .shop-margin.is-good strong { color: #79dfad; }
+
+/* --- Pay Rates Studio (restricted) -------------------------- */
+.pay-restricted { display: flex; align-items: baseline; gap: 11px; max-width: 98ch; margin: 0 0 18px;
+  padding: 12px 14px; border: 1px solid var(--portal-line); border-left: 4px solid #7b6bb0;
+  border-radius: var(--portal-radius);
+  background: linear-gradient(100deg, var(--portal-panel) 0%, color-mix(in srgb, #7b6bb0 12%, var(--portal-panel)) 100%);
+  color: var(--portal-muted); font-size: var(--portal-type-body); line-height: 1.55; }
+.pay-restricted-tag { flex: none; padding: 4px 9px; border-radius: 999px;
+  background: color-mix(in srgb, #7b6bb0 22%, transparent); color: #6a5aa0;
+  font-size: 10px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; }
+html[data-portal-theme="dark"] .pay-restricted-tag { color: #c5b6f0; }
+
+.pay-studio { display: grid; gap: 15px; }
+.pay-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.pay-studio h3 { margin: 0 0 3px; font-size: var(--portal-type-title); font-weight: 820; }
+
+.pay-dials { display: grid; gap: 12px; }
+.pay-dial-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+.pay-dial { display: grid; gap: 6px; }
+.pay-dial-label { display: flex; justify-content: space-between; gap: 10px; align-items: baseline;
+  font-size: 10px; font-weight: 850; letter-spacing: .07em; text-transform: uppercase; color: var(--portal-muted); }
+.pay-dial-label b { font-size: 14px; letter-spacing: -.01em; color: var(--portal-text); font-variant-numeric: tabular-nums; text-transform: none; }
+.pay-dial.is-accent .pay-dial-label b { color: var(--portal-accent); }
+.pay-dial input[type="range"] { width: 100%; height: 4px; accent-color: var(--portal-accent); cursor: pointer; }
+.pay-dial.is-compact .pay-dial-label { font-size: 9px; }
+.pay-dial.is-compact .pay-dial-label b { font-size: 12px; }
+
+.pay-rank-list { display: grid; gap: 11px; }
+.pay-rank { display: grid; gap: 10px; padding: 12px 14px; border: 1px solid var(--portal-line);
+  border-left: 4px solid var(--portal-line-strong); border-radius: var(--portal-radius); background: var(--portal-raised); }
+.pay-rank-head { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.pay-rank-head strong { font-size: var(--portal-type-title); font-weight: 820; }
+.pay-rank-head small { color: var(--portal-subtle); font-size: 10px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.pay-rank-dot { width: 11px; height: 11px; border-radius: 50%; flex: none; }
+.pay-rank-net { margin-left: auto; font-size: 15px; font-weight: 850; font-variant-numeric: tabular-nums; }
+.pay-rank-net.is-good { color: var(--portal-success); }
+.pay-rank-net.is-bad { color: var(--portal-accent); }
+html[data-portal-theme="dark"] .pay-rank-net.is-good { color: #79dfad; }
+.pay-rank-dials { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+
+.pay-chart { width: 100%; height: auto; overflow: visible; }
+.pay-advice ol { display: grid; gap: 11px; margin: 10px 0 0; padding-left: 20px; }
+.pay-advice li { color: var(--portal-muted); font-size: var(--portal-type-body); line-height: 1.6; }
+.pay-advice strong { color: var(--portal-text); }

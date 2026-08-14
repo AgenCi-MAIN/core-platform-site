@@ -10,6 +10,8 @@ type PortalIconName =
   | "announcements"
   | "quoter"
   | "radio"
+  | "shop"
+  | "payrates"
   | "book"
   | "calls"
   | "scripts"
@@ -124,6 +126,16 @@ const NAV: readonly NavItem[] = [
     stateLabel: "Available",
   },
   {
+    href: "/portal/shop",
+    label: "Exchange",
+    capability: "dashboard.view.self",
+    icon: "shop",
+    group: "Operations",
+    description: "Trade contract points for transferred calls and AI capacity.",
+    state: "live",
+    stateLabel: "Priced menu",
+  },
+  {
     href: "https://app.insurancetoolkits.com/fex/quoter",
     label: "Quoter",
     capability: "book.view.self",
@@ -133,6 +145,16 @@ const NAV: readonly NavItem[] = [
     state: "live",
     stateLabel: "External tool",
     external: true,
+  },
+  {
+    href: "/portal/pay-rates",
+    label: "Pay Rates",
+    capability: "leadership.view.all",
+    icon: "payrates",
+    group: "Administration",
+    description: "Restricted. Model contract levels, grants, and cost.",
+    state: "live",
+    stateLabel: "Restricted",
   },
   {
     href: "/portal/members",
@@ -469,6 +491,8 @@ function PortalNavMark({ name }: { name: PortalIconName }) {
     announcements: "!",
     quoter: "Q",
     radio: "♪",
+    shop: "X",
+    payrates: "$",
     book: "B",
     calls: "C",
     scripts: "S",
