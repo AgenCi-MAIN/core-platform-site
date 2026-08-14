@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { KeyGlyph } from "../key-glyph";
-import { chatGPTSignInPath } from "../chatgpt-auth";
+import { signInPath } from "../google-auth";
 import { SiteTopbar } from "../site-chrome";
 
 export const dynamic = "force-dynamic";
@@ -14,12 +14,12 @@ export const dynamic = "force-dynamic";
  * membership would be a roster enumeration oracle: anyone could try addresses
  * and learn who works here. So the email field never reaches the database. It
  * exists only to echo the address back, so the visitor can confirm they are
- * about to sign in to ChatGPT with the same one they were onboarded under.
+ * about to sign in to Google with the same one they were onboarded under.
  *
  * The response is byte-identical for a member and a stranger.
  *
  * Authorization still happens exactly where it always did: `resolvePortalAccess`
- * runs server-side after Sign in with ChatGPT establishes identity. Nothing on
+ * runs server-side after Sign in with Google establishes identity. Nothing on
  * this page grants anything.
  */
 export default async function AccessPage({
@@ -79,34 +79,33 @@ export default async function AccessPage({
           {typed ? (
             <div className="access-confirm access-confirm-ready" role="status">
               <div className="access-confirm-copy">
-                <p className="access-confirm-label">Ready — sign in to ChatGPT using</p>
+                <p className="access-confirm-label">Ready — sign in with Google using</p>
                 <p className="access-confirm-email">{typed}</p>
               </div>
               <a
                 className="button button-primary access-confirm-go"
-                href={chatGPTSignInPath("/portal")}
+                href={signInPath("/portal")}
               >
                 Continue to sign in <KeyGlyph />
               </a>
               <p className="access-confirm-note">
-                The next screen is ChatGPT&apos;s. If it is already signed in as
-                a different account, sign out there first — the portal matches
-                the address above.
+                The next screen is Google&apos;s account chooser. Pick the
+                account with the address above — the portal matches it exactly.
               </p>
             </div>
           ) : null}
 
           <p className="access-warning" role="note">
-            <strong>You MUST be signed in to ChatGPT in this browser using the
+            <strong>You MUST sign in with the Google account whose email is the
             SAME EMAIL you provided during onboarding.</strong> A different
-            ChatGPT account — even your own personal one — will be refused,
-            because the portal matches your ChatGPT identity against the address
+            Google account — even your own personal one — will be refused,
+            because the portal matches your Google identity against the address
             THRIVE has on file for you.
           </p>
 
           <div className="portal-gate-actions">
-            <a className="button button-primary" href={chatGPTSignInPath("/portal")}>
-              Sign in with ChatGPT <KeyGlyph />
+            <a className="button button-primary" href={signInPath("/portal")}>
+              Sign in with Google <KeyGlyph />
             </a>
             <Link className="text-link" href="/tour">
               New here? Onboarding <KeyGlyph />
@@ -128,9 +127,9 @@ export default async function AccessPage({
               <div>
                 <dt>You signed in and were still refused</dt>
                 <dd>
-                  The ChatGPT account you used does not match the address on
-                  file. Sign out of ChatGPT, sign back in with the onboarding
-                  address, then return here.
+                  The Google account you used does not match the address on
+                  file. Sign in again and pick the account with the onboarding
+                  address in Google&apos;s account chooser.
                 </dd>
               </div>
               <div>
@@ -159,7 +158,7 @@ export default async function AccessPage({
             <div>
               <strong>Two checks, every request</strong>
               <p>
-                Signing in with ChatGPT proves who you are. A membership record
+                Signing in with Google proves who you are. A membership record
                 THRIVE created for you proves you belong here and carries your
                 role. Identity alone grants nothing.
               </p>

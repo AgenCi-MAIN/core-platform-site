@@ -11,7 +11,7 @@ import {
 /**
  * CORE portal data model.
  *
- * Sign in with ChatGPT establishes *identity* only. It does not prove that the
+ * Sign in with Google establishes *identity* only. It does not prove that the
  * person signing in belongs to CORE. Membership and role live here, and every
  * protected read and write checks this table server-side. A person who can sign
  * in but has no active row in `portalMembers` has no portal access.

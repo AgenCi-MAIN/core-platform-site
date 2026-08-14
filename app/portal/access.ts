@@ -8,18 +8,18 @@ import {
   type MemberStatus,
   type PortalRole,
 } from "../../db/schema";
-import { getChatGPTUser, chatGPTSignInPath, type ChatGPTUser } from "../chatgpt-auth";
+import { getAuthUser, signInPath, type AuthUser } from "../google-auth";
 
 /**
  * Server-side authorization for the CORE portal.
  *
  * Two independent checks stand between a visitor and any protected data:
  *
- *   1. Identity  — Sign in with ChatGPT proves who the visitor is.
+ *   1. Identity  — Sign in with Google proves who the visitor is.
  *   2. Membership — an active `portal_members` row proves they belong to CORE
  *                   and fixes their role.
  *
- * Identity alone grants nothing. Anyone with a ChatGPT account can complete
+ * Identity alone grants nothing. Anyone with a Google account can complete
  * step 1, so step 2 is what actually protects the portal. Both run on the
  * server on every request; nothing here may be moved to the client.
  *
@@ -134,7 +134,7 @@ const PORTAL_ROOT = "/portal";
  */
 export async function resolvePortalAccess(): Promise<AccessResult> {
   const requestPath = await currentPath();
-  const user = await getChatGPTUser();
+  const user = await getAuthUser();
 
   if (!user) {
     await recordAudit({
@@ -341,7 +341,7 @@ export async function requireCapability(
   const result = await resolvePortalAccess();
 
   if (!result.ok) {
-    if (result.denial.kind === "anonymous") redirect(chatGPTSignInPath(returnTo));
+    if (result.denial.kind === "anonymous") redirect(signInPath(returnTo));
     redirect(`${PORTAL_ROOT}/no-access`);
   }
 
@@ -479,7 +479,7 @@ function isMissingTableError(error: unknown): boolean {
 async function bindSubjectOnFirstSignIn(
   db: PortalDb,
   member: typeof portalMembers.$inferSelect,
-  user: ChatGPTUser,
+  user: AuthUser,
 ): Promise<void> {
   const now = new Date().toISOString();
   const needsSubject = !member.subjectId;

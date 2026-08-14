@@ -3,17 +3,19 @@
  *
  * WHY THIS EXISTS
  *
- * `/signin-with-chatgpt` is provided by the Sites hosting platform, not by this
- * application. The platform authenticates the visitor and then forwards the
- * request to the worker carrying `oai-authenticated-user-*` headers. On
- * localhost neither exists, so the sign-in link 404s and every guarded page is
- * unreachable. That makes the whole authenticated portal impossible to look at
+ * In production, identity comes from Sign in with Google: /auth/signin sends
+ * the browser to Google, /auth/callback mints the `core_session` cookie. On
+ * localhost that needs a registered OAuth client, its secret in .dev.vars, and
+ * a Google account round-trip for every session — a lot of ceremony just to
+ * look at a page. That makes the whole authenticated portal tedious to work on
  * locally.
  *
- * This proxy stands in for the platform: it forwards everything to the dev
- * server and injects those same identity headers, so the portal behaves exactly
- * as it does in production. The application is not modified and knows nothing
- * about this.
+ * This proxy stands in for the Google round-trip: it forwards everything to
+ * the dev server and injects a `core_session` cookie signed with the SAME
+ * SESSION_SECRET the dev server reads from .dev.vars, so the portal behaves
+ * exactly as it does in production. The application is not modified and knows
+ * nothing about this — the cookie is indistinguishable from one minted by the
+ * real callback.
  *
  * SAFETY
  *
@@ -24,9 +26,12 @@
  *  - Refuses to start unless NODE_ENV is undefined or "development".
  *  - Prints the identity it is impersonating on every start, so it can never be
  *    running quietly.
+ *  - Needs SESSION_SECRET, and reads it from the environment or .dev.vars —
+ *    it can only mint cookies for a dev server whose secret you already hold.
  *
  * USAGE
  *
+ *   # .dev.vars in the repo root must contain SESSION_SECRET=<any long string>
  *   AS_EMAIL=you@example.com node scripts/dev-signin.mjs
  *   AS_EMAIL=you@example.com PORT=3010 TARGET=3001 node scripts/dev-signin.mjs
  *
@@ -38,7 +43,11 @@
  * production — this only asserts identity, never authorisation.
  */
 
+import { createHmac } from "node:crypto";
+import { readFileSync } from "node:fs";
 import http from "node:http";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 if (process.env.NODE_ENV && process.env.NODE_ENV !== "development") {
   console.error(`Refusing to start with NODE_ENV=${process.env.NODE_ENV}.`);
@@ -76,9 +85,57 @@ const IDENTITY = {
   fullName: process.env.AS_NAME ?? process.env.AS_EMAIL,
 };
 
-/** The two paths the hosting platform owns. We emulate them. */
-const SIGN_IN = "/signin-with-chatgpt";
-const SIGN_OUT = "/signout-with-chatgpt";
+/**
+ * The signing secret must match the dev server's, or every minted cookie is
+ * refused as forged — which is exactly what the portal is supposed to do.
+ */
+const SESSION_SECRET = process.env.SESSION_SECRET ?? readDevVarsSecret();
+
+if (!SESSION_SECRET) {
+  console.error("");
+  console.error("  SESSION_SECRET is required.");
+  console.error("");
+  console.error("  The dev server reads it from .dev.vars in the repo root; this");
+  console.error("  shim reads the same file. Create it with a line like");
+  console.error("    SESSION_SECRET=any-long-random-string-for-local-dev");
+  console.error("  or pass SESSION_SECRET=... in the environment.");
+  console.error("");
+  process.exit(1);
+}
+
+function readDevVarsSecret() {
+  const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+  let text;
+  try {
+    text = readFileSync(join(root, ".dev.vars"), "utf8");
+  } catch {
+    return undefined;
+  }
+  for (const line of text.split("\n")) {
+    const match = line.match(/^\s*SESSION_SECRET\s*=\s*(.+?)\s*$/);
+    if (match) return match[1].replace(/^["']|["']$/g, "");
+  }
+  return undefined;
+}
+
+/** Mint `core_session` exactly as app/auth/callback/route.ts does. */
+function mintSessionToken() {
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    sub: IDENTITY.subject,
+    email: IDENTITY.email,
+    name: IDENTITY.fullName,
+    iat: now,
+    exp: now + 60 * 60,
+  };
+  const body = `v1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}`;
+  const mac = createHmac("sha256", SESSION_SECRET).update(body).digest("base64url");
+  return `${body}.${mac}`;
+}
+
+/** The app's own auth routes. We intercept them so no Google client is needed. */
+const SIGN_IN = "/auth/signin";
+const SIGN_OUT = "/auth/signout";
 
 /** Toggled by the emulated sign-out, so the refusal pages can be seen too. */
 let signedIn = true;
@@ -115,18 +172,16 @@ const server = http.createServer((req, res) => {
   // the proxy and back to an unauthenticated dev server.
   const headers = { ...req.headers };
 
-  // Never let a real request smuggle these in; we are the only source.
-  delete headers["oai-authenticated-user-id"];
-  delete headers["oai-authenticated-user-email"];
-  delete headers["oai-authenticated-user-full-name"];
-  delete headers["oai-authenticated-user-full-name-encoding"];
+  // Never let a real request smuggle a session in; we are the only source.
+  const otherCookies = (headers.cookie ?? "")
+    .split(";")
+    .map((piece) => piece.trim())
+    .filter((piece) => piece && !piece.startsWith("core_session="));
 
-  if (signedIn) {
-    headers["oai-authenticated-user-id"] = IDENTITY.subject;
-    headers["oai-authenticated-user-email"] = IDENTITY.email;
-    headers["oai-authenticated-user-full-name"] = encodeURIComponent(IDENTITY.fullName);
-    headers["oai-authenticated-user-full-name-encoding"] = "percent-encoded-utf-8";
-  }
+  if (signedIn) otherCookies.push(`core_session=${mintSessionToken()}`);
+
+  if (otherCookies.length > 0) headers.cookie = otherCookies.join("; ");
+  else delete headers.cookie;
 
   const upstream = http.request(
     { host: UPSTREAM_HOST, port: TARGET, method: req.method, path: req.url, headers },
@@ -157,7 +212,8 @@ server.listen(PORT, HOST, () => {
   banner(`http://${HOST}:${PORT}`);
   console.log(`  signed in as ${IDENTITY.email}`);
   console.log("");
-  console.log("  This impersonates the hosting platform's identity headers.");
+  console.log("  This mints the same session cookie the Google callback mints,");
+  console.log("  signed with the SESSION_SECRET from .dev.vars.");
   console.log("  Loopback only. Never expose it, never run it against production.");
   console.log("");
 });

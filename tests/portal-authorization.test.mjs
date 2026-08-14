@@ -3,7 +3,7 @@
  *
  * These tests boot the built worker in Miniflare — actual workerd, actual D1 —
  * apply the real migrations from db/sql/, and drive the portal over HTTP with
- * the identity headers the hosting platform injects. Everything here therefore
+ * the session cookie that Sign in with Google mints. Everything here therefore
  * covers the database-backed paths that cannot be reached from the plain-Node
  * suite in rendered-html.test.mjs: membership lookup, subject binding, role
  * resolution, capability enforcement, and audit writes.
@@ -11,6 +11,7 @@
  * Run `npm run build` first; these load dist/server.
  */
 import assert from "node:assert/strict";
+import { createHmac } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -61,6 +62,32 @@ const INIT_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0001_portal_init.
 const SEED_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0002_portal_seed_owner.sql"), "utf8"));
 const SEEDED_OWNER_EMAIL = "bankerrunners@gmail.com";
 
+/**
+ * Identity is asserted the same way production does it: a session cookie
+ * HMAC-signed under SESSION_SECRET, minted here exactly as
+ * app/auth/callback/route.ts mints it. The secret is plumbed into the worker
+ * as a Miniflare binding, so a cookie signed with anything else must fail.
+ */
+const SESSION_SECRET = "portal-authorization-test-secret";
+
+function mintSessionToken(identity, { secret = SESSION_SECRET, expiresInSeconds = 3600 } = {}) {
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    sub: identity.subject,
+    email: identity.email,
+    name: identity.fullName ?? null,
+    iat: now,
+    exp: now + expiresInSeconds,
+  };
+  const body = `v1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}`;
+  const mac = createHmac("sha256", secret).update(body).digest("base64url");
+  return `${body}.${mac}`;
+}
+
+function identityHeaders(identity) {
+  return identity ? { cookie: `core_session=${mintSessionToken(identity)}` } : {};
+}
+
 /** Boot a worker with a fresh, empty D1. `migrate`/`seed` opt into schema and data. */
 async function startPortal({ migrate = true, seed = true } = {}) {
   const mf = new Miniflare({
@@ -70,6 +97,7 @@ async function startPortal({ migrate = true, seed = true } = {}) {
     compatibilityFlags: ["nodejs_compat"],
     d1Databases: { DB: "site-creator-d1" },
     r2Buckets: { CALL_RECORDINGS: "core-call-recordings" },
+    bindings: { SESSION_SECRET },
     serviceBindings: { ASSETS: () => new Response("Not found", { status: 404 }) },
   });
 
@@ -83,12 +111,7 @@ async function startPortal({ migrate = true, seed = true } = {}) {
       redirect: "manual",
       headers: {
         accept: "text/html",
-        ...(identity
-          ? {
-              "oai-authenticated-user-id": identity.subject,
-              "oai-authenticated-user-email": identity.email,
-            }
-          : {}),
+        ...identityHeaders(identity),
       },
     });
 
@@ -463,12 +486,7 @@ function uploadRequest(portal, identity, filename, fields = {}) {
     redirect: "manual",
     headers: {
       "content-type": contentType,
-      ...(identity
-        ? {
-            "oai-authenticated-user-id": identity.subject,
-            "oai-authenticated-user-email": identity.email,
-          }
-        : {}),
+      ...identityHeaders(identity),
     },
   });
 }
@@ -476,12 +494,7 @@ function uploadRequest(portal, identity, filename, fields = {}) {
 function jsonGet(portal, pathname, identity) {
   return portal.mf.dispatchFetch(`http://localhost${pathname}`, {
     redirect: "manual",
-    headers: identity
-      ? {
-          "oai-authenticated-user-id": identity.subject,
-          "oai-authenticated-user-email": identity.email,
-        }
-      : {},
+    headers: identityHeaders(identity),
   });
 }
 
@@ -627,8 +640,7 @@ test("unsupported and empty files are refused", async (t) => {
     redirect: "manual",
     headers: {
       "content-type": emptyPayload.contentType,
-      "oai-authenticated-user-id": owner.subject,
-      "oai-authenticated-user-email": owner.email,
+      ...identityHeaders(owner),
     },
   });
   assert.equal(res.status, 400, "an empty file must be refused");
@@ -649,16 +661,97 @@ test("an owner can remove a track", async (t) => {
     {
       method: "DELETE",
       redirect: "manual",
-      headers: {
-        "oai-authenticated-user-id": owner.subject,
-        "oai-authenticated-user-email": owner.email,
-      },
+      headers: identityHeaders(owner),
     },
   );
   assert.equal(del.status, 200);
   assert.equal(await portal.recordings.get(key), null, "the object must be gone from R2");
 });
 
+
+/* ============================================================
+   Session integrity.
+
+   Identity used to come from oai-authenticated-user-* headers
+   that the Sites hosting platform injected and stripped from
+   outside requests. Self-hosted there is no such platform, so
+   anyone could send those headers. These tests pin down that a
+   request is identified ONLY by a session cookie signed under
+   this deployment's SESSION_SECRET.
+   ============================================================ */
+
+test("the retired platform identity headers grant nothing", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // Exactly the request that would have impersonated the owner before.
+  const response = await portal.mf.dispatchFetch("http://localhost/portal", {
+    redirect: "manual",
+    headers: {
+      accept: "text/html",
+      "oai-authenticated-user-id": "subject-owner-1",
+      "oai-authenticated-user-email": SEEDED_OWNER_EMAIL,
+    },
+  });
+
+  assert.equal(response.status, 307, "header-asserted identity must be anonymous");
+  assert.match(
+    response.headers.get("location") ?? "",
+    /\/auth\/signin\?/,
+    "an anonymous visitor is sent to sign-in",
+  );
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.decision === "deny" && r.reason === "anonymous"),
+    "the refusal must be recorded as anonymous, not as the impersonated member",
+  );
+});
+
+test("a forged, tampered, or expired session cookie is anonymous", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  const owner = { subject: "subject-owner-1", email: SEEDED_OWNER_EMAIL };
+  const valid = mintSessionToken(owner);
+
+  // Signed under the wrong secret; payload otherwise perfect.
+  const forged = mintSessionToken(owner, { secret: "not-the-deployment-secret" });
+  // Correct signature, payload altered afterwards.
+  const [, payload, mac] = valid.split(".");
+  const tamperedPayload = Buffer.from(
+    JSON.stringify({
+      ...JSON.parse(Buffer.from(payload, "base64url").toString()),
+      email: "attacker@example.com",
+    }),
+  ).toString("base64url");
+  const tampered = `v1.${tamperedPayload}.${mac}`;
+  // Correctly signed but past its expiry.
+  const expired = mintSessionToken(owner, { expiresInSeconds: -60 });
+
+  for (const [label, token] of [
+    ["forged", forged],
+    ["tampered", tampered],
+    ["expired", expired],
+    ["garbage", "v1.not-even-a-token"],
+  ]) {
+    const response = await portal.mf.dispatchFetch("http://localhost/portal", {
+      redirect: "manual",
+      headers: { accept: "text/html", cookie: `core_session=${token}` },
+    });
+    assert.equal(response.status, 307, `a ${label} cookie must be anonymous`);
+    assert.match(
+      response.headers.get("location") ?? "",
+      /\/auth\/signin\?/,
+      `a ${label} cookie must route to sign-in`,
+    );
+  }
+
+  // The control: the valid token this suite mints does admit the owner, so
+  // the refusals above are the signature check working, not a broken helper.
+  const control = await portal.get("/portal", owner);
+  assert.equal(control.status, 200, "the control cookie must be accepted");
+});
 
 /* ============================================================
    Identity resolution.

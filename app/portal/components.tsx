@@ -1,4 +1,4 @@
-import { chatGPTSignOutPath } from "../chatgpt-auth";
+import { signOutPath } from "../google-auth";
 import { ROLE_LABELS, can, type Capability, type PortalSession } from "./access";
 import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
@@ -336,7 +336,7 @@ function PortalSidebarContent({
           <strong>{session.displayName}</strong>
           <small>{ROLE_LABELS[session.role]}</small>
         </span>
-        <a className="portal-signout" href={chatGPTSignOutPath("/")} title="Sign out">
+        <a className="portal-signout" href={signOutPath("/")} title="Sign out">
           <span className="portal-nav-icon" aria-hidden="true">
             <PortalNavMark name="signout" />
           </span>

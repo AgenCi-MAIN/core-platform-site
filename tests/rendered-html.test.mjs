@@ -115,7 +115,7 @@ test("protected portal routes refuse anonymous visitors and render nothing", asy
     const location = response.headers.get("location") ?? "";
     assert.match(
       location,
-      /\/signin-with-chatgpt\?/,
+      /\/auth\/signin\?/,
       `${pathname} must route to sign-in, got ${location}`,
     );
     assert.ok(

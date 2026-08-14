@@ -19,7 +19,12 @@ const localBindingConfig = {
         {
           binding: d1,
           database_name: "site-creator-d1",
-          database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          // Self-hosting on your own Cloudflare account: put the UUID from
+          // `wrangler d1 create site-creator-d1` in hosting.json's
+          // `d1_database_id` so the deployable config carries the real
+          // database. The placeholder keeps local dev (Miniflare) working.
+          database_id:
+            hostingConfig.d1_database_id ?? SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
         },
       ]
     : [],
