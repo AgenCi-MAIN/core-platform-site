@@ -18,6 +18,7 @@ the owner keeps.
 | D1 database | `site-creator-d1` — `e00c30f0-7017-49d8-9f81-446cef9e32c3` |
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | First owner | `bankerrunners@gmail.com`, role `owner`, seeded by SQL |
+| Second owner | `ryandavidson.zenith@gmail.com`, role `owner`, granted 2026-08-14 |
 | Source branch | `claude/new-session-9a8g4o` (PR #1) |
 
 The D1 id is committed in `.openai/hosting.json`; `build/sites-vite-plugin.ts`
@@ -113,8 +114,8 @@ Secrets survive deploys; they only need setting again if they change.
       created by accident and empty: `npx wrangler d1 delete 8`.
 - [ ] **Add the other owners.** Oscar Valencia and Nate Nguyen are named as
       owners in the agreement record but their sign-in addresses were never
-      confirmed. Once confirmed, grant them from inside the portal (Members),
-      which records the grant in the audit log — better than another SQL seed.
+      confirmed. Once confirmed, grant them with the SQL in
+      [CORE_PLATFORM_RECORD.md](CORE_PLATFORM_RECORD.md) § Members.
 - [ ] **Consider a custom domain** in place of the workers.dev URL. Changing it
       means adding the new `/auth/callback` URI to the Google client before
       cutting over.
