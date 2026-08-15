@@ -106,6 +106,21 @@ The consent screen is **External** and unpublished, so first-time users see an
 | `GOOGLE_CLIENT_ID` | OAuth client id, ends `.apps.googleusercontent.com` |
 | `GOOGLE_CLIENT_SECRET` | OAuth client secret, starts `GOCSPX-` |
 | `SESSION_SECRET` | Long random string signing session cookies |
+| `ANTHROPIC_API_KEY` | Powers the JARVIS Presence (member Q&A pet). Optional — absent means the Presence answers with an honest 503, nothing else breaks. Get one at console.anthropic.com, set with `npx wrangler secret put ANTHROPIC_API_KEY -c dist/server/wrangler.json`. |
+
+**The Presence's isolation contract (governance, 2026-08-15).** The
+`pet.chat` capability was granted to every role: the Presence is the one
+model-powered surface members can talk to, and it is safe because it is
+architecturally inert — the model gets no tools, its output is rendered as
+plain text, and the route holds no credential except the API key (which can
+spend tokens and nothing else). A prompt injection through it yields words
+in a chat bubble. Spend is bounded: ~700 tokens per answer, 40
+answers/member/day (counted from the audit log), every exchange audited
+with token usage. Adding a tool or a write path to that route is a
+governance decision. Model: `claude-opus-5` by default; set the
+`PRESENCE_MODEL` variable (a plain var, not a secret) to
+`claude-haiku-4-5` for the budget option (~5× cheaper per answer) —
+owner's call, undecided as of this writing.
 
 List what is set (never prints values):
 

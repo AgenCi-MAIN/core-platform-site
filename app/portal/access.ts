@@ -39,6 +39,7 @@ export const CAPABILITIES = [
   "members.view",
   "members.manage",
   "audit.view",
+  "pet.chat",
 ] as const;
 
 export type Capability = (typeof CAPABILITIES)[number];
@@ -60,6 +61,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "members.view",
     "members.manage",
     "audit.view",
+    "pet.chat",
   ],
   admin: [
     "portal.access",
@@ -72,6 +74,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "members.view",
     "members.manage",
     "audit.view",
+    "pet.chat",
   ],
   manager: [
     "portal.access",
@@ -81,6 +84,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "team.view",
     "leadership.view.all",
     "members.view",
+    "pet.chat",
   ],
   reviewer: [
     "portal.access",
@@ -88,9 +92,10 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "calls.review",
     "scripts.manage",
     "team.view",
+    "pet.chat",
   ],
-  agent: ["portal.access", "dashboard.view.self", "book.view.self"],
-  support: ["portal.access", "dashboard.view.self", "team.view"],
+  agent: ["portal.access", "dashboard.view.self", "book.view.self", "pet.chat"],
+  support: ["portal.access", "dashboard.view.self", "team.view", "pet.chat"],
 };
 
 export const ROLE_LABELS: Record<PortalRole, string> = {

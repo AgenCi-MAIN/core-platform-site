@@ -987,6 +987,76 @@ test("owner rows are peer-protected: nobody changes an owner from the portal", a
 });
 
 /* ============================================================
+   The JARVIS Presence.
+
+   The pet's whole safety story is that its route is just another
+   guarded portal route: anonymous callers get nothing, suspended
+   members get nothing, and with no ANTHROPIC_API_KEY configured it
+   fails closed with an honest 503 — audited — instead of faking an
+   answer. Miniflare has no key, which makes the closed path the
+   testable one.
+   ============================================================ */
+
+test("the presence is guarded and fails closed without its key", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // Anonymous: refused before anything else happens.
+  const anon = await portal.mf.dispatchFetch("http://localhost/portal/presence", {
+    method: "POST",
+    body: JSON.stringify({ question: "hi" }),
+    redirect: "manual",
+    headers: { "content-type": "application/json" },
+  });
+  assert.equal(anon.status, 401, "anonymous callers get nothing");
+
+  // Suspended member: refused.
+  await portal.addMember("benched@example.com", "agent", "suspended");
+  const suspended = await portal.mf.dispatchFetch("http://localhost/portal/presence", {
+    method: "POST",
+    body: JSON.stringify({ question: "hi" }),
+    redirect: "manual",
+    headers: {
+      "content-type": "application/json",
+      ...identityHeaders({ subject: "sub-benched", email: "benched@example.com" }),
+    },
+  });
+  assert.equal(suspended.status, 403, "suspended members get nothing");
+
+  // Active member, no key configured: honest 503, never a fabricated answer.
+  await portal.addMember("asker@example.com", "agent");
+  const res = await portal.mf.dispatchFetch("http://localhost/portal/presence", {
+    method: "POST",
+    body: JSON.stringify({ question: "What is THRIVE?" }),
+    redirect: "manual",
+    headers: {
+      "content-type": "application/json",
+      ...identityHeaders({ subject: "sub-asker", email: "asker@example.com" }),
+    },
+  });
+  // Read the body exactly once — a Response body is a one-shot stream, and
+  // consuming it inside an assertion message eats it before the real check.
+  const body = await res.json().catch(() => ({}));
+  assert.equal(res.status, 503, JSON.stringify(body));
+  assert.match(
+    String(body.error ?? ""),
+    /not connected/i,
+    "the refusal says the truth: the key is not set",
+  );
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some(
+      (r) =>
+        r.action === "pet.chat" &&
+        r.decision === "deny" &&
+        r.reason === "presence_not_configured",
+    ),
+    "the closed path is audited by name",
+  );
+});
+
+/* ============================================================
    Identity resolution.
 
    Both keys are unique, so a lookup by subject and a lookup by
