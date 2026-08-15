@@ -168,8 +168,19 @@ address grants nothing and looks like a broken portal.
 
 ### Granting someone access
 
-The Members page is read-only — write actions were deliberately never wired
-into the UI. Grants go through the D1 console:
+**Normally: Portal → Members.** Grants, role changes, and status changes are
+live in the interface. Every one of them posts to `/portal/members/manage`,
+which re-resolves the session, asserts `members.manage`, and writes an audit row
+under your name whatever the outcome. Three rules are enforced server-side and
+cannot be clicked past: one approver may grant any role, nobody may change their
+own row, and the last active owner cannot be demoted or suspended.
+
+**The D1 console is now the fallback, not the procedure.** It is still the only
+way in when nobody can sign in at all — an empty roster, a locked-out owner, a
+portal that will not load — so the SQL stays here. Reach for it in that case and
+not otherwise; a grant applied by hand writes no audit row, so the log will not
+show who did it.
+
 **Cloudflare dashboard → Storage & databases → D1 → `site-creator-d1` → Console**
 
 ```sql

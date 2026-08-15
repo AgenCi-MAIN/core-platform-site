@@ -16,7 +16,7 @@ export default async function NoAccessPage({
   searchParams: Promise<{ need?: string }>;
 }) {
   const { need } = await searchParams;
-  const result = await resolvePortalAccess();
+  const result = await resolvePortalAccess("/portal/no-access");
 
   const view = result.ok
     ? {

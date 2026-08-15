@@ -7,7 +7,7 @@ import { getCallRecordingsBucket } from "../storage";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const access = await resolvePortalAccess();
+  const access = await resolvePortalAccess(new URL(request.url).pathname);
 
   if (!access.ok) {
     return new Response(null, { status: access.denial.kind === "anonymous" ? 401 : 403 });

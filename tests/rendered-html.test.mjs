@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { registerHooks } from "node:module";
 import test from "node:test";
 
@@ -317,4 +317,40 @@ test("the service worker never caches an authenticated response", async () => {
   // Only these two caches may exist, and only these two rules may write to one.
   const writes = source.match(/cache\.put\(/g) ?? [];
   assert.equal(writes.length, 2, "a new cache write appeared — check what it stores");
+});
+
+test("restricted data never reaches a public client chunk", async () => {
+  /**
+   * Static assets under /assets are served by the ASSETS binding without ever
+   * touching the worker, so no session, capability, or audit check runs on
+   * them. Anything a `"use client"` file declares as a constant is compiled
+   * into one of those chunks and is readable by anyone — including an
+   * anonymous visitor — regardless of how well the page rendering it is
+   * guarded.
+   *
+   * That is not hypothetical: the rank contract levels, API grant counts, and
+   * per-rank headcount behind `leadership.view.all` shipped this way, in
+   * dist/client/assets/studio-*.js, cached immutably. They now live in a
+   * server module and arrive as props.
+   *
+   * This scans the built client bundle for those values. It is a coarse net on
+   * purpose — a substring check catches the mistake however it is reintroduced,
+   * including through a different component.
+   */
+  const dir = new URL("../dist/client/assets/", import.meta.url);
+  const files = (await readdir(dir)).filter((name) => name.endsWith(".js"));
+  assert.ok(files.length > 0, "no client chunks were built — this test would pass vacuously");
+
+  // Rank names and the shape the economics compile to.
+  const FORBIDDEN = ["Obsidian", "Zenith", "contract:140", "apiPerAgent:47"];
+
+  for (const name of files) {
+    const source = await readFile(new URL(name, dir), "utf8");
+    for (const marker of FORBIDDEN) {
+      assert.ok(
+        !source.includes(marker),
+        `restricted pay-rate data (${marker}) is readable in the public chunk assets/${name}`,
+      );
+    }
+  }
 });

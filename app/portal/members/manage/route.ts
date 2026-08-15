@@ -74,7 +74,8 @@ function text(value: unknown, max: number): string | null {
 }
 
 export async function POST(request: Request) {
-  const access = await resolvePortalAccess();
+  const path = new URL(request.url).pathname;
+  const access = await resolvePortalAccess(path);
   if (!access.ok) {
     return Response.json(
       { error: "Sign in required." },
@@ -83,12 +84,11 @@ export async function POST(request: Request) {
   }
 
   const { session } = access;
-  const path = new URL(request.url).pathname;
 
   // Throws on refusal, and records the decision either way. The third argument
   // is the audited resource, not the request path.
   try {
-    await assertCapability(session, "members.manage", "portal_members");
+    await assertCapability(session, "members.manage", "portal_members", path);
   } catch {
     return Response.json(
       { error: "Only an owner or administrator can change membership." },

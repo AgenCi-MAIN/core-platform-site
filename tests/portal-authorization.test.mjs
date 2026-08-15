@@ -1071,3 +1071,68 @@ test("the ordinary single-match paths still resolve", async (t) => {
   });
   assert.equal(stranger.status, 307);
 });
+
+/* ============================================================
+   A missing table fails closed with an explanation, not a 500
+   ------------------------------------------------------------
+   resolvePortalAccess already fails closed when portal_members is absent, but
+   that protection covered sign-in only. Every page that queried a SECOND table
+   afterwards read it bare, so a database missing dialer_transfers or
+   audit_events threw and surfaced as HTTP 500 with a stack trace -- on a route
+   the member was entitled to see. The record documents two migration paths that
+   must not both be applied, so an absent table is a real possibility here, not
+   a hypothetical.
+   ============================================================ */
+
+test("a missing dialer_transfers table explains itself instead of throwing", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.db.prepare("DROP TABLE dialer_transfers").run();
+
+  const response = await portal.get("/portal/calls", {
+    subject: "subject-owner-1",
+    email: SEEDED_OWNER_EMAIL,
+  });
+
+  assert.equal(response.status, 200, "a missing table produced an error response");
+  const html = await response.text();
+
+  assert.match(html, /is not provisioned/, "the page did not say why it is empty");
+  assert.doesNotMatch(
+    html,
+    /no such table|D1_ERROR|SQLITE/i,
+    "the database driver's error text reached the member",
+  );
+  // The counts must not report zero over rows nobody managed to read.
+  assert.doesNotMatch(
+    html,
+    /Awaiting first transfer/,
+    "an unread inbox was described as an empty one",
+  );
+});
+
+test("the audit log never renders an unread table as an empty one", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // recordAudit swallows its own write failures by design, so dropping this
+  // table exercises the read path without breaking authorization.
+  await portal.db.prepare("DROP TABLE audit_events").run();
+
+  const response = await portal.get("/portal/audit", {
+    subject: "subject-owner-1",
+    email: SEEDED_OWNER_EMAIL,
+  });
+
+  assert.equal(response.status, 200);
+  const html = await response.text();
+
+  assert.match(html, /is not provisioned/);
+  assert.doesNotMatch(
+    html,
+    /No events recorded/,
+    "the audit log claimed nothing happened when it simply could not look",
+  );
+  assert.doesNotMatch(html, /no such table|D1_ERROR|SQLITE/i);
+});
