@@ -631,10 +631,14 @@ by 10DLC campaign registration (Inkbox enforces this too), which matches the
 portal's own no-outbound-consumer-texting stance. HERALD's hourly patrols
 pick up SMS to the new number automatically once it exists.
 
-**The parked number.** `(850) 809-0050` sits at NumberBarn on the $2.99/mo
-Park plan, under one of the owner's alias logins (vendor login, not a portal
-identity — § 5). It does nothing yet; the open decision is whether to port
-it into Inkbox later or keep it parked as a Florida-market asset.
+**The parked number — owner decision, 2026-08-15 evening.** `(850) 809-0050`
+sits at NumberBarn on the $2.99/mo Park plan under one of the owner's alias
+logins. NumberBarn's charge card was declined on 2026-08-11 and the owner
+ruled **"disregard — using Inkbox"**: telephony consolidates on Inkbox, the
+declined card is deliberately left unfixed, and it is understood that
+NumberBarn will eventually release the 850 number for non-payment —
+accepted, not an accident. If that number ever matters again, the payment
+method must be fixed before NumberBarn's grace window closes.
 
 ## 11. Where things are
 
