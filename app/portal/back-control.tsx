@@ -69,7 +69,22 @@ export function PortalBackControl({ fallback = "/portal" }: { fallback?: string 
       onClick={goBack}
       title="Back  (Esc)"
     >
-      <span className="portal-back-arrow" aria-hidden="true">‹</span>
+      {/* A drawn chevron, not the ‹ glyph: the text character's optical
+          center varies by font and needed line-height and margin hacks that
+          still sat visibly off. The SVG centers because it is geometry. */}
+      <svg
+        className="portal-back-arrow"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+        focusable="false"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M14.5 5.5 8 12l6.5 6.5" />
+      </svg>
       <span className="portal-back-label">Back</span>
       <kbd className="portal-back-key" aria-hidden="true">Esc</kbd>
       <span className="sr-only">Go back to the previous page</span>

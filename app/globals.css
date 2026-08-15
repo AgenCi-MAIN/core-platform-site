@@ -905,10 +905,60 @@ button, .button, .nav-cta, .text-link {
 }
 .portal-nav a:hover,
 .portal-signout:hover { color: var(--portal-text); background: var(--portal-hover); }
+/* Hover tint: each tab's own hue at low opacity, translucent over the panel.
+   The opaque var(--portal-hover) line above stays as the fallback for any
+   browser without color-mix. Deliberately quiet — the color story lives in
+   the icon glyph, not in washes of background. */
+.portal-nav a:hover {
+  background: color-mix(in srgb, var(--nav-hue, var(--portal-text)) 11%, transparent);
+}
 .portal-nav a[aria-current="page"] { color: var(--portal-accent-strong); background: var(--portal-accent-soft); font-weight: 750; box-shadow: inset 3px 0 0 var(--portal-accent); }
-.portal-nav a[aria-current="page"] .portal-nav-icon { color: var(--portal-accent); }
+.portal-nav a[aria-current="page"] .portal-nav-icon { color: var(--nav-hue, var(--portal-accent)); }
+
+/* One hue per tab, worn by the icon only. Mid-saturation values chosen to
+   read on both the light and dark panel without turning the rail into a
+   toy box; labels keep the neutral text color. */
+.portal-nav-item-dashboard { --nav-hue: #5b87d7; }
+.portal-nav-item-announcements { --nav-hue: #d19a3d; }
+.portal-nav-item-library { --nav-hue: #9272d2; }
+.portal-nav-item-radio { --nav-hue: #cf6d9f; }
+.portal-nav-item-book { --nav-hue: #43a094; }
+.portal-nav-item-calls { --nav-hue: #55a065; }
+.portal-nav-item-scripts { --nav-hue: #4f97ae; }
+.portal-nav-item-team { --nav-hue: #7b7fd9; }
+.portal-nav-item-leadership { --nav-hue: #c0983f; }
+.portal-nav-item-shop { --nav-hue: var(--portal-accent); }
+.portal-nav-item-quoter { --nav-hue: #5aa2cf; }
+.portal-nav-item-payrates { --nav-hue: #4f9e6f; }
+.portal-nav-item-members { --nav-hue: #6f88cf; }
+.portal-nav-item-audit { --nav-hue: #8b97a5; }
+.portal-nav .portal-nav-icon { color: var(--nav-hue, var(--portal-icon)); }
 .portal-nav-icon { flex: 0 0 24px; width: 24px; text-align: center; color: var(--portal-icon); font-size: 16px; line-height: 1; }
 .portal-nav-label { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* The Exchange is the one place members spend what they earn — it gets to
+   look like it. Accent-tinted at rest (every other item only colours when
+   active), with a small LIVE flare. The active state stays the standard one
+   so the current page is still unambiguous. */
+.portal-nav a.portal-nav-exchange:not([aria-current="page"]) {
+  color: var(--portal-accent-strong);
+  background: var(--portal-accent-soft);
+  font-weight: 750;
+}
+.portal-nav a.portal-nav-exchange:not([aria-current="page"]) .portal-nav-icon {
+  color: var(--portal-accent);
+}
+.portal-nav-flare {
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--portal-accent);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  line-height: 1;
+}
 
 .portal-sidebar-account {
   margin-top: 0;
@@ -931,6 +981,7 @@ button, .button, .nav-cta, .text-link {
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-brand-kicker,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-group-label,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-label,
+.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-flare,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-account-copy { display: none; }
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav a,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-signout { justify-content: center; padding-inline: 6px; }
@@ -942,7 +993,10 @@ button, .button, .nav-cta, .text-link {
 .portal-nav-group { display: grid; gap: 2px; }
 .portal-nav-group + .portal-nav-group { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--portal-line); }
 .portal-nav-group-label { margin: 0 9px 5px; color: var(--portal-subtle); font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.portal-nav-symbol { width: 17px; height: 17px; display: grid; place-items: center; margin: auto; color: inherit; font-size: 10px; font-weight: 850; line-height: 1; }
+/* The symbol is an svg now — the font declarations from the letter-chip era
+   are gone; CSS is the only size authority (the element carries no
+   width/height attributes). */
+.portal-nav-symbol { width: 17px; height: 17px; display: block; margin: auto; color: inherit; }
 .portal-sidebar-system { display: flex; align-items: center; gap: 7px; margin: auto 8px 10px; padding-top: 12px; border-top: 1px solid var(--portal-line); color: var(--portal-muted); font-size: 10px; font-weight: 700; line-height: 1.3; }
 .portal-system-dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--portal-success); box-shadow: 0 0 0 3px var(--portal-success-ring); }
 
@@ -1144,6 +1198,68 @@ button, .button, .nav-cta, .text-link {
 .portal-dialer-readiness { min-width: 0; }
 .portal-card-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
 .portal-card-title-row .portal-card-header { margin-bottom: 0; }
+/* Dial pad — spans the inbox column; the readiness rail keeps its own row. */
+.portal-dialer-pad { grid-column: 1 / -1; }
+.dialpad { max-width: 340px; margin-inline: auto; display: grid; gap: 12px; }
+.dialpad-display {
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 8px 12px;
+  border: 1px solid var(--portal-line);
+  border-radius: 10px;
+  background: var(--portal-panel);
+  color: var(--portal-text);
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+  overflow-wrap: anywhere;
+}
+.dialpad-hint { color: var(--portal-muted); font-size: 13px; font-weight: 600; }
+.dialpad-keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.dialpad-key {
+  min-height: 52px;
+  display: grid;
+  place-items: center;
+  gap: 0;
+  border: 1px solid var(--portal-line);
+  border-radius: 12px;
+  background: var(--portal-panel);
+  color: var(--portal-text);
+  cursor: pointer;
+  transition: background-color .12s ease, transform .06s ease;
+}
+.dialpad-key:hover { background: var(--portal-hover); }
+.dialpad-key:active { transform: scale(.96); }
+.dialpad-digit { font-size: 19px; font-weight: 750; line-height: 1.1; }
+.dialpad-letters { min-height: 10px; color: var(--portal-muted); font-size: 8px; font-weight: 700; letter-spacing: .16em; }
+.dialpad-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; }
+.dialpad-clear {
+  min-height: 46px;
+  border: 1px solid var(--portal-line);
+  border-radius: 12px;
+  background: var(--portal-panel);
+  color: var(--portal-muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+.dialpad-clear:disabled { opacity: .4; cursor: default; }
+.dialpad-call {
+  min-height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--portal-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-decoration: none;
+}
+.dialpad-call.is-idle { opacity: .4; pointer-events: none; }
+.dialpad-fine { text-align: center; }
+
 .portal-dialer-table { min-width: 980px; }
 .portal-dialer-table th:last-child,
 .portal-dialer-table td:last-child { text-align: right; }
@@ -1230,8 +1346,10 @@ html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"]
   .portal-sidebar-mobile .portal-drawer-close { position: absolute; top: 18px; right: 14px; z-index: 2; }
   .portal-sidebar-mobile .portal-sidebar-head { padding-right: 40px; }
   .portal-sidebar-mobile .portal-brand-copy,
-  .portal-sidebar-mobile .portal-nav-label,
   .portal-sidebar-mobile .portal-account-copy { display: grid; }
+  /* Block, not grid: text-overflow ellipsis does not apply to a grid
+     container, so a grid label hard-clips instead of eliding. */
+  .portal-sidebar-mobile .portal-nav-label { display: block; }
   .portal-sidebar-mobile .portal-nav a,
   .portal-sidebar-mobile .portal-signout { justify-content: flex-start; padding-inline: 9px; }
   .portal-sidebar-mobile .portal-sidebar-account { grid-template-columns: 36px minmax(0, 1fr); justify-items: stretch; }
@@ -2743,8 +2861,12 @@ html[data-portal-performance="boost"] .button:hover .key-glyph { transform: none
 
 /* --- Back control ------------------------------------------ */
 .portal-back {
-  display: inline-flex; align-items: center; gap: 6px; flex: none;
-  padding: 5px 9px 5px 7px;
+  /* justify-content matters: on coarse pointers the pill is grown to a
+     44px minimum, and without it the chevron sat pinned to the left of
+     the widened button — the off-center look. */
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: 6px; flex: none;
+  padding: 5px 9px;
   border: 1px solid var(--portal-line-strong); border-radius: 999px;
   background: var(--portal-panel); color: var(--portal-muted);
   font-size: var(--portal-type-label); font-weight: 800;
@@ -2754,7 +2876,8 @@ html[data-portal-performance="boost"] .button:hover .key-glyph { transform: none
 .portal-back:hover { background: var(--portal-hover); color: var(--portal-text); border-color: var(--portal-accent); }
 .portal-back:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
 .portal-back:active { transform: scale(.96); }
-.portal-back-arrow { font-size: 17px; line-height: 0; margin-top: -2px; }
+/* Geometry, not glyph — no line-height or negative-margin nudges. */
+.portal-back-arrow { width: 13px; height: 13px; display: block; flex: none; }
 .portal-back-key {
   padding: 1px 5px; border: 1px solid var(--portal-line); border-radius: 4px;
   background: var(--portal-soft); color: var(--portal-subtle);
@@ -3038,6 +3161,8 @@ html[data-portal-theme="dark"] .pay-rank-net.is-good { color: #79dfad; }
 .pay-advice ol { display: grid; gap: 11px; margin: 10px 0 0; padding-left: 20px; }
 .pay-advice li { color: var(--portal-muted); font-size: var(--portal-type-body); line-height: 1.6; }
 .pay-advice strong { color: var(--portal-text); }
+.pay-api-explainer p { margin: 10px 0 0; color: var(--portal-muted); font-size: var(--portal-type-body); line-height: 1.65; }
+.pay-api-explainer strong, .pay-api-explainer em { color: var(--portal-text); }
 
 /* Membership controls — grant, role change, status change.
    Server-enforced; these styles dress the controls, they never gate them. */
@@ -3304,7 +3429,37 @@ html[data-portal-theme="dark"] .member-note-ok {
   background: transparent;
 }
 
+/**
+ * The appearance reset above strips the native control EVERYWHERE, but the
+ * rules that painted a track and thumb back on only lived inside mobile
+ * media queries — so on a desktop pointer the slider rendered as a bare
+ * thumb floating over nothing. Track and thumb are painted here at base
+ * level; the coarse-pointer block below only enlarges them for fingers.
+ */
+.pay-dial input[type="range"] { height: 20px; }
+.pay-dial input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 999px; background: var(--portal-line-strong);
+}
+.pay-dial input[type="range"]::-moz-range-track {
+  height: 4px; border-radius: 999px; background: var(--portal-line-strong);
+}
+.pay-dial input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px; height: 16px; margin-top: -6px;
+  border: 0; border-radius: 50%; background: var(--portal-accent);
+}
+.pay-dial input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px;
+  border: 0; border-radius: 50%; background: var(--portal-accent);
+}
+
 @media (pointer: coarse) {
+  /* The base-level `height: 20px` above is later in source than the earlier
+     coarse-pointer `height: 44px`, so it would win on phones and shrink the
+     tap target back to 20px — restate the finger height here, where source
+     order puts it after the base rule. */
+  .pay-dial input[type="range"] { height: 44px; }
   .audio-deck-slider::-webkit-slider-thumb,
   .pay-dial input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -3406,4 +3561,96 @@ html[data-portal-theme="dark"] .member-note-ok {
   .audio-deck-volume { flex: none; min-width: 0; gap: 0; }
   .audio-deck-slider,
   .audio-deck-level { display: none; }
+}
+
+/* ============================================================
+   Next-gen chrome pass (2026-08-15)
+   Depth, light, and motion for the portal shell — deliberately
+   quiet, and every effect here honors the two standing escape
+   hatches: BOOST strips the expensive work (the toggle's whole
+   promise), and prefers-reduced-motion kills the animation.
+   ============================================================ */
+
+/* The brand mark and the member avatars carry the one gradient:
+   accent into THRIVE gold. Everything else stays token-flat. */
+.portal-brand-mark,
+.portal-topbar-avatar,
+.portal-account-avatar {
+  background: linear-gradient(135deg, var(--portal-accent), #e0b64e);
+  color: #fff;
+}
+.portal-brand-mark { box-shadow: 0 2px 12px -5px var(--portal-accent); }
+
+/* Display headings: the emphasized word picks up the same sweep. */
+.portal-intro h1 em {
+  background: linear-gradient(120deg, var(--portal-accent), #e0b64e 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Topbar goes glass where the browser can afford it: content slides
+   beneath the sticky bar instead of hitting a wall. The solid panel
+   background above remains the fallback. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .portal-topbar {
+    background: color-mix(in srgb, var(--portal-panel) 80%, transparent);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    backdrop-filter: blur(12px) saturate(1.2);
+  }
+}
+
+/* The active tab throws a faint halo in its own hue. */
+.portal-nav a[aria-current="page"] {
+  box-shadow:
+    inset 3px 0 0 var(--portal-accent),
+    0 0 16px -8px var(--nav-hue, var(--portal-accent));
+}
+
+/* Cards answer the pointer with light, never with movement. */
+.portal-card { transition: border-color .18s ease, box-shadow .18s ease; }
+.portal-card:hover { border-color: var(--portal-line-strong); }
+html[data-portal-theme="dark"] .portal-card {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .028), transparent 46%);
+}
+
+/* Pages arrive instead of appearing. */
+@keyframes portal-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.portal-main { animation: portal-enter .26s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .portal-main { animation: none; }
+}
+
+/* --- BOOST strips all of it, per the standing contract. ---- */
+html[data-portal-performance="boost"] .portal-topbar {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: var(--portal-panel);
+}
+html[data-portal-performance="boost"] .portal-topbar-avatar,
+html[data-portal-performance="boost"] .portal-account-avatar {
+  background: var(--portal-avatar-surface);
+  color: var(--portal-avatar-ink);
+}
+html[data-portal-performance="boost"] .portal-brand-mark {
+  background: var(--portal-brand-surface);
+  color: var(--portal-brand-ink);
+  box-shadow: none;
+}
+html[data-portal-performance="boost"] .portal-intro h1 em {
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: var(--portal-accent);
+}
+html[data-portal-performance="boost"] .portal-nav a[aria-current="page"] {
+  box-shadow: inset 3px 0 0 var(--portal-accent);
+}
+html[data-portal-performance="boost"] .portal-main { animation: none; }
+html[data-portal-performance="boost"] .portal-card {
+  transition: none;
+  background-image: none;
 }

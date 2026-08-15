@@ -914,52 +914,76 @@ test("nobody changes their own role or status", async (t) => {
   assert.equal(row.status, "active");
 });
 
-test("the last active owner cannot be demoted or suspended", async (t) => {
+test("owner rows are peer-protected: nobody changes an owner from the portal", async (t) => {
   const portal = await startPortal();
   t.after(portal.dispose);
 
-  // Two owners: one acting, one the target. The target is the only *other*
-  // active owner, so removing them would still leave the actor — allowed.
+  // Several active owners is the live roster shape. Without this rule any
+  // one of them could suspend the rest and hold the portal alone — which
+  // also covers the older last-active-owner case, since no owner can be
+  // demoted or suspended here at all. Changing an owner is a
+  // database-console operation by design (governance note 4).
   await portal.addMember("second-owner@example.com", "owner");
+  await portal.addMember("admin@example.com", "admin");
+  await portal.addMember("agent@example.com", "agent");
   const actor = { subject: "sub-owner-1", email: SEEDED_OWNER_EMAIL };
+  const admin = { subject: "sub-admin", email: "admin@example.com" };
 
-  const demoteOne = await manage(portal, actor, {
+  // An owner against a fellow owner: role and status, both refused.
+  const demote = await manage(portal, actor, {
     action: "role",
     email: "second-owner@example.com",
     role: "manager",
   });
-  assert.equal(demoteOne.status, 200, await demoteOne.text());
+  assert.equal(demote.status, 409, "an owner must not demote another owner");
 
-  // Now the seeded owner is the last one. An admin tries to remove them.
-  await portal.addMember("admin@example.com", "admin");
-  const admin = { subject: "sub-admin", email: "admin@example.com" };
+  const suspend = await manage(portal, actor, {
+    action: "status",
+    email: "second-owner@example.com",
+    status: "suspended",
+  });
+  assert.equal(suspend.status, 409, "an owner must not suspend another owner");
 
-  const demoteLast = await manage(portal, admin, {
+  // An administrator against an owner: refused the same way.
+  const adminDemote = await manage(portal, admin, {
     action: "role",
     email: SEEDED_OWNER_EMAIL,
     role: "agent",
   });
-  assert.equal(demoteLast.status, 409, "the last owner must not be demotable");
+  assert.equal(adminDemote.status, 409, "an admin must not demote an owner");
 
-  const suspendLast = await manage(portal, admin, {
+  const adminRevoke = await manage(portal, admin, {
     action: "status",
-    email: SEEDED_OWNER_EMAIL,
-    status: "suspended",
+    email: "second-owner@example.com",
+    status: "revoked",
   });
-  assert.equal(suspendLast.status, 409, "the last owner must not be suspendable");
+  assert.equal(adminRevoke.status, 409, "an admin must not revoke an owner");
 
-  const row = await portal.db
-    .prepare("SELECT role, status FROM portal_members WHERE email = ?")
-    .bind(SEEDED_OWNER_EMAIL)
-    .first();
-  assert.equal(row.role, "owner", "the last owner survives both attempts");
-  assert.equal(row.status, "active");
+  for (const target of [SEEDED_OWNER_EMAIL, "second-owner@example.com"]) {
+    const row = await portal.db
+      .prepare("SELECT role, status FROM portal_members WHERE email = ?")
+      .bind(target)
+      .first();
+    assert.equal(row.role, "owner", `${target} survives with role intact`);
+    assert.equal(row.status, "active", `${target} survives with status intact`);
+  }
 
+  // Four refusals above → four audit rows. `some()` would let a regression
+  // that audits only the first refusal pass unnoticed.
   const rows = await portal.audit();
-  assert.ok(
-    rows.some((r) => r.reason === "last_active_owner_protected"),
-    "the protection must be audited by name",
+  const denies = rows.filter(
+    (r) => r.reason === "owner_peer_protected" && r.decision === "deny",
   );
+  assert.equal(denies.length, 4, "every refusal must be audited by name");
+
+  // The control: the same actor changing a non-owner row still works, so the
+  // refusals above are the peer protection, not a broken route.
+  const control = await manage(portal, actor, {
+    action: "role",
+    email: "agent@example.com",
+    role: "manager",
+  });
+  assert.equal(control.status, 200, await control.text());
 });
 
 /* ============================================================

@@ -325,6 +325,7 @@ function PortalSidebarContent({
                   <a
                     key={item.href}
                     href={item.href}
+                    className={`portal-nav-item-${item.icon}`}
                     title={`${item.label} — opens in a new tab`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -338,6 +339,7 @@ function PortalSidebarContent({
                   <Link
                     key={item.href}
                     href={item.href}
+                    className={`portal-nav-item-${item.icon}${item.icon === "shop" ? " portal-nav-exchange" : ""}`}
                     aria-current={item.href === current ? "page" : undefined}
                     title={item.label}
                   >
@@ -345,6 +347,11 @@ function PortalSidebarContent({
                       <PortalNavMark name={item.icon} />
                     </span>
                     <span className="portal-nav-label">{item.label}</span>
+                    {item.icon === "shop" ? (
+                      <span className="portal-nav-flare" aria-hidden="true">
+                        LIVE
+                      </span>
+                    ) : null}
                   </Link>
                 ),
               )}
@@ -531,26 +538,142 @@ export function EmptyState({
   );
 }
 
-function PortalNavMark({ name }: { name: PortalIconName }) {
-  const marks: Record<PortalIconName, string> = {
-    dashboard: "D",
-    library: "R",
-    announcements: "!",
-    quoter: "Q",
-    radio: "♪",
-    shop: "X",
-    payrates: "$",
-    book: "B",
-    calls: "C",
-    scripts: "S",
-    team: "T",
-    leadership: "L",
-    members: "M",
-    audit: "A",
-    signout: "↗",
-  };
+/**
+ * Sidebar icons. These used to be single letters (D, B, C, …), which read as
+ * placeholders. Inline stroke SVGs inherit `currentColor` exactly like the
+ * letters did — same active/hover colour behaviour, both themes — and the
+ * deck already proved this approach against iOS repainting emoji glyphs.
+ */
+const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
+  // Four tiles — the command surface.
+  dashboard: (
+    <>
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+    </>
+  ),
+  // Speaker with sound waves.
+  announcements: (
+    <>
+      <path d="M4 10v4h3.5l5.5 4V6L7.5 10H4z" />
+      <path d="M16.5 9.5a4 4 0 0 1 0 5M19 7.5a7 7 0 0 1 0 9" />
+    </>
+  ),
+  // Open book.
+  library: (
+    <>
+      <path d="M12 6.5C10.5 5.2 8.4 4.5 6 4.5h-1v14h1c2.4 0 4.5.7 6 2 1.5-1.3 3.6-2 6-2h1v-14h-1c-2.4 0-4.5.7-6 2z" />
+      <path d="M12 6.5v14" />
+    </>
+  ),
+  // Eighth notes.
+  radio: (
+    <>
+      <path d="M9.2 17.5V6.5l9.6-2v11" />
+      <circle cx="7" cy="17.5" r="2.2" />
+      <circle cx="16.6" cy="15.5" r="2.2" />
+    </>
+  ),
+  // Briefcase — the book of business.
+  book: (
+    <>
+      <rect x="3.5" y="7.5" width="17" height="12" rx="2" />
+      <path d="M9 7.5V6a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 6v1.5" />
+      <path d="M3.5 12.5h17" />
+    </>
+  ),
+  // Phone handset.
+  calls: (
+    <path d="M5.5 4h3l1.5 4-2 1.6a12.5 12.5 0 0 0 6.4 6.4L16 14l4 1.5v3A1.5 1.5 0 0 1 18.4 20C10.9 19.4 4.6 13.1 4 5.6A1.5 1.5 0 0 1 5.5 4z" />
+  ),
+  // Document with lines.
+  scripts: (
+    <>
+      <path d="M6.5 3.5H14L17.5 7v12a1.5 1.5 0 0 1-1.5 1.5H8A1.5 1.5 0 0 1 6.5 19V3.5z" />
+      <path d="M13.5 3.5V7h4" />
+      <path d="M9.5 12h5M9.5 15.5h5" />
+    </>
+  ),
+  // Two people.
+  team: (
+    <>
+      <circle cx="9" cy="8.5" r="3" />
+      <path d="M3.5 19.5c0-3 2.4-5 5.5-5s5.5 2 5.5 5" />
+      <path d="M15.5 6a3 3 0 0 1 0 5.2M17.5 14.8c1.9.8 3 2.4 3 4.7" />
+    </>
+  ),
+  // Flag planted.
+  leadership: (
+    <>
+      <path d="M6 21V4" />
+      <path d="M6 4.8c4-2 8 2 12 0v8.7c-4 2-8-2-12 0" />
+    </>
+  ),
+  // Two-way trade arrows — the Exchange.
+  shop: (
+    <>
+      <path d="M7 8h13.5M17 4.5 20.5 8 17 11.5" />
+      <path d="M17 16H3.5M7 12.5 3.5 16 7 19.5" />
+    </>
+  ),
+  // Calculator.
+  quoter: (
+    <>
+      <rect x="5.5" y="3.5" width="13" height="17" rx="2" />
+      <path d="M9 7.5h6" />
+      <path d="M9 12h.01M12 12h.01M15 12h.01M9 15.7h.01M12 15.7h.01M15 15.7h.01" />
+    </>
+  ),
+  // Dollar in a coin.
+  payrates: (
+    <>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7v10M14.6 9.3c-.5-.9-1.5-1.4-2.6-1.4-1.5 0-2.7.9-2.7 2.1s1.1 1.7 2.7 2c1.6.3 2.7.9 2.7 2.1s-1.2 2.1-2.7 2.1c-1.1 0-2.1-.5-2.6-1.4" />
+    </>
+  ),
+  // ID badge — the roster.
+  members: (
+    <>
+      <rect x="3.5" y="5" width="17" height="14.5" rx="2" />
+      <circle cx="9" cy="11" r="2" />
+      <path d="M6 16.5c.5-1.4 1.6-2.2 3-2.2s2.5.8 3 2.2" />
+      <path d="M15 10h3.5M15 13.5h3.5" />
+    </>
+  ),
+  // Shield with a check — the access log.
+  audit: (
+    <>
+      <path d="M12 3.5 5 6v5.2c0 4.4 2.9 7.8 7 9.3 4.1-1.5 7-4.9 7-9.3V6z" />
+      <path d="m9 11.8 2.2 2.2 4.3-4.3" />
+    </>
+  ),
+  // Door with an outbound arrow.
+  signout: (
+    <>
+      <path d="M13.5 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6.5" />
+      <path d="M10 12h10M16.5 8.5 20 12l-3.5 3.5" />
+    </>
+  ),
+};
 
-  return <span className={`portal-nav-symbol portal-nav-symbol-${name}`}>{marks[name]}</span>;
+function PortalNavMark({ name }: { name: PortalIconName }) {
+  return (
+    <svg
+      className={`portal-nav-symbol portal-nav-symbol-${name}`}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {NAV_MARKS[name]}
+    </svg>
+  );
 }
 
 function initials(name: string): string {
