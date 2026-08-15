@@ -219,10 +219,12 @@ decisions. VIGIL reports and never edits. Neither can deploy.
 
 - [x] ~~Wire member management into the portal UI~~ — done, tested, merged.
 - [x] ~~Merge PR #1~~ — merged 2026-08-15, `4aa8f7f`.
-- [ ] **Deploy.** `main` carries everything; the live site runs none of it
-      until `npm run deploy` runs on a machine with Cloudflare credentials.
-- [ ] **Rotate `SESSION_SECRET`** (unchanged).
-- [ ] **Delete stray D1 database `8`** (unchanged).
+- [x] ~~Deploy~~ — done by the owner, 2026-08-15, via the gated `npm run
+      deploy` (version `c988662c`). The gate earned its keep on the first run:
+      it refused once on a genuinely failing test (a Windows line-ending bug in
+      the test itself, fixed as `bf294be`) and shipped only when green.
+- [x] ~~Rotate `SESSION_SECRET`~~ — done by the owner, 2026-08-15, value undisclosed.
+- [x] ~~Delete stray D1 database `8`~~ — deleted by the owner, 2026-08-15.
 - [ ] **Confirm Nate Nguyen's and Oscar Valencia's sign-in addresses**, then
       grant — from Portal → Members after the deploy, not the console.
 - [ ] **Owner content decisions before or at deploy:** the pinned announcement

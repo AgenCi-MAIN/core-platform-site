@@ -47,9 +47,9 @@ The D1 id lives in `.openai/hosting.json`; `build/sites-vite-plugin.ts` carries
 it into `dist/server/wrangler.json` at build time, which is the config
 `wrangler deploy` actually reads.
 
-**Stray resource to clean up:** an empty D1 database named `8`
-(`5bc64b69-1c83-4826-adf8-dcad4f576885`), created by accident.
-Remove with `npx wrangler d1 delete 8`.
+~~Stray resource to clean up~~ — the accidental empty D1 database named `8`
+(`5bc64b69-1c83-4826-adf8-dcad4f576885`) was deleted by the owner on
+2026-08-15. Exactly one D1 database exists: `site-creator-d1`.
 
 ---
 
@@ -381,11 +381,10 @@ identity it is impersonating on every start. The role still comes from the
 
 ## 10. Open follow-ups
 
-- [ ] **Rotate `SESSION_SECRET`.** A candidate value was pasted into a chat
-      transcript during setup. If that value is the one in use, replace it:
-      `npx wrangler secret put SESSION_SECRET -c dist/server/wrangler.json`.
-      Rotating signs everyone out and breaks nothing else.
-- [ ] **Delete the stray D1 database `8`**: `npx wrangler d1 delete 8`.
+- [x] ~~Rotate `SESSION_SECRET`~~ — done by the owner, 2026-08-15, value never
+      disclosed to anyone (which is the correct way to do it). All prior
+      session cookies are invalid; one fresh Google sign-in per member.
+- [x] ~~Delete the stray D1 database `8`~~ — deleted by the owner, 2026-08-15.
 - [ ] **Confirm Oscar Valencia's and Nate Nguyen's sign-in addresses**, then
       grant them. After the next deploy this no longer needs the D1 console —
       use **Portal → Members**, which asserts `members.manage` server-side and
