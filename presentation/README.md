@@ -108,12 +108,12 @@ $v.Dispose()
 
 ## Two things the presentation states that should not be quietly dropped
 
-**The live portal is ahead of this repository.** The deployed site shows Call
-Lab, Script Vault, Quoter, a system-readiness panel, and seat counts that do not
-all exist on this branch. Before building on any assumption from the code here,
-check the running site. The access model described in
-[CORE_PLATFORM_RECORD.md](../CORE_PLATFORM_RECORD.md) is accurate; the surface
-inventory may not be.
+**The sidebar names are not the route names.** Call Lab is `/portal/calls`,
+Script Vault is `/portal/scripts`, Exchange is `/portal/shop`, Radio is
+`/portal/music`. Quoter is not a route at all — it is an outbound link to a
+third-party tool, outside the access model entirely. The full mapping is in
+[CORE_PLATFORM_RECORD.md](../CORE_PLATFORM_RECORD.md) § 10a. The repository and
+the deployed site are in sync; the naming just makes them look divergent.
 
 **The surfaces are gated, but mostly unfilled.** The frame is real and enforces
 access correctly. Business sources — CRM, carrier, dialer, financial — are not

@@ -361,22 +361,40 @@ identity it is impersonating on every start. The role still comes from the
 
 ---
 
-## 10a. The live site is ahead of this repository
+## 10a. Sidebar labels are not route names
 
-The deployed portal shows surfaces this branch does not all contain — **Call
-Lab**, **Script Vault**, **Quoter**, a system-readiness panel, and seat counts.
-Before building on any assumption drawn from the code here, check the running
-site first.
+The deployed portal and this repository **are** in sync. The sidebar deliberately
+uses operator-facing names that differ from the directory names, which makes the
+running site look like it carries surfaces the code does not have. It does not.
 
-What is accurate in this document regardless: the access model, the identity
-flow, the role and capability matrix, the deployment and secret inventory. What
-may be stale: the surface list in section 5 of the presentation README and any
-route inventory.
+| Sidebar label | Route | Source |
+| --- | --- | --- |
+| Dashboard | `/portal` | `app/portal/page.tsx` |
+| Announcements | `/portal/announcements` | |
+| Library | `/portal/library` | |
+| Radio | `/portal/music` | |
+| Book of Business | `/portal/book` | |
+| **Call Lab** | `/portal/calls` | |
+| **Script Vault** | `/portal/scripts` | |
+| Team | `/portal/team` | |
+| Leadership | `/portal/leadership` | |
+| **Exchange** | `/portal/shop` | |
+| **Quoter** | — | **external link, see below** |
+| Pay Rates | `/portal/pay-rates` | |
+| Members | `/portal/members` | |
+| Audit | `/portal/audit` | |
 
-Reconciling the two — bringing this repository up to what is deployed, or
-redeploying from this branch deliberately — is worth doing before the next
-significant change, so that the code, the record, and the running system stop
-disagreeing.
+The label ↔ route mapping lives in `app/portal/components.tsx`. Rename a label
+there freely; renaming a *directory* changes a URL and breaks bookmarks.
+
+**Quoter is not part of the portal.** It is an outbound link to
+`https://app.insurancetoolkits.com/fex/quoter` — a third-party tool. This is
+worth knowing precisely because everything else in this document is about a
+closed access model: the moment a member follows that link they are outside it.
+No capability is checked, no audit row is written, and whatever they do there is
+governed by that vendor's terms, not THRIVE's. That may be entirely fine — but it
+is a seam in the boundary, and it should be a deliberate choice rather than a
+detail nobody noticed.
 
 ## 10b. The board presentation
 
