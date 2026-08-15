@@ -80,8 +80,12 @@ order ("send this file to ryan"), MAIN sent Ryan Davidson
 (ryandavidson.zenith@gmail.com) a short note from the owner's own Gmail
 carrying the owner's chosen Google-Doc link (Gmail message id
 1a0074df7e6242ef). A direct Drive-share was attempted first and refused by
-permissions. This is the one and only staff-originated send to date; the
-never-send rule stands for everything not explicitly ordered, message by
-message. Recorded here because the privacy-page verification fleet
+permissions. Second send, same day: at the owner's explicit order ("TEST EMAIL TO
+ryandavidson.zenith@gmail.com ... REDRAFT THIS WARNING"), MAIN sent Ryan a
+sample JARVIS ops-warning email (Gmail message id 1a0079275464e434),
+subject-stamped [TEST] and body-labeled that every figure is simulated —
+fabricated numbers must never travel unlabeled. These two are the only
+staff-originated sends to date; the never-send rule stands for everything
+not explicitly ordered, message by message. Recorded here because the privacy-page verification fleet
 correctly refused to accept an undocumented precedent — a send that is not
 in the record does not exist.
