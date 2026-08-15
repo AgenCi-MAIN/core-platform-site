@@ -35,6 +35,10 @@ const SOURCE_FILES = [
   "vite.config.ts",
   "package.json",
   ".openai/hosting.json",
+  // Both feed the emitted output (PostCSS drives the CSS; tsconfig drives
+  // jsx/target/paths) — editing either without a rebuild is a stale deploy.
+  "postcss.config.mjs",
+  "tsconfig.json",
 ];
 
 /** Files the client bundle must carry for the installable app to work. */

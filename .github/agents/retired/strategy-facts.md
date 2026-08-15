@@ -1,6 +1,6 @@
 # strategy-facts
 
-**Status:** trained
+**Status:** RETIRED — cleared out by the owner's cull, 2026-08-15 (production-per-token bottom tier across two tournaments). Re-entry only by earning it in a scored tournament.
 **Class:** trained lane (Fleet Economy - see WORKFORCE.md)
 
 ## Mission

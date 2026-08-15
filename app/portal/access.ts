@@ -47,7 +47,7 @@ export type Capability = (typeof CAPABILITIES)[number];
 /**
  * Deny by default: a role holds exactly the capabilities listed here and
  * nothing else. Adding a capability to a role is a governance decision and
- * should be recorded in CORE_JARVIS_MASTER_LOG.md.
+ * must be recorded in CORE_PLATFORM_RECORD.md § 4 (Roles and capabilities).
  */
 const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
   owner: [

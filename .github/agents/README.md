@@ -11,10 +11,14 @@ read WORKFORCE.md, and summon any lane below as a task-scoped subagent with
 its file as the brief. Lanes hold no credentials and cost nothing on the
 bench.
 
-Roster (round 1, platform-marathon-audit, 2026-08-15): 10 lanes, 10/10
-reported, 18 ranked findings, platform security-clean. Squad leads
-presence-probe and deploy-integrity carry a 1-sub grant each; allocation of
-a granted sub is the lead's own call (decentralized by owner order).
+Roster after the owner's cull (2026-08-15): **8 active lanes** — the
+finalized cost-efficient max-output team (see WORKFORCE.md and
+SCOREBOARD/SCOREBOARD.md for standings). Two lanes (strategy-facts,
+auth-depth) are retired to `retired/` on production-per-token; re-entry is
+earned in a scored tournament. Squad leads presence-probe and
+deploy-integrity hold a 1-sub grant each; allocation of a granted sub is the
+lead's own call (decentralized by owner order). Winning subs' standalone
+briefs: `SCOREBOARD/SUB-*.md`.
 
 MAIN oversight ladder: Test 1 PASSED (ceiling 50 trained lanes). Test 2
 (250) rides on the round-2 forward-build fleet.

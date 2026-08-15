@@ -97,6 +97,7 @@ const PROTECTED_ROUTES = [
   "/portal/audit",
   "/portal/book",
   "/portal/calls",
+  "/portal/investigator",
   "/portal/leadership",
   "/portal/library",
   "/portal/members",
@@ -154,8 +155,11 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
   const { fileURLToPath } = await import("node:url");
   const appDir = fileURLToPath(new URL("../app", import.meta.url));
 
-  // Second argument of requireCapability(capability, returnTo) is the route.
-  const GUARD = /requireCapability\(\s*"[^"]+"\s*,\s*"([^"]+)"/g;
+  // Second argument of requireCapability(capability, returnTo) is the route;
+  // requireFounder(returnTo) takes the route directly. Both are guards, and a
+  // founder-gated page shipping without an anonymous-refusal test is the same
+  // failure as a capability-gated one — the regex must see them both.
+  const GUARD = /(?:requireCapability\(\s*"[^"]+"\s*,|requireFounder\()\s*"([^"]+)"/g;
 
   const found = new Set();
   const walk = (dir) => {

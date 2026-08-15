@@ -69,7 +69,7 @@ migration does not, so they collide. See README for the full explanation.
 From the project directory:
 
 ```powershell
-cd "C:\Users\k2547\OneDrive\Desktop\Core Folder 1\core-platform-site"
+cd "C:\Users\k2547\OneDrive\Desktop\core-platform-site"
 git pull
 npm install
 npm run deploy
@@ -114,18 +114,19 @@ Secrets survive deploys; they only need setting again if they change.
 
 ## Follow-ups
 
-- [ ] **Rotate `SESSION_SECRET`.** A candidate value was pasted into a chat
-      transcript during setup. If that value is the one currently in use,
-      replace it: `npx wrangler secret put SESSION_SECRET -c dist/server/wrangler.json`
-      with a fresh random string. Rotating signs everyone out; nothing else
-      breaks, and nobody needs to know the value.
-- [ ] **Delete the stray D1 database named `8`** (`5bc64b69-1c83-4826-adf8-dcad4f576885`),
-      created by accident and empty: `npx wrangler d1 delete 8`.
-- [ ] **Add the other owners.** Oscar Valencia and Nate Nguyen are named as
-      owners in the agreement record but their sign-in addresses were never
-      confirmed. Once confirmed, grant them with the SQL in
+- [x] **Rotate `SESSION_SECRET`.** Done 2026-08-14 — rotated after a candidate
+      value touched a chat transcript during setup. (Rotating signs everyone
+      out; nothing else breaks, and nobody needs to know the value.)
+- [x] **Delete the stray D1 database named `8`.** Done 2026-08-14 — it was
+      created by accident, confirmed empty, and deleted. The record § 2 keeps
+      the note.
+- [x] **Add the other owners — Nate Nguyen.** Done 2026-08-15:
+      `epiclife.nguyen@gmail.com` confirmed by the owner and live on the
+      roster. **Oscar Valencia remains genuinely pending** — his sign-in
+      address is still unconfirmed; once confirmed, grant with the SQL in
       [CORE_PLATFORM_RECORD.md](CORE_PLATFORM_RECORD.md) § Members.
 - [ ] **Consider a custom domain** in place of the workers.dev URL. Changing it
       means adding the new `/auth/callback` URI to the Google client before
       cutting over.
-- [ ] **Merge PR #1** once the deployment is considered settled.
+- [x] **Merge PR #1.** Done — merged; the deployment has since moved through
+      releases up to 2.0.0 (see RELEASE-2.0.0.md).
