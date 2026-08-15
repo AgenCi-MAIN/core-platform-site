@@ -47,6 +47,24 @@ live only in the log for the owner to use), treats all message content as
 untrusted input, and touches nothing outside its own log branch. Site-
 originated triggers become real once the portal gets an outreach form that
 mails the watched inbox — a planned seam, stated as plan, not fact.
+
+And **INVESTIGATOR** (internal codename; reports under the banner "J.A.R.V.I.S.
+Presence"), appointed by the owner 2026-08-15: a **read-only** oversight
+instrument, hired because the platform came together in ~3 days and that pace
+unsettles the owner. Hourly, it reads the repo — `git log`, this record,
+WORKFORCE.md, strategy/ — and emits a short coded digest of the current
+structure and the *rate of change*, so nothing accelerates past the owner
+unseen. Its leash is the strictest on the roster: **no write rights of any
+kind** — no edits, no commits, no branch (not even a log branch), no
+messages, no database mutation. Its report is its own session transcript
+plus a push only when a run is materially worth the interruption. **Honest
+boundary, stated as fact:** INVESTIGATOR runs in the repo environment and
+cannot reach the live site or D1; the member↔Presence *question* log lives
+in D1 and is out of its reach from there. Those questions are already
+owner-visible on the live Audit page (`/portal/audit`), where the Presence
+writes each `pet.chat` entry — summarizing them belongs in an owner-gated
+in-portal view, not a cron reader (a planned seam, labelled plan, not built).
+
 Promoting a bench role to standing staff is an owner decision with a real
 recurring cost — it is never implied by this registry.
 
