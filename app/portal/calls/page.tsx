@@ -10,6 +10,7 @@ import {
   PrototypeNotice,
 } from "../components";
 import { readFaultCopy, readRows } from "../read-guard";
+import { DialPad } from "./dialpad";
 import { isCallRecordingStorageReady } from "./storage";
 
 export const dynamic = "force-dynamic";
@@ -195,6 +196,18 @@ export default async function CallsPage() {
               />
             </div>
           </aside>
+
+          <article className="portal-card portal-dialer-pad">
+            <div className="portal-card-title-row">
+              <PortalCardHeader
+                icon="C"
+                title="Dial pad"
+                description="Place a call from here today; ready to rewire to the approved dialer the day one is connected."
+              />
+              <span className="portal-state portal-state-pending">Device calling</span>
+            </div>
+            <DialPad />
+          </article>
         </section>
 
         <PrototypeNotice>

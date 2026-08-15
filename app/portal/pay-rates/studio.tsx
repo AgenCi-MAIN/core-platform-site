@@ -120,6 +120,30 @@ export function PayRatesStudio({
         </div>
       </section>
 
+      {/* ---------------- what an API agent is ---------------- */}
+      <section className="portal-card pay-api-explainer">
+        <h3>What an &ldquo;API agent&rdquo; is</h3>
+        <p>
+          An API agent is an <strong>AI worker</strong> — software that does a
+          job for a human producer, like triaging leads, drafting follow-ups,
+          summarizing calls, or checking a script against a state&rsquo;s rules.
+          It runs on a commercial AI model, and the company pays for it the way
+          a utility bills: per use, through the model provider&rsquo;s API
+          (which is why the cost line is called <em>API cost</em>, not a
+          salary). It is not a person, it holds no license, and it never talks
+          to a customer on its own.
+        </p>
+        <p>
+          <strong>API grants</strong> are how many of these AI workers a rank is
+          allotted. A higher rank carries more grants because its people run
+          bigger books — more leads to triage, more calls to summarize. Each
+          grant costs the company roughly the <em>API cost per agent</em> dial
+          above, per month, which is why adding grants to a rank moves that
+          rank&rsquo;s net down before the productivity it buys shows up
+          anywhere on this page.
+        </p>
+      </section>
+
       {/* ---------------- rank editor ---------------- */}
       <section className="portal-card">
         <h3>Ranks</h3>

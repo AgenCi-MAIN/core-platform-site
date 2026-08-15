@@ -155,6 +155,20 @@ his sign-in address was never confirmed. Confirm the exact Google address he
 signs in with before granting — seeding a wrong address grants nothing and
 looks like a broken portal.
 
+**The owner's other addresses are aliases, not identities (recorded
+2026-08-15).** Shawn is Primary admin of a Proton account carrying several
+alias addresses (as shown on his admin panel: `bankerrunners@pm.me`,
+`bankerrunner@pm.me`, `thrivelife.mao@pm.me`, plus `bankerrunners@proton…`,
+`BankerBankss@proton…`, `schmitzLanwalker@proton…`, `schmitzLanwalker@pm…`,
+`CORE_inbox_pm@pm…` — those last were truncated on screen; confirm the full
+spelling before ever writing one anywhere that matters). All of them are the
+same person. **None of them signs in to the portal.** The one and only portal
+identity for Shawn is `bankerrunners@gmail.com`. Never grant an alias its own
+member row — a second row for the same human is the identity-ambiguity state
+the portal refuses, and an alias grant would sit unused as a standing
+credential. NumberBarn (business line) is registered under one of these
+aliases; that is a vendor login, not a portal identity.
+
 **Owner rows are peer-protected (governance, set by Shawn 2026-08-15).** No
 owner or administrator can change another owner's role or status from the
 portal — `/portal/members/manage` refuses with `owner_peer_protected` and the

@@ -38,6 +38,27 @@ VIGIL (daily invariant sentinel), MR. T (10-hourly operations steward), and
 the Morning Brief. Promoting a bench role to standing staff is an owner
 decision with a real recurring cost — it is never implied by this registry.
 
+## Commendations
+
+Awarded by the owner, 2026-08-15, for the seven-lane strategy fleet (filed
+under `strategy/fleet-2026-08-15/`). Agents hold no commissions and are paid
+in nothing — the award that exists for a task-scoped agent is this record
+that its work held up, which future summons of the same role inherit.
+
+| Lane | Role | Cited for |
+|---|---|---|
+| 01 | 005-decision-analyst | Twelve claims verified against primaries; resolved the Phoenix two-brokerage contradiction. |
+| 02 | 057-financial-analyst | The 29%-of-market finding; refused to invent figures it could not source. |
+| 03 | 100-forecasting-analyst | The runnable cash model; surfaced the three-facts contradiction the plan inherits. |
+| 04 | 066/067 (compliance lanes) | The five launch gates and the vendor-transfer liability finding. |
+| 05 | bench (competitor history) | Documented-vs-lore discipline: refused to confirm the FFL carrier-termination story. |
+| 06 | bench (program design) | The Earn Your City draft with leashes and `[OWNER SETS]` honesty intact. |
+| 07 | bench (instrumentation) | Mapped all 26 scorecard rows without letting the portal fake one of them. |
+
+The same seven lanes were re-activated the same day as an adversarial
+verification fleet over the portal UI batch (icons, dial pad, sliders,
+peer-protection) — refute-first briefs, findings on file in SESSION_LOG.md.
+
 ## The bench
 
 | ID | Agent | Domain | Primary Scope |
