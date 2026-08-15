@@ -102,8 +102,10 @@ both tournaments' data compared honestly, and the approval-gated pipeline.
 Sixth send, same day, owner-ordered ("send a color included doc...
 explaining your strategy"): a styled HTML strategy brief — "The Circle"
 (five stations, the 90-day pilot, the exit thesis) — sent to BOTH Ryan
-and Andrew Davidson (Gmail message id 1a007ac559d6ee1f). These six are
-the only staff-originated sends to date; the never-send rule stands for
-everything not explicitly ordered, message by message. Recorded here because the privacy-page verification fleet
+and Andrew Davidson (Gmail message id 1a007ac559d6ee1f). Seventh send, owner-ordered ("i mean ryan"): the system explainer of
+send #5 delivered to Ryan verbatim (Gmail message id 1a007b0660494259);
+the WORKFORCE.md Drive doc was also shared to Andrew as reader. These
+seven are the only staff-originated sends to date; the never-send rule
+stands for everything not explicitly ordered, message by message. Recorded here because the privacy-page verification fleet
 correctly refused to accept an undocumented precedent — a send that is not
 in the record does not exist.
