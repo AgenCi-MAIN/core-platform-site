@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { getDb } from "../../../../db";
 import { dialerTransfers } from "../../../../db/schema";
 import { can, recordAudit, resolvePortalAccess } from "../../access";
+import { readRows } from "../../read-guard";
 import { getCallRecordingsBucket } from "../storage";
 
 export const dynamic = "force-dynamic";
@@ -32,21 +33,43 @@ export async function GET(request: Request) {
     return Response.json({ error: "Invalid call recording id." }, { status: 400 });
   }
 
-  const [call] = await getDb()
-    .select({
-      id: dialerTransfers.id,
-      transferId: dialerTransfers.transferId,
-      status: dialerTransfers.status,
-      consentStatus: dialerTransfers.consentStatus,
-      recordingObjectKey: dialerTransfers.recordingObjectKey,
-      recordingMimeType: dialerTransfers.recordingMimeType,
-    })
-    .from(dialerTransfers)
-    .where(eq(dialerTransfers.id, id))
-    .limit(1);
+  // dialer_transfers can genuinely be absent (record § 9: two migration
+  // paths, one applied) — read it through the same guard the pages use, so
+  // an unmigrated database yields honest copy instead of a 500 stack trace.
+  const { rows, fault } = await readRows("dialer_transfers", () =>
+    getDb()
+      .select({
+        id: dialerTransfers.id,
+        transferId: dialerTransfers.transferId,
+        status: dialerTransfers.status,
+        consentStatus: dialerTransfers.consentStatus,
+        recordingObjectKey: dialerTransfers.recordingObjectKey,
+        recordingMimeType: dialerTransfers.recordingMimeType,
+      })
+      .from(dialerTransfers)
+      .where(eq(dialerTransfers.id, id))
+      .limit(1),
+  );
+  if (fault) {
+    return Response.json({ error: "The recording index could not be read." }, { status: 503 });
+  }
+  const [call] = rows;
 
   if (!call) return new Response(null, { status: 404 });
   if (call.consentStatus !== "verified") {
+    // An entitled reviewer was refused on consent grounds — in an all-party
+    // consent regime this is the deny the audit log most needs to hold.
+    await recordAudit({
+      action: "calls.recording.open",
+      decision: "deny",
+      reason: "consent_not_verified",
+      actorEmail: session.email,
+      actorSubjectId: session.subjectId,
+      actorRole: session.role,
+      resource: `dialer_transfer:${call.id}`,
+      requestPath: new URL(request.url).pathname,
+      detail: JSON.stringify({ consentStatus: call.consentStatus }),
+    });
     return Response.json({ error: "Recording access is unavailable until consent is verified." }, { status: 409 });
   }
   if (call.status !== "ready" || !call.recordingObjectKey) {

@@ -337,13 +337,14 @@ migration does not, and they collide. The live database used the `db/sql/` path.
 From the project directory:
 
 ```powershell
-cd "C:\Users\k2547\OneDrive\Desktop\Core Folder 1\core-platform-site"
+cd "C:\Users\k2547\OneDrive\Desktop\core-platform-site"
 git pull
 npm install
 npm run deploy
 ```
 
-`npm run deploy` is build → 37 tests → preflight → `wrangler deploy`, chained so
+`npm run deploy` is build → the full test suite (42 cases at this writing) →
+preflight → `wrangler deploy`, chained so
 that any failure stops the deploy. It cannot ship a stale `dist/`, because the
 build always runs first and the preflight checks the result. Secrets survive
 deploys; they only need setting again if they change.

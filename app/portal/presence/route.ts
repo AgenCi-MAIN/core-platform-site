@@ -1,4 +1,4 @@
-import { and, eq, gte, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import { env } from "cloudflare:workers";
 import { getDb } from "../../../db";
 import { auditEvents } from "../../../db/schema";
@@ -117,6 +117,11 @@ export async function POST(request: Request) {
 
   // Daily cap, counted from the audit log itself. occurredAt is
   // "YYYY-MM-DD HH:MM:SS", so a lexical >= against today's date works.
+  // Count only real spend events (an answer or a model refusal, both of
+  // which cost tokens). assertCapability above also writes a pet.chat
+  // allow row (reason "capability_granted") on every request — counting
+  // those too double-books each answer and silently halves the cap, which
+  // is exactly what happened before the reason filter existed.
   const db = getDb();
   const today = new Date().toISOString().slice(0, 10);
   const [row] = await db
@@ -126,6 +131,7 @@ export async function POST(request: Request) {
       and(
         eq(auditEvents.action, "pet.chat"),
         eq(auditEvents.decision, "allow"),
+        inArray(auditEvents.reason, ["presence_answered", "presence_refused"]),
         eq(auditEvents.actorEmail, session.email),
         gte(auditEvents.occurredAt, today),
       ),

@@ -1094,6 +1094,156 @@ test("the presence is guarded and fails closed without its key", async (t) => {
   );
 });
 
+test("the presence daily cap counts spend events only, and trips at the boundary", async (t) => {
+  // The cap query must count answers (presence_answered / presence_refused),
+  // NOT the capability_granted allow row assertCapability writes on every
+  // request — counting those double-books each answer and silently halves
+  // the cap. This test pins both sides of that line: grant rows are free,
+  // spend rows are not, and the 40th spend row closes the gate.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("chatty@example.com", "agent");
+  const identity = { subject: "sub-chatty", email: "chatty@example.com" };
+
+  const seedAudit = (reason, n) =>
+    Promise.all(
+      Array.from({ length: n }, () =>
+        portal.db
+          .prepare(
+            "INSERT INTO audit_events (actor_email, actor_role, action, decision, reason, resource) VALUES (?, 'agent', 'pet.chat', 'allow', ?, 'presence')",
+          )
+          .bind("chatty@example.com", reason)
+          .run(),
+      ),
+    );
+
+  // 39 real answers today, plus a pile of capability_granted rows that must
+  // NOT count. If the filter regresses, these 40 grant rows alone trip the cap.
+  await seedAudit("presence_answered", 39);
+  await seedAudit("capability_granted", 40);
+
+  const ask = () =>
+    portal.mf.dispatchFetch("http://localhost/portal/presence", {
+      method: "POST",
+      body: JSON.stringify({ question: "one more?" }),
+      redirect: "manual",
+      headers: { "content-type": "application/json", ...identityHeaders(identity) },
+    });
+
+  // At 39 spend rows the request must get PAST the cap — Miniflare has no
+  // API key, so passing the cap shows up as the honest 503, never a 429.
+  const under = await ask();
+  assert.equal(under.status, 503, "at 39 answers the cap must not trip (grant rows are free)");
+
+  // The 40th spend row closes the gate.
+  await seedAudit("presence_answered", 1);
+  const over = await ask();
+  const overBody = await over.json().catch(() => ({}));
+  assert.equal(over.status, 429, JSON.stringify(overBody));
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some(
+      (r) => r.action === "pet.chat" && r.decision === "deny" && r.reason === "presence_daily_cap",
+    ),
+    "the cap refusal is audited by name",
+  );
+});
+
+test("a recording without verified consent is refused, byteless, and the refusal audited", async (t) => {
+  // The all-party consent gate is the load-bearing telephony control; until
+  // this test existed, deleting the gate left the whole suite green. Both
+  // 409 branches are pinned: consent not verified, and not-ready.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("reviewer2@example.com", "reviewer");
+  const reviewer = { subject: "sub-reviewer2", email: "reviewer2@example.com" };
+
+  const insertTransfer = (transferId, status, consent, objectKey) =>
+    portal.db
+      .prepare(
+        `INSERT INTO dialer_transfers
+          (transfer_id, source_system, direction, status, consent_status,
+           caller_number_masked, agent_email, queue_name, duration_seconds,
+           recording_object_key, recording_mime_type)
+         VALUES (?, 'test-dialer', 'inbound', ?, ?, '(***) ***-0007', 'reviewer2@example.com', 'Q', 10, ?, 'audio/mpeg')`,
+      )
+      .bind(transferId, status, consent, objectKey)
+      .run();
+
+  // Recording exists and is ready — but consent is only pending.
+  await insertTransfer("transfer-consent-pending", "ready", "pending", "calls/pending.mp3");
+  await portal.recordings.put("calls/pending.mp3", new Uint8Array([1, 2, 3, 4]));
+
+  const denied = await portal.get("/portal/calls/recording?id=1", reviewer);
+  const deniedBody = await denied.text();
+  assert.equal(denied.status, 409, "unverified consent must refuse an entitled reviewer");
+  assert.match(deniedBody, /consent/i, "the refusal names consent");
+  assert.doesNotMatch(deniedBody, /[\u0001\u0002]/, "no audio bytes may leak");
+
+  // Verified consent but the recording is not ready: the parallel 409.
+  await insertTransfer("transfer-not-ready", "processing", "verified", null);
+  const notReady = await portal.get("/portal/calls/recording?id=2", reviewer);
+  assert.equal(notReady.status, 409, "an unready recording is refused");
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some(
+      (r) =>
+        r.action === "calls.recording.open" &&
+        r.decision === "deny" &&
+        r.reason === "consent_not_verified",
+    ),
+    "every deny is audited — the consent refusal included",
+  );
+});
+
+test("leadership economics refuse every role that lacks leadership.view.all", async (t) => {
+  // Pay-rate economics arrive as server-rendered props, so this guard is the
+  // one most exposed to a silent capability-string regression: if either page
+  // ever asserted a capability every role holds, an agent would read full
+  // rank economics in the SSR HTML and only this test would notice.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("field-agent@example.com", "agent");
+  const identity = { subject: "sub-field-agent", email: "field-agent@example.com" };
+
+  for (const guarded of ["/portal/leadership", "/portal/pay-rates"]) {
+    const response = await portal.get(guarded, identity);
+    assert.equal(response.status, 307, `an agent must be refused ${guarded}`);
+    assert.match(response.headers.get("location") ?? "", /\/portal\/no-access/);
+    assert.equal(await response.text(), "", `${guarded} must emit no body to a refused role`);
+  }
+
+  const denies = (await portal.audit()).filter(
+    (r) =>
+      r.actor_email === "field-agent@example.com" &&
+      r.decision === "deny" &&
+      r.reason === "capability_not_held",
+  );
+  assert.equal(denies.length, 2, "both refusals are audited, one row each");
+});
+
+test("the INVESTIGATOR console refuses anonymous visitors toward sign-in", async (t) => {
+  // requireFounder pages were invisible to the anonymous-refusal completeness
+  // scan (it only matched requireCapability) — this pins the anonymous path
+  // for the one founder page the hand-kept list had missed.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  const response = await portal.get("/portal/investigator");
+  assert.equal(response.status, 307, "anonymous callers are redirected, never rendered");
+  assert.match(
+    response.headers.get("location") ?? "",
+    /\/auth\/signin\?return_to=%2Fportal%2Finvestigator/,
+    "an anonymous visitor is sent to sign-in with a return path, not no-access",
+  );
+  assert.equal(await response.text(), "", "no body leaks");
+});
+
 /* ============================================================
    Identity resolution.
 

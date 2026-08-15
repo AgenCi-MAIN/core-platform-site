@@ -269,6 +269,70 @@ every lane reported, VERITY scored and confirmed the findings, and the #1
 finding was independently traced to exact lines. MAIN's trained-lane
 ceiling is now **50**. Test 2 (250) opens on the next test at the same bar.
 
+**Second tournament — RESULTS (2026-08-15, `forward-build-fleet`).**
+Thirteen agents (ten lanes, the two squad leads' earned subs, VERITY),
+13/13 reported, zero errors; 12 plans consolidated into a ranked build
+docket, ~1.21M tokens. Headline: five plans ready to build now, led by the
+verified Presence cap fix (apply-ready diff) and the doc truth restoration;
+the rest blocked on named owner decisions, honestly.
+
+Squad-lead review (first live use of decentralized allocation): the
+**presence lead** used its sub as a builder-verifier — the sub returned an
+apply-ready diff whose every line-claim VERITY re-checked against the repo
+and confirmed; the **deploy lead** used its sub adversarially and the sub
+*refuted its own lead's ordering* (deploy-before-secrets is correct; the
+lead's original was wrong) — a sub changing the plan, not decorating it.
+One blemish, named: the deploy lead stamped FACT on an unchecked claim
+(".github/ does not exist" — it exists); VERITY caught it and it did not
+survive into the docket.
+
+Grants under the rule (squad spend counts lead+sub; median ≈ 71K):
+**zero new grants.** The closest lane (doc-sync, rank-2 production at 61.5K)
+came in 13.7% under median — short of the ~15% bar. The rank-1 production
+lane (presence squad) spent 393K, 5.5× median, and priced itself out of a
+grant exactly as the doctrine intends: quality won the docket, spend cost
+the multiplier. Grants are re-earned each round; round three opens all-solo.
+
+**Test 2 of the oversight ladder: PASSED.** Same bar as Test 1 — the
+operation landed clean, was VERITY-scored, and the QC layer demonstrably
+worked (it caught and killed a squad lead's false FACT before it reached
+the owner). MAIN's trained-lane ceiling is now **250**. No further tier is
+defined; a wider span is a new owner decision, not an extrapolation.
+
+**The finalized team (owner orders, 2026-08-15: "finalize on a most
+cost-efficient team that reaches max output" + "clear out all
+under-performing candidates").** Applied by the data of both tournaments —
+confirmed production per token, nothing else:
+
+*First team (max output per token, fielded by default):*
+
+| Seat | Lane | The case |
+|---|---|---|
+| 1 | presence-probe 🏆 | #1 finding of round 1 at 2nd-leanest spend; round-2 sub delivered an apply-ready diff |
+| 2 | deploy-integrity 🏆 | Confirmed findings both rounds at the leanest squad spend; its sub refuted its own lead correctly |
+| 3 | doc-drift | 4 confirmed findings at ~median; round-2 doc-sync ran leanest of all (61.5K) with rank-2 production |
+| 4 | test-gaps | Highest confirmed finding count both rounds; spends high — paired with lean seats, not cut |
+| 5 | data-model | 2 confirmed integrity gaps at ~median |
+| 6 | compliance-posture | 2 confirmed gaps at ~median, incl. a standing-law violation |
+| 7 | frontend-pwa | 1 confirmed real user-facing defect at ~median |
+| 8 | authz-matrix | Zero findings, honestly — retained on assurance value: it audits the crown jewels, and a clean sheet there is the product. Cutting it would teach lanes to invent findings. |
+
+*Cleared out (owner's cull, by production-per-token):* **strategy-facts**
+(118K tokens — the fleet's highest spend — for note-level findings only,
+twice the median cost of a confirmed-defect lane) and **auth-depth** (88K
+for one low hardening note). Their briefs move to `.github/agents/retired/`
+— the record survives, the seat does not. Re-entry is possible the way
+everything here is possible: earn it in a scored tournament.
+
+**The savings pool (owner order, 2026-08-15).** Tokens a lane finishes
+UNDER the fleet median are no longer just a score — they accumulate into a
+per-fleet **savings pool, earnable by SUBS**: when a squad lead's sub ships
+confirmed production (a mergeable diff, a refutation that changes the plan),
+the sub draws its next-run budget from the pool before MAIN spends anything
+new. Frugality by the leads literally funds the subs' next mission — spend
+discipline compounds instead of evaporating. Pool accounting is VERITY's,
+recorded per tournament; the pool never overrides the quality gate.
+
 ## The bench
 
 | ID | Agent | Domain | Primary Scope |

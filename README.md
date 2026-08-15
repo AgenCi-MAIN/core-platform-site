@@ -161,5 +161,5 @@ write with `assertCapability(...)`. Never import `app/portal/access.ts` from a
 
 The portal fails closed: if the `DB` binding is unreachable, access is refused
 rather than assumed. Full design notes, provisioning steps, verification state,
-and open decisions are in `CORE_JARVIS_PORTAL_ARCHITECTURE.md` in the workspace
-root.
+and open decisions are in `CORE_PLATFORM_RECORD.md` in the repository root —
+the operating record and the single source of truth for this platform.
