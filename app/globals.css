@@ -3248,3 +3248,123 @@ html[data-portal-theme="dark"] .member-note-ok {
     min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 }
+
+/* ============================================================
+   CORRECTIONS TO THE CORRECTIONS
+   ------------------------------------------------------------
+   A review of the two blocks above found that the touch-target block bought
+   its 44px targets with width the topbar did not have. Growing the menu
+   button, the back control and both theme buttons added roughly 60px to a row
+   that had about 26px of slack at 390px — reintroducing the horizontal page
+   scroll the ellipsis rule above was written to remove. Bigger targets are
+   worth having; they are not worth paying for in sideways scroll.
+
+   Two chips come out instead. Both duplicate information available elsewhere,
+   and the row already drops .portal-connection and .portal-member-name at this
+   width for the same reason.
+   ============================================================ */
+
+@media (max-width: 620px) {
+  /* Membership status is on the dashboard and in the drawer's account block. */
+  .portal-status { display: none; }
+  /* The performance toggle is a preference, not a control needed mid-task. */
+  .portal-performance-toggle { display: none; }
+}
+
+/**
+ * The hamburger's three bars are positioned from the top edge, so growing the
+ * box to 44px left them measured against the old one. Centre them on the box
+ * instead of on a number, so the next size change cannot repeat this.
+ */
+@media (pointer: coarse) {
+  .portal-menu-button::before,
+  .portal-menu-button::after,
+  .portal-menu-button > span:first-child {
+    top: 50%; left: 50%; width: 16px; transform: translate(-50%, -50%);
+  }
+  .portal-menu-button::before { margin-top: -7px; }
+  .portal-menu-button > span:first-child { margin-top: 0; }
+  .portal-menu-button::after { margin-top: 7px; }
+
+  /* The drawer's close button grew with it; the head's gutter did not, and the
+     brand text now runs under the X. */
+  .portal-sidebar-mobile .portal-sidebar-head { padding-right: 62px; }
+}
+
+/**
+ * The pay-rate dials never got `-webkit-appearance: none`, so in Chrome and
+ * Safari the track and thumb rules above are inert — the element stays a
+ * native control and the only thing that applied was a 44px height on it.
+ * The audio deck resets appearance earlier in this file, which is why the same
+ * rules work there and not here.
+ */
+.pay-dial input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+@media (pointer: coarse) {
+  .audio-deck-slider::-webkit-slider-thumb,
+  .pay-dial input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px; height: 20px; margin-top: -8px;
+    border: 0; border-radius: 50%; background: var(--portal-accent);
+  }
+  .audio-deck-slider::-moz-range-thumb,
+  .pay-dial input[type="range"]::-moz-range-thumb {
+    width: 20px; height: 20px;
+    border: 0; border-radius: 50%; background: var(--portal-accent);
+  }
+}
+
+/**
+ * `.portal-gate` is not always outside the shell — /portal/pay-rates renders
+ * `portal-main portal-gate` inside it, so the refusal page there was taking the
+ * lateral inset from .portal-shell AND from .portal-gate, and the bottom inset
+ * from both .portal-main's margin and its own padding. Roughly double the
+ * indent, on one page, in landscape.
+ */
+.portal-main.portal-gate {
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
+/**
+ * The audio deck and the governance footer are SIBLINGS of .portal-shell, not
+ * children, so the lateral insets applied to the shell never reached them —
+ * and /access renders no .site-page at all, which left the first screen anyone
+ * touches unprotected in landscape. `.portal` is the one wrapper every one of
+ * these surfaces sits inside.
+ */
+.portal {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.portal-shell,
+.site-page { padding-left: 0; padding-right: 0; }
+
+/**
+ * `100vh` on iOS is the URL-bar-collapsed height, so three nested wrappers each
+ * claiming it gives every portal page a phantom scroll in a browser tab. The
+ * mobile drawer already uses dvh, so nothing new is required to support it.
+ */
+.portal,
+.portal-shell,
+.portal-workspace,
+.site-page { min-height: 100dvh; }
+.portal-sidebar { height: 100dvh; }
+.portal-gate { min-height: 78dvh; }
+
+.member-apply {
+  margin-left: 8px; padding: 5px 10px;
+  border: 1px solid var(--portal-accent); border-radius: 7px;
+  background: var(--portal-accent-soft); color: var(--portal-accent-strong);
+  font: inherit; font-size: var(--portal-type-label); font-weight: 800;
+  white-space: nowrap; cursor: pointer;
+}
+.member-apply:hover:not(:disabled) { background: var(--portal-accent); color: #fff; }
+.member-apply:disabled { opacity: .55; cursor: default; }
+@media (pointer: coarse) { .member-apply { min-height: 44px; } }

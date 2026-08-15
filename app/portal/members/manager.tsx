@@ -63,16 +63,38 @@ export function MemberControls({
   const [displayName, setDisplayName] = useState("");
   const [role, setRole] = useState<string>("agent");
 
+  /**
+   * Picking a value and committing it are separate acts, deliberately.
+   *
+   * These selects used to write from `onChange`. On Windows a closed `<select>`
+   * fires `change` on every arrow keypress rather than on commit, so an
+   * administrator moving from owner to support with the keyboard fired five
+   * POSTs and walked the member through every intermediate role — each one
+   * effective on the server the instant it landed, each one written to the
+   * audit log, and the status column popping a confirm dialog mid-traversal.
+   * A membership change is a governance decision; it must not be a side effect
+   * of navigating a list.
+   */
+  const pick = (key: string, current: string) => pendingValue[key] ?? current;
+
+  function choose(key: string, next: string) {
+    setPendingValue((prev) => ({ ...prev, [key]: next }));
+  }
+
+  function clear(key: string) {
+    setPendingValue((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  }
+
   function run(key: string, body: Record<string, unknown>, success: string) {
     setBusy(key);
     setNote(null);
     void post(body).then((error) => {
       setBusy(null);
-      setPendingValue((prev) => {
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      });
+      clear(key);
       if (error) {
         setNote({ kind: "error", text: error });
         return;
@@ -179,18 +201,9 @@ export function MemberControls({
                   <td>
                     <select
                       aria-label={`Role for ${m.email}`}
-                      value={pendingValue[`role:${m.email}`] ?? m.role}
-                      disabled={isSelf || busy !== null || pending}
-                      onChange={(e) => {
-                        const next = e.target.value;
-                        const key = `role:${m.email}`;
-                        setPendingValue((prev) => ({ ...prev, [key]: next }));
-                        run(
-                          key,
-                          { action: "role", email: m.email, role: next },
-                          `${m.email} is now ${next}.`,
-                        );
-                      }}
+                      value={pick(`role:${m.email}`, m.role)}
+                      disabled={isSelf}
+                      onChange={(e) => choose(`role:${m.email}`, e.target.value)}
                     >
                       {ROLES.map((r) => (
                         <option key={r} value={r}>
@@ -203,32 +216,33 @@ export function MemberControls({
                         <option value={m.role}>{m.role} (unrecognised)</option>
                       )}
                     </select>
+                    {pick(`role:${m.email}`, m.role) !== m.role ? (
+                      <button
+                        type="button"
+                        className="member-apply"
+                        disabled={busy !== null || pending}
+                        onClick={() => {
+                          const key = `role:${m.email}`;
+                          const next = pick(key, m.role);
+                          run(
+                            key,
+                            { action: "role", email: m.email, role: next },
+                            `${m.email} is now ${next}.`,
+                          );
+                        }}
+                      >
+                        {busy === `role:${m.email}`
+                          ? "Saving…"
+                          : `Save ${pick(`role:${m.email}`, m.role)}`}
+                      </button>
+                    ) : null}
                   </td>
                   <td>
                     <select
                       aria-label={`Status for ${m.email}`}
-                      value={pendingValue[`status:${m.email}`] ?? m.status}
-                      disabled={isSelf || busy !== null || pending}
-                      onChange={(e) => {
-                        const next = e.target.value;
-                        const key = `status:${m.email}`;
-                        // Revoking is one click from an accident, and the
-                        // person it affects is not in the room to notice.
-                        if (
-                          next !== "active" &&
-                          !window.confirm(
-                            `Set ${m.email} to ${next}? They lose portal access immediately.`,
-                          )
-                        ) {
-                          return;
-                        }
-                        setPendingValue((prev) => ({ ...prev, [key]: next }));
-                        run(
-                          key,
-                          { action: "status", email: m.email, status: next },
-                          `${m.email} is now ${next}.`,
-                        );
-                      }}
+                      value={pick(`status:${m.email}`, m.status)}
+                      disabled={isSelf}
+                      onChange={(e) => choose(`status:${m.email}`, e.target.value)}
                     >
                       {STATUSES.map((s) => (
                         <option key={s} value={s}>
@@ -236,6 +250,37 @@ export function MemberControls({
                         </option>
                       ))}
                     </select>
+                    {pick(`status:${m.email}`, m.status) !== m.status ? (
+                      <button
+                        type="button"
+                        className="member-apply"
+                        disabled={busy !== null || pending}
+                        onClick={() => {
+                          const key = `status:${m.email}`;
+                          const next = pick(key, m.status);
+                          // Revoking is one click from an accident, and the
+                          // person it affects is not in the room to notice.
+                          if (
+                            next !== "active" &&
+                            !window.confirm(
+                              `Set ${m.email} to ${next}? They lose portal access immediately.`,
+                            )
+                          ) {
+                            clear(key);
+                            return;
+                          }
+                          run(
+                            key,
+                            { action: "status", email: m.email, status: next },
+                            `${m.email} is now ${next}.`,
+                          );
+                        }}
+                      >
+                        {busy === `status:${m.email}`
+                          ? "Saving…"
+                          : `Save ${pick(`status:${m.email}`, m.status)}`}
+                      </button>
+                    ) : null}
                   </td>
                 </tr>
               );
