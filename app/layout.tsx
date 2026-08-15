@@ -6,8 +6,11 @@ import "./globals.css";
 
 /**
  * `themeColor` paints the phone's status bar and the installed app's window
- * chrome. Two entries so an installed copy follows the same light/dark choice
- * the portal already honours, rather than showing a dark bar over a light page.
+ * chrome. A single dark value, matching the portal's DEFAULT theme — the
+ * theme is chosen in localStorage, not by the OS, so a prefers-color-scheme
+ * media query here answered the wrong question. PortalThemeBoot rewrites this
+ * meta before first paint (and the theme control keeps it in step), so a
+ * member who opts into Bright gets a bright bar too.
  *
  * `width` carries `viewport-fit=cover` deliberately, and it is not a typo.
  * vinext builds the viewport meta by joining a fixed list of fields — width,
@@ -28,10 +31,7 @@ import "./globals.css";
 export const viewport: Viewport = {
   width: "device-width, viewport-fit=cover",
   initialScale: 1,
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f7f9" },
-    { media: "(prefers-color-scheme: dark)", color: "#0e1116" },
-  ],
+  themeColor: "#0e1116",
 };
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -59,12 +59,11 @@ export async function generateMetadata(): Promise<Metadata> {
      * Nothing here affects authorization: the standalone window is still a
      * browser sending the same cookie to the same guarded routes.
      *
-     * `statusBarStyle` is "default", not "black-translucent", on purpose.
-     * Translucent forces WHITE status-bar glyphs and lets the page paint
-     * underneath — but the portal's default theme is bright (PortalThemeBoot
-     * treats anything other than a stored "dark" as bright) and the topbar
-     * paints white. That combination is white time and battery on a white bar
-     * on every launch, until the member happens to switch to Dark.
+     * `statusBarStyle` is "default", not "black-translucent". Translucent
+     * pins WHITE status-bar glyphs regardless of what the page paints, which
+     * breaks the moment a member opts into the Bright theme. "default" lets
+     * modern iOS derive the bar from the theme-color meta — which the boot
+     * script keeps matched to the actual theme, dark by default.
      */
     appleWebApp: {
       capable: true,

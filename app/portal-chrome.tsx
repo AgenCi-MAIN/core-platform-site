@@ -16,7 +16,11 @@ export const PORTAL_PERFORMANCE_STORAGE_KEY = "thrive-portal-performance";
  * wrong theme, and stops a boosted machine rendering one animated frame before
  * the effects are switched off.
  */
-const THEME_BOOT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("${PORTAL_THEME_STORAGE_KEY}");var v=t==="dark"?"dark":"bright";d.dataset.portalTheme=v;d.style.colorScheme=v==="dark"?"dark":"light";var p=localStorage.getItem("${PORTAL_PERFORMANCE_STORAGE_KEY}");d.dataset.portalPerformance=p==="boost"?"boost":"full"}catch(e){}})();`;
+// DARK IS THE DEFAULT: only a stored "bright" opts out. It also rewrites the
+// theme-color meta so the phone's status bar and the installed app's chrome
+// match the page instead of guessing from the OS preference, which is not
+// what chooses the portal's theme.
+const THEME_BOOT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("${PORTAL_THEME_STORAGE_KEY}");var v=t==="bright"?"bright":"dark";d.dataset.portalTheme=v;d.style.colorScheme=v==="dark"?"dark":"light";var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",v==="dark"?"#0e1116":"#f6f7f9")}var p=localStorage.getItem("${PORTAL_PERFORMANCE_STORAGE_KEY}");d.dataset.portalPerformance=p==="boost"?"boost":"full"}catch(e){}})();`;
 
 /** Applies the saved theme and performance mode before first paint. */
 export function PortalThemeBoot() {

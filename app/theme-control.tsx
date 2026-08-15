@@ -9,6 +9,10 @@ const STORAGE_KEY = "core-portal-theme";
 function applyTheme(theme: PortalTheme) {
   document.documentElement.dataset.portalTheme = theme;
   document.documentElement.style.colorScheme = theme === "dark" ? "dark" : "light";
+  // The status-bar/browser chrome colour follows the page. The boot script
+  // does the same before first paint; this keeps toggles in step after it.
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute("content", theme === "dark" ? "#0e1116" : "#f6f7f9");
 }
 
 export function PortalThemeControl() {
