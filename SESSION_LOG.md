@@ -159,3 +159,86 @@ rather than performed:
 
 Recorded because "why didn't it just do it" is the first question the next reader
 will have.
+
+---
+
+# Second sitting — 2026-08-15
+
+The same cloud session, continued. Everything below is committed, tested, and
+merged; PR #1 landed on `main` as `4aa8f7f` with the full 17-commit history.
+
+## 8. What was built
+
+- **Member management went live in the portal.** `/portal/members` grants,
+  changes roles, and changes status through `/portal/members/manage`, which
+  re-resolves the session and asserts `members.manage` on every request. Three
+  governance defaults were settled and documented in the route header: single
+  approver, no self-modification, last active owner protected. A later review
+  found the selects fired one write per arrow keypress on Windows — a real
+  governance defect, not a nit — and the controls became pick-then-Save.
+- **The portal became installable (PWA).** Manifest, icons rendered from the
+  favicon with zlib and geometry (no imaging library existed here), an offline
+  page, and a service worker whose one load-bearing property — it never caches
+  `/portal` or `/auth` — is pinned by a test character for character after a
+  mutation walked through the first, looser version of that test.
+- **The deploy became one gated command.** `npm run deploy` is build → tests →
+  preflight → wrangler. `scripts/verify-build.mjs` refuses stale output, the
+  placeholder D1 id, missing bindings, and missing installable-app files. Every
+  check was mutation-tested. This exists because a silent stale build once cost
+  days.
+- **Three audits ran in parallel** (access model, mobile/a11y, feature
+  completeness), then six more agents in a second wave, including an
+  adversarial verifier that killed four of eight security findings before any
+  time was spent on them. Confirmed and fixed: rank economics were readable in
+  a public client chunk without any session (moved server-side, pinned by a
+  bundle-scan test); the audit log's request path was caller-authored via
+  `x-invoke-path` (now stated by the guards themselves); three pages returned
+  500 stack traces where fail-closed explanations belonged (`read-guard.ts`);
+  the Vite build manifest was publicly served; the music stream cached
+  authenticated audio for an hour after suspension; dark mode rendered the
+  grant controls white-on-white; and the first safe-area/touch pass introduced
+  regressions its own review then caught.
+
+## 9. Standing staff created
+
+All on the owner's account, visible under Routines at claude.ai/code, one
+click to pause or delete:
+
+| Name | Cadence | Speaks when | Job |
+| --- | --- | --- | --- |
+| VIGIL | daily ~13:08 UTC | only on regression | eight security invariants, suite, deployability |
+| MR. T | every 10 hours | when something changed | dated content, placeholder drift, stale record, unconfirmed grants, placeholder numbers |
+| Morning Brief | daily 12:00 UTC | every day | pre-existing |
+
+Mr. T carries the session's full doctrine, may investigate at his own
+discretion, and may prepare mechanical fixes on `mr-t/<date>` branches — but
+merges nothing, edits no owner-authored copy, and makes no governance
+decisions. VIGIL reports and never edits. Neither can deploy.
+
+## 10. Open items, corrected
+
+- [x] ~~Wire member management into the portal UI~~ — done, tested, merged.
+- [x] ~~Merge PR #1~~ — merged 2026-08-15, `4aa8f7f`.
+- [ ] **Deploy.** `main` carries everything; the live site runs none of it
+      until `npm run deploy` runs on a machine with Cloudflare credentials.
+- [ ] **Rotate `SESSION_SECRET`** (unchanged).
+- [ ] **Delete stray D1 database `8`** (unchanged).
+- [ ] **Confirm Nate Nguyen's and Oscar Valencia's sign-in addresses**, then
+      grant — from Portal → Members after the deploy, not the console.
+- [ ] **Owner content decisions before or at deploy:** the pinned announcement
+      names products that do not exist in the codebase; three Library
+      documents are unapproved drafts; the approved incentive doc expires
+      Aug 31; `LEAD_COST = 15` is a placeholder the Exchange math turns on.
+- [ ] **Two governance calls:** `portal.access` (real per-role gate, or out of
+      the matrix) and `music.manage` (split from `members.manage`; drafted).
+- [ ] **The Quoter seam** (unchanged).
+
+## 11. The Mac
+
+Setup of a local Claude Code session on a MacBook began at the end of this
+sitting: Homebrew → node + gh → clone → `wrangler login` → `claude` in the
+repo. A local session is an inheritor, not a copy — it reads this file,
+CLAUDE.md, and the record, and gains the one power this container never had:
+deploying. The owner was advised, and the advice stands in writing: sleep off,
+screen lock on and short, and no unattended sessions with permissions bypassed
+on a machine that holds deploy credentials.
