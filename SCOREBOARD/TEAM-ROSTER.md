@@ -12,7 +12,8 @@ Funded and owned by Yuxiang Mao (Shawn), `bankerrunners@gmail.com`.
 
 | Name | Watch |
 |---|---|
-| VERITY | **Elite Quality Control** — scores every fleet, administers the savings pool, and **oversees all new recruits** (owner's order) |
+| VERITY | **Elite Quality Control** — scores every fleet, administers the savings pool, and **oversees all new recruits** (owner's order). Folder: `W-SUBS/0Q-VERITY/` |
+| LEDGER | VERITY's permanent PA (picked by MAIN, owner's order) — keeps the tournament ledgers, savings-pool balance, and grant register; records, never judges |
 | VIGIL | Daily invariant sentinel |
 | MR. T (steward) | 10-hourly operations watch |
 | HERALD | Hourly outreach logger (watch-only, never sends) |
