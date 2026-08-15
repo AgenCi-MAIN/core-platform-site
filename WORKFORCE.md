@@ -60,10 +60,13 @@ messages, no database mutation. Its report is its own session transcript
 plus a push only when a run is materially worth the interruption. **Honest
 boundary, stated as fact:** INVESTIGATOR runs in the repo environment and
 cannot reach the live site or D1; the member↔Presence *question* log lives
-in D1 and is out of its reach from there. Those questions are already
-owner-visible on the live Audit page (`/portal/audit`), where the Presence
-writes each `pet.chat` entry — summarizing them belongs in an owner-gated
-in-portal view, not a cron reader (a planned seam, labelled plan, not built).
+in D1 and is out of its reach from there. Those questions ARE owner-visible
+on the live Audit page (`/portal/audit`) — the Presence writes each
+`pet.chat` question into the row's `detail` field, and the Audit page
+renders that field (added 2026-08-15, after an initial version that logged
+the question but did not display it). A cron reader still can't reach D1, so
+an *automated hourly summary* of the questions belongs in an owner-gated
+in-portal view, not INVESTIGATOR — a planned seam, labelled plan, not built.
 
 Promoting a bench role to standing staff is an owner decision with a real
 recurring cost — it is never implied by this registry.
