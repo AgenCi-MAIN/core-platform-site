@@ -3557,3 +3557,95 @@ html[data-portal-theme="dark"] .member-note-ok {
   .audio-deck-slider,
   .audio-deck-level { display: none; }
 }
+
+/* ============================================================
+   Next-gen chrome pass (2026-08-15)
+   Depth, light, and motion for the portal shell — deliberately
+   quiet, and every effect here honors the two standing escape
+   hatches: BOOST strips the expensive work (the toggle's whole
+   promise), and prefers-reduced-motion kills the animation.
+   ============================================================ */
+
+/* The brand mark and the member avatars carry the one gradient:
+   accent into THRIVE gold. Everything else stays token-flat. */
+.portal-brand-mark,
+.portal-topbar-avatar,
+.portal-account-avatar {
+  background: linear-gradient(135deg, var(--portal-accent), #e0b64e);
+  color: #fff;
+}
+.portal-brand-mark { box-shadow: 0 2px 12px -5px var(--portal-accent); }
+
+/* Display headings: the emphasized word picks up the same sweep. */
+.portal-intro h1 em {
+  background: linear-gradient(120deg, var(--portal-accent), #e0b64e 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Topbar goes glass where the browser can afford it: content slides
+   beneath the sticky bar instead of hitting a wall. The solid panel
+   background above remains the fallback. */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .portal-topbar {
+    background: color-mix(in srgb, var(--portal-panel) 80%, transparent);
+    -webkit-backdrop-filter: blur(12px) saturate(1.2);
+    backdrop-filter: blur(12px) saturate(1.2);
+  }
+}
+
+/* The active tab throws a faint halo in its own hue. */
+.portal-nav a[aria-current="page"] {
+  box-shadow:
+    inset 3px 0 0 var(--portal-accent),
+    0 0 16px -8px var(--nav-hue, var(--portal-accent));
+}
+
+/* Cards answer the pointer with light, never with movement. */
+.portal-card { transition: border-color .18s ease, box-shadow .18s ease; }
+.portal-card:hover { border-color: var(--portal-line-strong); }
+html[data-portal-theme="dark"] .portal-card {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .028), transparent 46%);
+}
+
+/* Pages arrive instead of appearing. */
+@keyframes portal-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.portal-main { animation: portal-enter .26s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .portal-main { animation: none; }
+}
+
+/* --- BOOST strips all of it, per the standing contract. ---- */
+html[data-portal-performance="boost"] .portal-topbar {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: var(--portal-panel);
+}
+html[data-portal-performance="boost"] .portal-topbar-avatar,
+html[data-portal-performance="boost"] .portal-account-avatar {
+  background: var(--portal-avatar-surface);
+  color: var(--portal-avatar-ink);
+}
+html[data-portal-performance="boost"] .portal-brand-mark {
+  background: var(--portal-brand-surface);
+  color: var(--portal-brand-ink);
+  box-shadow: none;
+}
+html[data-portal-performance="boost"] .portal-intro h1 em {
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: var(--portal-accent);
+}
+html[data-portal-performance="boost"] .portal-nav a[aria-current="page"] {
+  box-shadow: inset 3px 0 0 var(--portal-accent);
+}
+html[data-portal-performance="boost"] .portal-main { animation: none; }
+html[data-portal-performance="boost"] .portal-card {
+  transition: none;
+  background-image: none;
+}

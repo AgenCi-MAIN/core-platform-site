@@ -33,10 +33,12 @@ history (see SESSION_LOG.md, second sitting).
    different things — the standing doctrine (see MR. T's orders) applies to
    every role on this bench.
 
-**Standing staff are hired separately and deliberately.** Only three exist:
-VIGIL (daily invariant sentinel), MR. T (10-hourly operations steward), and
-the Morning Brief. Promoting a bench role to standing staff is an owner
-decision with a real recurring cost — it is never implied by this registry.
+**Standing staff are hired separately and deliberately.** Four exist:
+VIGIL (daily invariant sentinel), MR. T (10-hourly operations steward), the
+Morning Brief, and VERITY (personal assistant / quality control — see the
+appointment below the leaderboard). Promoting a bench role to standing staff
+is an owner decision with a real recurring cost — it is never implied by
+this registry.
 
 ## Commendations
 
@@ -58,6 +60,57 @@ that its work held up, which future summons of the same role inherit.
 The same seven lanes were re-activated the same day as an adversarial
 verification fleet over the portal UI batch (icons, dial pad, sliders,
 peer-protection) — refute-first briefs, findings on file in SESSION_LOG.md.
+
+## Leaderboard — production, all fleets to date
+
+Ordered by **shipped production**: confirmed findings that changed the
+product or the record, weighted over raw output volume. A finding that was
+wrong, unverifiable, or never applied scores zero — volume is not
+production. Maintained by VERITY (see below) after every fleet.
+
+| Rank | Lane (fleet · date) | Production shipped | Score notes |
+|---|---|---|---|
+| 1 | Dial-pad UX verifier (verification · 08-15) | 1 BLOCKER (tel: `#` truncation) + 2 POLISH (phantom `+`, double-click trap) + a11y label — all shipped | Found the only user-facing breakage of the batch |
+| 2 | Growth-bridge modeler, 100-forecasting-analyst (strategy · 08-15) | Runnable 30-month cash model; the three-facts calibration contradiction; CPL stop-rule | Largest single strategic finding of the corpus |
+| 3 | Copy editor (verification · 08-15) | 4 shipped fixes incl. the compliance sentence on the dial pad and a stale governance cross-reference | Caught a legal-adjacent gap nobody briefed it on |
+| 4 | Owner-protection auditor (verification · 08-15) | Verdict SOLID + audit-count test strengthening + lowercase-console invariant recorded | Also surfaced the one out-of-band identity gap |
+| 5 | Slider CSS verifier (verification · 08-15) | 1 confirmed cascade regression (44px touch target), shipped | Refuted the fix's own comment with the numbers |
+| 6 | SVG/icon verifier (verification · 08-15) | 15/15 icons geometry-verified + 2 shipped cleanups (drawer ellipsis, dead font rules) | Highest verification breadth per token |
+| 7 | Unit-economics analyst, 057 (strategy · 08-15) | The 29%-of-market ceiling; $12–15K blended planning band | Declared missing data missing — scored up for it |
+| 8 | Compliance architect, 066/067 (strategy · 08-15) | Five launch gates now embedded in the program draft; vendor-transfer liability finding | |
+| 9 | Build/regression sweeper (verification · 08-15) | 5/5 PASS with chunk-level leak evidence; baseline-diffed the CSS delta | Assurance is production when it's evidenced |
+| 10 | Fact verifier, 005 (strategy · 08-15) | 8 claims confirmed, 3 honestly unverifiable, Phoenix contradiction resolved | |
+| 11 | Competitor historian (strategy · 08-15) | Six case files; kept "carriers fired FFL" correctly labeled as lore | |
+| 12 | Instrumentation mapper (strategy · 08-15) | 26 rows mapped; Phase 1 schema drafted | Blocked on owner inputs through no fault of its own |
+| 13 | Program designer (strategy · 08-15) | Earn Your City draft | Production real but unshipped until the owner sets its 21 values |
+| 14 | Security reviewer (verification · 08-15) | 0 violations found (correct — none existed) + 2 optional hardenings, both shipped | A clean sheet honestly earned ranks low on production, high on assurance |
+
+## VERITY — first permanent personal assistant (quality control)
+
+Appointed by the owner's order, 2026-08-15 ("look for your first permanent
+personal assistant to review and reassign the task as quality control").
+Selected from the leaderboard's top discipline: the refute-first
+verification lanes, whose confirmed-findings-per-summons rate leads the
+board.
+
+**Mandate.** VERITY is J.A.R.V.I.S.'s personal assistant for quality
+control. After any fleet of two or more lanes, VERITY (1) reviews every
+lane's output against its brief, (2) scores and re-ranks this leaderboard,
+(3) reassigns confirmed-deficient work to a fresh agent with a corrected
+brief, and (4) enforces the labeling doctrine — fact, plan, and assumption
+are three different things, and output that blurs them goes back.
+
+**Activation.** Summoned as the closing lane of every qualifying fleet —
+not on a clock. A scheduled QC agent with nothing to review is spend
+without product; VERITY runs exactly when there is work to judge. (VIGIL
+and MR. T keep the clocks.)
+
+**Leashes (load-bearing).** VERITY reviews and reassigns tasks only. It
+never merges, deploys, touches membership or the database, sends anything
+outside the repository, edits owner-authored text, or makes governance
+decisions. Reassignment authority extends to bench summons within the
+current session's task — never to standing staff, whose orders only the
+owner changes.
 
 ## The bench
 
