@@ -585,6 +585,56 @@ the modern `mobile-web-app-capable` name, which Safari does not read — the
 `apple-` prefixed one is added through `other`. Both are commented at the point
 of use and pinned by tests.
 
+## 10d. Telephony — the AI staff line (Inkbox) and the parked number (NumberBarn)
+
+Status as of 2026-08-15, recorded mid-provisioning so it can be resumed.
+
+**The decision.** Shawn approved upgrading the Inkbox organization to the
+$30/month plan (10 agent identities; 1 dedicated phone number with SMS/MMS
+and calls; 300 SMS + 30 call minutes/month; custom email domains; watermark
+removal). The upgrade is done at
+`https://inkbox.ai/console/organizations?tab=billing`. Until it is paid, the
+provisioning call below returns a plan-limit error — that is the one
+remaining blocker; the API key and command are already proven good.
+
+**The provisioning call.** Run on Windows PowerShell, three commands in one
+window (the key lives only in that window's `$key` variable):
+
+```powershell
+$key = Read-Host "Paste your Inkbox API key"   # paste at the prompt, not into this line
+$key.Length                                    # sanity check — prints a number, never the key
+Invoke-RestMethod -Method Post -Uri "https://inkbox.ai/api/v1/phone/numbers" -Headers @{ "X-API-Key" = $key } -ContentType "application/json" -Body '{"agent_handle":"core","state":"UT","incoming_call_action":"auto_reject"}'
+```
+
+Success is JSON carrying a `+1…` number and `sms_status: "pending"`. Choices
+embedded in that body, all deliberate: the number belongs to the `@core`
+identity (J.A.R.V.I.S.); `state: "UT"` is home base (Tampa was considered and
+declined — the staff line belongs where the company lives);
+`incoming_call_action: "auto_reject"` because Inkbox's default would put
+their stock voice AI on THRIVE's line un-briefed — flipping to
+`hosted_agent` is a later, deliberate step after the voice agent is
+configured. Releasing an Inkbox number is **irreversible**; the org cap is 3
+numbers, 1 per identity.
+
+**Key hygiene (incident, 2026-08-15).** One API key was accidentally pasted
+into the session chat and was ordered revoked and replaced — a key that has
+touched a transcript is burned, no exceptions. Keys are minted at
+`inkbox.ai/console/api-keys` (the middle row-icon is "new key with same
+scope"; the full secret is shown exactly once, at creation). Three unused
+keys from Aug 12 should also be revoked once the number is live. As
+everywhere in this record: secret *values* never appear in files, commits,
+or chat — only names.
+
+**Compliance posture.** The line is receiving-first. Outbound SMS is gated
+by 10DLC campaign registration (Inkbox enforces this too), which matches the
+portal's own no-outbound-consumer-texting stance. HERALD's hourly patrols
+pick up SMS to the new number automatically once it exists.
+
+**The parked number.** `(850) 809-0050` sits at NumberBarn on the $2.99/mo
+Park plan, under one of the owner's alias logins (vendor login, not a portal
+identity — § 5). It does nothing yet; the open decision is whether to port
+it into Inkbox later or keep it parked as a Florida-market asset.
+
 ## 11. Where things are
 
 | Path | What |
