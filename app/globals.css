@@ -3038,3 +3038,35 @@ html[data-portal-theme="dark"] .pay-rank-net.is-good { color: #79dfad; }
 .pay-advice ol { display: grid; gap: 11px; margin: 10px 0 0; padding-left: 20px; }
 .pay-advice li { color: var(--portal-muted); font-size: var(--portal-type-body); line-height: 1.6; }
 .pay-advice strong { color: var(--portal-text); }
+
+/* Membership controls — grant, role change, status change.
+   Server-enforced; these styles dress the controls, they never gate them. */
+.member-controls { display: grid; gap: 14px; margin-top: 4px; }
+
+.member-note { margin: 0; padding: 10px 13px; border-radius: 8px; font-size: var(--portal-type-body); border: 1px solid; }
+.member-note-ok { color: #1f5c46; border-color: #bfe0d2; background: #f2fbf7; }
+.member-note-error { color: var(--portal-accent-strong); border-color: #e6c4c1; background: var(--portal-accent-soft); }
+
+.member-grant { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 15px; border: 1px solid var(--portal-line); border-radius: 10px; background: var(--portal-raised); }
+.member-field { display: grid; gap: 6px; flex: 1 1 190px; min-width: 0; }
+.member-field label { color: var(--portal-muted); font-size: var(--portal-type-label); font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.member-field input,
+.member-field select,
+.member-table select {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--portal-line-strong); border-radius: 8px;
+  background: #fff; color: var(--portal-text); font: inherit; font-size: var(--portal-type-body);
+}
+.member-field input:focus-visible,
+.member-field select:focus-visible,
+.member-table select:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 1px; }
+
+.member-grant button {
+  padding: 10px 18px; border: 1px solid var(--portal-accent); border-radius: 8px;
+  background: var(--portal-accent); color: #fff; font: inherit; font-weight: 800;
+  font-size: var(--portal-type-label); letter-spacing: .07em; text-transform: uppercase; cursor: pointer;
+}
+.member-grant button:hover:not(:disabled) { background: var(--portal-accent-strong); border-color: var(--portal-accent-strong); }
+.member-grant button:disabled { opacity: .55; cursor: default; }
+
+.member-table select { min-width: 132px; }
+.member-table select:disabled { opacity: .5; cursor: not-allowed; background: var(--portal-soft); }

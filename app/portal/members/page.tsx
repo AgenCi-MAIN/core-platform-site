@@ -3,6 +3,7 @@ import { getDb } from "../../../db";
 import { portalMembers } from "../../../db/schema";
 import { ROLE_LABELS, can, requireCapability } from "../access";
 import { EmptyState, PortalCardHeader, PortalPageIntro, PortalShell } from "../components";
+import { MemberControls } from "./manager";
 
 export const dynamic = "force-dynamic";
 
@@ -94,23 +95,24 @@ export default async function MembersPage() {
           <PortalCardHeader
             icon="＋"
             title="Granting and revoking access"
-            description="Governed membership changes remain reviewed database operations."
+            description="Every change is checked on the server and written to the audit log."
           />
           {manages ? (
             <>
               <p className="portal-lede">
-                Your role holds <code>members.manage</code>. Grant, role-change,
-                and revocation actions are not yet wired into this interface —
-                membership changes are currently applied as reviewed SQL against
-                the portal database.
+                Your role holds <code>members.manage</code>. Grants, role
+                changes, and revocations take effect immediately and are
+                recorded in the audit log under your name.
               </p>
-              <p className="portal-fine">
-                Building those write actions in the UI is deliberately gated
-                behind a human decision on approval flow, separation of duties,
-                and whether a second approver is required for owner and
-                administrator grants. That decision belongs to CORE leadership,
-                not to J.A.R.V.I.S.
-              </p>
+              <MemberControls
+                selfEmail={session.email}
+                members={members.map((member) => ({
+                  email: member.email,
+                  displayName: member.displayName,
+                  role: member.role,
+                  status: member.status,
+                }))}
+              />
             </>
           ) : (
             <p className="portal-lede">

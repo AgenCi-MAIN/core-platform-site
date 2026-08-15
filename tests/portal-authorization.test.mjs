@@ -791,6 +791,178 @@ test("a forged, tampered, or expired session cookie is anonymous", async (t) => 
 });
 
 /* ============================================================
+   Membership writes.
+
+   These are the actions that decide who reaches the portal at
+   all, so the interface is never what stops them — the route
+   re-resolves the session and asserts members.manage on every
+   request. The last two tests guard invariants whose failure
+   locks everyone out permanently, recoverable only through
+   direct database access.
+   ============================================================ */
+
+function manage(portal, identity, body) {
+  return portal.mf.dispatchFetch("http://localhost/portal/members/manage", {
+    method: "POST",
+    body: JSON.stringify(body),
+    redirect: "manual",
+    headers: { "content-type": "application/json", ...identityHeaders(identity) },
+  });
+}
+
+test("membership writes are refused without members.manage", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("manager@example.com", "manager");
+  await portal.addMember("target@example.com", "agent");
+
+  // A manager holds members.view — the roster is visible to them — but not
+  // members.manage. Reading the list must not imply changing it.
+  const res = await manage(portal, { subject: "sub-mgr", email: "manager@example.com" }, {
+    action: "role",
+    email: "target@example.com",
+    role: "owner",
+  });
+  assert.equal(res.status, 403, await res.text());
+
+  const row = await portal.db
+    .prepare("SELECT role FROM portal_members WHERE email = ?")
+    .bind("target@example.com")
+    .first();
+  assert.equal(row.role, "agent", "the role must be untouched");
+
+  const anon = await portal.mf.dispatchFetch("http://localhost/portal/members/manage", {
+    method: "POST",
+    body: JSON.stringify({ action: "grant", email: "x@example.com", role: "owner" }),
+    redirect: "manual",
+    headers: { "content-type": "application/json" },
+  });
+  assert.equal(anon.status, 401, "anonymous callers get nothing");
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.action === "members.manage" && r.decision === "deny"),
+    "the refusal must be recorded",
+  );
+});
+
+test("an owner grants access, and the grant is audited", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  const owner = { subject: "sub-owner-1", email: SEEDED_OWNER_EMAIL };
+  const res = await manage(portal, owner, {
+    action: "grant",
+    email: "  NewPerson@Example.COM ",
+    displayName: "New Person",
+    role: "agent",
+  });
+  assert.equal(res.status, 201, await res.text());
+
+  const row = await portal.db
+    .prepare("SELECT email, role, status, granted_by FROM portal_members WHERE email = ?")
+    .bind("newperson@example.com")
+    .first();
+  assert.ok(row, "the address must be stored lowercased and trimmed");
+  assert.equal(row.role, "agent");
+  assert.equal(row.status, "active");
+  assert.equal(row.granted_by, SEEDED_OWNER_EMAIL);
+
+  // Granting the same address twice must not create a second row — two rows
+  // for one person is the identity_ambiguous state the portal refuses.
+  const again = await manage(portal, owner, {
+    action: "grant",
+    email: "newperson@example.com",
+    role: "owner",
+  });
+  assert.equal(again.status, 409);
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.action === "members.grant" && r.decision === "allow"),
+    "the grant must be audited",
+  );
+});
+
+test("nobody changes their own role or status", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("admin@example.com", "admin");
+  const admin = { subject: "sub-admin", email: "admin@example.com" };
+
+  const promote = await manage(portal, admin, {
+    action: "role",
+    email: "admin@example.com",
+    role: "owner",
+  });
+  assert.equal(promote.status, 409, "self-promotion must be refused");
+
+  const revoke = await manage(portal, admin, {
+    action: "status",
+    email: "admin@example.com",
+    status: "revoked",
+  });
+  assert.equal(revoke.status, 409, "self-revocation must be refused");
+
+  const row = await portal.db
+    .prepare("SELECT role, status FROM portal_members WHERE email = ?")
+    .bind("admin@example.com")
+    .first();
+  assert.equal(row.role, "admin");
+  assert.equal(row.status, "active");
+});
+
+test("the last active owner cannot be demoted or suspended", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // Two owners: one acting, one the target. The target is the only *other*
+  // active owner, so removing them would still leave the actor — allowed.
+  await portal.addMember("second-owner@example.com", "owner");
+  const actor = { subject: "sub-owner-1", email: SEEDED_OWNER_EMAIL };
+
+  const demoteOne = await manage(portal, actor, {
+    action: "role",
+    email: "second-owner@example.com",
+    role: "manager",
+  });
+  assert.equal(demoteOne.status, 200, await demoteOne.text());
+
+  // Now the seeded owner is the last one. An admin tries to remove them.
+  await portal.addMember("admin@example.com", "admin");
+  const admin = { subject: "sub-admin", email: "admin@example.com" };
+
+  const demoteLast = await manage(portal, admin, {
+    action: "role",
+    email: SEEDED_OWNER_EMAIL,
+    role: "agent",
+  });
+  assert.equal(demoteLast.status, 409, "the last owner must not be demotable");
+
+  const suspendLast = await manage(portal, admin, {
+    action: "status",
+    email: SEEDED_OWNER_EMAIL,
+    status: "suspended",
+  });
+  assert.equal(suspendLast.status, 409, "the last owner must not be suspendable");
+
+  const row = await portal.db
+    .prepare("SELECT role, status FROM portal_members WHERE email = ?")
+    .bind(SEEDED_OWNER_EMAIL)
+    .first();
+  assert.equal(row.role, "owner", "the last owner survives both attempts");
+  assert.equal(row.status, "active");
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.reason === "last_active_owner_protected"),
+    "the protection must be audited by name",
+  );
+});
+
+/* ============================================================
    Identity resolution.
 
    Both keys are unique, so a lookup by subject and a lookup by

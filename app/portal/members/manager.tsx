@@ -1,0 +1,220 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+
+/**
+ * Membership controls.
+ *
+ * This component decides nothing. Every button posts to /portal/members/manage,
+ * which re-resolves the session and asserts `members.manage` before it writes.
+ * Hiding a control here is a courtesy to the person using the page, never a
+ * security boundary — the server refuses regardless of what the interface shows.
+ */
+
+const ROLES = ["owner", "admin", "manager", "reviewer", "agent", "support"] as const;
+const STATUSES = ["active", "suspended", "revoked"] as const;
+
+export type ManagedMember = {
+  email: string;
+  displayName: string | null;
+  role: string;
+  status: string;
+};
+
+type Note = { kind: "ok" | "error"; text: string } | null;
+
+async function post(body: Record<string, unknown>): Promise<string | null> {
+  const res = await fetch("/portal/members/manage", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  let parsed: { error?: string } = {};
+  try {
+    parsed = (await res.json()) as { error?: string };
+  } catch {
+    return "The server returned an unreadable response.";
+  }
+  return res.ok ? null : (parsed.error ?? `Refused (${res.status}).`);
+}
+
+export function MemberControls({
+  members,
+  selfEmail,
+}: {
+  members: ManagedMember[];
+  selfEmail: string;
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [note, setNote] = useState<Note>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [role, setRole] = useState<string>("agent");
+
+  function run(key: string, body: Record<string, unknown>, success: string) {
+    setBusy(key);
+    setNote(null);
+    void post(body).then((error) => {
+      setBusy(null);
+      if (error) {
+        setNote({ kind: "error", text: error });
+        return;
+      }
+      setNote({ kind: "ok", text: success });
+      startTransition(() => router.refresh());
+    });
+  }
+
+  return (
+    <div className="member-controls">
+      {note ? (
+        <p
+          className={note.kind === "ok" ? "member-note member-note-ok" : "member-note member-note-error"}
+          role="status"
+        >
+          {note.text}
+        </p>
+      ) : null}
+
+      <form
+        className="member-grant"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (!email.trim()) {
+            setNote({ kind: "error", text: "Enter the address they sign in with." });
+            return;
+          }
+          run(
+            "grant",
+            { action: "grant", email, displayName, role },
+            `${email.trim().toLowerCase()} now holds ${role}.`,
+          );
+          setEmail("");
+          setDisplayName("");
+        }}
+      >
+        <div className="member-field">
+          <label htmlFor="grant-email">Google sign-in address</label>
+          <input
+            id="grant-email"
+            type="email"
+            inputMode="email"
+            autoComplete="off"
+            spellCheck={false}
+            placeholder="person@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+        <div className="member-field">
+          <label htmlFor="grant-name">Name</label>
+          <input
+            id="grant-name"
+            type="text"
+            autoComplete="off"
+            placeholder="Optional"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+          />
+        </div>
+        <div className="member-field">
+          <label htmlFor="grant-role">Role</label>
+          <select id="grant-role" value={role} onChange={(e) => setRole(e.target.value)}>
+            {ROLES.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button type="submit" disabled={busy === "grant" || pending}>
+          {busy === "grant" ? "Granting…" : "Grant access"}
+        </button>
+      </form>
+
+      <p className="portal-fine">
+        The address must be the one they actually sign in to Google with. A
+        different address grants nothing and looks like a broken portal rather
+        than a wrong entry.
+      </p>
+
+      <div className="portal-table-scroll">
+        <table className="portal-table member-table">
+          <thead>
+            <tr>
+              <th scope="col">Member</th>
+              <th scope="col">Role</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {members.map((m) => {
+              const isSelf = m.email === selfEmail;
+              return (
+                <tr key={m.email}>
+                  <td>
+                    <strong>{m.displayName ?? "—"}</strong>
+                    <span className="portal-cell-sub">
+                      {m.email}
+                      {isSelf ? " · you" : ""}
+                    </span>
+                  </td>
+                  <td>
+                    <select
+                      aria-label={`Role for ${m.email}`}
+                      value={m.role}
+                      disabled={isSelf || busy !== null || pending}
+                      onChange={(e) =>
+                        run(
+                          `role:${m.email}`,
+                          { action: "role", email: m.email, role: e.target.value },
+                          `${m.email} is now ${e.target.value}.`,
+                        )
+                      }
+                    >
+                      {ROLES.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td>
+                    <select
+                      aria-label={`Status for ${m.email}`}
+                      value={m.status}
+                      disabled={isSelf || busy !== null || pending}
+                      onChange={(e) =>
+                        run(
+                          `status:${m.email}`,
+                          { action: "status", email: m.email, status: e.target.value },
+                          `${m.email} is now ${e.target.value}.`,
+                        )
+                      }
+                    >
+                      {STATUSES.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="portal-fine">
+        Your own row is fixed here: nobody changes their own role or status, and
+        the last active owner cannot be demoted or suspended. Every change is
+        written to the audit log under your name.
+      </p>
+    </div>
+  );
+}
