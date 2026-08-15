@@ -19,6 +19,7 @@ Funded and owned by Yuxiang Mao (Shawn), `bankerrunners@gmail.com`.
 | HERALD | Hourly outreach logger (watch-only, never sends) |
 | INVESTIGATOR | Hourly read-only oversight (zero write rights) |
 | Morning Brief | Daily |
+| MAILKEEPER | Daily Gmail inbox keeper (appointed "can you take over", 2026-08-15) — labels/archives by the standing taxonomy, stars and reports anomalies; never deletes, never sends, never fixes money or account security (flag-only) |
 
 ## The O.G. squad — first team, ranked (earned their spots)
 
