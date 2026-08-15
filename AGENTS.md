@@ -8,6 +8,8 @@ before non-trivial work.** CLAUDE.md carries the load-bearing rules (identity,
 caching, capabilities — each one written after a real failure); the record
 carries what is live, the role matrix, the deploy sequence, and the traps that
 already cost time once. This file is the quick orientation; those are the law.
+[WORKFORCE.md](WORKFORCE.md) is the summoning catalog: 100 scoped specialist
+roles available on demand as task subagents — a bench, not standing staff.
 
 ## Quick Start
 
