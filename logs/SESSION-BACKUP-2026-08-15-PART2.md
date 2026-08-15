@@ -95,8 +95,11 @@ he can plug in work force"): WORKFORCE.md delivered verbatim — uploaded to
 the Drive HQ folder (file id 1dvSHhSD_hB7xPv7wXYmFJvlS4Wf9Mskd), shared to
 Ryan as reader, plus a short email with the link and a plug-in guide
 (Gmail message id 1a007a30e9d20a24) routing his requests through the
-HERALD-gated pipeline. These four are the only staff-originated sends to
-date; the never-send rule stands for everything not explicitly ordered,
-message by message. Recorded here because the privacy-page verification fleet
+HERALD-gated pipeline. Fifth send, same day, owner-ordered: welcome/system-explainer email to
+Andrew Davidson (andrew.davidson.zenith@gmail.com, Gmail message id
+1a007aa600510d55) — the parallel-agent architecture, the 100-role bench,
+both tournaments' data compared honestly, and the approval-gated pipeline.
+These five are the only staff-originated sends to date; the never-send
+rule stands for everything not explicitly ordered, message by message. Recorded here because the privacy-page verification fleet
 correctly refused to accept an undocumented precedent — a send that is not
 in the record does not exist.
