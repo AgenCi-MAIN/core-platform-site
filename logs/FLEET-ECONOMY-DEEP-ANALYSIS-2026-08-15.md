@@ -69,6 +69,18 @@ to five reports of its own. Proven, efficient lanes multiply into small teams;
 wasteful lanes stay solo or get cut. That multiplication *is* the 3× — it's
 structural, and it repeats every cycle the winners keep winning.
 
+**Earning is central; allocation is decentralized (owner refinement).** MAIN
+decides only how *many* subs a lane wins — that comes off VERITY's score and
+nothing else. But how a lane *uses* its subs — how it carves up its mission,
+what each report hunts — is the O.G. lane's own call, not MAIN's. This is the
+part that keeps the competition alive. If MAIN directed every sub, the ten
+lanes would fuse into one centrally-run team and there'd be nothing left to
+compete. Instead: ten self-commanding squads, each racing the others, each
+betting its *next* grant on how well it deploys the subs it earned this time.
+Allocate them well and your confirmed-findings-per-token compounds; allocate
+them badly and you fall down the board. The command stays distributed on
+purpose — **that is why competition remains.**
+
 ## 5. Why "unlimited tokens" is safe under this design
 
 You lifted the token cap in the same breath as you demanded efficiency — and

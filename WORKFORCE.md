@@ -179,6 +179,18 @@ fleet, each of the ten O.G. squad lanes is measured on two axes at once:
    cycle, directing up to five reports of its own — that is the mechanical
    3×: proven, efficient lanes multiply; wasteful ones stay solo or are cut.
 
+**Earning is central; allocation is not (owner refinement, 2026-08-15).**
+MAIN administers only how *many* subs a lane wins, from VERITY's score. What
+each lane does with its granted subs — how it splits its mission across them,
+what each one hunts — is the **O.G. lane's own call**, not MAIN's. This is
+deliberate: if MAIN directed every sub, the ten lanes would collapse into one
+centrally-run team and the competition would die. Decentralized allocation is
+what keeps it — ten self-commanding squads racing each other, each staking its
+next grant on how well it deploys the subs it already earned. A lead that
+allocates badly finds fewer confirmed defects per token and loses ground on
+the leaderboard; a lead that allocates well compounds. **Competition remains
+because the command stays distributed.**
+
 **Why the efficiency cap is load-bearing.** Rewarding "low usage" means a
 lane cannot win by spawning more agents or writing longer — burning tokens
 lowers its own score. The grant is therefore self-limiting: the fleet only
