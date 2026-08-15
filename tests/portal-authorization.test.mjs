@@ -323,9 +323,10 @@ test("a manager reads the roster and the audit log, but not the founder console"
     assert.match(html, new RegExp(SEEDED_OWNER_EMAIL.replace(".", "\\.")), "roster lists members");
     assert.match(html, /cannot change it/, "manager is told they lack members.manage");
 
-    // Audit is now open to owner / admin / manager (the "hire audits" record).
+    // The audit log is founder-only (owner's order, 2026-08-15): a manager —
+    // and every other role — is refused regardless of capabilities.
     const audit = await portal.get("/portal/audit", identity);
-    assert.equal(audit.status, 200, "manager now holds audit.view");
+    assert.equal(audit.status, 307, "the audit log answers only the founder");
   } finally {
     await portal.dispose();
   }
@@ -345,10 +346,17 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
       "refusal routes to the explanation page",
     );
 
-    // The seeded founder (bankerrunners@gmail.com) is admitted.
+    // The founder-only rule covers the audit log too: a second owner with
+    // every capability is still refused there.
+    const auditDenied = await portal.get("/portal/audit", otherOwner);
+    assert.equal(auditDenied.status, 307, "a non-founder owner cannot read the audit log");
+
+    // The seeded founder (bankerrunners@gmail.com) is admitted to both.
     const founder = { subject: "sub-founder", email: SEEDED_OWNER_EMAIL };
     const ok = await portal.get("/portal/investigator", founder);
     assert.equal(ok.status, 200, "the founder identity is admitted");
+    const auditOk = await portal.get("/portal/audit", founder);
+    assert.equal(auditOk.status, 200, "the founder reads the audit log");
 
     const rows = await portal.audit();
     assert.ok(

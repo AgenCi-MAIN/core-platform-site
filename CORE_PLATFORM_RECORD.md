@@ -184,6 +184,18 @@ the portal refuses, and an alias grant would sit unused as a standing
 credential. NumberBarn (business line) is registered under one of these
 aliases; that is a vendor login, not a portal identity.
 
+**The audit log and the INVESTIGATOR console are founder-only (governance,
+set by Shawn 2026-08-15).** Both `/portal/audit` and `/portal/investigator`
+are gated by `requireFounder` — identity, not capability: only the seeded
+founder (`bankerrunners@gmail.com`, the sole 2026-08-13 seed, verified via
+Google sign-in and the HMAC-signed session) resolves them. Any other email —
+including a second owner — is refused and the refusal audited as
+`founder_only`. `audit.view` was removed from every role's grant list (the
+capability name survives only as the audit-row action). In the sidebar, the
+Audit item renders only for the founder, and the INVESTIGATOR console is
+reached through the wordless status-dot control, likewise rendered only in
+the founder's own sidebar. Tests pin both gates.
+
 **Owner rows are peer-protected (governance, set by Shawn 2026-08-15).** No
 owner or administrator can change another owner's role or status from the
 portal — `/portal/members/manage` refuses with `owner_peer_protected` and the

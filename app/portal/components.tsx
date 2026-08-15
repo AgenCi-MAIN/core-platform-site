@@ -32,6 +32,12 @@ type NavItem = {
   state: "live" | "pending";
   /** Set for third-party tools opened outside the portal. */
   external?: boolean;
+  /**
+   * Visible only to the seeded founder identity, regardless of role or
+   * capability. The page behind such an item enforces the same rule
+   * server-side with requireFounder — this flag only controls the sidebar.
+   */
+  founderOnly?: boolean;
   stateLabel: string;
 };
 
@@ -173,9 +179,10 @@ const NAV: readonly NavItem[] = [
     capability: "audit.view",
     icon: "audit",
     group: "Administration",
-    description: "Recorded portal access and hiring decisions.",
+    description: "Recorded portal access and hiring decisions. Founder only.",
     state: "live",
-    stateLabel: "Access log live",
+    founderOnly: true,
+    stateLabel: "Founder only",
   },
 ];
 
@@ -192,7 +199,9 @@ export function PortalShell({
   section: string;
   children: React.ReactNode;
 }) {
-  const visible = NAV.filter((item) => can(session, item.capability));
+  const visible = NAV.filter((item) =>
+    item.founderOnly ? isFounder(session) : can(session, item.capability),
+  );
 
   return (
     <div className="portal-shell">
@@ -485,7 +494,9 @@ export function PortalPlaceholderPage({
 }
 
 export function PortalWorkspaceDirectory({ session }: { session: PortalSession }) {
-  const visible = NAV.filter((item) => can(session, item.capability));
+  const visible = NAV.filter((item) =>
+    item.founderOnly ? isFounder(session) : can(session, item.capability),
+  );
 
   return (
     <div className="portal-workspace-list">

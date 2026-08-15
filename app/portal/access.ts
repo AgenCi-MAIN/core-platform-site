@@ -60,7 +60,6 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "leadership.view.all",
     "members.view",
     "members.manage",
-    "audit.view",
     "pet.chat",
   ],
   admin: [
@@ -73,7 +72,6 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "leadership.view.all",
     "members.view",
     "members.manage",
-    "audit.view",
     "pet.chat",
   ],
   manager: [
@@ -84,7 +82,6 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "team.view",
     "leadership.view.all",
     "members.view",
-    "audit.view",
     "pet.chat",
   ],
   reviewer: [
