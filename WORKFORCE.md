@@ -231,11 +231,43 @@ database, money, or a deploy. The grant multiplies *analysis capacity*,
 nothing else. VERITY administers the scoring; MAIN administers the grant;
 the owner remains the only one who disposes.
 
-**First tournament.** The ten-lane platform audit running the day this was
-written (`platform-marathon-audit`) is the first fleet scored under this
-doctrine: VERITY ranks the lanes by confirmed findings per token, and the
-winners carry a sub-agent grant into the follow-up run. Results are recorded
-on the leaderboard above.
+**First tournament — RESULTS (2026-08-15, `platform-marathon-audit`).**
+Ten lanes fielded, 10/10 reported, zero errors; 20 raw findings, 18 ranked
+after VERITY's dedup-and-skeptic pass; ~877K tokens total. Headline verdict:
+the platform remains security-clean — no critical or high finding survived
+tracing; the real work is one Presence-cap accounting bug (the daily cap
+counts double and effectively sits at ~20, not the documented 40), two
+missing negative tests on load-bearing controls (recording consent,
+`leadership.view.all`), and a cluster of low/note documentation and
+hardening items.
+
+Scoring under the grant rule (fleet median spend ≈ 81K tokens; 1 sub per
+~15% under median, quality gate first):
+
+| Lane | Tokens | Confirmed findings | Grant |
+|---|---|---|---|
+| presence-probe | 59K (27% under) | 2, incl. the fleet's #1 finding | **1 sub** |
+| deploy-integrity | 60K (27% under) | 1 | **1 sub** |
+| data-model | 80K (~median) | 2 | 0 |
+| doc-drift | 80K (~median) | 4 | 0 |
+| frontend-pwa | 81K (~median) | 1 | 0 |
+| compliance-posture | 82K (~median) | 2 | 0 |
+| test-gaps | 91K (over) | 4 | 0 |
+| auth-depth | 88K (over) | 1 | 0 |
+| authz-matrix | 91K (over) | 0 — clean sheet, honestly earned | 0 |
+| strategy-facts | 118K (over) | 3 | 0 |
+
+Two grants awarded, sixteen possible — the efficiency bar did its job on the
+very first run: nobody won by volume (test-gaps found the most and earned
+nothing extra, because it spent the most), and the lane that found the
+single most important defect also ran second-leanest. presence-probe and
+deploy-integrity enter the next fleet as squad leads of one; how they use
+their sub is their call, per the decentralized-allocation rule.
+
+**Test 1 of the oversight ladder: PASSED.** The operation landed clean —
+every lane reported, VERITY scored and confirmed the findings, and the #1
+finding was independently traced to exact lines. MAIN's trained-lane
+ceiling is now **50**. Test 2 (250) opens on the next test at the same bar.
 
 ## The bench
 
