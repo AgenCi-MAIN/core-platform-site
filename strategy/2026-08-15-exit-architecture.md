@@ -365,3 +365,161 @@ The one thing I would not do is start signing leases in ten markets. Launch Dall
   bridge model, TCPA/compliance architecture, competitor/landscape lessons,
   the Earn-Your-City program draft, and portal instrumentation mapping.
   Their verified findings will be appended as Part 4.
+
+---
+
+## Part 4 — Fleet synthesis (what seven specialists found, cross-checked)
+
+Written 2026-08-15 after all seven lanes reported. Everything below is filed
+in full under `strategy/fleet-2026-08-15/` — this section is the digest and
+the cross-cutting reading no single lane could see alone.
+
+### 4.1 One attribution correction, owned up front
+
+The cash model (report 03) was tasked with a "55% agent comp share" that I
+presented to it as an owner-stated fact. It was not — it was my own modeling
+assumption. The finding survives restated honestly: **industry-typical agent
+comp (~55% of collected commission), company-paid leads at market CPL, and a
+13% net margin cannot all be true simultaneously** — arithmetic forces one of
+the three to be false today. Backed into calibration, today's 13% implies an
+agent payout share of **39.2% of collected commission** (~40% of AP). Which
+of the three facts is the false one is the single most consequential
+open question in this document, because every downstream number inherits
+the answer. (If agents buy their own leads, 55% is consistent: 55% − ~33%
+lead cost ≈ 22% net to the agent.)
+
+### 4.2 The eight findings that survived cross-checking
+
+1. **The endpoint is bigger than the market.** $25M/month = $300M/year of FE
+   AP ≈ **29% of the entire 2024 LIMRA-measured FE market** ($1.05B). The
+   scale assumption breaks before the productivity assumption does. This
+   independently re-proves Part 2's conclusion: vertical expansion beyond FE
+   (Medicare, annuities, mortgage protection) is a **prerequisite** of the
+   $25M number, not an option on top of it.
+
+2. **$25K AP/agent/month is best-case, not planning-safe.** Top platforms
+   with premium TV inbound hit $20–33K; a whole floor including ramp blends
+   to **$10–18K**. At $15K blended, the machine nearly doubles: 3,801 hires
+   instead of 2,281, 151 offices instead of 91 — and today's "$1M with 40
+   agents" would already be false (it implies 67). Verify the $25K against
+   the current book before trusting it anywhere.
+
+3. **Cost-per-sale is the dominant lever, by an order of magnitude.** The
+   tornado on 30-month cumulative cash: close rate ±$26M, CPL ±$20M —
+   roughly 10× the swing of everything the advisory spends its ink on
+   (offices, ramp, capex, attrition). At $60/call the plan **self-funds**;
+   at **$75/call the entire scenario grid breaks** — up to $24M of outside
+   capital needed, or growth stalls below $12M. Hard rule adopted into the
+   program: **if blended CPL exceeds ~$70, stop scaling until it is fixed.**
+   Instrument close rate and CPL weekly, per squad.
+
+4. **The lead budget is off 27× on day one.** $25M/month needs ~27,800
+   policies ≈ ~139K qualified inbound calls ≈ **$6.25–10.4M/month of
+   media** — 24–41% of AP. The $12.5K/month "lead R&D" bucket is 27× short
+   at month 0 and 667× short at month 30; even the first month's *increment*
+   is 3× the bucket. Lead cost is a unit-economic line priced into comp and
+   margin, never a reinvestment item. Corollary: ~139K quality FE calls per
+   month may simply not exist to buy — the market-share ceiling (#1) and
+   the lead-supply ceiling are the same wall seen from two sides.
+
+5. **Recruiting, not cash, is the binding constraint.** ~2,281 hires in 30
+   months, peaking at ~241/month — **~11 recruits every business day** — to
+   net 1,000 producers through 40% first-month ramp, 60% ninety-day
+   survival, 4%/month attrition. The headcount machine runs ~20% hotter
+   than the plan curve at all times. And it needs ~100 competent squad
+   leaders by month 30, which is exactly the pipeline the Earn Your City
+   program exists to produce. Build the recruiting machine first.
+
+6. **The advance treadmill flatters growth and punishes stopping.** With
+   9-month advances, each new AP dollar brings ~82.5¢ immediately while its
+   chargebacks land 6–13 months later against a book that has since
+   tripled. In-growth net runs 7–9% of AP; the same book run **flat yields
+   ~13.5%** — and the truth only surfaces ~a year after growth stops.
+   SelectQuote is the documented failure mode of ignoring this ($145M
+   cohort writedown; +82% to −26% YoY inside a year). Judge the business on
+   flat-book margin; pay agents on 13-month persistency, not issued AP;
+   model 65–75% telesales persistency, never 80%+.
+
+7. **Compliance is a moat if built now, a landmine if deferred.** Current
+   state: FCC one-to-one consent vacated (Jan 2025) but the market evidence
+   standard (TrustedForm/Jornaya on every lead) survives; revoke-all
+   arrives **Jan 31, 2027** — build for it now; record litigation volume in
+   quiet-hours and DNC theories; two target states carry the sharpest laws
+   (FL FTSA, TX SB 140). A Tampa office means **all-party recording
+   consent** — only operable policy is automated disclosure on 100% of
+   calls, every leg. At 1,000 agents, licensing is $2.5–4K/agent with a
+   platform and 2–4 licensing-ops staff needed **before agent #200**, and
+   the dialer must route by consumer state against a live
+   license/appointment table so an unlicensed transfer is technically
+   impossible. The five compliance gates are embedded in the Earn Your
+   City draft §9. Biggest hidden exposure: vendor-transferred "inbound"
+   calls are legally the vendor's outbound dial, and seller liability
+   reaches THRIVE.
+
+8. **The industry's history says what to copy and what to never do.**
+   Documented failure patterns: profiting from agents via lead-margin
+   extraction (FFL class action, Symmetry reviews — the FTC cease-and-desist
+   went to FFL for recruit earnings claims); accrual-LTV growth against
+   churny cohorts (SelectQuote); a long tail of commission-driven agent
+   misconduct aggregating into a −53%-in-a-day short report (Globe Life —
+   later exonerated, after 15 months under federal investigation);
+   earn-out/equity acquisition structures ending in "for cause" litigation
+   (FFL partners). What consolidators demonstrably pay for: **owned lead
+   generation, producing networks whose management stays, call-center
+   capability as a named asset, and persistent premium blocks**. The model
+   to study is Digital BGA (leads at cost, published honest benchmarks,
+   ~7% of AP acquisition cost) and, structurally, Lincoln Heritage (owns
+   the whole loop — but prices it 20–150% above market). The often-repeated
+   "carriers terminated FFL hierarchies" story is **unverified industry
+   lore** — the documented mechanism exists, the event does not.
+
+### 4.3 Corrections the advisory text should absorb
+
+- **Phoenix vacancy contradiction resolved** (19.1% vs 23.3%): different
+  brokerages measuring different inventory. CBRE's consistent pair is
+  19.1% / $32.30. Standardize on one brokerage per market — CBRE.
+- **AmeriLife's FE acquisitions are 2020–21, not recent** — the 2025 deal
+  (Crump) is brokerage/wealth. FE buyer appetite is real but its freshest
+  cited evidence is four to five years old.
+- **Charlotte's labor-pool counts (6,800 agents / 9,890 reps) are the one
+  load-bearing unverified input** — pull BLS OEWS area 16740 directly
+  before ranking markets on them.
+
+### 4.4 What the portal can make real (Thrive OS)
+
+Report 07 mapped all 26 scorecard rows to sources. **Phase 1 — a 6–8 day
+build** (carrier-statement CSV upload + agent roster, schema drafted as
+`db/sql/0003_production_init.sql`) — makes rows 1, 3, 4, 5, and 19 computed
+instead of claimed, and starts capturing policy cohort vintages so 13-month
+persistency (row 6) becomes measurable 13 months from the first upload —
+the clock only starts when the data does. Rows the portal must never fake
+(finance-system and CRM numbers) render as attestations with provenance,
+or as em-dashes. Blocked on: one month of carrier statement samples
+(Phase 1) and the dialer choice (Phase 3).
+
+### 4.5 Waiting on Shawn — the decision list, consolidated
+
+1. **Which of the three economics facts is false** — agent comp share /
+   who pays for leads / 13% net margin. Everything downstream inherits this.
+2. Definition of "productive agent" (the $25K claim is unverifiable
+   without it).
+3. Carrier statement samples — unblocks Thrive OS Phase 1.
+4. The 21 `[OWNER SETS]` values in the Earn Your City draft.
+5. Which dialer — unblocks Phase 3 and the compliance telephony gate.
+6. Counsel engagement for the items listed in report 04 (consent language,
+   TX SB 140 posture, multi-state recording policy, script boundaries).
+
+### 4.6 File index
+
+| File | Contents |
+|---|---|
+| `fleet-2026-08-15/01-fact-verification.md` | 12 advisory claims: 8 confirmed, 3 unverifiable-from-here, Phoenix resolved |
+| `fleet-2026-08-15/02-unit-economics.md` | FE telesales benchmarks; the 29%-of-market finding |
+| `fleet-2026-08-15/03-growth-bridge-model.md` + `thrive_model.py` | Runnable 30-month cash model; calibration, verdict grids, tornado |
+| `fleet-2026-08-15/04-compliance-architecture.md` | TCPA/recording/licensing current state; five gates; counsel list |
+| `fleet-2026-08-15/05-competitor-lessons.md` | FFL, Symmetry, PHP, Globe Life, SelectQuote, Lincoln Heritage, consolidators, Digital BGA |
+| `fleet-2026-08-15/07-portal-instrumentation.md` | 26 rows mapped; Phase 1–4 roadmap; Drizzle schema sketches |
+| `earn-your-city-program-v1-DRAFT.md` | The office program: 5 principles, 4 levels, Gates A–D, shadow-branch protocol |
+
+(Lane 06's deliverable *is* the program draft — it has its own file rather
+than a numbered report.)
