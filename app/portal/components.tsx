@@ -1,6 +1,6 @@
 import { signOutPath } from "../google-auth";
 import Link from "next/link";
-import { ROLE_LABELS, can, type Capability, type PortalSession } from "./access";
+import { ROLE_LABELS, can, isFounder, type Capability, type PortalSession } from "./access";
 import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
 import { PortalThemeControl } from "../theme-control";
@@ -173,7 +173,7 @@ const NAV: readonly NavItem[] = [
     capability: "audit.view",
     icon: "audit",
     group: "Administration",
-    description: "Recorded portal access decisions and events.",
+    description: "Recorded portal access and hiring decisions.",
     state: "live",
     stateLabel: "Access log live",
   },
@@ -361,7 +361,23 @@ function PortalSidebarContent({
       </nav>
 
       <div className="portal-sidebar-system">
-        <span className="portal-system-dot" aria-hidden="true" />
+        {/* Wordless hidden control. For everyone it is just the status light;
+            for the founder alone it is the entrance to INVESTIGATOR's console.
+            Rendered as a link ONLY in the founder's own server-rendered
+            sidebar, so for anyone else there is no element to find, inspect,
+            or reach. /portal/investigator re-checks the founder identity: the
+            button is convenience, the server guard is the boundary. */}
+        {isFounder(session) ? (
+          <Link
+            className="portal-system-dot-link"
+            href="/portal/investigator"
+            aria-label="Investigator console"
+          >
+            <span className="portal-system-dot" aria-hidden="true" />
+          </Link>
+        ) : (
+          <span className="portal-system-dot" aria-hidden="true" />
+        )}
         <span className="portal-nav-label">Access controls active</span>
       </div>
 

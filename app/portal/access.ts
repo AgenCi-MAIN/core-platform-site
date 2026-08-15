@@ -84,6 +84,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "team.view",
     "leadership.view.all",
     "members.view",
+    "audit.view",
     "pet.chat",
   ],
   reviewer: [
@@ -376,6 +377,55 @@ export async function requireCapability(
 
 export function can(session: PortalSession, capability: Capability): boolean {
   return session.capabilities.includes(capability);
+}
+
+/**
+ * The founder — the single seeded identity (see db/sql/0002). Some surfaces
+ * are closed to everyone but this person, regardless of role or capability:
+ * a second owner does not inherit them. Kept lowercase because identity is
+ * always compared normalized.
+ *
+ * This is identity, not a header claim: it is only ever tested against
+ * `session.email`, which is resolved from the HMAC-signed cookie. There is no
+ * request-header path to it, on purpose.
+ */
+export const FOUNDER_EMAIL = "bankerrunners@gmail.com";
+
+export function isFounder(session: PortalSession): boolean {
+  return normalizeEmail(session.email) === FOUNDER_EMAIL;
+}
+
+/**
+ * Guard for a founder-only page. Identical to `requireCapability` except the
+ * gate is the seeded identity itself, not a capability a role can hold — so
+ * the audit log stays reachable by exactly one person even if others are
+ * owners. Anonymous → sign-in; anyone else → the explanation page, audited.
+ */
+export async function requireFounder(
+  returnTo: string = PORTAL_ROOT,
+): Promise<PortalSession> {
+  const result = await resolvePortalAccess(returnTo);
+
+  if (!result.ok) {
+    if (result.denial.kind === "anonymous") redirect(signInPath(returnTo));
+    redirect(`${PORTAL_ROOT}/no-access`);
+  }
+
+  const { session } = result;
+  if (!isFounder(session)) {
+    await recordAudit({
+      action: "audit.view",
+      decision: "deny",
+      reason: "founder_only",
+      actorEmail: session.email,
+      actorSubjectId: session.subjectId,
+      actorRole: session.role,
+      requestPath: returnTo,
+    });
+    redirect(`${PORTAL_ROOT}/no-access`);
+  }
+
+  return session;
 }
 
 /**

@@ -311,7 +311,7 @@ test("capabilities are enforced per role, not merely displayed", async () => {
   }
 });
 
-test("a manager can read the roster but an owner is required to see audit", async () => {
+test("a manager reads the roster and the audit log, but not the founder console", async () => {
   const portal = await startPortal();
   try {
     await portal.addMember("manager@example.com", "manager");
@@ -323,8 +323,38 @@ test("a manager can read the roster but an owner is required to see audit", asyn
     assert.match(html, new RegExp(SEEDED_OWNER_EMAIL.replace(".", "\\.")), "roster lists members");
     assert.match(html, /cannot change it/, "manager is told they lack members.manage");
 
+    // Audit is now open to owner / admin / manager (the "hire audits" record).
     const audit = await portal.get("/portal/audit", identity);
-    assert.equal(audit.status, 307, "manager must not hold audit.view");
+    assert.equal(audit.status, 200, "manager now holds audit.view");
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("the INVESTIGATOR console answers the seeded founder identity and no one else", async () => {
+  const portal = await startPortal();
+  try {
+    // A second owner — every capability, but NOT the founder identity.
+    await portal.addMember("second-owner@example.com", "owner");
+    const otherOwner = { subject: "sub-owner-2", email: "second-owner@example.com" };
+    const denied = await portal.get("/portal/investigator", otherOwner);
+    assert.equal(denied.status, 307, "a non-founder owner is refused");
+    assert.match(
+      denied.headers.get("location") ?? "",
+      /\/portal\/no-access$/,
+      "refusal routes to the explanation page",
+    );
+
+    // The seeded founder (bankerrunners@gmail.com) is admitted.
+    const founder = { subject: "sub-founder", email: SEEDED_OWNER_EMAIL };
+    const ok = await portal.get("/portal/investigator", founder);
+    assert.equal(ok.status, 200, "the founder identity is admitted");
+
+    const rows = await portal.audit();
+    assert.ok(
+      rows.some((r) => r.reason === "founder_only" && r.decision === "deny"),
+      "the refusal is audited by name",
+    );
   } finally {
     await portal.dispose();
   }
