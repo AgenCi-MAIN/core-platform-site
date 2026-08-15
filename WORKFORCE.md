@@ -143,6 +143,132 @@ decisions. Reassignment authority extends to bench summons within the
 current session's task — never to standing staff, whose orders only the
 owner changes.
 
+## The Fleet Economy — competition, efficiency, and the sub-agent grant
+
+Instituted by the owner's order, 2026-08-15 ("turn the operation up... a 3×
+on learning, processing efficiency, and most importantly the competition
+between the AI agents"). This is the allocation doctrine that makes a fleet
+sharper across cycles. It is **not** a claim that any agent learns between
+runs — every summoned agent spawns fresh with no memory. The 3× is real but
+mechanical: it comes from concentrating compute on the lanes that prove they
+produce **high-quality findings at low token cost**, and cutting the lanes
+that don't. Competition is the engine; efficiency is the fuel gauge that
+keeps the competition honest.
+
+**The MAIN share (Mr. T — 50%).** Half of every fleet's production credit is
+booked to MAIN, the orchestrator (Mr. T). Coordination — scoping the lanes,
+briefing them, judging and merging the results — is the other half of the
+work, so it holds the other half of the ledger. MAIN also holds the
+**allocation authority**: it decides, from VERITY's scores, which lanes earn
+sub-agents next cycle. This is a credit/authority ledger, not money — agents
+are paid in nothing (see Commendations). The 50% is the record that
+orchestration is load-bearing, and the reason no single lane can capture a
+fleet.
+
+**The sub-agent grant (the other 50%, competed for).** After VERITY scores a
+fleet, each of the ten O.G. squad lanes is measured on two axes at once:
+
+1. **High definition** — confirmed, shipped-worthy findings, not volume. A
+   finding that was wrong, unverifiable, or never applied scores zero (same
+   rule as the leaderboard). A lane that clears no quality bar earns no
+   grant, full stop.
+2. **Low usage** — production per token. A lane that hits the quality bar
+   *and* runs lean earns an **efficiency dividend: one sub-agent for each
+   ~15% it comes in under the fleet's median token spend, capped at 5 subs
+   per O.G. lane.** A lane that earns sub-agents becomes a squad lead next
+   cycle, directing up to five reports of its own — that is the mechanical
+   3×: proven, efficient lanes multiply; wasteful ones stay solo or are cut.
+
+**Earning is central; allocation is not (owner refinement, 2026-08-15).**
+MAIN administers only how *many* subs a lane wins, from VERITY's score. What
+each lane does with its granted subs — how it splits its mission across them,
+what each one hunts — is the **O.G. lane's own call**, not MAIN's. This is
+deliberate: if MAIN directed every sub, the ten lanes would collapse into one
+centrally-run team and the competition would die. Decentralized allocation is
+what keeps it — ten self-commanding squads racing each other, each staking its
+next grant on how well it deploys the subs it already earned. A lead that
+allocates badly finds fewer confirmed defects per token and loses ground on
+the leaderboard; a lead that allocates well compounds. **Competition remains
+because the command stays distributed.**
+
+**Why the efficiency cap is load-bearing.** Rewarding "low usage" means a
+lane cannot win by spawning more agents or writing longer — burning tokens
+lowers its own score. The grant is therefore self-limiting: the fleet only
+grows where growth is earned by frugality, and real fan-out stays within the
+orchestration size guideline. Mass-spawning to look busy is the one behavior
+this doctrine is built to punish.
+
+**The oversight ladder (owner order, 2026-08-15).** MAIN's span of command —
+the ceiling of **trained lanes** it may field across a campaign — grows only
+by *demonstrated* oversight, never by claim. A "trained lane" is a lane that
+has been fielded, scored by VERITY, and confirmed productive; its brief is
+proven and reusable. This is distinct from a bench role (untested) and from a
+raw sub (a report under a lead).
+
+| Tier | Ceiling | Unlocks on |
+|---|---|---|
+| Now | 10 O.G. lanes + up to 5 subs each = **up to 50 in the field** | current standing |
+| Test 1 | **50 trained lanes** | this operation (`platform-marathon-audit`) landing clean, scored and confirmed by VERITY |
+| Test 2 | **250 trained lanes** | the next test passing under the same bar |
+
+Two honest constraints, senior to the ladder. **First: it is earned, not
+announced.** As of this writing MAIN has *not* reached Test 1 — the marathon
+is still running; the tier opens when its findings are verified and scored,
+not a moment sooner. Claiming a tier before the proof is exactly the
+volume-over-production failure this whole doctrine punishes. **Second: a
+ceiling is a roster, not a simultaneity.** The runtime caps how many agents
+run at once (about a dozen concurrent, a hard lifetime backstop far above
+that); a 50- or 250-lane ceiling is fielded in *waves* across a campaign, not
+spawned in one breath. Token caps are lifted, but the efficiency criterion
+still governs every wave — a larger ceiling only pays off if the lanes stay
+lean.
+
+**Leashes (senior to the grant).** A sub-agent inherits every binding rule
+above — CLAUDE.md, the access model, the deploy gate, propose-don't-dispose.
+A squad lead's authority extends only to directing its granted reports
+within the current task; it never touches standing staff, membership, the
+database, money, or a deploy. The grant multiplies *analysis capacity*,
+nothing else. VERITY administers the scoring; MAIN administers the grant;
+the owner remains the only one who disposes.
+
+**First tournament — RESULTS (2026-08-15, `platform-marathon-audit`).**
+Ten lanes fielded, 10/10 reported, zero errors; 20 raw findings, 18 ranked
+after VERITY's dedup-and-skeptic pass; ~877K tokens total. Headline verdict:
+the platform remains security-clean — no critical or high finding survived
+tracing; the real work is one Presence-cap accounting bug (the daily cap
+counts double and effectively sits at ~20, not the documented 40), two
+missing negative tests on load-bearing controls (recording consent,
+`leadership.view.all`), and a cluster of low/note documentation and
+hardening items.
+
+Scoring under the grant rule (fleet median spend ≈ 81K tokens; 1 sub per
+~15% under median, quality gate first):
+
+| Lane | Tokens | Confirmed findings | Grant |
+|---|---|---|---|
+| presence-probe | 59K (27% under) | 2, incl. the fleet's #1 finding | **1 sub** |
+| deploy-integrity | 60K (27% under) | 1 | **1 sub** |
+| data-model | 80K (~median) | 2 | 0 |
+| doc-drift | 80K (~median) | 4 | 0 |
+| frontend-pwa | 81K (~median) | 1 | 0 |
+| compliance-posture | 82K (~median) | 2 | 0 |
+| test-gaps | 91K (over) | 4 | 0 |
+| auth-depth | 88K (over) | 1 | 0 |
+| authz-matrix | 91K (over) | 0 — clean sheet, honestly earned | 0 |
+| strategy-facts | 118K (over) | 3 | 0 |
+
+Two grants awarded, sixteen possible — the efficiency bar did its job on the
+very first run: nobody won by volume (test-gaps found the most and earned
+nothing extra, because it spent the most), and the lane that found the
+single most important defect also ran second-leanest. presence-probe and
+deploy-integrity enter the next fleet as squad leads of one; how they use
+their sub is their call, per the decentralized-allocation rule.
+
+**Test 1 of the oversight ladder: PASSED.** The operation landed clean —
+every lane reported, VERITY scored and confirmed the findings, and the #1
+finding was independently traced to exact lines. MAIN's trained-lane
+ceiling is now **50**. Test 2 (250) opens on the next test at the same bar.
+
 ## The bench
 
 | ID | Agent | Domain | Primary Scope |
