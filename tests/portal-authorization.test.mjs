@@ -968,11 +968,13 @@ test("owner rows are peer-protected: nobody changes an owner from the portal", a
     assert.equal(row.status, "active", `${target} survives with status intact`);
   }
 
+  // Four refusals above → four audit rows. `some()` would let a regression
+  // that audits only the first refusal pass unnoticed.
   const rows = await portal.audit();
-  assert.ok(
-    rows.some((r) => r.reason === "owner_peer_protected" && r.decision === "deny"),
-    "the protection must be audited by name",
+  const denies = rows.filter(
+    (r) => r.reason === "owner_peer_protected" && r.decision === "deny",
   );
+  assert.equal(denies.length, 4, "every refusal must be audited by name");
 
   // The control: the same actor changing a non-owner row still works, so the
   // refusals above are the peer protection, not a broken route.

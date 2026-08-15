@@ -294,10 +294,11 @@ export function MemberControls({
       </div>
 
       <p className="portal-fine">
-        Your own row is fixed here, and so is every owner&apos;s: nobody changes
-        their own role or status, and owner rows cannot be changed from the
-        portal at all — changing an owner is a database-console operation.
-        Every change is written to the audit log under your name.
+        Your own row cannot be changed here, and neither can any owner&apos;s:
+        nobody changes their own role or status, and owner rows cannot be
+        changed from the portal at all — changing an owner is a
+        database-console operation. Every change is written to the audit log
+        under your name.
       </p>
     </div>
   );

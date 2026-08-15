@@ -905,8 +905,34 @@ button, .button, .nav-cta, .text-link {
 }
 .portal-nav a:hover,
 .portal-signout:hover { color: var(--portal-text); background: var(--portal-hover); }
+/* Hover tint: each tab's own hue at low opacity, translucent over the panel.
+   The opaque var(--portal-hover) line above stays as the fallback for any
+   browser without color-mix. Deliberately quiet — the color story lives in
+   the icon glyph, not in washes of background. */
+.portal-nav a:hover {
+  background: color-mix(in srgb, var(--nav-hue, var(--portal-text)) 11%, transparent);
+}
 .portal-nav a[aria-current="page"] { color: var(--portal-accent-strong); background: var(--portal-accent-soft); font-weight: 750; box-shadow: inset 3px 0 0 var(--portal-accent); }
-.portal-nav a[aria-current="page"] .portal-nav-icon { color: var(--portal-accent); }
+.portal-nav a[aria-current="page"] .portal-nav-icon { color: var(--nav-hue, var(--portal-accent)); }
+
+/* One hue per tab, worn by the icon only. Mid-saturation values chosen to
+   read on both the light and dark panel without turning the rail into a
+   toy box; labels keep the neutral text color. */
+.portal-nav-item-dashboard { --nav-hue: #5b87d7; }
+.portal-nav-item-announcements { --nav-hue: #d19a3d; }
+.portal-nav-item-library { --nav-hue: #9272d2; }
+.portal-nav-item-radio { --nav-hue: #cf6d9f; }
+.portal-nav-item-book { --nav-hue: #43a094; }
+.portal-nav-item-calls { --nav-hue: #55a065; }
+.portal-nav-item-scripts { --nav-hue: #4f97ae; }
+.portal-nav-item-team { --nav-hue: #7b7fd9; }
+.portal-nav-item-leadership { --nav-hue: #c0983f; }
+.portal-nav-item-shop { --nav-hue: var(--portal-accent); }
+.portal-nav-item-quoter { --nav-hue: #5aa2cf; }
+.portal-nav-item-payrates { --nav-hue: #4f9e6f; }
+.portal-nav-item-members { --nav-hue: #6f88cf; }
+.portal-nav-item-audit { --nav-hue: #8b97a5; }
+.portal-nav .portal-nav-icon { color: var(--nav-hue, var(--portal-icon)); }
 .portal-nav-icon { flex: 0 0 24px; width: 24px; text-align: center; color: var(--portal-icon); font-size: 16px; line-height: 1; }
 .portal-nav-label { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 
@@ -967,7 +993,10 @@ button, .button, .nav-cta, .text-link {
 .portal-nav-group { display: grid; gap: 2px; }
 .portal-nav-group + .portal-nav-group { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--portal-line); }
 .portal-nav-group-label { margin: 0 9px 5px; color: var(--portal-subtle); font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.portal-nav-symbol { width: 17px; height: 17px; display: grid; place-items: center; margin: auto; color: inherit; font-size: 10px; font-weight: 850; line-height: 1; }
+/* The symbol is an svg now — the font declarations from the letter-chip era
+   are gone; CSS is the only size authority (the element carries no
+   width/height attributes). */
+.portal-nav-symbol { width: 17px; height: 17px; display: block; margin: auto; color: inherit; }
 .portal-sidebar-system { display: flex; align-items: center; gap: 7px; margin: auto 8px 10px; padding-top: 12px; border-top: 1px solid var(--portal-line); color: var(--portal-muted); font-size: 10px; font-weight: 700; line-height: 1.3; }
 .portal-system-dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--portal-success); box-shadow: 0 0 0 3px var(--portal-success-ring); }
 
@@ -1317,8 +1346,10 @@ html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"]
   .portal-sidebar-mobile .portal-drawer-close { position: absolute; top: 18px; right: 14px; z-index: 2; }
   .portal-sidebar-mobile .portal-sidebar-head { padding-right: 40px; }
   .portal-sidebar-mobile .portal-brand-copy,
-  .portal-sidebar-mobile .portal-nav-label,
   .portal-sidebar-mobile .portal-account-copy { display: grid; }
+  /* Block, not grid: text-overflow ellipsis does not apply to a grid
+     container, so a grid label hard-clips instead of eliding. */
+  .portal-sidebar-mobile .portal-nav-label { display: block; }
   .portal-sidebar-mobile .portal-nav a,
   .portal-sidebar-mobile .portal-signout { justify-content: flex-start; padding-inline: 9px; }
   .portal-sidebar-mobile .portal-sidebar-account { grid-template-columns: 36px minmax(0, 1fr); justify-items: stretch; }
@@ -3419,6 +3450,11 @@ html[data-portal-theme="dark"] .member-note-ok {
 }
 
 @media (pointer: coarse) {
+  /* The base-level `height: 20px` above is later in source than the earlier
+     coarse-pointer `height: 44px`, so it would win on phones and shrink the
+     tap target back to 20px — restate the finger height here, where source
+     order puts it after the base rule. */
+  .pay-dial input[type="range"] { height: 44px; }
   .audio-deck-slider::-webkit-slider-thumb,
   .pay-dial input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;

@@ -176,6 +176,16 @@ refusal is audited. Changing or removing an owner is a D1-console operation
 only (the SQL below). This subsumes the earlier last-active-owner rule: no
 owner can be demoted or suspended through the route at all.
 
+**Console inserts must use a lowercase email — this is load-bearing.** The
+unique index on `portal_members.email` is case-sensitive and every app write
+lowercases first. A mixed-case row inserted by hand at the console would be
+invisible to the route's lookups, and a later portal grant of the lowercase
+form would create a second row for the same person — the identity-ambiguity
+state, this time wearing an owner's face. Adversarial audit 2026-08-15 rated
+the route SOLID with this as the one out-of-band gap; a `CHECK
+(email = lower(email))` constraint is the durable fix if a migration is ever
+cut for other reasons.
+
 ### How membership actually works
 
 - `email` must be the address of the Google account the person signs in with,

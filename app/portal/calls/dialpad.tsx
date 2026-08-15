@@ -29,7 +29,9 @@ const KEYS: ReadonlyArray<{ digit: string; letters: string }> = [
   { digit: "8", letters: "TUV" },
   { digit: "9", letters: "WXYZ" },
   { digit: "*", letters: "" },
-  { digit: "0", letters: "+" },
+  // No "+" sublabel: there is no long-press path to enter one, and a label
+  // that advertises an input the pad cannot take is a lie in eight pixels.
+  { digit: "0", letters: "" },
   { digit: "#", letters: "" },
 ];
 
@@ -75,22 +77,27 @@ export function DialPad() {
       </div>
 
       <div className="dialpad-actions">
+        {/* Single-click deletes one digit, nothing more: a double-click
+            clear-all here turned fast repeated deletes into wiping the
+            whole number, which is a trap, not a shortcut. */}
         <button
           type="button"
           className="dialpad-clear"
           onClick={() => setNumber((n) => n.slice(0, -1))}
-          onDoubleClick={() => setNumber("")}
           disabled={number.length === 0}
-          title="Delete last digit — double-click clears all"
+          aria-label="Delete last digit"
+          title="Delete last digit"
         >
           ⌫
         </button>
         {/* A tel: link hands the number to the device's phone app. It is a
             plain <a> on purpose: there is nothing to prefetch and nothing
-            for the portal to intercept. */}
+            for the portal to intercept. "#" must travel percent-encoded —
+            a raw "#" is a URL fragment delimiter even in tel:, and it
+            silently truncated service codes at the pound key. */}
         <a
           className={`dialpad-call${number ? "" : " is-idle"}`}
-          href={number ? `tel:${number.replace(/[^\d*#+]/g, "")}` : undefined}
+          href={number ? `tel:${number.replace(/[^\d*#]/g, "").replace(/#/g, "%23")}` : undefined}
           aria-disabled={number ? undefined : true}
         >
           Call
@@ -98,9 +105,12 @@ export function DialPad() {
       </div>
 
       <p className="portal-fine dialpad-fine">
-        Calls place through your device&apos;s phone app for now — no approved
-        dialer is connected yet, so nothing is recorded and nothing lands in
-        the transfer inbox. The business line lives at{" "}
+        Calls are placed through your device&apos;s own phone app for now — no
+        approved dialer is connected yet, so the portal records nothing and
+        nothing reaches the transfer inbox (your phone still keeps its own
+        call history). Company calling policies — do-not-call, consent, and
+        state calling rules — still apply to every call, no matter which app
+        places it. The business line lives at{" "}
         <a href="https://www.numberbarn.com" target="_blank" rel="noopener noreferrer">
           NumberBarn
         </a>{" "}

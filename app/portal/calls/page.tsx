@@ -146,7 +146,7 @@ export default async function CallsPage() {
                                 className="portal-recording-link"
                                 href={`/portal/calls/recording?id=${call.id}`}
                                 target="_blank"
-                                rel="noreferrer"
+                                rel="noopener noreferrer"
                               >
                                 Open recording
                               </a>

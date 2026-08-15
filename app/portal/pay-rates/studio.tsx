@@ -95,7 +95,7 @@ export function PayRatesStudio({
         <article className="portal-metric portal-metric-bad">
           <span className="portal-metric-label">API spend</span>
           <strong className="portal-metric-value">{money(t.apiCost)}</strong>
-          <span className="portal-metric-detail">{t.agents} agents at {money(apiPerAgent)} each</span>
+          <span className="portal-metric-detail">{t.agents} AI agents at {money(apiPerAgent)} each</span>
         </article>
         <article className="portal-metric">
           <span className="portal-metric-label">Break-even giveback</span>
@@ -136,11 +136,13 @@ export function PayRatesStudio({
         <p>
           <strong>API grants</strong> are how many of these AI workers a rank is
           allotted. A higher rank carries more grants because its people run
-          bigger books — more leads to triage, more calls to summarize. Each
-          grant costs the company roughly the <em>API cost per agent</em> dial
-          above, per month, which is why adding grants to a rank moves that
-          rank&rsquo;s net down before the productivity it buys shows up
-          anywhere on this page.
+          bigger books — more leads to triage, more calls to summarize. In this
+          model, each grant is assumed to cost the <em>API cost per agent</em>{" "}
+          dial above, per month — an average someone chose, since real per-agent
+          cost varies widely (see &ldquo;Grant budgets, not agents&rdquo;
+          below) — which is why adding grants to a rank moves that rank&rsquo;s
+          net down before the productivity it buys shows up anywhere on this
+          page.
         </p>
       </section>
 

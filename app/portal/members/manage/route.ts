@@ -40,8 +40,8 @@ export const dynamic = "force-dynamic";
  *      enforced here. It prevents self-promotion, and it prevents the more
  *      common accident of an owner revoking themselves.
  *
- *   3. OWNER ROWS ARE PEER-PROTECTED. Nobody — another owner and an
- *      administrator alike — changes an owner's role or status through this
+ *   3. OWNER ROWS ARE PEER-PROTECTED. Nobody — whether another owner or an
+ *      administrator — changes an owner's role or status through this
  *      route. With several active owners, any one of them could otherwise
  *      suspend the rest and hold the portal alone. Changing an owner is
  *      deliberately pushed down to the D1 console (CORE_PLATFORM_RECORD.md
@@ -202,7 +202,7 @@ export async function POST(request: Request) {
   if (!member) return bad("No membership record for that address.", 404);
 
   // Owner rows are peer-protected: refused before any other consideration,
-  // for role and status alike. See governance note 4.
+  // for role and status alike. See governance note 3.
   if (member.role === "owner") {
     await recordAudit({
       action: `members.${action}_change`,

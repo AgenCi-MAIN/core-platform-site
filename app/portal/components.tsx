@@ -325,6 +325,7 @@ function PortalSidebarContent({
                   <a
                     key={item.href}
                     href={item.href}
+                    className={`portal-nav-item-${item.icon}`}
                     title={`${item.label} — opens in a new tab`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -338,7 +339,7 @@ function PortalSidebarContent({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={item.icon === "shop" ? "portal-nav-exchange" : undefined}
+                    className={`portal-nav-item-${item.icon}${item.icon === "shop" ? " portal-nav-exchange" : ""}`}
                     aria-current={item.href === current ? "page" : undefined}
                     title={item.label}
                   >
