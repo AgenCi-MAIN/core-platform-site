@@ -72,3 +72,16 @@ HERALD hourly into this session at :48 (two quiet patrols since Part 1 —
 "no new outreach" both). VIGIL daily, MR. T 10-hourly, INVESTIGATOR hourly
 :53, VERITY per-fleet. Founder gates, Presence isolation contract, and all
 Part-1 security rules unchanged and in force.
+
+## Amendment (2026-08-15, late): the first staff outbound send
+
+One outbound email has been sent by the staff: at the owner's explicit
+order ("send this file to ryan"), MAIN sent Ryan Davidson
+(ryandavidson.zenith@gmail.com) a short note from the owner's own Gmail
+carrying the owner's chosen Google-Doc link (Gmail message id
+1a0074df7e6242ef). A direct Drive-share was attempted first and refused by
+permissions. This is the one and only staff-originated send to date; the
+never-send rule stands for everything not explicitly ordered, message by
+message. Recorded here because the privacy-page verification fleet
+correctly refused to accept an undocumented precedent — a send that is not
+in the record does not exist.
