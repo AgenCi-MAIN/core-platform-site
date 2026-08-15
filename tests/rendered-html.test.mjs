@@ -296,7 +296,15 @@ test("the service worker never caches an authenticated response", async () => {
   // or suspended device would keep serving whatever it last saw. This asserts
   // the source of that guarantee rather than its effect, because a service
   // worker cannot be exercised from Node.
-  const source = await readFile(new URL("../public/sw.js", import.meta.url), "utf8");
+  // Normalised to LF before anything else. Development happens on Windows,
+  // where git checks this file out with CRLF — and the byte-pinned comparison
+  // below must judge the code, not the checkout configuration. Without this,
+  // the end-of-branch marker ("\n  }\n") never matches on Windows, the slice
+  // runs to the end of the file, and the suite fails on a service worker that
+  // is completely correct. It blocked the owner's first gated deploy.
+  const source = (
+    await readFile(new URL("../public/sw.js", import.meta.url), "utf8")
+  ).replace(/\r\n/g, "\n");
 
   assert.match(
     source,
