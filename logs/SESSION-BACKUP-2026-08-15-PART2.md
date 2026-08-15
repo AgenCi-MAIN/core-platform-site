@@ -84,8 +84,13 @@ permissions. Second send, same day: at the owner's explicit order ("TEST EMAIL T
 ryandavidson.zenith@gmail.com ... REDRAFT THIS WARNING"), MAIN sent Ryan a
 sample JARVIS ops-warning email (Gmail message id 1a0079275464e434),
 subject-stamped [TEST] and body-labeled that every figure is simulated —
-fabricated numbers must never travel unlabeled. These two are the only
-staff-originated sends to date; the never-send rule stands for everything
-not explicitly ordered, message by message. Recorded here because the privacy-page verification fleet
+fabricated numbers must never travel unlabeled. Third send, same day, owner-ordered: an introduction/report email to Ryan
+(Gmail message id 1a007979fa1cedc5) — priorities (Presence, gated outbound
+expansion), the fleet system, and the email-prompt pipeline, stated
+honestly: inbound prompts are logged by HERALD and flagged to the owner,
+who green-lights before MAIN executes — emailed instructions never
+auto-execute. Ryan invited to test the loop via core@inkboxmail.com.
+These three are the only staff-originated sends to date; the never-send
+rule stands for everything not explicitly ordered, message by message. Recorded here because the privacy-page verification fleet
 correctly refused to accept an undocumented precedent — a send that is not
 in the record does not exist.
