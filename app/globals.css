@@ -3373,3 +3373,37 @@ html[data-portal-theme="dark"] .member-note-ok {
    dark page). Block display kills the baseline gap; pointer-events lets the
    button, not the drawing, take the tap. */
 .audio-deck-button svg { display: block; pointer-events: none; }
+
+/* ============================================================
+   COMPACT DECK ON PHONES
+   ------------------------------------------------------------
+   On a narrow screen the deck was a stack: the title took its own row
+   (flex-basis: 100% above), the volume group demanded 150px and wrapped, and
+   the coarse-pointer rules gave the slider a 44px-tall row of its own. A
+   docked player that eats a quarter of a phone screen is a bug, not a
+   feature.
+
+   One row now. The space comes from removing the volume slider and the
+   percentage readout — a phone has hardware volume buttons and the mute
+   button stays — NOT from shrinking tap targets: the 44px floors from the
+   touch-target block above still apply to every control that remains.
+   Appended last on purpose, so it wins over both the original 620px rules
+   and the coarse-pointer slider sizing.
+   ============================================================ */
+
+@media (max-width: 620px) {
+  .audio-deck {
+    gap: 6px 8px;
+    width: calc(100% - 16px);
+    margin-top: 14px;
+    padding: 6px 10px;
+    bottom: 8px;
+  }
+  .audio-deck-badge { width: 26px; height: 26px; font-size: 12px; }
+  /* Back inline with the badge — the full-width row was the biggest cost. */
+  .audio-deck-copy { flex: 1 1 0; min-width: 60px; }
+  .audio-deck-transport { gap: 4px; }
+  .audio-deck-volume { flex: none; min-width: 0; gap: 0; }
+  .audio-deck-slider,
+  .audio-deck-level { display: none; }
+}
