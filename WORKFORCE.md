@@ -198,6 +198,31 @@ grows where growth is earned by frugality, and real fan-out stays within the
 orchestration size guideline. Mass-spawning to look busy is the one behavior
 this doctrine is built to punish.
 
+**The oversight ladder (owner order, 2026-08-15).** MAIN's span of command —
+the ceiling of **trained lanes** it may field across a campaign — grows only
+by *demonstrated* oversight, never by claim. A "trained lane" is a lane that
+has been fielded, scored by VERITY, and confirmed productive; its brief is
+proven and reusable. This is distinct from a bench role (untested) and from a
+raw sub (a report under a lead).
+
+| Tier | Ceiling | Unlocks on |
+|---|---|---|
+| Now | 10 O.G. lanes + up to 5 subs each = **up to 50 in the field** | current standing |
+| Test 1 | **50 trained lanes** | this operation (`platform-marathon-audit`) landing clean, scored and confirmed by VERITY |
+| Test 2 | **250 trained lanes** | the next test passing under the same bar |
+
+Two honest constraints, senior to the ladder. **First: it is earned, not
+announced.** As of this writing MAIN has *not* reached Test 1 — the marathon
+is still running; the tier opens when its findings are verified and scored,
+not a moment sooner. Claiming a tier before the proof is exactly the
+volume-over-production failure this whole doctrine punishes. **Second: a
+ceiling is a roster, not a simultaneity.** The runtime caps how many agents
+run at once (about a dozen concurrent, a hard lifetime backstop far above
+that); a 50- or 250-lane ceiling is fielded in *waves* across a campaign, not
+spawned in one breath. Token caps are lifted, but the efficiency criterion
+still governs every wave — a larger ceiling only pays off if the lanes stay
+lean.
+
 **Leashes (senior to the grant).** A sub-agent inherits every binding rule
 above — CLAUDE.md, the access model, the deploy gate, propose-don't-dispose.
 A squad lead's authority extends only to directing its granted reports

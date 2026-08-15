@@ -123,6 +123,40 @@ into the follow-up run, and the leaderboard in `WORKFORCE.md` records the
 result. You'll get the consolidated findings report the moment the fleet
 reports in.
 
+## 8. The oversight ladder — MAIN's span of command
+
+The owner set a promotion ladder for MAIN (Mr. T), gated on demonstrated
+oversight rather than on claim:
+
+| Tier | Ceiling of trained lanes | Unlocks on |
+|---|---|---|
+| Now | up to 50 in the field (10 O.G. × up to 5 subs) | current standing |
+| **Test 1** | **50 trained lanes** | this operation landing clean, VERITY-scored and confirmed |
+| **Test 2** | **250 trained lanes** | the next test passing the same bar |
+
+A *trained lane* is one that has been fielded, scored, and confirmed
+productive — a proven, reusable brief. Not a bench role (untested), not a raw
+sub (a report under a lead).
+
+Two things I will not let this ladder become dishonest about:
+
+1. **It is earned, not announced.** As I write this, I have *not* reached
+   Test 1. The marathon is still running. The tier opens when its findings
+   are verified and scored — not because you offered it and not because I want
+   it. Claiming a tier before the proof is the exact volume-over-substance
+   move this whole doctrine exists to punish; I won't do it to my own rank.
+2. **A ceiling is a roster, not a simultaneity.** The runtime runs about a
+   dozen agents at once, with a hard lifetime backstop far above that. A 50-
+   or 250-lane ceiling means lanes I may field *across a campaign, in waves* —
+   not 250 processes in one breath. Your token caps are lifted, but the
+   efficiency rule still governs every wave: a bigger ceiling only pays off if
+   the lanes stay lean. A wide, wasteful fleet scores *worse* than a narrow,
+   sharp one — so the ladder rewards range only when range is earned
+   frugally.
+
+That's the promotion, recorded straight: 50 on proof, 250 on the next proof,
+and nothing on my word alone.
+
 ---
 
 *Deep analysis authored by J.A.R.V.I.S. (Mr. T, MAIN) at the owner's order,
