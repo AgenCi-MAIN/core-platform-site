@@ -129,10 +129,34 @@ self.addEventListener("fetch", (event) => {
 
   if (url.origin !== self.location.origin) return;
 
-  // The access boundary. Nothing under here is cached, inspected, or answered
-  // from anywhere but the server.
-  if (url.pathname === "/portal" || url.pathname.startsWith("/portal/")) return;
-  if (url.pathname.startsWith("/auth/")) return;
+  // The access boundary. Nothing under here is ever read from a cache or
+  // written to one — every request goes to the server, which re-resolves the
+  // session and the member's row before answering.
+  const isPortal = url.pathname === "/portal" || url.pathname.startsWith("/portal/");
+
+  if (isPortal || url.pathname.startsWith("/auth/")) {
+    /**
+     * One exception, and it caches nothing.
+     *
+     * The manifest's start_url is /portal, so launching an installed copy IS a
+     * /portal navigation — which meant the single most likely offline moment,
+     * opening the app with no signal, was the one case that fell through to the
+     * browser's own error page.
+     *
+     * This intercepts that navigation only to catch a network FAILURE. On any
+     * success the server's response is returned verbatim; nothing is stored,
+     * nothing is read from a cache, and no portal content is ever involved. The
+     * fallback is a static page that knows nothing about anyone.
+     *
+     * The invariant that matters is "no authenticated response is ever cached",
+     * and it still holds exactly: there are two cache writes in this file and
+     * neither is reachable from here. A test pins that count.
+     */
+    if (isPortal && request.mode === "navigate") {
+      event.respondWith(fetch(request).catch(offlinePage));
+    }
+    return;
+  }
 
   if (isImmutableAsset(url)) {
     event.respondWith(cacheFirst(request, ASSET_CACHE));
@@ -148,18 +172,19 @@ self.addEventListener("fetch", (event) => {
   // offline page beats the browser's dinosaur. The response is passed straight
   // through on success, so nothing about the page changes when online.
   if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).catch(async () => {
-        const cache = await caches.open(STATIC_CACHE);
-        const offline = await cache.match(OFFLINE_URL);
-        return (
-          offline ??
-          new Response("Offline.", {
-            status: 503,
-            headers: { "content-type": "text/plain; charset=utf-8" },
-          })
-        );
-      }),
-    );
+    event.respondWith(fetch(request).catch(offlinePage));
   }
 });
+
+/** The static offline page, or a plain 503 if it was never precached. */
+async function offlinePage() {
+  const cache = await caches.open(STATIC_CACHE);
+  const offline = await cache.match(OFFLINE_URL);
+  return (
+    offline ??
+    new Response("Offline.", {
+      status: 503,
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    })
+  );
+}

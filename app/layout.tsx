@@ -58,11 +58,18 @@ export async function generateMetadata(): Promise<Metadata> {
      * what Android already does from the manifest's `display: standalone`.
      * Nothing here affects authorization: the standalone window is still a
      * browser sending the same cookie to the same guarded routes.
+     *
+     * `statusBarStyle` is "default", not "black-translucent", on purpose.
+     * Translucent forces WHITE status-bar glyphs and lets the page paint
+     * underneath — but the portal's default theme is bright (PortalThemeBoot
+     * treats anything other than a stored "dark" as bright) and the topbar
+     * paints white. That combination is white time and battery on a white bar
+     * on every launch, until the member happens to switch to Dark.
      */
     appleWebApp: {
       capable: true,
       title: "THRIVE",
-      statusBarStyle: "black-translucent",
+      statusBarStyle: "default",
     },
     /**
      * `appleWebApp.capable` above emits only the modern `mobile-web-app-capable`

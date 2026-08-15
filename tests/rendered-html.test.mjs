@@ -308,6 +308,39 @@ test("the service worker never caches an authenticated response", async () => {
     /url\.pathname\.startsWith\("\/auth\/"\)/,
     "the /auth exclusion is gone — sign-in and callback responses are cacheable",
   );
+  // A /portal navigation may be intercepted to serve the static offline page on
+  // a network failure — the installed app starts at /portal, so that is the
+  // likeliest offline moment. It must remain a bare pass-through: no cache read
+  // and no cache write on that path.
+  /**
+   * Pinned positively rather than by forbidding things. An earlier version of
+   * this check listed what the branch must not contain, and a mutation that
+   * swapped the pass-through for `cacheFirst(request, STATIC_CACHE)` — which
+   * would serve a member a cached portal page — walked straight through it.
+   * Enumerating the ways to be wrong does not work; stating the one acceptable
+   * body does.
+   */
+  const branchStart = source.indexOf("const isPortal");
+  assert.ok(branchStart > 0, "could not locate the /portal branch — this check went stale");
+  const portalBranch = source.slice(branchStart, source.indexOf("\n  }\n", branchStart));
+
+  const normalised = portalBranch
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/[^\n]*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  assert.equal(
+    normalised,
+    'const isPortal = url.pathname === "/portal" || url.pathname.startsWith("/portal/"); ' +
+      'if (isPortal || url.pathname.startsWith("/auth/")) { ' +
+      'if (isPortal && request.mode === "navigate") { ' +
+      "event.respondWith(fetch(request).catch(offlinePage)); } return;",
+    "the /portal and /auth branch changed. This is the access boundary in the service worker: " +
+      "only a navigation may be intercepted, only to fall back to the static offline page when the " +
+      "network fails, and nothing here may read or write a cache. If the change is intended, " +
+      "re-read what it does to a suspended member's installed app before updating this string.",
+  );
   assert.match(
     source,
     /request\.method !== "GET"/,

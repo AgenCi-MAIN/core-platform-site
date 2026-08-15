@@ -28,8 +28,15 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait-primary",
-    background_color: "#0e1116",
-    theme_color: "#0e1116",
+    /**
+     * Bright, matching the portal's DEFAULT theme rather than its dark one.
+     * These paint the splash screen and the installed window's chrome, and a
+     * dark splash opening into a light portal reads as a loading fault. A
+     * member who chooses Dark gets it from the theme-color meta in
+     * app/layout.tsx; the manifest cannot follow a localStorage preference.
+     */
+    background_color: "#f6f7f9",
+    theme_color: "#f6f7f9",
     categories: ["business", "productivity"],
     icons: [
       {

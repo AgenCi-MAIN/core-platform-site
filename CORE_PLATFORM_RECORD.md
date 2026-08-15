@@ -485,7 +485,20 @@ network untouched. A test asserts the exclusions and the number of cache writes,
 so adding one fails the suite rather than a member's device.
 
 When the network is gone, a navigation gets `public/offline.html` — a static
-page that shows nothing about anyone.
+page that shows nothing about anyone. That includes `/portal` navigations, and
+it is the one place the worker touches a portal request: the manifest's
+`start_url` is `/portal`, so launching an installed copy with no signal was
+otherwise the single most likely offline moment and the only one that fell
+through to the browser's error page. The interception catches a network
+*failure* and nothing else — on success the server's response is returned
+verbatim, no cache is read or written, and no portal content is ever involved.
+
+A test pins that branch **character for character** after stripping comments.
+Four mutations were tried against it — serving a cached portal page, caching the
+response, widening it past navigations, and dropping the `/auth` exclusion — and
+all four fail the suite. If you change it deliberately, the test tells you to
+re-read what the change does to a suspended member's installed app before you
+update the string.
 
 | Path | What |
 | --- | --- |
