@@ -139,6 +139,15 @@ export async function POST(request: Request) {
   /**
    * Would this change leave the portal with no active owner? Counts owners
    * other than the target, so it answers "is this the last one" directly.
+   *
+   * KNOWN WINDOW: the count and the write are separate statements, so two
+   * administrators demoting two different owners in the same instant could
+   * each see the other still standing and both succeed. It needs simultaneous
+   * action by two people on a roster of a handful, and it is recoverable —
+   * an owner row can be restored from the D1 console with the SQL in
+   * CORE_PLATFORM_RECORD.md § 5. Closing it properly means a conditional
+   * UPDATE or a transaction; worth doing if this roster ever grows to the
+   * point where two administrators plausibly act at once.
    */
   async function wouldStrandThePortal(targetEmail: string): Promise<boolean> {
     const [row] = await db

@@ -50,6 +50,14 @@ export function MemberControls({
   const [pending, startTransition] = useTransition();
   const [note, setNote] = useState<Note>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  /**
+   * The selects are controlled by server data, so a change the server has not
+   * accepted yet snaps back to the old value mid-request and then jumps again
+   * on refresh. Holding the chosen value here keeps the control showing what
+   * the person picked until the answer arrives — and drops it on refusal, so
+   * the interface never displays a change that did not happen.
+   */
+  const [pendingValue, setPendingValue] = useState<Record<string, string>>({});
 
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -60,6 +68,11 @@ export function MemberControls({
     setNote(null);
     void post(body).then((error) => {
       setBusy(null);
+      setPendingValue((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
       if (error) {
         setNote({ kind: "error", text: error });
         return;
@@ -166,35 +179,56 @@ export function MemberControls({
                   <td>
                     <select
                       aria-label={`Role for ${m.email}`}
-                      value={m.role}
+                      value={pendingValue[`role:${m.email}`] ?? m.role}
                       disabled={isSelf || busy !== null || pending}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        const key = `role:${m.email}`;
+                        setPendingValue((prev) => ({ ...prev, [key]: next }));
                         run(
-                          `role:${m.email}`,
-                          { action: "role", email: m.email, role: e.target.value },
-                          `${m.email} is now ${e.target.value}.`,
-                        )
-                      }
+                          key,
+                          { action: "role", email: m.email, role: next },
+                          `${m.email} is now ${next}.`,
+                        );
+                      }}
                     >
                       {ROLES.map((r) => (
                         <option key={r} value={r}>
                           {r}
                         </option>
                       ))}
+                      {/* A role the app no longer recognises still renders,
+                          rather than showing an empty control over real data. */}
+                      {ROLES.includes(m.role as (typeof ROLES)[number]) ? null : (
+                        <option value={m.role}>{m.role} (unrecognised)</option>
+                      )}
                     </select>
                   </td>
                   <td>
                     <select
                       aria-label={`Status for ${m.email}`}
-                      value={m.status}
+                      value={pendingValue[`status:${m.email}`] ?? m.status}
                       disabled={isSelf || busy !== null || pending}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        const key = `status:${m.email}`;
+                        // Revoking is one click from an accident, and the
+                        // person it affects is not in the room to notice.
+                        if (
+                          next !== "active" &&
+                          !window.confirm(
+                            `Set ${m.email} to ${next}? They lose portal access immediately.`,
+                          )
+                        ) {
+                          return;
+                        }
+                        setPendingValue((prev) => ({ ...prev, [key]: next }));
                         run(
-                          `status:${m.email}`,
-                          { action: "status", email: m.email, status: e.target.value },
-                          `${m.email} is now ${e.target.value}.`,
-                        )
-                      }
+                          key,
+                          { action: "status", email: m.email, status: next },
+                          `${m.email} is now ${next}.`,
+                        );
+                      }}
                     >
                       {STATUSES.map((s) => (
                         <option key={s} value={s}>
