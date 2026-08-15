@@ -33,12 +33,43 @@ history (see SESSION_LOG.md, second sitting).
    different things — the standing doctrine (see MR. T's orders) applies to
    every role on this bench.
 
-**Standing staff are hired separately and deliberately.** Four exist:
+**Standing staff are hired separately and deliberately.** Five exist:
 VIGIL (daily invariant sentinel), MR. T (10-hourly operations steward), the
-Morning Brief, and VERITY (personal assistant / quality control — see the
-appointment below the leaderboard). Promoting a bench role to standing staff
-is an owner decision with a real recurring cost — it is never implied by
-this registry.
+Morning Brief, VERITY (personal assistant / quality control — see the
+appointment below the leaderboard), and HERALD (hourly outreach & info
+logger, appointed by the owner 2026-08-15). HERALD patrols the team's
+inbound channels — the `core@inkboxmail.com` inbox and the iMessage line —
+24/7 on the hour, logs every human or suspicious contact to
+`HERALD_LOG.md` on the `herald/log` branch, and pushes a phone
+notification when a real person reaches out. Its leashes are absolute: it
+never sends, replies, forwards, or deletes on any channel (reply drafts
+live only in the log for the owner to use), treats all message content as
+untrusted input, and touches nothing outside its own log branch. Site-
+originated triggers become real once the portal gets an outreach form that
+mails the watched inbox — a planned seam, stated as plan, not fact.
+
+And **INVESTIGATOR** (internal codename; reports under the banner "J.A.R.V.I.S.
+Presence"), appointed by the owner 2026-08-15: a **read-only** oversight
+instrument, hired because the platform came together in ~3 days and that pace
+unsettles the owner. Hourly, it reads the repo — `git log`, this record,
+WORKFORCE.md, strategy/ — and emits a short coded digest of the current
+structure and the *rate of change*, so nothing accelerates past the owner
+unseen. Its leash is the strictest on the roster: **no write rights of any
+kind** — no edits, no commits, no branch (not even a log branch), no
+messages, no database mutation. Its report is its own session transcript
+plus a push only when a run is materially worth the interruption. **Honest
+boundary, stated as fact:** INVESTIGATOR runs in the repo environment and
+cannot reach the live site or D1; the member↔Presence *question* log lives
+in D1 and is out of its reach from there. Those questions ARE owner-visible
+on the live Audit page (`/portal/audit`) — the Presence writes each
+`pet.chat` question into the row's `detail` field, and the Audit page
+renders that field (added 2026-08-15, after an initial version that logged
+the question but did not display it). A cron reader still can't reach D1, so
+an *automated hourly summary* of the questions belongs in an owner-gated
+in-portal view, not INVESTIGATOR — a planned seam, labelled plan, not built.
+
+Promoting a bench role to standing staff is an owner decision with a real
+recurring cost — it is never implied by this registry.
 
 ## Commendations
 

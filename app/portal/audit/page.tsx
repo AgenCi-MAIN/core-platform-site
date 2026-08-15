@@ -10,6 +10,39 @@ export const dynamic = "force-dynamic";
 const PAGE_SIZE = 100;
 
 /**
+ * Render the JSON `detail` field for a human. This is where a Presence
+ * (`pet.chat`) row carries the question the member asked, so the owner can
+ * read what the pet is being asked without leaving the portal. The field is
+ * plain JSON and never holds a secret (the schema forbids it); we still
+ * render it as a text node — React escapes it — and cap the length so one
+ * long row can't blow out the table.
+ */
+function summarizeDetail(detail: string | null): string {
+  if (!detail) return "—";
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(detail);
+  } catch {
+    return detail.slice(0, 200);
+  }
+  if (parsed && typeof parsed === "object") {
+    const d = parsed as Record<string, unknown>;
+    // A Presence question reads best as the question itself, with the token
+    // cost trailing quietly for the owner watching spend.
+    if (typeof d.q === "string") {
+      const cost =
+        typeof d.out === "number" ? ` · ${d.out} out-tokens` : "";
+      return `“${d.q}”${cost}`;
+    }
+    return Object.entries(d)
+      .map(([k, v]) => `${k}: ${String(v)}`)
+      .join(" · ")
+      .slice(0, 200);
+  }
+  return String(parsed).slice(0, 200);
+}
+
+/**
  * Append-only access record. Every allow and every deny reaches this table,
  * including the request that rendered this page.
  */
@@ -66,6 +99,7 @@ export default async function AuditPage() {
                     <th scope="col">Action</th>
                     <th scope="col">Decision</th>
                     <th scope="col">Reason</th>
+                    <th scope="col">Detail</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -89,6 +123,7 @@ export default async function AuditPage() {
                         </span>
                       </td>
                       <td className="portal-cell-mono">{event.reason}</td>
+                      <td className="portal-cell-detail">{summarizeDetail(event.detail)}</td>
                     </tr>
                   ))}
                 </tbody>

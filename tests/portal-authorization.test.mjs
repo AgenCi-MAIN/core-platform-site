@@ -311,7 +311,7 @@ test("capabilities are enforced per role, not merely displayed", async () => {
   }
 });
 
-test("a manager can read the roster but an owner is required to see audit", async () => {
+test("a manager reads the roster and the audit log, but not the founder console", async () => {
   const portal = await startPortal();
   try {
     await portal.addMember("manager@example.com", "manager");
@@ -323,8 +323,38 @@ test("a manager can read the roster but an owner is required to see audit", asyn
     assert.match(html, new RegExp(SEEDED_OWNER_EMAIL.replace(".", "\\.")), "roster lists members");
     assert.match(html, /cannot change it/, "manager is told they lack members.manage");
 
+    // Audit is now open to owner / admin / manager (the "hire audits" record).
     const audit = await portal.get("/portal/audit", identity);
-    assert.equal(audit.status, 307, "manager must not hold audit.view");
+    assert.equal(audit.status, 200, "manager now holds audit.view");
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("the INVESTIGATOR console answers the seeded founder identity and no one else", async () => {
+  const portal = await startPortal();
+  try {
+    // A second owner — every capability, but NOT the founder identity.
+    await portal.addMember("second-owner@example.com", "owner");
+    const otherOwner = { subject: "sub-owner-2", email: "second-owner@example.com" };
+    const denied = await portal.get("/portal/investigator", otherOwner);
+    assert.equal(denied.status, 307, "a non-founder owner is refused");
+    assert.match(
+      denied.headers.get("location") ?? "",
+      /\/portal\/no-access$/,
+      "refusal routes to the explanation page",
+    );
+
+    // The seeded founder (bankerrunners@gmail.com) is admitted.
+    const founder = { subject: "sub-founder", email: SEEDED_OWNER_EMAIL };
+    const ok = await portal.get("/portal/investigator", founder);
+    assert.equal(ok.status, 200, "the founder identity is admitted");
+
+    const rows = await portal.audit();
+    assert.ok(
+      rows.some((r) => r.reason === "founder_only" && r.decision === "deny"),
+      "the refusal is audited by name",
+    );
   } finally {
     await portal.dispose();
   }
@@ -984,6 +1014,76 @@ test("owner rows are peer-protected: nobody changes an owner from the portal", a
     role: "manager",
   });
   assert.equal(control.status, 200, await control.text());
+});
+
+/* ============================================================
+   The JARVIS Presence.
+
+   The pet's whole safety story is that its route is just another
+   guarded portal route: anonymous callers get nothing, suspended
+   members get nothing, and with no ANTHROPIC_API_KEY configured it
+   fails closed with an honest 503 — audited — instead of faking an
+   answer. Miniflare has no key, which makes the closed path the
+   testable one.
+   ============================================================ */
+
+test("the presence is guarded and fails closed without its key", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // Anonymous: refused before anything else happens.
+  const anon = await portal.mf.dispatchFetch("http://localhost/portal/presence", {
+    method: "POST",
+    body: JSON.stringify({ question: "hi" }),
+    redirect: "manual",
+    headers: { "content-type": "application/json" },
+  });
+  assert.equal(anon.status, 401, "anonymous callers get nothing");
+
+  // Suspended member: refused.
+  await portal.addMember("benched@example.com", "agent", "suspended");
+  const suspended = await portal.mf.dispatchFetch("http://localhost/portal/presence", {
+    method: "POST",
+    body: JSON.stringify({ question: "hi" }),
+    redirect: "manual",
+    headers: {
+      "content-type": "application/json",
+      ...identityHeaders({ subject: "sub-benched", email: "benched@example.com" }),
+    },
+  });
+  assert.equal(suspended.status, 403, "suspended members get nothing");
+
+  // Active member, no key configured: honest 503, never a fabricated answer.
+  await portal.addMember("asker@example.com", "agent");
+  const res = await portal.mf.dispatchFetch("http://localhost/portal/presence", {
+    method: "POST",
+    body: JSON.stringify({ question: "What is THRIVE?" }),
+    redirect: "manual",
+    headers: {
+      "content-type": "application/json",
+      ...identityHeaders({ subject: "sub-asker", email: "asker@example.com" }),
+    },
+  });
+  // Read the body exactly once — a Response body is a one-shot stream, and
+  // consuming it inside an assertion message eats it before the real check.
+  const body = await res.json().catch(() => ({}));
+  assert.equal(res.status, 503, JSON.stringify(body));
+  assert.match(
+    String(body.error ?? ""),
+    /not connected/i,
+    "the refusal says the truth: the key is not set",
+  );
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some(
+      (r) =>
+        r.action === "pet.chat" &&
+        r.decision === "deny" &&
+        r.reason === "presence_not_configured",
+    ),
+    "the closed path is audited by name",
+  );
 });
 
 /* ============================================================

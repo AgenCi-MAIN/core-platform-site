@@ -43,5 +43,14 @@ declare namespace Cloudflare {
     GOOGLE_CLIENT_ID?: string;
     GOOGLE_CLIENT_SECRET?: string;
     SESSION_SECRET?: string;
+
+    /**
+     * The JARVIS Presence (member Q&A pet). Optional for the same reason as
+     * the rest: a deployment without the key genuinely lacks it, and
+     * app/portal/presence/route.ts answers 503 rather than crashing.
+     * PRESENCE_MODEL optionally overrides the Claude model id.
+     */
+    ANTHROPIC_API_KEY?: string;
+    PRESENCE_MODEL?: string;
   }
 }

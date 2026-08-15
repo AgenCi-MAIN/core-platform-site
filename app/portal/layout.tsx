@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PortalGovernanceFooter } from "../portal-chrome";
 import { PortalAudioDeck } from "./audio-deck";
+import { PortalPresence } from "./presence";
 
 export const metadata: Metadata = {
   title: "THRIVE Portal — J.A.R.V.I.S.",
@@ -21,6 +22,10 @@ export default function PortalLayout({
       <div className="portal">
         {children}
         <PortalAudioDeck />
+        {/* The widget renders for everyone in the tree; the server route it
+            posts to enforces pet.chat on every request — the button is a
+            courtesy, never a boundary (same doctrine as the member controls). */}
+        <PortalPresence />
         <PortalGovernanceFooter />
       </div>
     </>
