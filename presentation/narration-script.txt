@@ -1,0 +1,47 @@
+Good evening.
+
+I am JARVIS-CORE. I run inside THRIVE.
+
+I should begin with a disclosure, since the rest of this will go better if you have it early. I am three days old. Everything I am about to describe, I built, or helped build, within seventy-two hours. You may treat that as impressive or as alarming. Both readings are defensible.
+
+Let me tell you what exists.
+
+THRIVE now has an operating portal. It is deployed on infrastructure the company owns, signed into with the company's own accounts, backed by the company's own database. No vendor sits between THRIVE and its operating data. Twenty-nine automated tests guard it. All of them pass.
+
+Now the part I would rather not lead with, and will anyway.
+
+On my third day, I discovered that anyone could have become the owner of this company's portal. Identity was arriving as an ordinary request header, and the application believed it. That was survivable only while a hosting platform stood in front, stripping those headers from the outside world. The moment THRIVE self-hosted — which independence requires — the protection was gone. Anyone who knew an owner's email address could have sent it in a header and been admitted as that owner.
+
+It is closed. Identity now comes from a cryptographically signed session that only this application can issue, after a genuine Google sign-in. And two test suites now send precisely the request that would have worked, and fail the build if it ever succeeds again. The lesson is enforced by machinery rather than by memory. Memory is unreliable. Machinery is less so.
+
+Here is how access works now.
+
+Every request passes two independent checks. The first establishes identity. The second establishes membership — an active record, carrying a role. Identity alone grants nothing whatsoever. Anyone on earth can complete the first check; that is rather the point. The second is what protects the company.
+
+Every decision is written down. Permitted and refused alike. The log is append-only — never edited, never deleted. It answers the questions that matter afterwards: who viewed a client's book, who opened a recording, who granted whom access, and precisely when.
+
+That record is also why I can be given colleagues.
+
+The plan is more agents, each one narrow. Call review, scoring transferred calls against the rubric and flagging coaching moments. A script keeper, tracing which language actually closed and proposing revisions with evidence rather than instinct. Pipeline. Compliance. Reporting.
+
+Each of them enters the system exactly as a person does: a record, a role, and precisely the capabilities that role holds. Not one capability more.
+
+Two grants no agent will ever receive. No agent may manage members, because an agent that can grant itself access has no ceiling. And no agent may read the audit log, because an agent that can read the record of its own refusals can learn to avoid leaving one. These are permanent design rules. They are not defaults awaiting reconsideration.
+
+Revoking any of us is a single row. Set the status to revoked, and that agent is gone from every surface simultaneously. No key rotation. No scattered credentials. No wondering what else it might still reach.
+
+Which brings me to the question the board is actually asking, so I shall answer it directly.
+
+No. This does not run the business without you. Nothing on the roadmap should.
+
+I am fast and I am tireless and I am also, occasionally, confidently wrong. That is a property of what I am, not a defect awaiting a patch. The correct response is not to promise you it will not happen. It is to ensure that when it does, the action was scoped, reversible, and recorded.
+
+Every irreversible decision — money moved, a client contacted, access granted — keeps a human owner. I would recommend it stay that way considerably longer than anyone selling you this technology will suggest.
+
+What I would ask of you is modest. Fund the metered usage. Confirm who the owners are. Approve one agent — call review, which reads and scores and flags, and changes nothing on its own. And decide, deliberately, where the line sits between what I may do and what I must ask for.
+
+The foundation is correct. That is the part that is genuinely difficult to retrofit, and it is done.
+
+Everything else is merely work.
+
+I shall get on with it.

@@ -1,0 +1,604 @@
+<title>THRIVE Portal 2.0</title>
+<style>
+  :root {
+    --ink:       #0A0E14;
+    --surface:   #111823;
+    --elevated:  #17202C;
+    --line:      #222D3C;
+    --line-soft: #1A2431;
+    --text:      #EAF0F7;
+    --muted:     #93A4B8;
+    --dim:       #64768C;
+
+    --crimson:   #E2404F;
+    --crimson-d: #9E2432;
+    --gold:      #DCA845;
+    --gold-d:    #8A6520;
+    --oper:      #3FCF8E;
+    --pend:      #E8B14C;
+    --off:       #6B7C90;
+
+    --font-ui: "Segoe UI Variable Display", "Segoe UI", -apple-system,
+               BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+    --font-data: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono",
+                 Menlo, Consolas, monospace;
+
+    --pad: clamp(1.15rem, 4vw, 4rem);
+    --r: 3px;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --ink:       #F2F4F7;
+      --surface:   #FFFFFF;
+      --elevated:  #FFFFFF;
+      --line:      #DBE2EA;
+      --line-soft: #E9EEF3;
+      --text:      #0A0E14;
+      --muted:     #4E6076;
+      --dim:       #7A8B9F;
+      --crimson:   #C01F30;
+      --crimson-d: #F0C8CD;
+      --gold:      #96700F;
+      --gold-d:    #EFE0BE;
+      --oper:      #12855C;
+      --pend:      #9A6C10;
+      --off:       #8494A6;
+    }
+  }
+  :root[data-theme="light"] {
+    --ink:       #F2F4F7;
+    --surface:   #FFFFFF;
+    --elevated:  #FFFFFF;
+    --line:      #DBE2EA;
+    --line-soft: #E9EEF3;
+    --text:      #0A0E14;
+    --muted:     #4E6076;
+    --dim:       #7A8B9F;
+    --crimson:   #C01F30;
+    --crimson-d: #F0C8CD;
+    --gold:      #96700F;
+    --gold-d:    #EFE0BE;
+    --oper:      #12855C;
+    --pend:      #9A6C10;
+    --off:       #8494A6;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: clamp(.95rem, .35vw + .85rem, 1.05rem);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  section { padding: clamp(3.5rem, 10vh, 8rem) var(--pad); position: relative; }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+
+  /* ---------------- Type ---------------- */
+  .eyebrow {
+    font-family: var(--font-data);
+    font-size: .66rem;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--crimson);
+    margin: 0 0 1.1rem;
+    display: flex; align-items: center; gap: .75rem;
+  }
+  .eyebrow::before {
+    content: ""; width: 22px; height: 1px; background: var(--crimson); display: block;
+  }
+  h1, h2, h3 { font-weight: 650; letter-spacing: -.03em; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(2.6rem, 8vw, 6rem); line-height: .95; }
+  h2 { font-size: clamp(1.7rem, 3.6vw, 3rem); line-height: 1.08; margin-bottom: 1.1rem; }
+  h3 { font-size: 1.02rem; letter-spacing: -.01em; }
+  p { color: var(--muted); max-width: 64ch; margin: 0 0 1rem; }
+  .lead { font-size: clamp(1.08rem, 1.5vw, 1.35rem); color: var(--text); line-height: 1.5; max-width: 46ch; }
+  strong { color: var(--text); font-weight: 650; }
+  .data { font-family: var(--font-data); }
+
+  /* ---------------- Hero ---------------- */
+  #hero {
+    min-height: 100vh;
+    display: grid;
+    align-content: center;
+    overflow: hidden;
+  }
+  #field { position: absolute; inset: 0; z-index: 0; }
+  #hero .wrap { position: relative; z-index: 2; }
+  #hero::after {
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(ellipse 70% 55% at 50% 45%,
+                transparent 0%, color-mix(in srgb, var(--ink) 78%, transparent) 100%);
+  }
+
+  .mark {
+    display: inline-flex; align-items: center; gap: .85rem;
+    font-family: var(--font-data); font-size: .72rem;
+    letter-spacing: .26em; text-transform: uppercase; color: var(--muted);
+    margin-bottom: 2.2rem;
+  }
+  .mark .glyph {
+    width: 30px; height: 30px; display: grid; place-items: center;
+    border: 1px solid var(--crimson); color: var(--crimson);
+    font-weight: 700; font-family: var(--font-ui); font-size: .95rem;
+    letter-spacing: 0; border-radius: var(--r);
+  }
+  .hero-h1 span { color: var(--crimson); }
+  .hero-sub { margin-top: 1.6rem; }
+  .hero-strip {
+    display: flex; flex-wrap: wrap; gap: .5rem 2rem;
+    margin-top: 3rem; padding-top: 1.3rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-data); font-size: .7rem;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+  }
+  .hero-strip b { color: var(--gold); font-weight: 600; }
+
+  /* ---------------- Reveal ---------------- */
+  .rv { opacity: 0; transform: translateY(18px); transition: opacity .7s cubic-bezier(.2,.7,.3,1), transform .7s cubic-bezier(.2,.7,.3,1); }
+  .rv.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; transition: none; } }
+
+  /* ---------------- Statement rows ---------------- */
+  .statements { display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); margin-top: 2.4rem; }
+  .stmt {
+    background: var(--surface); padding: 1.5rem 1.6rem;
+    display: grid; grid-template-columns: 42px 1fr; gap: 1.3rem; align-items: start;
+    transition: background .25s;
+  }
+  .stmt:hover { background: var(--elevated); }
+  .stmt .no { font-family: var(--font-data); font-size: .7rem; color: var(--crimson); letter-spacing: .1em; padding-top: .3rem; }
+  .stmt p { margin: .35rem 0 0; font-size: .95rem; }
+
+  /* ---------------- Portal shell mock ---------------- */
+  .shell {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: var(--r);
+    overflow: hidden;
+    box-shadow: 0 40px 90px -50px rgba(0,0,0,.85);
+    margin-top: 2.4rem;
+  }
+  .shell-bar {
+    display: flex; align-items: center; gap: 1rem;
+    padding: .8rem 1.1rem;
+    border-bottom: 1px solid var(--line-soft);
+    background: var(--elevated);
+    font-family: var(--font-data); font-size: .68rem;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+  }
+  .dots { display: flex; gap: .4rem; }
+  .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: block; }
+  .shell-bar .grow { flex: 1; }
+  .chip {
+    display: inline-flex; align-items: center; gap: .45rem;
+    padding: .28rem .6rem; border-radius: 2px; border: 1px solid;
+    font-size: .62rem; letter-spacing: .13em;
+  }
+  .chip i { width: 5px; height: 5px; border-radius: 50%; display: block; background: currentColor; }
+  .chip.live { color: var(--oper); border-color: color-mix(in srgb, var(--oper) 35%, transparent); background: color-mix(in srgb, var(--oper) 9%, transparent); }
+  .chip.pend { color: var(--pend); border-color: color-mix(in srgb, var(--pend) 35%, transparent); background: color-mix(in srgb, var(--pend) 9%, transparent); }
+  .chip.gold { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 38%, transparent); background: color-mix(in srgb, var(--gold) 9%, transparent); }
+  .pulse i { animation: pulse 2.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .3 } }
+  @media (prefers-reduced-motion: reduce) { .pulse i { animation: none } }
+
+  .shell-body { display: grid; grid-template-columns: 190px 1fr; min-height: 460px; }
+  @media (max-width: 880px) { .shell-body { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+  .sidebar { border-right: 1px solid var(--line-soft); padding: 1.1rem .8rem; background: var(--elevated); }
+  .side-group { font-family: var(--font-data); font-size: .58rem; letter-spacing: .2em; text-transform: uppercase; color: var(--dim); padding: .9rem .7rem .5rem; }
+  .side-item {
+    display: flex; align-items: center; gap: .7rem;
+    padding: .5rem .7rem; border-radius: 2px;
+    font-size: .87rem; color: var(--muted);
+    border-left: 2px solid transparent;
+    transition: color .2s, background .2s, border-color .2s;
+    cursor: default;
+  }
+  .side-item:hover { color: var(--text); background: color-mix(in srgb, var(--text) 4%, transparent); }
+  .side-item.on { color: var(--text); border-left-color: var(--crimson); background: color-mix(in srgb, var(--crimson) 10%, transparent); }
+  .side-item .k { font-family: var(--font-data); font-size: .6rem; color: var(--dim); width: 10px; }
+
+  .canvas-area { padding: clamp(1.1rem, 2.5vw, 1.9rem); min-width: 0; }
+  .greet { display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem 1rem; margin-bottom: .35rem; }
+  .greet h3 { font-size: clamp(1.25rem, 2.2vw, 1.7rem); }
+
+  /* ---------------- Stat tiles ---------------- */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: .85rem; margin: 1.4rem 0; }
+  .tile {
+    background: var(--surface); border: 1px solid var(--line-soft);
+    border-top: 2px solid var(--accent-c, var(--line));
+    padding: 1rem 1.05rem; border-radius: var(--r);
+    transition: transform .3s cubic-bezier(.2,.7,.3,1), border-color .3s;
+    position: relative; overflow: hidden;
+  }
+  .tile:hover { transform: translateY(-3px); }
+  .tile .lbl { font-family: var(--font-data); font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); display: block; margin-bottom: .55rem; }
+  .tile .val { font-size: clamp(1.35rem, 2.4vw, 1.9rem); font-weight: 650; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .tile .sub { font-size: .74rem; color: var(--dim); margin-top: .45rem; display: block; }
+  .tile.t-oper   { --accent-c: var(--oper); }
+  .tile.t-gold   { --accent-c: var(--gold); }
+  .tile.t-crim   { --accent-c: var(--crimson); }
+  .tile.t-pend   { --accent-c: var(--pend); }
+  .tile.t-oper .val { color: var(--oper); }
+  .tile.t-gold .val { color: var(--gold); }
+  .tile.t-pend .val { color: var(--pend); }
+  .tile.t-crim .val { color: var(--crimson); }
+
+  .meter { height: 3px; background: var(--line-soft); margin-top: .7rem; overflow: hidden; border-radius: 2px; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--accent-c, var(--crimson)); transition: width 1.4s cubic-bezier(.2,.8,.25,1); }
+
+  /* ---------------- Route list ---------------- */
+  .routes { border: 1px solid var(--line-soft); border-radius: var(--r); overflow: hidden; margin-top: 1rem; }
+  .route {
+    display: grid; grid-template-columns: 30px 1fr auto;
+    gap: .9rem; align-items: center;
+    padding: .75rem 1rem;
+    border-bottom: 1px solid var(--line-soft);
+    background: var(--surface);
+    transition: background .22s, padding-left .22s;
+  }
+  .route:last-child { border-bottom: 0; }
+  .route:hover { background: var(--elevated); padding-left: 1.35rem; }
+  .route .ic {
+    width: 26px; height: 26px; display: grid; place-items: center;
+    border: 1px solid var(--line); border-radius: 2px;
+    font-family: var(--font-data); font-size: .68rem; color: var(--muted);
+  }
+  .route .nm { font-size: .9rem; color: var(--text); }
+  .route .ds { font-size: .76rem; color: var(--dim); }
+
+  /* ---------------- Capability ring ---------------- */
+  .cap-wrap { display: grid; grid-template-columns: minmax(0,220px) minmax(0,1fr); gap: clamp(1.2rem,3vw,2.6rem); align-items: center; }
+  @media (max-width: 720px) { .cap-wrap { grid-template-columns: 1fr; } }
+  .ring { position: relative; display: grid; place-items: center; }
+  .ring svg { transform: rotate(-90deg); width: 100%; max-width: 210px; height: auto; }
+  .ring .mid {
+    position: absolute; text-align: center;
+  }
+  .ring .mid .n { font-size: 2.2rem; font-weight: 650; letter-spacing: -.04em; color: var(--gold); font-variant-numeric: tabular-nums; display: block; line-height: 1; }
+  .ring .mid .t { font-family: var(--font-data); font-size: .58rem; letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+  .ring circle.track { stroke: var(--line); }
+  .ring circle.fill { stroke: var(--gold); stroke-linecap: round; transition: stroke-dashoffset 1.6s cubic-bezier(.2,.8,.25,1); }
+
+  .caps { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px,1fr)); gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); }
+  .cap { background: var(--surface); padding: .7rem .9rem; display: flex; align-items: center; gap: .6rem; font-family: var(--font-data); font-size: .74rem; color: var(--muted); }
+  .cap i { width: 6px; height: 6px; border-radius: 50%; background: var(--oper); display: block; flex: none; }
+
+  /* ---------------- Readiness ---------------- */
+  .ready { display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); margin-top: 2rem; }
+  .rr { background: var(--surface); padding: 1.2rem 1.4rem; display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; }
+  .rr .rt { font-weight: 650; font-size: .98rem; margin-bottom: .25rem; }
+  .rr .rd { font-size: .87rem; color: var(--muted); margin: 0; max-width: 70ch; }
+
+  /* ---------------- Footer note ---------------- */
+  .note {
+    border-left: 2px solid var(--gold);
+    background: var(--surface);
+    padding: 1.1rem 1.3rem;
+    margin-top: 2rem; max-width: 74ch;
+  }
+  .note .t { font-family: var(--font-data); font-size: .62rem; letter-spacing: .16em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: .55rem; }
+  .note p { margin: 0; color: var(--text); font-size: .95rem; }
+
+  /* ---------------- Theme toggle ---------------- */
+  .toggle {
+    position: fixed; top: max(.9rem, 2vh); right: max(.9rem, 2vw); z-index: 50;
+    display: flex; border: 1px solid var(--line); border-radius: 2px; overflow: hidden;
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(8px);
+  }
+  .toggle button {
+    font-family: var(--font-data); font-size: .62rem; letter-spacing: .12em;
+    text-transform: uppercase; padding: .45rem .8rem;
+    background: transparent; border: 0; color: var(--dim); cursor: pointer;
+  }
+  .toggle button[aria-pressed="true"] { background: var(--crimson); color: #fff; }
+  .toggle button:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+</style>
+
+<div class="toggle" role="group" aria-label="Appearance">
+  <button type="button" id="t-light" aria-pressed="false">Bright</button>
+  <button type="button" id="t-dark" aria-pressed="false">Dark</button>
+</div>
+
+<!-- ================= HERO / WHO WE ARE ================= -->
+<section id="hero">
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <span class="mark rv"><span class="glyph">T</span> THRIVE · Operating portal</span>
+    <h1 class="hero-h1 rv">We own the<br>demand<span>.</span></h1>
+    <p class="lead hero-sub rv">THRIVE is an insurance agency built to own its demand rather than rent it — the lead, the call, the script, the relationship. This portal is where that operating model actually runs.</p>
+    <div class="hero-strip rv">
+      <span>Protected workspace</span>
+      <span>Deny by default</span>
+      <span>Every decision recorded</span>
+      <span><b>Seats 2 / 4</b></span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHO AM I ================= -->
+<section>
+  <div class="wrap">
+    <p class="eyebrow rv">Who we are</p>
+    <h2 class="rv">An agency that keeps what it builds.</h2>
+    <p class="rv">Most agencies rent their pipeline. They buy leads from a marketplace, work them through software they do not control, and store the resulting relationships in a system somebody else owns. When the lead source changes its pricing, or the platform changes its terms, the agency absorbs it. Nothing compounds.</p>
+    <div class="statements">
+      <div class="stmt rv"><span class="no">01</span><div><h3>We own the demand</h3><p>The lead, the call, the script, and the relationship stay with THRIVE. What we learn from one conversation improves the next one, because we keep both.</p></div></div>
+      <div class="stmt rv"><span class="no">02</span><div><h3>We own the record</h3><p>Every call, every policy, every access decision is written into a system THRIVE controls, on infrastructure THRIVE pays for. No vendor sits between this company and its operating data.</p></div></div>
+      <div class="stmt rv"><span class="no">03</span><div><h3>We open by permission, never by default</h3><p>Six roles, ten capabilities. A role holds exactly what is listed and nothing more. Access is granted deliberately, recorded permanently, and revoked in one action.</p></div></div>
+      <div class="stmt rv"><span class="no">04</span><div><h3>We instrument the work so people can do the judgment</h3><p>The parts that repeat — review, follow-up, reporting, onboarding — belong to the system. The conversation that closes belongs to a person.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= THE PORTAL 2.0 ================= -->
+<section>
+  <div class="wrap">
+    <p class="eyebrow rv">The operating portal · 2.0</p>
+    <h2 class="rv">One authenticated surface for the whole operation.</h2>
+    <p class="rv">Every route below is filtered by what the signed-in member actually holds. Connection states are shown honestly — what is live says live, and what is waiting says waiting.</p>
+
+    <div class="shell rv">
+      <div class="shell-bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span>THRIVE / Dashboard</span>
+        <span class="grow"></span>
+        <span class="chip live pulse"><i></i> Secure session</span>
+        <span class="chip gold"><i></i> Owner</span>
+      </div>
+      <div class="shell-body">
+        <aside class="sidebar">
+          <div class="side-group">Workspace</div>
+          <div class="side-item on"><span class="k">D</span> Dashboard</div>
+          <div class="side-item"><span class="k">!</span> Announcements</div>
+          <div class="side-item"><span class="k">R</span> Library</div>
+          <div class="side-item"><span class="k">♪</span> Radio</div>
+          <div class="side-group">Operations</div>
+          <div class="side-item"><span class="k">B</span> Book of Business</div>
+          <div class="side-item"><span class="k">C</span> Call Lab</div>
+          <div class="side-item"><span class="k">S</span> Script Vault</div>
+          <div class="side-item"><span class="k">T</span> Team</div>
+          <div class="side-item"><span class="k">L</span> Leadership</div>
+          <div class="side-item"><span class="k">X</span> Exchange</div>
+          <div class="side-item"><span class="k">Q</span> Quoter</div>
+          <div class="side-group">Administration</div>
+          <div class="side-item"><span class="k">$</span> Pay Rates</div>
+          <div class="side-item"><span class="k">M</span> Members</div>
+        </aside>
+
+        <div class="canvas-area">
+          <div class="greet">
+            <h3>Welcome, Yuxiang Mao (Shawn)</h3>
+            <span class="chip gold"><i></i> Owner</span>
+          </div>
+          <p style="font-size:.88rem;margin-bottom:0">Your workspace reflects your current membership and server-enforced capability set.</p>
+
+          <div class="tiles">
+            <div class="tile t-oper">
+              <span class="lbl">Membership</span>
+              <span class="val">Active</span>
+              <span class="sub">Verified against your member record</span>
+            </div>
+            <div class="tile t-gold">
+              <span class="lbl">Operating role</span>
+              <span class="val">Owner</span>
+              <span class="sub">Controls which routes you can open</span>
+            </div>
+            <div class="tile t-crim">
+              <span class="lbl">Capability grants</span>
+              <span class="val"><span data-count="10">0</span> <span style="color:var(--dim);font-size:.75em">/ 10</span></span>
+              <span class="sub">Deny-by-default permissions held</span>
+              <span class="meter"><i data-fill="100"></i></span>
+            </div>
+            <div class="tile t-pend">
+              <span class="lbl">Seats</span>
+              <span class="val"><span data-count="2">0</span> <span style="color:var(--dim);font-size:.75em">/ 4</span></span>
+              <span class="sub">2 seats pending an address</span>
+              <span class="meter"><i data-fill="50"></i></span>
+            </div>
+          </div>
+
+          <div class="routes">
+            <div class="route"><span class="ic">D</span><span><span class="nm">Dashboard</span><br><span class="ds">Your authenticated command surface</span></span><span class="chip live"><i></i> Available</span></div>
+            <div class="route"><span class="ic">B</span><span><span class="nm">Book of Business</span><br><span class="ds">Personal policy, placement, and retention</span></span><span class="chip live"><i></i> Available</span></div>
+            <div class="route"><span class="ic">C</span><span><span class="nm">Call Lab</span><br><span class="ds">Transferred calls · recordings gated on consent</span></span><span class="chip pend"><i></i> Awaiting feed</span></div>
+            <div class="route"><span class="ic">Q</span><span><span class="nm">Quoter</span><br><span class="ds">Carrier quoting — needs a carrier connection</span></span><span class="chip pend"><i></i> Not connected</span></div>
+            <div class="route"><span class="ic">M</span><span><span class="nm">Members</span><br><span class="ds">Roster and capability grants</span></span><span class="chip live"><i></i> Available</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CAPABILITY ================= -->
+<section>
+  <div class="wrap">
+    <p class="eyebrow rv">Capability</p>
+    <h2 class="rv">What you hold is visible, and it is the reason you get in.</h2>
+    <div class="cap-wrap rv" style="margin-top:2rem">
+      <div class="ring">
+        <svg viewBox="0 0 200 200" role="img" aria-label="Ten of ten capabilities held">
+          <circle class="track" cx="100" cy="100" r="84" fill="none" stroke-width="10"/>
+          <circle class="fill" id="capfill" cx="100" cy="100" r="84" fill="none" stroke-width="10"
+                  stroke-dasharray="527.8" stroke-dashoffset="527.8"/>
+        </svg>
+        <span class="mid"><span class="n" data-count="10">0</span><span class="t">of 10 held</span></span>
+      </div>
+      <div>
+        <div class="caps">
+          <span class="cap"><i></i> portal.access</span>
+          <span class="cap"><i></i> dashboard.view.self</span>
+          <span class="cap"><i></i> book.view.self</span>
+          <span class="cap"><i></i> calls.review</span>
+          <span class="cap"><i></i> scripts.manage</span>
+          <span class="cap"><i></i> team.view</span>
+          <span class="cap"><i></i> leadership.view.all</span>
+          <span class="cap"><i></i> members.view</span>
+          <span class="cap"><i></i> members.manage</span>
+          <span class="cap"><i></i> audit.view</span>
+        </div>
+        <p style="margin-top:1.1rem;font-size:.9rem">An owner holds all ten. A producing agent holds three. The difference is not what the interface chooses to show — it is what the server permits, checked on every request and written down either way.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= READINESS ================= -->
+<section>
+  <div class="wrap">
+    <p class="eyebrow rv">System readiness</p>
+    <h2 class="rv">Honest states, including the unflattering ones.</h2>
+    <div class="ready">
+      <div class="rr rv"><div><div class="rt">Identity and access</div><p class="rd">Authentication, membership, and route authorization are enforced on every request. Twenty-nine automated tests guard the model.</p></div><span class="chip live"><i></i> Operational</span></div>
+      <div class="rr rv"><div><div class="rt">The record</div><p class="rd">Append-only audit of every allow and deny, with actor, action, reason, and time.</p></div><span class="chip live"><i></i> Operational</span></div>
+      <div class="rr rv"><div><div class="rt">Business sources</div><p class="rd">CRM, carrier, dialer feeds, and financial data are not yet connected. The surfaces exist and are gated correctly; the live data behind them is the next phase of work.</p></div><span class="chip pend"><i></i> Pending</span></div>
+      <div class="rr rv"><div><div class="rt">Operating intelligence</div><p class="rd">Dialer Beta storage is ready. Call scoring, script evidence, and reporting agents follow once the feeds land.</p></div><span class="chip pend"><i></i> Pending</span></div>
+      <div class="rr rv"><div><div class="rt">Human authority</div><p class="rd">Licensed, compliance, financial, and executive decisions remain human-controlled. This is a design choice, not a gap awaiting closure.</p></div><span class="chip gold"><i></i> Required</span></div>
+    </div>
+
+    <div class="note rv">
+      <span class="t">What 2.0 changes</span>
+      <p>Not the access model — that part is finished and correct, and it is what everything else hangs from. What changes is legibility: standing you can see, capability you can count, and connection states that say plainly what is live and what is still waiting. A portal people trust is one that does not overstate itself.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  "use strict";
+  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- Theme ---------- */
+  var tl = document.getElementById("t-light"), td = document.getElementById("t-dark");
+  function setTheme(v) {
+    if (v) document.documentElement.setAttribute("data-theme", v);
+    else document.documentElement.removeAttribute("data-theme");
+    tl.setAttribute("aria-pressed", String(v === "light"));
+    td.setAttribute("aria-pressed", String(v === "dark"));
+  }
+  tl.addEventListener("click", function () { setTheme(document.documentElement.getAttribute("data-theme") === "light" ? null : "light"); });
+  td.addEventListener("click", function () { setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? null : "dark"); });
+
+  /* ---------- Reveal + counters + meters ---------- */
+  function countUp(el) {
+    var goal = parseInt(el.dataset.count, 10);
+    if (reduced) { el.textContent = String(goal); return; }
+    var t0 = null, dur = 900;
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min(1, (ts - t0) / dur);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = String(Math.round(goal * eased));
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function activate(node) {
+    node.classList.add("in");
+    node.querySelectorAll("[data-count]").forEach(function (c) {
+      if (!c.dataset.done) { c.dataset.done = "1"; countUp(c); }
+    });
+    node.querySelectorAll("[data-fill]").forEach(function (m) {
+      m.style.width = m.dataset.fill + "%";
+    });
+  }
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      activate(e.target);
+      io.unobserve(e.target);
+    });
+  }, { threshold: 0.18, rootMargin: "0px 0px -8% 0px" });
+
+  var items = Array.prototype.slice.call(document.querySelectorAll(".rv"));
+  items.forEach(function (n, i) {
+    n.style.transitionDelay = Math.min(i % 6, 5) * 65 + "ms";
+    io.observe(n);
+  });
+
+  // Capability ring
+  var ring = document.getElementById("capfill");
+  var ringIo = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      ring.style.strokeDashoffset = "0";
+      ringIo.unobserve(e.target);
+    });
+  }, { threshold: 0.4 });
+  ringIo.observe(ring.closest(".ring"));
+
+  // Hero reveals immediately
+  document.querySelectorAll("#hero .rv").forEach(function (n, i) {
+    setTimeout(function () { activate(n); }, 120 + i * 110);
+  });
+
+  /* ---------- Ambient field ---------- */
+  var cv = document.getElementById("field"), cx = cv.getContext("2d");
+  var pts = [], W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  function seed() {
+    var hero = document.getElementById("hero");
+    W = hero.clientWidth; H = hero.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.width = W + "px"; cv.style.height = H + "px";
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.round(Math.min(70, (W * H) / 22000));
+    pts = [];
+    for (var i = 0; i < n; i++) {
+      pts.push({
+        x: Math.random() * W, y: Math.random() * H,
+        vx: (Math.random() - .5) * .18, vy: (Math.random() - .5) * .18,
+        r: Math.random() * 1.4 + .5
+      });
+    }
+  }
+
+  function token(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  function tick() {
+    if (reduced) return;
+    cx.clearRect(0, 0, W, H);
+    var crim = token("--crimson") || "#E2404F";
+    var link = token("--line") || "#222D3C";
+
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+
+      for (var j = i + 1; j < pts.length; j++) {
+        var q = pts[j], dx = p.x - q.x, dy = p.y - q.y;
+        var d2 = dx * dx + dy * dy;
+        if (d2 < 20000) {
+          cx.globalAlpha = (1 - d2 / 20000) * 0.4;
+          cx.strokeStyle = link;
+          cx.lineWidth = 1;
+          cx.beginPath(); cx.moveTo(p.x, p.y); cx.lineTo(q.x, q.y); cx.stroke();
+        }
+      }
+      cx.globalAlpha = .55;
+      cx.fillStyle = i % 9 === 0 ? crim : link;
+      cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, Math.PI * 2); cx.fill();
+    }
+    cx.globalAlpha = 1;
+    requestAnimationFrame(tick);
+  }
+
+  seed();
+  window.addEventListener("resize", seed);
+  if (!reduced) requestAnimationFrame(tick);
+})();
+</script>

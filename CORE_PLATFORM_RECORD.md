@@ -361,6 +361,34 @@ identity it is impersonating on every start. The role still comes from the
 
 ---
 
+## 10a. The live site is ahead of this repository
+
+The deployed portal shows surfaces this branch does not all contain — **Call
+Lab**, **Script Vault**, **Quoter**, a system-readiness panel, and seat counts.
+Before building on any assumption drawn from the code here, check the running
+site first.
+
+What is accurate in this document regardless: the access model, the identity
+flow, the role and capability matrix, the deployment and secret inventory. What
+may be stale: the surface list in section 5 of the presentation README and any
+route inventory.
+
+Reconciling the two — bringing this repository up to what is deployed, or
+redeploying from this branch deliberately — is worth doing before the next
+significant change, so that the code, the record, and the running system stop
+disagreeing.
+
+## 10b. The board presentation
+
+`presentation/` holds four self-contained HTML pieces built for the CEO board,
+the narration script, and a README explaining the reasoning behind each. Open
+any of them in a browser; no build step, no network required.
+
+The rule they all follow, and which should survive into anything that replaces
+them: state what runs today as fact, label what is planned as planned, and say
+out loud what the technology cannot do. A board that finds overstatement on its
+own stops believing the accurate parts too.
+
 ## 11. Where things are
 
 | Path | What |

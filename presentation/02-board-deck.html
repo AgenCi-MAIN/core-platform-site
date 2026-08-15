@@ -1,0 +1,991 @@
+<title>JARVIS-CORE</title>
+<style>
+  /* ============================================================
+     Dark-first token system.
+     :root carries the complete dark palette. Light is redefined
+     twice — once for an OS preference (guarded so an explicit dark
+     choice still wins), once for the explicit stamp.
+     ============================================================ */
+  :root {
+    --bg:        #0B121C;
+    --panel:     #121C2A;
+    --panel-2:   #16212F;
+    --line:      #24354B;
+    --line-soft: #1A2739;
+    --text:      #E6EDF6;
+    --muted:     #8FA3BC;
+    --dim:       #64788F;
+    --accent:    #F0A93C;
+    --allow:     #46C0A0;
+    --deny:      #E0705A;
+    --grid:      rgba(255,255,255,.028);
+
+    --font-display: ui-monospace, "SF Mono", "SFMono-Regular", "Cascadia Mono",
+                    "Segoe UI Mono", Menlo, Consolas, monospace;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+
+    --pad: clamp(1.5rem, 5vw, 6rem);
+    --measure: 62ch;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg:        #F4F6F9;
+      --panel:     #FFFFFF;
+      --panel-2:   #EDF1F6;
+      --line:      #D2DBE6;
+      --line-soft: #E3E9F0;
+      --text:      #0B121C;
+      --muted:     #56687E;
+      --dim:       #7B8DA3;
+      --accent:    #A9690D;
+      --allow:     #1B7C63;
+      --deny:      #B0442C;
+      --grid:      rgba(11,18,28,.035);
+    }
+  }
+
+  :root[data-theme="light"] {
+    --bg:        #F4F6F9;
+    --panel:     #FFFFFF;
+    --panel-2:   #EDF1F6;
+    --line:      #D2DBE6;
+    --line-soft: #E3E9F0;
+    --text:      #0B121C;
+    --muted:     #56687E;
+    --dim:       #7B8DA3;
+    --accent:    #A9690D;
+    --allow:     #1B7C63;
+    --deny:      #B0442C;
+    --grid:      rgba(11,18,28,.035);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 64px 64px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: clamp(1rem, .5vw + .9rem, 1.12rem);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    scroll-snap-type: y mandatory;
+    overflow-y: scroll;
+    height: 100vh;
+  }
+
+  /* ---------- Slide shell ---------- */
+  .slide {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(4rem, 9vh, 6.5rem) var(--pad) clamp(4.5rem, 9vh, 7rem);
+    border-bottom: 1px solid var(--line-soft);
+    position: relative;
+  }
+  .inner { width: 100%; max-width: 1180px; margin: 0 auto; }
+
+  /* ---------- Type ---------- */
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: .7rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1.3rem;
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+  }
+  .eyebrow::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+    max-width: 180px;
+  }
+
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; }
+
+  h1 {
+    font-size: clamp(2.6rem, 8.5vw, 6.5rem);
+    line-height: .95;
+    letter-spacing: -.045em;
+    margin: 0 0 1.6rem;
+  }
+  h2 {
+    font-size: clamp(1.6rem, 3.3vw, 2.7rem);
+    line-height: 1.08;
+    letter-spacing: -.03em;
+    margin: 0 0 1.4rem;
+    max-width: 24ch;
+  }
+  h3 {
+    font-size: .95rem;
+    letter-spacing: -.01em;
+    margin: 0 0 .5rem;
+    color: var(--text);
+  }
+
+  p { margin: 0 0 1rem; max-width: var(--measure); color: var(--muted); }
+  strong { color: var(--text); font-weight: 600; }
+  em { color: var(--accent); font-style: italic; }
+
+  .mono { font-family: var(--font-display); font-size: .92em; }
+  a { color: var(--accent); }
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  /* ---------- Cover ---------- */
+  .cover-meta {
+    font-family: var(--font-display);
+    font-size: .76rem;
+    letter-spacing: .06em;
+    color: var(--dim);
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem 1.6rem;
+    margin-top: 3rem;
+    padding-top: 1.4rem;
+    border-top: 1px solid var(--line);
+  }
+  .cover-sub {
+    font-size: clamp(1.1rem, 1.7vw, 1.55rem);
+    color: var(--text);
+    max-width: 34ch;
+    line-height: 1.4;
+    margin-bottom: 0;
+  }
+  .pulse {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    font-family: var(--font-display);
+    font-size: .72rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--allow);
+    border: 1px solid color-mix(in srgb, var(--allow) 35%, transparent);
+    border-radius: 2px;
+    padding: .35rem .7rem;
+    background: color-mix(in srgb, var(--allow) 8%, transparent);
+  }
+  .pulse i {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--allow); display: block;
+    animation: blink 2.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
+  @media (prefers-reduced-motion: reduce) { .pulse i { animation: none } }
+
+  /* ---------- Metric grid ---------- */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px;
+    background: var(--line-soft);
+    border: 1px solid var(--line-soft);
+    margin: 1.8rem 0 1.4rem;
+  }
+  .metric { background: var(--panel); padding: 1.3rem 1.1rem; }
+  .metric .n {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+    line-height: 1;
+    letter-spacing: -.04em;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    display: block;
+    margin-bottom: .5rem;
+  }
+  .metric .l {
+    font-family: var(--font-display);
+    font-size: .66rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    line-height: 1.5;
+  }
+
+  /* ---------- Cards ---------- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+    margin: 1.6rem 0 1rem;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line-soft);
+    padding: 1.25rem 1.2rem;
+  }
+  .card p { font-size: .9rem; margin: 0; color: var(--muted); }
+  .card .tag {
+    font-family: var(--font-display);
+    font-size: .63rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    display: block;
+    margin-bottom: .65rem;
+  }
+  .card.accent { border-left: 2px solid var(--accent); }
+  .card.good   { border-left: 2px solid var(--allow); }
+  .card.bad    { border-left: 2px solid var(--deny); }
+
+  /* ---------- Rows ---------- */
+  .rows { border-top: 1px solid var(--line-soft); margin: 1.6rem 0 1rem; }
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 2.1fr) auto;
+    gap: .8rem 1.5rem;
+    align-items: baseline;
+    padding: .85rem 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .row .name { font-family: var(--font-display); font-size: .9rem; color: var(--text); }
+  .row .desc { font-size: .9rem; color: var(--muted); }
+  .row .state {
+    font-family: var(--font-display);
+    font-size: .62rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    padding: .25rem .55rem;
+    border-radius: 2px;
+    border: 1px solid;
+  }
+  .st-live  { color: var(--allow);  border-color: color-mix(in srgb, var(--allow) 35%, transparent);  background: color-mix(in srgb, var(--allow) 8%, transparent); }
+  .st-build { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, transparent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .st-plan  { color: var(--dim);    border-color: var(--line); }
+  @media (max-width: 700px) {
+    .row { grid-template-columns: 1fr auto; }
+    .row .desc { grid-column: 1 / -1; }
+  }
+
+  /* ---------- Diagram ---------- */
+  .diagram { margin: 1.6rem 0 1rem; overflow-x: auto; }
+  .diagram svg { display: block; min-width: 660px; width: 100%; height: auto; }
+
+  /* ---------- Split ---------- */
+  .split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(1.4rem, 3.5vw, 3.2rem);
+    align-items: start;
+  }
+
+  /* ---------- Stack (layer model) ---------- */
+  .stack { display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); margin: 1.6rem 0 1rem; }
+  .layer {
+    background: var(--panel);
+    padding: 1.05rem 1.2rem;
+    display: grid;
+    grid-template-columns: 150px 1fr auto;
+    gap: 1.2rem;
+    align-items: center;
+  }
+  .layer .lname { font-family: var(--font-display); font-size: .88rem; color: var(--text); }
+  .layer .ldesc { font-size: .88rem; color: var(--muted); }
+  @media (max-width: 720px) {
+    .layer { grid-template-columns: 1fr auto; }
+    .layer .ldesc { grid-column: 1 / -1; }
+  }
+
+  /* ---------- Horizon ---------- */
+  .horizon { display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); margin: 1.6rem 0 1rem; }
+  .hz { background: var(--panel); padding: 1.3rem 1.25rem; display: grid; grid-template-columns: 130px 1fr; gap: 1.4rem; }
+  .hz .when {
+    font-family: var(--font-display);
+    font-size: .67rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding-top: .2rem;
+  }
+  .hz ul { margin: 0; padding-left: 1.1rem; color: var(--muted); font-size: .9rem; }
+  .hz li { margin-bottom: .35rem; }
+  .hz li::marker { color: var(--dim); }
+  @media (max-width: 640px) { .hz { grid-template-columns: 1fr; gap: .6rem; } }
+
+  /* ---------- Callout ---------- */
+  .callout {
+    border-left: 2px solid var(--accent);
+    background: var(--panel);
+    padding: 1.1rem 1.3rem;
+    margin: 1.4rem 0;
+    max-width: 70ch;
+  }
+  .callout p { margin: 0; color: var(--text); font-size: .94rem; }
+  .callout .tag {
+    font-family: var(--font-display);
+    font-size: .63rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: .55rem;
+  }
+  .callout.warn { border-left-color: var(--deny); }
+  .callout.warn .tag { color: var(--deny); }
+  .callout.good { border-left-color: var(--allow); }
+  .callout.good .tag { color: var(--allow); }
+
+  /* ---------- Ledger / matrix tables ---------- */
+  .ledger {
+    font-family: var(--font-display);
+    font-size: .74rem;
+    border: 1px solid var(--line-soft);
+    background: var(--panel);
+    margin: 1.4rem 0 1rem;
+    overflow-x: auto;
+  }
+  .ledger table { border-collapse: collapse; width: 100%; min-width: 560px; }
+  .ledger th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--dim);
+    font-size: .62rem;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    padding: .75rem .95rem;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .ledger td { padding: .6rem .95rem; border-bottom: 1px solid var(--line-soft); color: var(--muted); white-space: nowrap; }
+  .ledger tr:last-child td { border-bottom: 0; }
+  .ledger .d-allow { color: var(--allow); }
+  .ledger .d-deny  { color: var(--deny); }
+  .ledger td.on  { color: var(--allow); text-align: center; }
+  .ledger td.off { color: var(--dim);   text-align: center; }
+  .ledger th.c { text-align: center; }
+
+  /* ---------- Navigation furniture ---------- */
+  .rail {
+    position: fixed;
+    left: max(.9rem, 1.8vw);
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    z-index: 20;
+  }
+  .rail button {
+    width: 7px; height: 7px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid var(--dim);
+    background: transparent;
+    cursor: pointer;
+    transition: background .2s, border-color .2s, transform .2s;
+  }
+  .rail button[aria-current="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    transform: scale(1.35);
+  }
+  @media (max-width: 860px) { .rail { display: none; } }
+
+  .counter {
+    position: fixed;
+    right: max(1rem, 2.5vw);
+    bottom: max(1rem, 2.5vw);
+    font-family: var(--font-display);
+    font-size: .7rem;
+    letter-spacing: .14em;
+    color: var(--dim);
+    background: color-mix(in srgb, var(--bg) 85%, transparent);
+    padding: .4rem .7rem;
+    border: 1px solid var(--line-soft);
+    z-index: 20;
+    font-variant-numeric: tabular-nums;
+  }
+  .hint {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: max(1rem, 2.5vw);
+    font-family: var(--font-display);
+    font-size: .65rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--dim);
+    z-index: 20;
+    transition: opacity .5s;
+  }
+  @media (max-width: 860px) { .hint { display: none; } }
+
+  /* Click-to-advance zones. Sit behind all content so links and buttons win. */
+  .zone {
+    position: fixed;
+    top: 0; bottom: 0;
+    width: 50%;
+    z-index: 1;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .zone-prev { left: 0; }
+  .zone-next { right: 0; }
+  .zone:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
+  .slide > .inner, .slide > .slug { position: relative; z-index: 2; }
+
+  .slug {
+    position: absolute;
+    top: clamp(1.3rem, 3.2vh, 2.2rem);
+    left: var(--pad);
+    right: var(--pad);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-display);
+    font-size: .64rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--dim);
+    border-bottom: 1px solid var(--line-soft);
+    padding-bottom: .65rem;
+  }
+</style>
+
+<button class="zone zone-prev" id="zone-prev" type="button" aria-label="Previous slide"></button>
+<button class="zone zone-next" id="zone-next" type="button" aria-label="Next slide"></button>
+
+<nav class="rail" id="rail" aria-label="Slides"></nav>
+<div class="counter" id="counter">01 / 16</div>
+<div class="hint" id="hint">Click anywhere to advance</div>
+
+<!-- ============ 01 — COVER ============ -->
+<section class="slide" data-title="Cover">
+  <div class="inner">
+    <p class="eyebrow">THRIVE · Operating system brief</p>
+    <h1>JARVIS<span style="color:var(--accent)">-</span>CORE</h1>
+    <p class="cover-sub">An operating system for how THRIVE runs. Three days old. Already in production.</p>
+    <div style="margin-top:2rem">
+      <span class="pulse"><i></i> Live in production</span>
+    </div>
+    <div class="cover-meta">
+      <span>Prepared for the CEO board</span>
+      <span>August 2026</span>
+      <span>Day 3 of operation</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 — STATUS ============ -->
+<section class="slide" data-title="Status">
+  <div class="slug"><span>01 · Where we actually are</span><span>Verified</span></div>
+  <div class="inner">
+    <p class="eyebrow">Status</p>
+    <h2>Everything on this slide is running right now.</h2>
+    <div class="metrics">
+      <div class="metric"><span class="n">3</span><span class="l">Days since<br>first commit</span></div>
+      <div class="metric"><span class="n">29</span><span class="l">Automated tests<br>all passing</span></div>
+      <div class="metric"><span class="n">6</span><span class="l">Roles<br>defined</span></div>
+      <div class="metric"><span class="n">10</span><span class="l">Capabilities<br>enforced</span></div>
+      <div class="metric"><span class="n">0</span><span class="l">Secrets in<br>source control</span></div>
+    </div>
+    <p>The portal is deployed on infrastructure THRIVE owns, signed into with THRIVE's own accounts, backed by THRIVE's own database. No vendor sits between the company and its operating data.</p>
+    <p><strong>This slide is not a projection.</strong> Every number is checkable in the repository or the running system today. Everything later in this deck that is <em>not</em> yet built is labelled as such.</p>
+  </div>
+</section>
+
+<!-- ============ 03 — THE FINDING ============ -->
+<section class="slide" data-title="The finding">
+  <div class="slug"><span>02 · Why this mattered immediately</span><span>Closed</span></div>
+  <div class="inner">
+    <p class="eyebrow">The finding</p>
+    <h2>On day three, we found that anyone could have become the owner.</h2>
+    <div class="split">
+      <div>
+        <p>The portal inherited its identity from the platform that hosted it. A visitor's name and email arrived as ordinary request headers, and the application trusted them.</p>
+        <p>That was safe only while a hosting platform stood in front, stripping those headers from the outside world. The moment THRIVE self-hosted — which is what independence requires — that protection was gone.</p>
+        <p><strong>Anyone who knew an owner's email address could have sent it in a header and been let in as that owner.</strong></p>
+      </div>
+      <div>
+        <div class="callout warn">
+          <span class="tag">What changed</span>
+          <p>Identity now comes from a cryptographically signed session that only this application can mint, issued after a real Google sign-in. The retired headers are ignored entirely — a request carrying them is treated as anonymous.</p>
+        </div>
+        <div class="callout good">
+          <span class="tag">Why it stays closed</span>
+          <p>Two test suites now send exactly the request that would have worked, and fail the build if it ever succeeds again. A forged, tampered, or expired session is tested the same way. The lesson is enforced by machinery, not memory.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 04 — ACCESS MODEL ============ -->
+<section class="slide" data-title="Access model">
+  <div class="slug"><span>03 · The spine of the system</span><span>Deny by default</span></div>
+  <div class="inner">
+    <p class="eyebrow">Access model</p>
+    <h2>Two independent checks, on every single request.</h2>
+    <div class="diagram">
+      <svg viewBox="0 0 900 215" role="img" aria-label="A request passes an identity check, then a membership check, then a capability check before being allowed. A failure at any stage is refused with a reason. Both outcomes are recorded.">
+        <defs>
+          <marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,1 L7,4 L0,7" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          </marker>
+        </defs>
+        <g style="color:var(--dim)">
+          <line x1="118" y1="60" x2="158" y2="60" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+          <line x1="316" y1="60" x2="356" y2="60" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+          <line x1="514" y1="60" x2="554" y2="60" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+          <line x1="712" y1="60" x2="752" y2="60" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+        </g>
+        <g font-family="ui-monospace, monospace">
+          <rect x="10" y="34" width="108" height="52" fill="var(--panel)" stroke="var(--line)"/>
+          <text x="64" y="58" text-anchor="middle" font-size="11" fill="var(--text)">Request</text>
+          <text x="64" y="74" text-anchor="middle" font-size="8.5" fill="var(--dim)">from anyone</text>
+
+          <rect x="158" y="34" width="158" height="52" fill="var(--panel)" stroke="var(--line)"/>
+          <text x="237" y="55" text-anchor="middle" font-size="11" fill="var(--text)">1 · Identity</text>
+          <text x="237" y="72" text-anchor="middle" font-size="8.5" fill="var(--dim)">signed session cookie</text>
+
+          <rect x="356" y="34" width="158" height="52" fill="var(--panel)" stroke="var(--line)"/>
+          <text x="435" y="55" text-anchor="middle" font-size="11" fill="var(--text)">2 · Membership</text>
+          <text x="435" y="72" text-anchor="middle" font-size="8.5" fill="var(--dim)">active row + role</text>
+
+          <rect x="554" y="34" width="158" height="52" fill="var(--panel)" stroke="var(--line)"/>
+          <text x="633" y="55" text-anchor="middle" font-size="11" fill="var(--text)">3 · Capability</text>
+          <text x="633" y="72" text-anchor="middle" font-size="8.5" fill="var(--dim)">does the role hold it</text>
+
+          <rect x="752" y="34" width="138" height="52" fill="var(--panel)" stroke="var(--allow)"/>
+          <text x="821" y="55" text-anchor="middle" font-size="11" fill="var(--allow)">Allowed</text>
+          <text x="821" y="72" text-anchor="middle" font-size="8.5" fill="var(--dim)">and recorded</text>
+
+          <g style="color:var(--deny)">
+            <path d="M237,86 L237,148 L392,148" fill="none" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 3"/>
+            <path d="M435,86 L435,148" fill="none" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 3"/>
+            <path d="M633,86 L633,148 L648,148" fill="none" stroke="currentColor" stroke-width="1.1" stroke-dasharray="3 3"/>
+          </g>
+          <rect x="392" y="148" width="256" height="46" fill="var(--panel)" stroke="var(--deny)"/>
+          <text x="520" y="168" text-anchor="middle" font-size="11" fill="var(--deny)">Refused</text>
+          <text x="520" y="184" text-anchor="middle" font-size="8.5" fill="var(--dim)">with the reason, and recorded</text>
+        </g>
+      </svg>
+    </div>
+    <p><strong>Identity alone grants nothing.</strong> Anyone on earth can complete step one — that is the point. Step two is what protects the company, and step three decides how much of it you see.</p>
+    <p>If the database is unreachable, the portal refuses everyone rather than assuming. It fails closed, including on its owners.</p>
+  </div>
+</section>
+
+<!-- ============ 05 — THE RECORD ============ -->
+<section class="slide" data-title="The record">
+  <div class="slug"><span>04 · What makes it trustworthy</span><span>Append-only</span></div>
+  <div class="inner">
+    <p class="eyebrow">The record</p>
+    <h2>Every decision is written down. Allowed and refused alike.</h2>
+    <div class="ledger">
+      <table>
+        <thead>
+          <tr><th>Actor</th><th>Action</th><th>Decision</th><th>Reason</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>owner@thrive</td><td>portal.access</td><td class="d-allow">allow</td><td>active_member</td></tr>
+          <tr><td>owner@thrive</td><td>members.bind_subject</td><td class="d-allow">allow</td><td>first_sign_in</td></tr>
+          <tr><td>agent@thrive</td><td>audit.view</td><td class="d-deny">deny</td><td>capability_not_held</td></tr>
+          <tr><td>stranger@…</td><td>portal.access</td><td class="d-deny">deny</td><td>not_a_member</td></tr>
+          <tr><td>—</td><td>portal.access</td><td class="d-deny">deny</td><td>anonymous</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>The log is append-only: never edited, never deleted. It answers the questions that matter after the fact — who saw a client's book, who opened a call recording, who granted whom access, and when.</p>
+    <p>This is what makes the access model worth trusting rather than merely claimed. <strong>It is also what will make AI agents safe to add</strong> — an agent that acts leaves the same trail a person does.</p>
+  </div>
+</section>
+
+<!-- ============ 06 — SURFACES ============ -->
+<section class="slide" data-title="Surfaces">
+  <div class="slug"><span>05 · The portal today</span><span>Shipped</span></div>
+  <div class="inner">
+    <p class="eyebrow">Surfaces</p>
+    <h2>What a member sees when they sign in.</h2>
+    <div class="rows">
+      <div class="row"><span class="name">Dashboard</span><span class="desc">Your standing, your rank, your state at a glance</span><span class="state st-live">Live</span></div>
+      <div class="row"><span class="name">Book</span><span class="desc">Your own book of business, scoped to you</span><span class="state st-live">Live</span></div>
+      <div class="row"><span class="name">Dialer &amp; calls</span><span class="desc">Transferred calls, recordings gated on verified consent</span><span class="state st-live">Live</span></div>
+      <div class="row"><span class="name">Scripts</span><span class="desc">Working scripts, maintained by coaches</span><span class="state st-live">Live</span></div>
+      <div class="row"><span class="name">Team &amp; leadership</span><span class="desc">Roster performance, opened only to roles that hold it</span><span class="state st-live">Live</span></div>
+      <div class="row"><span class="name">Members</span><span class="desc">The roster and who holds what — read-only by design</span><span class="state st-live">Live</span></div>
+      <div class="row"><span class="name">Audit</span><span class="desc">The decision record, owners and admins only</span><span class="state st-live">Live</span></div>
+      <div class="row"><span class="name">Pay rates studio</span><span class="desc">Restricted commission modelling</span><span class="state st-live">Live</span></div>
+      <div class="row"><span class="name">The Exchange</span><span class="desc">Internal marketplace surface</span><span class="state st-live">Live</span></div>
+      <div class="row"><span class="name">Library &amp; radio</span><span class="desc">Company reading and the floor's music</span><span class="state st-live">Live</span></div>
+    </div>
+    <p>The frame is real and gated correctly. <strong>Much of what sits inside it is still scaffolding</strong> — the surfaces exist and enforce access; filling them with live operating data is the next phase of work, and most of this deck.</p>
+  </div>
+</section>
+
+<!-- ============ 07 — THE BUILD-OUT ============ -->
+<section class="slide" data-title="Build-out">
+  <div class="slug"><span>06 · /portal, built out</span><span>Five layers</span></div>
+  <div class="inner">
+    <p class="eyebrow">The build-out</p>
+    <h2>Five layers. The two hardest are already done.</h2>
+    <div class="stack">
+      <div class="layer">
+        <span class="lname">1 · Access</span>
+        <span class="ldesc">Identity, membership, roles, capabilities, audit — the part that must be correct before anything else can be trusted</span>
+        <span class="state st-live">Done</span>
+      </div>
+      <div class="layer">
+        <span class="lname">2 · Record</span>
+        <span class="ldesc">Append-only decision log; call transfers with consent state; recordings in owned storage</span>
+        <span class="state st-live">Done</span>
+      </div>
+      <div class="layer">
+        <span class="lname">3 · Operations</span>
+        <span class="ldesc">Contacts, policies, pipeline, activities, tasks — the working data of the agency</span>
+        <span class="state st-build">Next</span>
+      </div>
+      <div class="layer">
+        <span class="lname">4 · Intelligence</span>
+        <span class="ldesc">Agents reading the record: call scoring, script evidence, next-best-action, reporting</span>
+        <span class="state st-plan">Then</span>
+      </div>
+      <div class="layer">
+        <span class="lname">5 · Interfaces</span>
+        <span class="ldesc">iOS app, public API, agent grants — the same system reached from anywhere</span>
+        <span class="state st-plan">Then</span>
+      </div>
+    </div>
+    <p>Most companies build these in the opposite order: features first, access control retrofitted after the first incident. Retrofitting is where the cost and the breaches live.</p>
+    <p><strong>Layers three through five all inherit the gate.</strong> A new surface, a mobile screen, an agent, an API call — each one passes the same three checks and writes the same record. That is why the next phase moves faster than the first.</p>
+  </div>
+</section>
+
+<!-- ============ 08 — CRM ============ -->
+<section class="slide" data-title="CRM">
+  <div class="slug"><span>07 · Layer three — operations</span><span>Build vs buy</span></div>
+  <div class="inner">
+    <p class="eyebrow">CRM &amp; pipeline</p>
+    <h2>Salesforce, or build it in? The honest comparison.</h2>
+    <div class="split">
+      <div>
+        <div class="card bad">
+          <span class="tag">Salesforce / a licensed CRM</span>
+          <p><strong>For:</strong> mature, proven, integrations exist, nobody gets fired for it.<br><br>
+          <strong>Against:</strong> per-seat cost that grows exactly as the team grows; THRIVE's operating data lives on someone else's terms; heavy configuration; and the agents still need an integration layer built anyway. You pay for a general tool and then pay again to make it specific.</p>
+        </div>
+      </div>
+      <div>
+        <div class="card good">
+          <span class="tag">Build it into the portal</span>
+          <p><strong>For:</strong> one system, one login, one permission model, one audit log. Costs effort once instead of per seat forever. Agents read it natively — no integration layer, no sync drift.<br><br>
+          <strong>Against:</strong> it is real work, and a half-built CRM is worse than a bought one.</p>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="tag">Recommendation</span>
+      <p><strong>Build it in — but build THRIVE's pipeline, not a general CRM.</strong> A generic CRM has to model every business; this one models one. Five tables cover it: <span class="mono">contacts</span>, <span class="mono">policies</span>, <span class="mono">pipeline stages</span>, <span class="mono">activities</span>, <span class="mono">tasks</span> — each already scoped by the access model, so a producer sees their book and a manager sees the team without a line of new permission logic. Keep a clean import and export seam so a partner who demands Salesforce can be accommodated without rebuilding.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 09 — MOBILE ============ -->
+<section class="slide" data-title="Mobile">
+  <div class="slug"><span>08 · Layer five — interfaces</span><span>iOS</span></div>
+  <div class="inner">
+    <p class="eyebrow">Mobile</p>
+    <h2>Two phases. The first is weeks, not months.</h2>
+    <div class="horizon">
+      <div class="hz">
+        <span class="when">Phase 1 · Installable</span>
+        <ul>
+          <li>The portal already renders on a phone — this makes it a real app icon on the home screen, full-screen, no browser chrome</li>
+          <li>Cached reading when signal drops on the road; the same sign-in, no second account</li>
+          <li>No App Store review, no separate codebase, no Apple developer account</li>
+          <li><strong>Weeks of work.</strong> Covers most of what a producer needs on a phone: check the book, read a script, see the dashboard</li>
+        </ul>
+      </div>
+      <div class="hz">
+        <span class="when">Phase 2 · Native iOS</span>
+        <ul>
+          <li>Push notifications — the thing the web genuinely cannot do well, and the reason agents become useful on a phone</li>
+          <li>Face ID unlock, contact and calendar integration, call logging, background sync</li>
+          <li>Requires an Apple developer account, App Store review, privacy disclosures, and a second codebase to maintain</li>
+          <li><strong>Months of work.</strong> Worth it once agents have something worth notifying you about</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout">
+      <span class="tag">Sequencing</span>
+      <p>Do Phase 1 now — it is cheap and it puts THRIVE in producers' pockets this quarter. Hold Phase 2 until the intelligence layer exists. A native app whose only advantage is notifications, with nothing to notify about, is an expensive icon.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 10 — RANKS ============ -->
+<section class="slide" data-title="Ranks">
+  <div class="slug"><span>09 · Tailored access</span><span>Rank vs role</span></div>
+  <div class="inner">
+    <p class="eyebrow">Ranks</p>
+    <h2>Rank is what you've earned. Role is what you do. They are not the same axis.</h2>
+    <p>Today the portal has six roles, and they carry everything — job function and standing at once. That conflates two ideas that should move independently: a top producer and a new producer do the same job, but should not see the same things or be paid on the same table.</p>
+    <div class="ledger">
+      <table>
+        <thead>
+          <tr><th>Rank</th><th>Earned by</th><th class="c">Own book</th><th class="c">Team view</th><th class="c">Pay studio</th><th class="c">Exchange</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Recruit</td><td>onboarding complete</td><td class="on">●</td><td class="off">○</td><td class="off">○</td><td class="off">○</td></tr>
+          <tr><td>Producer</td><td>first policies bound</td><td class="on">●</td><td class="off">○</td><td class="off">○</td><td class="on">●</td></tr>
+          <tr><td>Senior</td><td>sustained production</td><td class="on">●</td><td class="on">●</td><td class="off">○</td><td class="on">●</td></tr>
+          <tr><td>Lead</td><td>coaching a roster</td><td class="on">●</td><td class="on">●</td><td class="on">●</td><td class="on">●</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="split">
+      <div>
+        <p><strong>How it works underneath.</strong> A member row gains a <span class="mono">rank</span> alongside its <span class="mono">role</span>. Capabilities are computed from both, and the computation stays deny-by-default: a capability must be granted by rank <em>or</em> role, never assumed from either.</p>
+      </div>
+      <div>
+        <p><strong>Why it is worth doing.</strong> Access becomes a visible ladder rather than an administrative favour. Promotion is a row change, instantly reflected everywhere, and written to the audit log — so standing is earned, legible, and reversible.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11 — API GRANTS ============ -->
+<section class="slide" data-title="API grants">
+  <div class="slug"><span>10 · How agents get in</span><span>Grants, not keys</span></div>
+  <div class="inner">
+    <p class="eyebrow">API grants</p>
+    <h2>An agent signs in the same way a person does. It just never gets a password.</h2>
+    <div class="split">
+      <div>
+        <p>Every agent enters as a member row marked as an agent, holding a role, holding exactly the capabilities that role holds. It authenticates with a scoped credential — stored only as a hash, shown once at issue, never recoverable.</p>
+        <p>Each credential carries an expiry and a scope. Every call it makes is checked against the same three gates as a human request, and written to the same audit log under the agent's own identity.</p>
+        <p><strong>Revoking an agent is one row.</strong> Set its status to revoked and it is gone from every surface at once — no key rotation, no scattered credentials, no wondering what else it can still reach.</p>
+      </div>
+      <div>
+        <div class="ledger">
+          <table>
+            <thead><tr><th>Agent</th><th>Grant</th><th>Expiry</th></tr></thead>
+            <tbody>
+              <tr><td>call-review</td><td><span class="d-allow">calls.review</span></td><td>90 days</td></tr>
+              <tr><td>script-keeper</td><td><span class="d-allow">scripts.manage</span></td><td>90 days</td></tr>
+              <tr><td>reporting</td><td><span class="d-allow">leadership.view.all</span></td><td>30 days</td></tr>
+              <tr><td>any agent</td><td><span class="d-deny">members.manage</span></td><td>never</td></tr>
+              <tr><td>any agent</td><td><span class="d-deny">audit.view</span></td><td>never</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn">
+          <span class="tag">Two grants no agent gets</span>
+          <p>No agent may manage members — an agent that can grant itself access has no ceiling. And no agent reads the audit log — an agent that can read the record of its own refusals can learn to avoid leaving one. Both are permanent design rules, not defaults to revisit.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12 — AGENT ROSTER ============ -->
+<section class="slide" data-title="Agent roster">
+  <div class="slug"><span>11 · Agents under JARVIS</span><span>Roadmap</span></div>
+  <div class="inner">
+    <p class="eyebrow">The roster</p>
+    <h2>More agents, each one narrow, each one on the same leash.</h2>
+    <div class="rows">
+      <div class="row"><span class="name">JARVIS-CORE</span><span class="desc">Builds and maintains the platform itself; writes the operating record</span><span class="state st-live">Operating</span></div>
+      <div class="row"><span class="name">Call review</span><span class="desc">Scores transferred calls against the rubric, flags coaching moments</span><span class="state st-build">Next</span></div>
+      <div class="row"><span class="name">Script keeper</span><span class="desc">Traces which language actually closed, proposes revisions with evidence</span><span class="state st-build">Next</span></div>
+      <div class="row"><span class="name">Pipeline</span><span class="desc">Watches the book for stalls, drafts the follow-up nobody logged</span><span class="state st-plan">Planned</span></div>
+      <div class="row"><span class="name">Roster</span><span class="desc">Onboarding and rank changes, proposed for approval — never self-executed</span><span class="state st-plan">Planned</span></div>
+      <div class="row"><span class="name">Compliance</span><span class="desc">Watches consent, retention, and disclosure before anything is published</span><span class="state st-plan">Planned</span></div>
+      <div class="row"><span class="name">Reporting</span><span class="desc">Turns the record into the numbers leadership asks for, on a schedule</span><span class="state st-plan">Planned</span></div>
+    </div>
+    <p><strong>Narrow beats general.</strong> An agent with one job, a small tool surface, and a written definition of done is one you can evaluate, correct, and trust. A single agent asked to do everything is one nobody can hold accountable — and the first one to cause an incident nobody can explain.</p>
+  </div>
+</section>
+
+<!-- ============ 13 — GOVERNING RULE ============ -->
+<section class="slide" data-title="Governing rule">
+  <div class="slug"><span>12 · The rule that makes it safe</span><span>Load-bearing</span></div>
+  <div class="inner">
+    <p class="eyebrow">The governing rule</p>
+    <h2>An agent gets capabilities. It never gets keys.</h2>
+    <div class="split">
+      <div>
+        <div class="callout warn">
+          <span class="tag">The usual failure</span>
+          <p>AI in operations typically fails one way: an agent is handed broad credentials because scoping them was harder than not. That agent is unaccountable by construction — nothing constrains what it can reach, and nothing records what it did.</p>
+        </div>
+      </div>
+      <div>
+        <div class="callout good">
+          <span class="tag">What we built instead</span>
+          <p>Deny by default. Every action checked server-side, never in the interface. Every allow and deny written to an append-only log. An agent's blast radius is a decision the board makes deliberately, not a side effect of how someone implemented it on a Tuesday.</p>
+        </div>
+      </div>
+    </div>
+    <p style="max-width:70ch">This is the difference between adding AI to a business and building a business that can safely hold AI. The first is a demo. The second is what THRIVE now has, three days in — and it is the part that is genuinely hard to retrofit later.</p>
+  </div>
+</section>
+
+<!-- ============ 14 — TEAM ============ -->
+<section class="slide" data-title="Team growth">
+  <div class="slug"><span>13 · What changes for the people</span><span>Leverage</span></div>
+  <div class="inner">
+    <p class="eyebrow">Team growth</p>
+    <h2>The work that repeats moves. The work that matters stays.</h2>
+    <div class="split">
+      <div>
+        <div class="card accent">
+          <span class="tag">Agents take</span>
+          <p>Reviewing every call instead of a sample. Keeping scripts current. Chasing the follow-up nobody logged. Assembling the numbers before the meeting. Onboarding paperwork. Watching consent and retention.</p>
+        </div>
+        <div style="height:1rem"></div>
+        <div class="card good">
+          <span class="tag">People keep</span>
+          <p>The conversation that closes. The judgment call on a hard case. Coaching a producer through a slump. Deciding what THRIVE becomes. Being trusted by a client.</p>
+        </div>
+      </div>
+      <div>
+        <p>The point is not fewer people. It is that the tenth producer costs the same to support as the third, and the manager coaching them sees every call rather than the three they had time for.</p>
+        <p>A new hire's ramp is where this shows first. Every good call on record, every objection catalogued, every winning script traceable to the calls that won. <strong>Onboarding stops being an apprenticeship in someone's memory</strong> and becomes something the system itself can teach.</p>
+        <p>The constraint on growth stops being how much attention leadership can spare, and becomes how many good people you can find.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 15 — AUTONOMY ============ -->
+<section class="slide" data-title="Autonomy">
+  <div class="slug"><span>14 · The autonomous business, honestly</span><span>Read this one</span></div>
+  <div class="inner">
+    <p class="eyebrow">Horizons</p>
+    <h2>What is actually possible, and when.</h2>
+    <div class="horizon">
+      <div class="hz">
+        <span class="when">Now</span>
+        <ul>
+          <li>Building and maintaining the platform, with a person reviewing every change before it ships</li>
+          <li>Writing the operating record so knowledge survives the people who created it</li>
+          <li>Enforcing access on every request without anyone watching</li>
+        </ul>
+      </div>
+      <div class="hz">
+        <span class="when">6–12 months</span>
+        <ul>
+          <li>Every call reviewed and scored; coaching queues assembled automatically</li>
+          <li>Scripts revised from evidence rather than instinct</li>
+          <li>Reporting that assembles itself; onboarding that runs to a checklist</li>
+          <li>Agents proposing actions; a person approving anything that touches money or clients</li>
+        </ul>
+      </div>
+      <div class="hz">
+        <span class="when">Beyond</span>
+        <ul>
+          <li>Whole workflows running end to end with a person on exception only</li>
+          <li>The system noticing what is breaking before anyone reports it</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout warn">
+      <span class="tag">What this is not</span>
+      <p><strong>Nothing here runs the business unattended, and nothing on the roadmap should.</strong> Agents are fast and tireless and they are also confidently wrong sometimes — that is a property of the technology, not a bug awaiting a patch. The design answer is not to promise it will not happen. It is to ensure that when it does, the action was scoped, reversible, and recorded. Every irreversible decision — money moved, a client contacted, access granted — keeps a human owner. That is a deliberate choice, and it should stay one.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 16 — THE ASK ============ -->
+<section class="slide" data-title="The ask">
+  <div class="slug"><span>15 · What we need from the board</span><span>Decisions</span></div>
+  <div class="inner">
+    <p class="eyebrow">The ask</p>
+    <h2>Five decisions, then the next ninety days.</h2>
+    <div class="cards">
+      <div class="card"><span class="tag">Decision 01</span><h3>Fund API usage</h3><p>Agents run on metered API billing, separate from any subscription. Modest at current volume, scaling with use. We need a budget and a ceiling.</p></div>
+      <div class="card"><span class="tag">Decision 02</span><h3>Name the owners</h3><p>Two owners are seeded. Two more are named in the agreement but unconfirmed. Owners grant and revoke everyone else — decide that list deliberately.</p></div>
+      <div class="card"><span class="tag">Decision 03</span><h3>Build the pipeline in</h3><p>Approve building operations into the portal rather than licensing a CRM, with an export seam kept open.</p></div>
+      <div class="card"><span class="tag">Decision 04</span><h3>Approve the first agent</h3><p>Call review is the highest-leverage next agent and the safest: it reads, scores, and flags. It changes nothing on its own.</p></div>
+      <div class="card"><span class="tag">Decision 05</span><h3>Set the autonomy line</h3><p>Which actions may an agent take without a human? Our recommendation: nothing irreversible, nothing client-facing, nothing financial — until each has a track record.</p></div>
+    </div>
+    <div class="callout">
+      <span class="tag">Next ninety days</span>
+      <p>Move the portal to a THRIVE domain. Wire member management into the interface so grants stop requiring the database console. Ship the operations layer — contacts, policies, pipeline. Make the portal installable on a phone. Ship call review behind <span class="mono">calls.review</span>. Bring the remaining owners onto the roster. Report back to this board with the audit log as the evidence.</p>
+    </div>
+    <p style="margin-top:1.6rem;color:var(--dim);font-size:.84rem" class="mono">Three days in. The foundation is correct, which is the part that is hard to retrofit. Everything above is built on it.</p>
+  </div>
+</section>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+    var rail = document.getElementById("rail");
+    var counter = document.getElementById("counter");
+    var hint = document.getElementById("hint");
+    var current = 0;
+
+    function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+    slides.forEach(function (s, i) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-label", "Go to slide " + (i + 1) + ": " + (s.dataset.title || ""));
+      b.addEventListener("click", function () { go(i); });
+      rail.appendChild(b);
+    });
+    var dots = Array.prototype.slice.call(rail.children);
+
+    function paint(i) {
+      current = i;
+      counter.textContent = pad(i + 1) + " / " + pad(slides.length);
+      dots.forEach(function (d, j) {
+        if (j === i) d.setAttribute("aria-current", "true");
+        else d.removeAttribute("aria-current");
+      });
+      if (hint) hint.style.opacity = i === 0 ? "1" : "0";
+    }
+
+    function go(i) {
+      i = Math.max(0, Math.min(slides.length - 1, i));
+      slides[i].scrollIntoView({
+        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"
+      });
+    }
+
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) paint(slides.indexOf(e.target));
+        });
+      }, { threshold: 0.55 });
+      slides.forEach(function (s) { io.observe(s); });
+    }
+
+    // Click-to-advance: right half forward, left half back.
+    document.getElementById("zone-next").addEventListener("click", function () { go(current + 1); });
+    document.getElementById("zone-prev").addEventListener("click", function () { go(current - 1); });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowDown" || e.key === "ArrowRight" || e.key === "PageDown" ||
+          (e.key === " " && !e.shiftKey)) {
+        e.preventDefault(); go(current + 1);
+      } else if (e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "PageUp" ||
+                 (e.key === " " && e.shiftKey)) {
+        e.preventDefault(); go(current - 1);
+      } else if (e.key === "Home") { e.preventDefault(); go(0); }
+      else if (e.key === "End") { e.preventDefault(); go(slides.length - 1); }
+    });
+
+    paint(0);
+  })();
+</script>
