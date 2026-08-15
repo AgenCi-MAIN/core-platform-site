@@ -3,6 +3,8 @@ import { getDb } from "../../../db";
 import { portalMembers } from "../../../db/schema";
 import { ROLE_LABELS, can, requireCapability } from "../access";
 import { EmptyState, PortalCardHeader, PortalPageIntro, PortalShell } from "../components";
+import { readFaultCopy, readRows } from "../read-guard";
+import { MemberControls } from "./manager";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +17,12 @@ export default async function MembersPage() {
   const session = await requireCapability("members.view", "/portal/members");
   const manages = can(session, "members.manage");
 
-  const members = await getDb()
-    .select()
-    .from(portalMembers)
-    .orderBy(asc(portalMembers.role), asc(portalMembers.email));
+  const { rows: members, fault } = await readRows("portal_members", () =>
+    getDb()
+      .select()
+      .from(portalMembers)
+      .orderBy(asc(portalMembers.role), asc(portalMembers.email)),
+  );
 
   return (
     <PortalShell session={session} current="/portal/members" section="Members">
@@ -39,9 +43,15 @@ export default async function MembersPage() {
           <PortalCardHeader
             icon="◇"
             title="Member roster"
-            description={`${members.length} verified membership record${members.length === 1 ? "" : "s"} in the portal database.`}
+            description={
+              fault
+                ? "The roster could not be read, so no count is shown."
+                : `${members.length} verified membership record${members.length === 1 ? "" : "s"} in the portal database.`
+            }
           />
-          {members.length === 0 ? (
+          {fault ? (
+            <EmptyState {...readFaultCopy(fault, "The member roster")} />
+          ) : members.length === 0 ? (
             <EmptyState
               title="No members provisioned"
               body="Apply the portal migration and seed the first owner before anyone can sign in. Until then the portal correctly refuses every visitor."
@@ -94,23 +104,36 @@ export default async function MembersPage() {
           <PortalCardHeader
             icon="＋"
             title="Granting and revoking access"
-            description="Governed membership changes remain reviewed database operations."
+            description="Every change is checked on the server and written to the audit log."
           />
-          {manages ? (
+          {fault ? (
+            // The controls edit a roster this page could not read. Offering
+            // them over an empty list would invite a grant decided against
+            // nothing — the operator could not see who already holds what.
+            // The server would still enforce every rule; the interface would
+            // simply have misled them into the attempt.
+            <p className="portal-lede">
+              The roster could not be read, so the controls are withheld until
+              it can. Nothing about your permissions has changed — this is a
+              database fault, not an access decision. If it persists, the SQL in
+              CORE_PLATFORM_RECORD.md § 5 still works from the D1 console.
+            </p>
+          ) : manages ? (
             <>
               <p className="portal-lede">
-                Your role holds <code>members.manage</code>. Grant, role-change,
-                and revocation actions are not yet wired into this interface —
-                membership changes are currently applied as reviewed SQL against
-                the portal database.
+                Your role holds <code>members.manage</code>. Grants, role
+                changes, and revocations take effect immediately and are
+                recorded in the audit log under your name.
               </p>
-              <p className="portal-fine">
-                Building those write actions in the UI is deliberately gated
-                behind a human decision on approval flow, separation of duties,
-                and whether a second approver is required for owner and
-                administrator grants. That decision belongs to CORE leadership,
-                not to J.A.R.V.I.S.
-              </p>
+              <MemberControls
+                selfEmail={session.email}
+                members={members.map((member) => ({
+                  email: member.email,
+                  displayName: member.displayName,
+                  role: member.role,
+                  status: member.status,
+                }))}
+              />
             </>
           ) : (
             <p className="portal-lede">

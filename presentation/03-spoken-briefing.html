@@ -1,0 +1,657 @@
+<title>CORE Briefing</title>
+<style>
+  :root {
+    --bg:        #070D15;
+    --panel:     #0E1826;
+    --line:      #1E2E42;
+    --line-soft: #16222F;
+    --text:      #E6EDF6;
+    --muted:     #8FA3BC;
+    --dim:       #5C7089;
+    --accent:    #F0A93C;
+    --allow:     #46C0A0;
+    --deny:      #E0705A;
+    --font-display: ui-monospace, "SF Mono", "SFMono-Regular", "Cascadia Mono",
+                    "Segoe UI Mono", Menlo, Consolas, monospace;
+    --font-body: Georgia, "Iowan Old Style", "Palatino Linotype", "Times New Roman", serif;
+  }
+  /* This briefing commits to one visual world — a darkened room, a lit core.
+     Every colour is painted explicitly so it holds on any host ground. */
+
+  * { box-sizing: border-box; }
+
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #stage {
+    position: relative;
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 0;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: clamp(.9rem, 2.5vh, 1.5rem) clamp(1rem, 4vw, 3rem);
+    font-family: var(--font-display);
+    font-size: .66rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--dim);
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .mark { color: var(--text); display: flex; align-items: center; gap: .6rem; }
+  .mark b { color: var(--accent); font-weight: 600; }
+
+  /* ---------- Main split ---------- */
+  .main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(1rem, 4vw, 4rem);
+    padding: clamp(1rem, 3vh, 2.5rem) clamp(1rem, 4vw, 3rem);
+    min-height: 0;
+  }
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; grid-template-rows: minmax(0,1fr) auto; }
+    #viz-wrap { max-height: 34vh; }
+  }
+
+  #viz-wrap { display: flex; align-items: center; justify-content: center; min-height: 0; height: 100%; }
+  canvas { display: block; max-width: 100%; height: auto; }
+
+  /* ---------- Panel ---------- */
+  .panel { min-width: 0; }
+  .beat-eyebrow {
+    font-family: var(--font-display);
+    font-size: .66rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 1rem;
+    display: flex; align-items: center; gap: .8rem;
+  }
+  .beat-eyebrow::after { content:""; flex:1; height:1px; background: var(--line); max-width: 140px; }
+
+  .beat-head {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(1.3rem, 2.6vw, 2.1rem);
+    line-height: 1.12;
+    letter-spacing: -.03em;
+    margin: 0 0 1.2rem;
+    text-wrap: balance;
+    color: var(--text);
+  }
+  .beat-head.warn  { color: var(--deny); }
+  .beat-head.good  { color: var(--allow); }
+
+  .beat-body { display: grid; gap: .6rem; }
+
+  .stat-row { display: flex; flex-wrap: wrap; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); }
+  .stat { background: var(--panel); padding: .9rem 1.1rem; flex: 1 1 110px; }
+  .stat .n {
+    font-family: var(--font-display); font-size: clamp(1.4rem,2.4vw,2rem); line-height:1;
+    color: var(--accent); display:block; margin-bottom:.35rem;
+    font-variant-numeric: tabular-nums; letter-spacing:-.03em;
+  }
+  .stat .l { font-family: var(--font-display); font-size:.6rem; letter-spacing:.12em; text-transform:uppercase; color: var(--dim); }
+
+  .list { display: grid; gap: 1px; background: var(--line-soft); border: 1px solid var(--line-soft); }
+  .li {
+    background: var(--panel); padding: .7rem 1rem;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+    font-family: var(--font-display); font-size: .82rem; color: var(--muted);
+  }
+  .li b { color: var(--text); font-weight: 600; }
+  .li .yes { color: var(--allow); }
+  .li .no  { color: var(--deny); }
+
+  .quote {
+    border-left: 2px solid var(--accent);
+    background: var(--panel);
+    padding: 1rem 1.2rem;
+    font-size: clamp(.95rem, 1.4vw, 1.1rem);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .quote.warn { border-left-color: var(--deny); }
+
+  /* ---------- Caption ---------- */
+  .caption {
+    padding: clamp(1rem, 2.6vh, 1.8rem) clamp(1rem, 4vw, 3rem) clamp(1.2rem, 3vh, 2rem);
+    border-top: 1px solid var(--line-soft);
+    display: grid;
+    gap: 1rem;
+  }
+  #caption-text {
+    font-size: clamp(.95rem, 1.35vw, 1.15rem);
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 90ch;
+    min-height: 3.2em;
+    margin: 0;
+  }
+  #caption-text .said { color: var(--text); }
+
+  /* ---------- Controls ---------- */
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; }
+  button {
+    font-family: var(--font-display);
+    font-size: .7rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--text);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: .55rem 1.1rem;
+    cursor: pointer;
+    transition: border-color .18s, color .18s, background .18s;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary { border-color: var(--accent); color: var(--accent); }
+  button.primary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  select {
+    font-family: var(--font-display); font-size: .68rem;
+    background: var(--panel); color: var(--muted);
+    border: 1px solid var(--line); padding: .5rem .6rem; max-width: 210px;
+  }
+  select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .progress { flex: 1 1 140px; min-width: 100px; height: 2px; background: var(--line); position: relative; }
+  .progress i { position: absolute; inset: 0 auto 0 0; width: 0%; background: var(--accent); display: block; transition: width .4s linear; }
+
+  .beatno { font-family: var(--font-display); font-size: .66rem; letter-spacing: .14em; color: var(--dim); font-variant-numeric: tabular-nums; }
+
+  .note {
+    font-family: var(--font-display); font-size: .62rem; letter-spacing: .1em;
+    color: var(--dim); text-transform: uppercase;
+  }
+
+  /* ---------- Idle overlay ---------- */
+  #overlay {
+    position: absolute; inset: 0; z-index: 30;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    display: grid; place-items: center; text-align: center;
+    padding: 2rem;
+  }
+  #overlay.gone { display: none; }
+  #overlay h1 {
+    font-family: var(--font-display); font-weight: 600;
+    font-size: clamp(2.2rem, 7vw, 4.6rem); letter-spacing: -.045em;
+    margin: 0 0 1rem; line-height: .95;
+  }
+  #overlay h1 span { color: var(--accent); }
+  #overlay p { color: var(--muted); max-width: 46ch; margin: 0 auto 2rem; font-size: clamp(1rem,1.4vw,1.15rem); }
+</style>
+
+<div id="stage">
+  <div class="topbar">
+    <span class="mark">CORE<b>·</b>JARVIS</span>
+    <span id="status">Standing by</span>
+  </div>
+
+  <div class="main">
+    <div id="viz-wrap"><canvas id="viz" width="520" height="520" aria-hidden="true"></canvas></div>
+    <div class="panel">
+      <p class="beat-eyebrow" id="beat-eyebrow">Briefing</p>
+      <h2 class="beat-head" id="beat-head">CORE Briefing</h2>
+      <div class="beat-body" id="beat-body"></div>
+    </div>
+  </div>
+
+  <div class="caption">
+    <p id="caption-text">Press Begin. The briefing is spoken aloud by your browser — turn your volume up.</p>
+    <div class="controls">
+      <button id="btn-play" class="primary" type="button">Begin</button>
+      <button id="btn-back" type="button" disabled>Prev</button>
+      <button id="btn-next" type="button" disabled>Next</button>
+      <button id="btn-reset" type="button">Restart</button>
+      <select id="voice" aria-label="Narration voice"></select>
+      <span class="beatno" id="beatno">00 / 13</span>
+      <span class="progress"><i id="bar"></i></span>
+    </div>
+    <span class="note" id="note"></span>
+  </div>
+
+  <div id="overlay">
+    <div>
+      <h1>JARVIS<span>-</span>CORE</h1>
+      <p>A spoken briefing for the board. Roughly four minutes. Your browser will read it aloud.</p>
+      <button id="btn-start" class="primary" type="button" style="font-size:.8rem;padding:.8rem 2rem">Begin briefing</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var BEATS = [
+    {
+      eyebrow: "Introduction",
+      head: "I am JARVIS-CORE. I run inside THRIVE.",
+      html: '<div class="quote">A system of record, an access model, and — shortly — a roster of agents that work inside it.</div>',
+      say: "Good evening. I am JARVIS-CORE. I run inside THRIVE."
+    },
+    {
+      eyebrow: "Disclosure",
+      head: "I am three days old.",
+      html: '<div class="stat-row">' +
+            '<div class="stat"><span class="n">3</span><span class="l">Days old</span></div>' +
+            '<div class="stat"><span class="n">72</span><span class="l">Hours of work</span></div>' +
+            '</div><div class="quote">You may treat that as impressive or as alarming. Both readings are defensible.</div>',
+      say: "I should begin with a disclosure, since the rest of this will go better if you have it early. I am three days old. Everything I am about to describe, I built, or helped build, within seventy-two hours. You may treat that as impressive, or as alarming. Both readings are defensible."
+    },
+    {
+      eyebrow: "What exists",
+      head: "A portal THRIVE actually owns.",
+      html: '<div class="stat-row">' +
+            '<div class="stat"><span class="n">29</span><span class="l">Tests passing</span></div>' +
+            '<div class="stat"><span class="n">6</span><span class="l">Roles</span></div>' +
+            '<div class="stat"><span class="n">10</span><span class="l">Capabilities</span></div>' +
+            '<div class="stat"><span class="n">0</span><span class="l">Secrets in code</span></div>' +
+            '</div>',
+      say: "Let me tell you what exists. THRIVE now has an operating portal. It is deployed on infrastructure the company owns, signed into with the company's own accounts, backed by the company's own database. No vendor sits between THRIVE and its operating data. Twenty-nine automated tests guard it. All of them pass."
+    },
+    {
+      eyebrow: "The finding",
+      head: "Anyone could have become the owner.",
+      headClass: "warn",
+      html: '<div class="quote warn">Identity arrived as an ordinary request header — and the application believed it. Anyone who knew an owner\'s email address could have sent it, and been admitted as that owner.</div>',
+      say: "Now the part I would rather not lead with, and will anyway. On my third day, I discovered that anyone could have become the owner of this company's portal. Identity was arriving as an ordinary request header, and the application believed it. That was survivable only while a hosting platform stood in front, stripping those headers from the outside world. The moment THRIVE self-hosted — which independence requires — the protection was gone."
+    },
+    {
+      eyebrow: "The remedy",
+      head: "Closed, and held closed by machinery.",
+      headClass: "good",
+      html: '<div class="list">' +
+            '<div class="li"><b>Signed session</b><span class="yes">only this app can mint</span></div>' +
+            '<div class="li"><b>Retired headers</b><span class="no">ignored entirely</span></div>' +
+            '<div class="li"><b>Two test suites</b><span class="yes">fail the build if reopened</span></div>' +
+            '</div>',
+      say: "It is closed. Identity now comes from a cryptographically signed session that only this application can issue, after a genuine Google sign-in. And two test suites now send precisely the request that would have worked, and fail the build if it ever succeeds again. The lesson is enforced by machinery rather than by memory. Memory is unreliable. Machinery is less so."
+    },
+    {
+      eyebrow: "Access model",
+      head: "Two independent checks. Every request.",
+      html: '<div class="list">' +
+            '<div class="li"><b>1 · Identity</b><span>who you are</span></div>' +
+            '<div class="li"><b>2 · Membership</b><span>an active record, carrying a role</span></div>' +
+            '<div class="li"><b>Default</b><span class="no">deny</span></div>' +
+            '</div>',
+      say: "Here is how access works now. Every request passes two independent checks. The first establishes identity. The second establishes membership — an active record, carrying a role. Identity alone grants nothing whatsoever. Anyone on earth can complete the first check; that is rather the point. The second is what protects the company."
+    },
+    {
+      eyebrow: "The record",
+      head: "Every decision written down.",
+      html: '<div class="list">' +
+            '<div class="li"><b>portal.access</b><span class="yes">allow · active_member</span></div>' +
+            '<div class="li"><b>audit.view</b><span class="no">deny · capability_not_held</span></div>' +
+            '<div class="li"><b>portal.access</b><span class="no">deny · not_a_member</span></div>' +
+            '</div>',
+      say: "Every decision is written down. Permitted and refused alike. The log is append-only — never edited, never deleted. It answers the questions that matter afterwards: who viewed a client's book, who opened a recording, who granted whom access, and precisely when. That record is also why I can be given colleagues."
+    },
+    {
+      eyebrow: "The roster",
+      head: "More agents. Each one narrow.",
+      html: '<div class="list">' +
+            '<div class="li"><b>Call review</b><span>scores calls, flags coaching</span></div>' +
+            '<div class="li"><b>Script keeper</b><span>traces what actually closed</span></div>' +
+            '<div class="li"><b>Pipeline</b><span>watches the book for stalls</span></div>' +
+            '<div class="li"><b>Compliance</b><span>consent, retention, disclosure</span></div>' +
+            '</div>',
+      say: "The plan is more agents, each one narrow. Call review, scoring transferred calls against the rubric and flagging coaching moments. A script keeper, tracing which language actually closed and proposing revisions with evidence rather than instinct. Pipeline. Compliance. Reporting. Each of them enters the system exactly as a person does: a record, a role, and precisely the capabilities that role holds. Not one capability more."
+    },
+    {
+      eyebrow: "The hard limits",
+      head: "Two grants no agent ever receives.",
+      headClass: "warn",
+      html: '<div class="list">' +
+            '<div class="li"><b>members.manage</b><span class="no">never</span></div>' +
+            '<div class="li"><b>audit.view</b><span class="no">never</span></div>' +
+            '</div>' +
+            '<div class="quote warn">An agent that can grant itself access has no ceiling. An agent that can read the record of its own refusals can learn to avoid leaving one.</div>',
+      say: "Two grants no agent will ever receive. No agent may manage members, because an agent that can grant itself access has no ceiling. And no agent may read the audit log, because an agent that can read the record of its own refusals can learn to avoid leaving one. These are permanent design rules. They are not defaults awaiting reconsideration."
+    },
+    {
+      eyebrow: "Revocation",
+      head: "Turning any of us off is one row.",
+      html: '<div class="quote">Set the status to revoked, and that agent is gone from every surface simultaneously. No key rotation. No scattered credentials. No wondering what else it might still reach.</div>',
+      say: "Revoking any of us is a single row. Set the status to revoked, and that agent is gone from every surface simultaneously. No key rotation. No scattered credentials. No wondering what else it might still reach."
+    },
+    {
+      eyebrow: "The honest answer",
+      head: "No. This does not run the business without you.",
+      headClass: "warn",
+      html: '<div class="quote warn">I am fast and tireless and also, occasionally, confidently wrong. That is a property of what I am — not a defect awaiting a patch.</div>',
+      say: "Which brings me to the question the board is actually asking, so I shall answer it directly. No. This does not run the business without you. Nothing on the roadmap should. I am fast, and I am tireless, and I am also, occasionally, confidently wrong. That is a property of what I am, not a defect awaiting a patch."
+    },
+    {
+      eyebrow: "The safeguard",
+      head: "Scoped. Reversible. Recorded.",
+      html: '<div class="quote">Every irreversible decision — money moved, a client contacted, access granted — keeps a human owner. I would recommend it stay that way considerably longer than anyone selling you this technology will suggest.</div>',
+      say: "The correct response is not to promise you it will not happen. It is to ensure that when it does, the action was scoped, reversible, and recorded. Every irreversible decision — money moved, a client contacted, access granted — keeps a human owner. I would recommend it stay that way considerably longer than anyone selling you this technology will suggest."
+    },
+    {
+      eyebrow: "The ask",
+      head: "Four decisions, and then I get on with it.",
+      html: '<div class="list">' +
+            '<div class="li"><b>01</b><span>Fund the metered usage</span></div>' +
+            '<div class="li"><b>02</b><span>Confirm the owners</span></div>' +
+            '<div class="li"><b>03</b><span>Approve call review</span></div>' +
+            '<div class="li"><b>04</b><span>Set the autonomy line</span></div>' +
+            '</div>',
+      say: "What I would ask of you is modest. Fund the metered usage. Confirm who the owners are. Approve one agent — call review, which reads and scores and flags, and changes nothing on its own. And decide, deliberately, where the line sits between what I may do, and what I must ask for. The foundation is correct. That is the part that is genuinely difficult to retrofit, and it is done. Everything else is merely work. I shall get on with it."
+    }
+  ];
+
+  var supported = "speechSynthesis" in window;
+  var synth = supported ? window.speechSynthesis : null;
+
+  var el = {
+    eyebrow: document.getElementById("beat-eyebrow"),
+    head:    document.getElementById("beat-head"),
+    body:    document.getElementById("beat-body"),
+    caption: document.getElementById("caption-text"),
+    status:  document.getElementById("status"),
+    beatno:  document.getElementById("beatno"),
+    bar:     document.getElementById("bar"),
+    note:    document.getElementById("note"),
+    play:    document.getElementById("btn-play"),
+    back:    document.getElementById("btn-back"),
+    next:    document.getElementById("btn-next"),
+    reset:   document.getElementById("btn-reset"),
+    start:   document.getElementById("btn-start"),
+    overlay: document.getElementById("overlay"),
+    voice:   document.getElementById("voice")
+  };
+
+  var idx = -1, playing = false, voices = [], chosen = null, utter = null;
+
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+
+  /* ---------------- Voice selection ---------------- */
+  function preferred(list) {
+    // Neural voices first — they are the difference between a butler and a
+    // train announcement. Edge exposes Microsoft's "Online (Natural)" set to
+    // the Web Speech API; macOS ships Daniel and the premium British voices.
+    var natural = list.filter(function (v) {
+      return /Natural|Online|Neural|Premium|Enhanced/i.test(v.name);
+    });
+    var britishNatural = natural.filter(function (v) { return /en[-_]GB/i.test(v.lang); });
+    var maleish = britishNatural.filter(function (v) {
+      return /Ryan|Thomas|George|Oliver|Arthur|Alfie|Elliot|Noah|Brian/i.test(v.name);
+    });
+    if (maleish.length) return maleish[0];
+    if (britishNatural.length) return britishNatural[0];
+    if (natural.length) return natural[0];
+
+    var order = ["Daniel", "Oliver", "Arthur", "Google UK English Male",
+                 "Microsoft Ryan", "Microsoft George", "Microsoft David"];
+    for (var i = 0; i < order.length; i++) {
+      for (var j = 0; j < list.length; j++) {
+        if (list[j].name.indexOf(order[i]) !== -1) return list[j];
+      }
+    }
+    for (var k = 0; k < list.length; k++) {
+      if (/en[-_]GB/i.test(list[k].lang)) return list[k];
+    }
+    for (var m = 0; m < list.length; m++) {
+      if (/^en/i.test(list[m].lang)) return list[m];
+    }
+    return list[0] || null;
+  }
+
+  function loadVoices() {
+    if (!supported) return;
+    voices = synth.getVoices().filter(function (v) { return /^en/i.test(v.lang); });
+    if (!voices.length) return;
+    el.voice.innerHTML = "";
+    voices.forEach(function (v, i) {
+      var o = document.createElement("option");
+      o.value = String(i);
+      o.textContent = v.name.replace(/^(Microsoft|Google)\s+/, "") + " · " + v.lang;
+      el.voice.appendChild(o);
+    });
+    chosen = preferred(voices);
+    if (chosen) el.voice.value = String(voices.indexOf(chosen));
+  }
+
+  if (supported) {
+    loadVoices();
+    synth.onvoiceschanged = loadVoices;
+    el.voice.addEventListener("change", function () {
+      chosen = voices[parseInt(el.voice.value, 10)] || null;
+    });
+  } else {
+    el.voice.style.display = "none";
+  }
+
+  /* ---------------- Visual core ---------------- */
+  var canvas = document.getElementById("viz");
+  var ctx = canvas.getContext("2d");
+  var energy = 0, target = 0, t = 0;
+  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function sizeCanvas() {
+    var wrap = document.getElementById("viz-wrap");
+    var d = Math.max(220, Math.min(wrap.clientWidth, wrap.clientHeight, 560));
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = d * dpr;
+    canvas.height = d * dpr;
+    canvas.style.width = d + "px";
+    canvas.style.height = d + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", sizeCanvas);
+
+  function css(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function draw() {
+    var d = canvas.width / Math.min(window.devicePixelRatio || 1, 2);
+    var cx = d / 2, cy = d / 2;
+    var accent = css("--accent") || "#F0A93C";
+    var line = css("--line") || "#1E2E42";
+
+    ctx.clearRect(0, 0, d, d);
+    energy += (target - energy) * 0.12;
+    t += reduced ? 0 : 0.016;
+
+    // static outer rings
+    ctx.strokeStyle = line;
+    ctx.lineWidth = 1;
+    [0.46, 0.38].forEach(function (r) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, d * r, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    // tick marks
+    ctx.strokeStyle = line;
+    for (var i = 0; i < 60; i++) {
+      var a = (i / 60) * Math.PI * 2;
+      var r0 = d * 0.46, r1 = d * (i % 5 === 0 ? 0.435 : 0.448);
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
+      ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+      ctx.stroke();
+    }
+
+    // reactive rings
+    for (var k = 0; k < 3; k++) {
+      var phase = t * (0.5 + k * 0.22) + k * 1.7;
+      var base = d * (0.16 + k * 0.055);
+      var amp = d * 0.035 * energy * (1 - k * 0.22);
+      ctx.beginPath();
+      for (var s = 0; s <= 90; s++) {
+        var ang = (s / 90) * Math.PI * 2;
+        var wob = Math.sin(ang * (3 + k) + phase) * amp
+                + Math.sin(ang * (7 - k) - phase * 1.3) * amp * 0.45;
+        var rr = base + wob;
+        var x = cx + Math.cos(ang) * rr, y = cy + Math.sin(ang) * rr;
+        if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = accent;
+      ctx.globalAlpha = 0.22 + 0.5 * energy * (1 - k * 0.28);
+      ctx.lineWidth = k === 0 ? 1.8 : 1;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // core
+    var cr = d * 0.055 * (1 + energy * 0.45);
+    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, cr * 3.2);
+    g.addColorStop(0, accent);
+    g.addColorStop(0.25, accent);
+    g.addColorStop(1, "rgba(240,169,60,0)");
+    ctx.globalAlpha = 0.55 + energy * 0.45;
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, cr * 3.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    target *= 0.955;
+    requestAnimationFrame(draw);
+  }
+
+  /* ---------------- Beat rendering ---------------- */
+  function render(i) {
+    var b = BEATS[i];
+    el.eyebrow.textContent = b.eyebrow;
+    el.head.textContent = b.head;
+    el.head.className = "beat-head" + (b.headClass ? " " + b.headClass : "");
+    el.body.innerHTML = b.html;
+    el.beatno.textContent = pad(i + 1) + " / " + pad(BEATS.length);
+    el.bar.style.width = (((i + 1) / BEATS.length) * 100) + "%";
+    el.caption.textContent = b.say;
+    el.back.disabled = i <= 0;
+    el.next.disabled = i >= BEATS.length - 1;
+  }
+
+  function speak(i, then) {
+    if (!supported) return;
+    synth.cancel();
+    utter = new SpeechSynthesisUtterance(BEATS[i].say);
+    if (chosen) { utter.voice = chosen; utter.lang = chosen.lang; }
+    // Neural voices carry their own cadence — pushing rate and pitch away from
+    // neutral makes them sound processed. Older formant voices need the help.
+    var isNatural = chosen && /Natural|Online|Neural|Premium|Enhanced/i.test(chosen.name);
+    utter.rate  = isNatural ? 0.97 : 0.92;
+    utter.pitch = isNatural ? 1.0  : 0.9;
+
+    utter.onboundary = function (e) {
+      target = Math.min(1, target + 0.5);
+      if (typeof e.charIndex === "number") {
+        var said = BEATS[i].say.slice(0, e.charIndex);
+        var rest = BEATS[i].say.slice(e.charIndex);
+        el.caption.innerHTML = '<span class="said"></span>';
+        el.caption.firstChild.textContent = said;
+        el.caption.appendChild(document.createTextNode(rest));
+      }
+    };
+    utter.onend = function () {
+      target = 0;
+      el.caption.textContent = BEATS[i].say;
+      if (then) then();
+    };
+    utter.onerror = function () { target = 0; if (then) then(); };
+    synth.speak(utter);
+  }
+
+  function go(i, autoplay) {
+    if (i < 0 || i >= BEATS.length) { stop(); return; }
+    idx = i;
+    render(i);
+    if (autoplay && supported) {
+      el.status.textContent = "Speaking";
+      speak(i, function () {
+        if (!playing) return;
+        if (idx < BEATS.length - 1) setTimeout(function () { if (playing) go(idx + 1, true); }, 550);
+        else stop(true);
+      });
+    }
+  }
+
+  function stop(done) {
+    playing = false;
+    if (supported) synth.cancel();
+    target = 0;
+    el.play.textContent = done ? "Replay" : "Resume";
+    el.status.textContent = done ? "Briefing complete" : "Paused";
+    if (done) idx = -1;
+  }
+
+  function start() {
+    el.overlay.classList.add("gone");
+    playing = true;
+    el.play.textContent = "Pause";
+    el.status.textContent = "Speaking";
+    go(idx < 0 ? 0 : idx, true);
+  }
+
+  el.start.addEventListener("click", start);
+  el.play.addEventListener("click", function () {
+    if (playing) stop();
+    else start();
+  });
+  el.next.addEventListener("click", function () {
+    if (supported) synth.cancel();
+    go(idx + 1, playing);
+  });
+  el.back.addEventListener("click", function () {
+    if (supported) synth.cancel();
+    go(idx - 1, playing);
+  });
+  el.reset.addEventListener("click", function () {
+    stop(); idx = -1; render(0); idx = 0;
+    el.play.textContent = "Begin";
+    el.status.textContent = "Standing by";
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === " ") { e.preventDefault(); playing ? stop() : start(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); el.next.click(); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); el.back.click(); }
+  });
+
+  function noteText() {
+    if (!supported) return "This browser cannot speak text aloud — captions and visuals only. Try Edge, Chrome, or Safari.";
+    var nat = chosen && /Natural|Online|Neural|Premium|Enhanced/i.test(chosen.name);
+    return nat
+      ? "Neural voice active · space to play or pause · screen-record this window to produce a video file"
+      : "For a far less robotic voice, open this in Microsoft Edge — it offers Microsoft's neural voices in the dropdown.";
+  }
+  el.note.textContent = noteText();
+  if (supported) {
+    el.voice.addEventListener("change", function () { el.note.textContent = noteText(); });
+    synth.addEventListener && synth.addEventListener("voiceschanged", function () {
+      setTimeout(function () { el.note.textContent = noteText(); }, 60);
+    });
+  }
+
+  sizeCanvas();
+  render(0);
+  idx = 0;
+  requestAnimationFrame(draw);
+})();
+</script>

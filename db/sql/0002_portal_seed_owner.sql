@@ -7,8 +7,8 @@
 --
 -- READ BEFORE APPLYING
 --
--- 1. `email` must be the address the person actually signs in with at the
---    hosting platform's identity provider, lowercased. It is NOT necessarily
+-- 1. `email` must be the address of the Google account the person actually
+--    signs in with, lowercased. It is NOT necessarily
 --    the address on file elsewhere in CORE records. Seeding the wrong address
 --    grants nothing and looks like a broken portal.
 --    bankerrunners@gmail.com was CONFIRMED by the owner on August 13, 2026.

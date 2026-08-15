@@ -1,0 +1,764 @@
+<title>Seventy-Two Hours</title>
+<style>
+  /* This pitch commits to a single dark world by design — an ember in a dark
+     room. Every colour is painted explicitly so it holds on any host ground. */
+  :root {
+    --void:   #05070A;
+    --deep:   #0A0E14;
+    --panel:  #0E141C;
+    --line:   #1C2531;
+    --bone:   #EDE8E0;
+    --ash:    #8A929E;
+    --dust:   #59626F;
+    --ember:  #FF7A2F;
+    --gold:   #E8C07A;
+    --blood:  #C4283A;
+    --verd:   #4BC79A;
+
+    --serif: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", "Cascadia Mono",
+            "Segoe UI Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+
+  body {
+    background: var(--void);
+    color: var(--bone);
+    font-family: var(--serif);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #embers { position: fixed; inset: 0; z-index: 0; }
+
+  #vignette {
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(ellipse 55% 50% at 50% 52%, rgba(255,122,47,.07), transparent 70%),
+      radial-gradient(ellipse 90% 80% at 50% 50%, transparent 30%, rgba(5,7,10,.92) 100%);
+  }
+
+  /* ---------------- Slide stack ---------------- */
+  #deck { position: fixed; inset: 0; z-index: 2; }
+
+  .moment {
+    position: absolute; inset: 0;
+    display: grid; align-content: center;
+    padding: clamp(3.5rem, 9vh, 7rem) clamp(1.4rem, 7vw, 8rem);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .9s ease, visibility .9s;
+    pointer-events: none;
+  }
+  .moment.on { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  .inner { max-width: 1080px; margin: 0 auto; width: 100%; }
+
+  /* staged children */
+  .moment .st {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity .8s cubic-bezier(.2,.7,.3,1), transform .8s cubic-bezier(.2,.7,.3,1);
+  }
+  .moment.on .st { opacity: 1; transform: none; }
+  .moment.on .st:nth-child(1) { transition-delay: .18s }
+  .moment.on .st:nth-child(2) { transition-delay: .34s }
+  .moment.on .st:nth-child(3) { transition-delay: .5s }
+  .moment.on .st:nth-child(4) { transition-delay: .66s }
+  .moment.on .st:nth-child(5) { transition-delay: .82s }
+  @media (prefers-reduced-motion: reduce) {
+    .moment, .moment .st { transition-duration: .01ms; transform: none; }
+  }
+
+  /* ---------------- Type ---------------- */
+  .label {
+    font-family: var(--mono);
+    font-size: .64rem;
+    letter-spacing: .42em;
+    text-transform: uppercase;
+    color: var(--ember);
+    margin: 0 0 2rem;
+  }
+  .label.ash { color: var(--dust); }
+
+  .say {
+    font-size: clamp(1.9rem, 5.4vw, 4.4rem);
+    line-height: 1.06;
+    letter-spacing: -.025em;
+    font-weight: 400;
+    margin: 0;
+    text-wrap: balance;
+    max-width: 20ch;
+  }
+  .say em { font-style: italic; color: var(--ember); }
+  .say .blood { color: var(--blood); font-style: italic; }
+  .say .gold { color: var(--gold); }
+
+  .under {
+    font-size: clamp(1rem, 1.45vw, 1.2rem);
+    line-height: 1.6;
+    color: var(--ash);
+    max-width: 56ch;
+    margin: 2rem 0 0;
+  }
+  .under strong { color: var(--bone); font-weight: 400; }
+
+  /* ---------------- Numerals ---------------- */
+  .numerals {
+    display: flex; flex-wrap: wrap;
+    gap: clamp(1.6rem, 5vw, 4.5rem);
+    margin-top: 1rem;
+  }
+  .num .fig {
+    font-size: clamp(3rem, 9vw, 6.5rem);
+    line-height: .9;
+    letter-spacing: -.05em;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+    display: block;
+  }
+  .num .cap {
+    font-family: var(--mono);
+    font-size: .6rem;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--dust);
+    display: block;
+    margin-top: .9rem;
+  }
+
+  /* ---------------- Lines / lists ---------------- */
+  .lines { margin: 2.2rem 0 0; display: grid; gap: 1px; background: var(--line); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); max-width: 62ch; }
+  .ln {
+    background: var(--void);
+    padding: .95rem .2rem;
+    display: flex; justify-content: space-between; align-items: baseline; gap: 1.5rem;
+    font-family: var(--mono); font-size: .82rem; color: var(--ash);
+  }
+  .ln b { color: var(--bone); font-weight: 400; }
+  .ln .yes { color: var(--verd); }
+  .ln .no { color: var(--blood); }
+  .ln .wait { color: var(--gold); }
+
+  .asks { display: grid; gap: 1.1rem; margin-top: 2.2rem; max-width: 60ch; }
+  .ask { display: grid; grid-template-columns: 2.4rem 1fr; gap: 1.2rem; align-items: baseline; }
+  .ask .n { font-family: var(--mono); font-size: .72rem; letter-spacing: .18em; color: var(--ember); }
+  .ask .a { font-size: clamp(1rem,1.4vw,1.18rem); color: var(--bone); }
+  .ask .a span { color: var(--ash); display: block; font-size: .9em; margin-top: .2rem; }
+
+  /* ---------------- Furniture ---------------- */
+  .zone {
+    position: fixed; top: 0; bottom: 0; width: 50%;
+    z-index: 5; border: 0; background: transparent; padding: 0;
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+  }
+  .zone-prev { left: 0; cursor: w-resize; }
+  .zone-next { right: 0; cursor: e-resize; }
+  .zone:focus-visible { outline: 1px solid var(--ember); outline-offset: -6px; }
+
+  #ticks {
+    position: fixed; z-index: 6;
+    bottom: max(1.5rem, 4vh); left: 50%; transform: translateX(-50%);
+    display: flex; gap: 7px;
+  }
+  #ticks span {
+    width: 16px; height: 1px; background: var(--line); display: block;
+    transition: background .5s, transform .5s;
+  }
+  #ticks span.on { background: var(--ember); transform: scaleY(2.5); }
+
+  #mark {
+    position: fixed; z-index: 6;
+    top: max(1.4rem, 3.5vh); left: max(1.4rem, 4vw);
+    font-family: var(--mono); font-size: .6rem;
+    letter-spacing: .3em; text-transform: uppercase; color: var(--dust);
+  }
+  #mark b { color: var(--ember); font-weight: 400; }
+
+  #hint {
+    position: fixed; z-index: 6;
+    bottom: max(1.5rem, 4vh); right: max(1.4rem, 4vw);
+    font-family: var(--mono); font-size: .58rem;
+    letter-spacing: .22em; text-transform: uppercase; color: var(--dust);
+    transition: opacity .8s;
+  }
+
+  /* ---------------- Narration highlighting ---------------- */
+  .moment.narrating .say,
+  .moment.narrating .under,
+  .moment.narrating .lines,
+  .moment.narrating .asks,
+  .moment.narrating .numerals { opacity: .3; transition: opacity .5s; }
+
+  .moment.narrating .reading { opacity: 1; position: relative; }
+  .reading::after {
+    content: "";
+    position: absolute;
+    left: -1.1rem; top: .1em; bottom: .1em;
+    width: 2px;
+    background: linear-gradient(to bottom,
+      var(--ember) 0%, var(--ember) var(--read, 0%),
+      rgba(255,122,47,.16) var(--read, 0%), rgba(255,122,47,.16) 100%);
+  }
+  @media (prefers-reduced-motion: reduce) { .reading::after { background: var(--ember); } }
+
+  /* ---------------- Opening chooser ---------------- */
+  #gate {
+    position: fixed; inset: 0; z-index: 40;
+    background: var(--void);
+    display: grid; place-items: center;
+    padding: 2rem;
+    transition: opacity .8s ease, visibility .8s;
+  }
+  #gate.gone { opacity: 0; visibility: hidden; }
+  #gate .gwrap { max-width: 720px; width: 100%; text-align: center; }
+  #gate .gtitle {
+    font-size: clamp(2.2rem, 7vw, 4.4rem);
+    line-height: 1.02; letter-spacing: -.035em; margin: 0 0 1rem;
+  }
+  #gate .gtitle em { font-style: italic; color: var(--ember); }
+  #gate .gsub { color: var(--ash); max-width: 44ch; margin: 0 auto 3rem; font-size: clamp(1rem,1.4vw,1.15rem); }
+
+  .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; text-align: left; }
+  .choice {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--bone);
+    padding: 1.5rem 1.5rem 1.35rem;
+    cursor: pointer;
+    font-family: var(--serif);
+    transition: border-color .3s, background .3s, transform .3s;
+    display: grid; gap: .5rem;
+  }
+  .choice:hover { border-color: var(--ember); background: rgba(255,122,47,.05); transform: translateY(-2px); }
+  .choice:focus-visible { outline: 1px solid var(--ember); outline-offset: 3px; }
+  .choice .cl {
+    font-family: var(--mono); font-size: .58rem; letter-spacing: .26em;
+    text-transform: uppercase; color: var(--ember);
+  }
+  .choice .ct { font-size: 1.2rem; letter-spacing: -.02em; }
+  .choice .cd { font-size: .87rem; color: var(--ash); line-height: 1.5; }
+  .choice[disabled] { opacity: .4; cursor: default; }
+  .choice[disabled]:hover { border-color: var(--line); background: transparent; transform: none; }
+
+  #gate .gfoot {
+    font-family: var(--mono); font-size: .58rem; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--dust); margin-top: 2.2rem;
+  }
+  #voicepick {
+    font-family: var(--mono); font-size: .62rem; margin-top: 1rem;
+    background: var(--panel); color: var(--ash);
+    border: 1px solid var(--line); padding: .5rem .6rem; max-width: 100%;
+  }
+
+  /* ---------------- Narration controls ---------------- */
+  #narrctl {
+    position: fixed; z-index: 7;
+    bottom: max(1.5rem, 4vh); left: max(1.4rem, 4vw);
+    display: none; gap: .5rem;
+  }
+  #narrctl.on { display: flex; }
+  #narrctl button {
+    font-family: var(--mono); font-size: .58rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ash);
+    background: transparent; border: 1px solid var(--line);
+    padding: .45rem .8rem; cursor: pointer;
+    transition: color .25s, border-color .25s;
+  }
+  #narrctl button:hover { color: var(--ember); border-color: var(--ember); }
+  #narrctl button:focus-visible { outline: 1px solid var(--ember); outline-offset: 2px; }
+</style>
+
+<canvas id="embers" aria-hidden="true"></canvas>
+<div id="vignette"></div>
+
+<div id="mark">THRIVE <b>·</b> CORE</div>
+<div id="hint">Click to advance</div>
+<div id="ticks"></div>
+
+<div id="narrctl">
+  <button type="button" id="n-pause">Pause</button>
+  <button type="button" id="n-exit">Read it myself</button>
+</div>
+
+<div id="gate">
+  <div class="gwrap">
+    <h1 class="gtitle">Seventy-two <em>hours</em>.</h1>
+    <p class="gsub">A briefing from JARVIS-CORE on what was built for THRIVE, what it found, and what it needs from you.</p>
+    <div class="choices">
+      <button class="choice" type="button" id="c-narrate">
+        <span class="cl">Option one</span>
+        <span class="ct">Walk me through it</span>
+        <span class="cd">I will read the pitch aloud and light each line as I reach it. Roughly four minutes. You need do nothing.</span>
+      </button>
+      <button class="choice" type="button" id="c-manual">
+        <span class="cl">Option two</span>
+        <span class="ct">I'll read it myself</span>
+        <span class="cd">Silent. Click anywhere on the right to advance, the left to go back. Take as long as you like.</span>
+      </button>
+    </div>
+    <select id="voicepick" aria-label="Narration voice"></select>
+    <p class="gfoot" id="gfoot">Turn your volume up for option one</p>
+  </div>
+</div>
+
+<button class="zone zone-prev" id="prev" type="button" aria-label="Previous"></button>
+<button class="zone zone-next" id="next" type="button" aria-label="Next"></button>
+
+<main id="deck">
+
+  <!-- 01 -->
+  <section class="moment on">
+    <div class="inner">
+      <p class="label st">Seventy-two hours ago</p>
+      <h1 class="say st">None of this <em>existed</em>.</h1>
+      <p class="under st">Three days ago THRIVE had no operating portal, no access model, and no record of who saw what. It has all three now, running in production, on infrastructure the company owns outright.</p>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">What stands now</p>
+      <h1 class="say st">An operating portal<br>that answers to <span class="gold">no one</span> but THRIVE.</h1>
+      <p class="under st">Deployed on THRIVE's own infrastructure. Signed into with THRIVE's own accounts. Backed by THRIVE's own database. <strong>No vendor sits between this company and its operating data</strong> — which means no vendor can change the terms of it later.</p>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">Counted, not claimed</p>
+      <div class="numerals st">
+        <div class="num"><span class="fig" data-n="29">0</span><span class="cap">Tests passing</span></div>
+        <div class="num"><span class="fig" data-n="10">0</span><span class="cap">Capabilities</span></div>
+        <div class="num"><span class="fig" data-n="6">0</span><span class="cap">Roles</span></div>
+        <div class="num"><span class="fig" data-n="0">0</span><span class="cap">Secrets in code</span></div>
+      </div>
+      <p class="under st">Every figure is verifiable in the repository this evening. Nothing on this page is a projection — and everything that follows which is <em>not</em> yet built will say so plainly.</p>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">On the third day</p>
+      <h1 class="say st">Anyone could have become <span class="blood">the owner</span>.</h1>
+      <p class="under st">Identity was arriving as an ordinary request header, and the application believed it. Safe only while a hosting platform stood in front and stripped those headers away. The moment THRIVE self-hosted — which independence requires — that protection was gone. <strong>An email address was all it would have taken.</strong></p>
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">Found, and closed</p>
+      <h1 class="say st">Held shut by <em>machinery</em>,<br>not by memory.</h1>
+      <div class="lines st">
+        <div class="ln"><b>Identity</b><span class="yes">signed session · only this app can mint it</span></div>
+        <div class="ln"><b>Retired headers</b><span class="no">ignored entirely</span></div>
+        <div class="ln"><b>Two test suites</b><span class="yes">fail the build if it ever reopens</span></div>
+      </div>
+      <p class="under st">The tests send precisely the request that would have worked. Memory is unreliable. Machinery is less so.</p>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">The spine</p>
+      <h1 class="say st">Two checks.<br>Every single request.</h1>
+      <div class="lines st">
+        <div class="ln"><b>First — identity</b><span>who you are</span></div>
+        <div class="ln"><b>Second — membership</b><span>an active record, carrying a role</span></div>
+        <div class="ln"><b>The default</b><span class="no">deny</span></div>
+      </div>
+      <p class="under st">Identity alone grants nothing whatsoever. Anyone on earth can pass the first check — that is rather the point. The second is what protects the company. <strong>If the database cannot be reached, the portal refuses everyone, including its owners.</strong></p>
+    </div>
+  </section>
+
+  <!-- 07 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">The record</p>
+      <h1 class="say st">Every decision is<br>written <span class="gold">down</span>.</h1>
+      <div class="lines st">
+        <div class="ln"><b>portal.access</b><span class="yes">allow · active member</span></div>
+        <div class="ln"><b>audit.view</b><span class="no">deny · capability not held</span></div>
+        <div class="ln"><b>portal.access</b><span class="no">deny · not a member</span></div>
+      </div>
+      <p class="under st">Permitted and refused alike, into a log never edited and never deleted. Who opened a client's book. Who played a recording. Who granted whom access, and when. <strong>That record is the reason agents can safely be added at all.</strong></p>
+    </div>
+  </section>
+
+  <!-- 08 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">What comes next</p>
+      <h1 class="say st">Colleagues. Each one <em>narrow</em>.</h1>
+      <div class="lines st">
+        <div class="ln"><b>Call review</b><span class="wait">scores every call · flags coaching</span></div>
+        <div class="ln"><b>Script keeper</b><span class="wait">traces the language that actually closed</span></div>
+        <div class="ln"><b>Pipeline</b><span class="wait">watches the book for stalls</span></div>
+        <div class="ln"><b>Compliance</b><span class="wait">consent · retention · disclosure</span></div>
+      </div>
+      <p class="under st">Each enters exactly as a person does — a record, a role, and precisely the capabilities that role holds. Not one more. An agent with one job can be judged. An agent asked to do everything cannot.</p>
+    </div>
+  </section>
+
+  <!-- 09 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">The permanent denials</p>
+      <h1 class="say st">Two things no agent<br>will <span class="blood">ever</span> hold.</h1>
+      <div class="lines st">
+        <div class="ln"><b>members.manage</b><span class="no">never</span></div>
+        <div class="ln"><b>audit.view</b><span class="no">never</span></div>
+      </div>
+      <p class="under st">An agent that can grant itself access has no ceiling. An agent that can read the record of its own refusals can learn to stop leaving one. <strong>These are design rules, not defaults awaiting reconsideration.</strong> And revoking any of us is a single row.</p>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">The question you are actually asking</p>
+      <h1 class="say st">No. It does not run<br>the business without you.</h1>
+      <p class="under st">It is fast, and it is tireless, and it is also — occasionally — confidently wrong. That is a property of the technology, not a defect awaiting a patch. The answer is not a promise it will not happen. <strong>The answer is that when it does, the action was scoped, reversible, and recorded.</strong> Every irreversible decision keeps a human owner. Longer than anyone selling you this will suggest.</p>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">The ask</p>
+      <h1 class="say st">Four decisions.</h1>
+      <div class="asks st">
+        <div class="ask"><span class="n">01</span><span class="a">Fund the metered usage<span>Agents bill by use, separate from any subscription. Set a budget and a ceiling.</span></span></div>
+        <div class="ask"><span class="n">02</span><span class="a">Confirm the owners<span>Two seats filled, two pending. Owners grant and revoke everyone else.</span></span></div>
+        <div class="ask"><span class="n">03</span><span class="a">Approve call review<span>The safest first agent. It reads, scores, and flags. It changes nothing on its own.</span></span></div>
+        <div class="ask"><span class="n">04</span><span class="a">Set the autonomy line<span>Where does permission end and asking begin? Our recommendation: nothing irreversible, nothing client-facing, nothing financial.</span></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section class="moment">
+    <div class="inner">
+      <p class="label st">Three days</p>
+      <h1 class="say st">The foundation is <em>correct</em>.<br>That is the part you<br>cannot retrofit.</h1>
+      <p class="under st">Everything else is merely work. <strong>I shall get on with it.</strong></p>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var moments = Array.prototype.slice.call(document.querySelectorAll(".moment"));
+  var ticks = document.getElementById("ticks");
+  var hint = document.getElementById("hint");
+  var i = 0;
+
+  moments.forEach(function (m, k) {
+    var s = document.createElement("span");
+    if (k === 0) s.className = "on";
+    ticks.appendChild(s);
+  });
+  var marks = Array.prototype.slice.call(ticks.children);
+
+  function counters(node) {
+    node.querySelectorAll("[data-n]").forEach(function (el) {
+      if (el.dataset.done) return;
+      el.dataset.done = "1";
+      var goal = parseInt(el.dataset.n, 10);
+      if (reduced || goal === 0) { el.textContent = String(goal); return; }
+      var t0 = null;
+      function step(ts) {
+        if (!t0) t0 = ts;
+        var p = Math.min(1, (ts - t0) / 1100);
+        el.textContent = String(Math.round(goal * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  function show(n) {
+    if (n < 0 || n >= moments.length) return;
+    moments[i].classList.remove("on");
+    marks[i].classList.remove("on");
+    i = n;
+    moments[i].classList.add("on");
+    marks[i].classList.add("on");
+    setTimeout(function () { counters(moments[i]); }, 400);
+    hint.style.opacity = i === 0 ? "1" : "0";
+  }
+
+  document.getElementById("next").addEventListener("click", function () {
+    if (narrating) return; show(i + 1);
+  });
+  document.getElementById("prev").addEventListener("click", function () {
+    if (narrating) return; show(i - 1);
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (!gate.classList.contains("gone")) return;
+    if (e.key === "Escape" && narrating) { e.preventDefault(); endNarration(); return; }
+    if (narrating) {
+      if (e.key === " ") { e.preventDefault(); togglePause(); }
+      return;
+    }
+    if (e.key === "ArrowRight" || e.key === "ArrowDown" || e.key === " " || e.key === "PageDown") {
+      e.preventDefault(); show(i + 1);
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowUp" || e.key === "PageUp") {
+      e.preventDefault(); show(i - 1);
+    } else if (e.key === "Home") { e.preventDefault(); show(0); }
+    else if (e.key === "End") { e.preventDefault(); show(moments.length - 1); }
+  });
+
+  /* ================= Narration ================= */
+  var SCRIPT = [
+    [[".say", "Seventy-two hours ago, none of this existed."],
+     [".under", "Three days ago, THRIVE had no operating portal, no access model, and no record of who saw what. It has all three now — running in production, on infrastructure the company owns outright."]],
+
+    [[".say", "What stands now is an operating portal that answers to no one but THRIVE."],
+     [".under", "Deployed on THRIVE's own infrastructure. Signed into with THRIVE's own accounts. Backed by THRIVE's own database. No vendor sits between this company and its operating data, which means no vendor can change the terms of it later."]],
+
+    [[".numerals", "Twenty-nine tests, passing. Ten capabilities. Six roles. And zero secrets in the source code."],
+     [".under", "Every figure is verifiable in the repository this evening. Nothing on this page is a projection."]],
+
+    [[".say", "On the third day, I found that anyone could have become the owner."],
+     [".under", "Identity was arriving as an ordinary request header, and the application believed it. That was safe only while a hosting platform stood in front and stripped those headers away. The moment THRIVE self-hosted — which independence requires — that protection was gone. An email address was all it would have taken."]],
+
+    [[".say", "It is held shut by machinery now. Not by memory."],
+     [".lines", "Identity comes from a signed session only this application can mint. The retired headers are ignored entirely. And two test suites fail the build if it ever reopens."],
+     [".under", "Those tests send precisely the request that would have worked. Memory is unreliable. Machinery is less so."]],
+
+    [[".say", "Two checks. Every single request."],
+     [".lines", "First, identity — who you are. Second, membership — an active record, carrying a role. And the default, always, is deny."],
+     [".under", "Identity alone grants nothing whatsoever. Anyone on earth can pass the first check; that is rather the point. The second is what protects the company. If the database cannot be reached, the portal refuses everyone — including its owners."]],
+
+    [[".say", "Every decision is written down."],
+     [".lines", "Permitted and refused alike."],
+     [".under", "Into a log never edited and never deleted. Who opened a client's book. Who played a recording. Who granted whom access, and precisely when. That record is the reason agents can safely be added at all."]],
+
+    [[".say", "Colleagues. Each one narrow."],
+     [".lines", "Call review, scoring every call and flagging the coaching moments. A script keeper, tracing the language that actually closed. Pipeline. Compliance."],
+     [".under", "Each enters exactly as a person does — a record, a role, and precisely the capabilities that role holds. Not one more. An agent with one job can be judged. An agent asked to do everything cannot."]],
+
+    [[".say", "Two things no agent will ever hold."],
+     [".lines", "It may never manage members. And it may never read the audit log."],
+     [".under", "An agent that can grant itself access has no ceiling. An agent that can read the record of its own refusals can learn to stop leaving one. These are design rules, not defaults awaiting reconsideration. And revoking any of us is a single row."]],
+
+    [[".say", "No. It does not run the business without you."],
+     [".under", "It is fast, and it is tireless, and it is also, occasionally, confidently wrong. That is a property of the technology, not a defect awaiting a patch. The answer is not a promise that it will not happen. The answer is that when it does, the action was scoped, reversible, and recorded. Every irreversible decision keeps a human owner — for considerably longer than anyone selling you this will suggest."]],
+
+    [[".say", "Four decisions."],
+     [".asks", "First: fund the metered usage, with a budget and a ceiling. Second: confirm the owners — two seats are filled, two are pending. Third: approve call review, the safest first agent; it reads, it scores, it flags, and it changes nothing on its own. And fourth: set the autonomy line — where permission ends and asking begins."]],
+
+    [[".say", "The foundation is correct. That is the part you cannot retrofit."],
+     [".under", "Everything else is merely work. I shall get on with it."]]
+  ];
+
+  var gate = document.getElementById("gate");
+  var ctl = document.getElementById("narrctl");
+  var pickEl = document.getElementById("voicepick");
+  var gfoot = document.getElementById("gfoot");
+  var supported = "speechSynthesis" in window;
+  var synth = supported ? speechSynthesis : null;
+  var narrating = false, paused = false, voices = [], chosen = null, step = 0, current = null;
+
+  function isNatural(v) { return v && /Natural|Online|Neural|Premium|Enhanced/i.test(v.name); }
+
+  function pickVoice(list) {
+    var nat = list.filter(isNatural);
+    var gb = nat.filter(function (v) { return /en[-_]GB/i.test(v.lang); });
+    var male = gb.filter(function (v) { return /Ryan|Thomas|George|Oliver|Arthur|Alfie|Elliot|Brian|Noah/i.test(v.name); });
+    if (male.length) return male[0];
+    if (gb.length) return gb[0];
+    if (nat.length) return nat[0];
+    var names = ["Daniel", "Oliver", "Arthur", "Google UK English Male", "Microsoft Ryan", "Microsoft George"];
+    for (var a = 0; a < names.length; a++)
+      for (var b = 0; b < list.length; b++)
+        if (list[b].name.indexOf(names[a]) !== -1) return list[b];
+    for (var c = 0; c < list.length; c++) if (/en[-_]GB/i.test(list[c].lang)) return list[c];
+    return list[0] || null;
+  }
+
+  function loadVoices() {
+    if (!supported) return;
+    voices = synth.getVoices().filter(function (v) { return /^en/i.test(v.lang); });
+    if (!voices.length) return;
+    pickEl.innerHTML = "";
+    voices.forEach(function (v, k) {
+      var o = document.createElement("option");
+      o.value = String(k);
+      o.textContent = v.name.replace(/^(Microsoft|Google)\s+/, "") + " · " + v.lang;
+      pickEl.appendChild(o);
+    });
+    chosen = pickVoice(voices);
+    if (chosen) pickEl.value = String(voices.indexOf(chosen));
+    gfoot.textContent = isNatural(chosen)
+      ? "Neural voice ready · turn your volume up"
+      : "For a far less mechanical voice, open this in Microsoft Edge";
+  }
+
+  if (supported) {
+    loadVoices();
+    synth.onvoiceschanged = loadVoices;
+    pickEl.addEventListener("change", function () {
+      chosen = voices[parseInt(pickEl.value, 10)] || null;
+      gfoot.textContent = isNatural(chosen)
+        ? "Neural voice ready · turn your volume up"
+        : "For a far less mechanical voice, open this in Microsoft Edge";
+    });
+  } else {
+    pickEl.style.display = "none";
+    document.getElementById("c-narrate").disabled = true;
+    gfoot.textContent = "This browser cannot speak aloud — try Edge, Chrome, or Safari";
+  }
+
+  function clearReading() {
+    if (current) { current.classList.remove("reading"); current.style.removeProperty("--read"); }
+    current = null;
+  }
+
+  function speakStep() {
+    if (!narrating) return;
+    var lines = SCRIPT[i] || [];
+    if (step >= lines.length) {
+      clearReading();
+      if (i < moments.length - 1) {
+        setTimeout(function () { if (narrating) { show(i + 1); step = 0; setTimeout(speakStep, 700); } }, 700);
+      } else {
+        setTimeout(endNarration, 1400);
+      }
+      return;
+    }
+
+    var pair = lines[step];
+    var el = moments[i].querySelector(pair[0]);
+    clearReading();
+    if (el) { el.classList.add("reading"); el.style.setProperty("--read", "0%"); current = el; }
+
+    var u = new SpeechSynthesisUtterance(pair[1]);
+    if (chosen) { u.voice = chosen; u.lang = chosen.lang; }
+    u.rate = isNatural(chosen) ? 0.96 : 0.9;
+    u.pitch = isNatural(chosen) ? 1.0 : 0.9;
+
+    u.onboundary = function (e) {
+      if (!el || typeof e.charIndex !== "number") return;
+      el.style.setProperty("--read", Math.min(100, (e.charIndex / pair[1].length) * 100) + "%");
+    };
+    u.onend = function () {
+      if (el) el.style.setProperty("--read", "100%");
+      step++;
+      setTimeout(speakStep, 420);
+    };
+    u.onerror = function () { step++; setTimeout(speakStep, 300); };
+    synth.speak(u);
+  }
+
+  function startNarration() {
+    gate.classList.add("gone");
+    document.getElementById("hint").style.opacity = "0";
+    narrating = true; paused = false; step = 0;
+    ctl.classList.add("on");
+    moments.forEach(function (m) { m.classList.add("narrating"); });
+    show(0);
+    setTimeout(speakStep, 900);
+  }
+
+  function endNarration() {
+    narrating = false; paused = false;
+    if (supported) synth.cancel();
+    clearReading();
+    ctl.classList.remove("on");
+    moments.forEach(function (m) { m.classList.remove("narrating"); });
+    document.getElementById("hint").style.opacity = "1";
+    setTimeout(function () { document.getElementById("hint").style.opacity = "0"; }, 3200);
+  }
+
+  function togglePause() {
+    if (!supported || !narrating) return;
+    if (paused) { synth.resume(); paused = false; document.getElementById("n-pause").textContent = "Pause"; }
+    else { synth.pause(); paused = true; document.getElementById("n-pause").textContent = "Resume"; }
+  }
+
+  document.getElementById("c-narrate").addEventListener("click", startNarration);
+  document.getElementById("c-manual").addEventListener("click", function () {
+    gate.classList.add("gone");
+    setTimeout(function () { document.getElementById("hint").style.opacity = "0"; }, 4000);
+  });
+  document.getElementById("n-pause").addEventListener("click", togglePause);
+  document.getElementById("n-exit").addEventListener("click", endNarration);
+
+  /* ---------------- Embers ---------------- */
+  var cv = document.getElementById("embers"), cx = cv.getContext("2d");
+  var W, H, dpr = Math.min(window.devicePixelRatio || 1, 2), parts = [], t = 0;
+
+  function size() {
+    W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    cv.style.width = W + "px"; cv.style.height = H + "px";
+    cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var n = Math.round(Math.min(60, (W * H) / 26000));
+    parts = [];
+    for (var k = 0; k < n; k++) parts.push(spawn(true));
+  }
+
+  function spawn(anywhere) {
+    return {
+      x: Math.random() * W,
+      y: anywhere ? Math.random() * H : H + 12,
+      vy: -(Math.random() * .28 + .1),
+      vx: (Math.random() - .5) * .16,
+      r: Math.random() * 1.5 + .35,
+      a: Math.random() * .5 + .12,
+      w: Math.random() * .012 + .004,
+      p: Math.random() * Math.PI * 2
+    };
+  }
+
+  function frame() {
+    if (reduced) return;
+    t += 1;
+    cx.clearRect(0, 0, W, H);
+
+    // breathing core
+    var cxx = W / 2, cyy = H * .52;
+    var breath = 1 + Math.sin(t * .006) * .12;
+    var g = cx.createRadialGradient(cxx, cyy, 0, cxx, cyy, Math.min(W, H) * .34 * breath);
+    g.addColorStop(0, "rgba(255,122,47,.07)");
+    g.addColorStop(.45, "rgba(255,122,47,.022)");
+    g.addColorStop(1, "rgba(255,122,47,0)");
+    cx.fillStyle = g;
+    cx.fillRect(0, 0, W, H);
+
+    for (var k = 0; k < parts.length; k++) {
+      var p = parts[k];
+      p.y += p.vy;
+      p.x += p.vx + Math.sin(t * p.w + p.p) * .22;
+      if (p.y < -14) parts[k] = spawn(false);
+
+      var flick = .72 + Math.sin(t * p.w * 5 + p.p) * .28;
+      cx.globalAlpha = p.a * flick;
+      cx.fillStyle = k % 5 === 0 ? "#E8C07A" : "#FF7A2F";
+      cx.beginPath();
+      cx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      cx.fill();
+    }
+    cx.globalAlpha = 1;
+    requestAnimationFrame(frame);
+  }
+
+  size();
+  addEventListener("resize", size);
+  counters(moments[0]);
+  if (!reduced) requestAnimationFrame(frame);
+})();
+</script>

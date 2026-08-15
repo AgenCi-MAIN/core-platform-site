@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 /** The track list, for any signed-in member. Returns metadata only. */
 export async function GET(request: Request) {
-  const access = await resolvePortalAccess();
+  const access = await resolvePortalAccess(new URL(request.url).pathname);
   if (!access.ok) {
     return Response.json(
       { error: "Sign in required.", tracks: [] },

@@ -44,29 +44,31 @@ worker/           # Cloudflare Worker entry point (optional)
 tests/            # Test files (Node test runner)
 examples/         # Optional D1 example surface
 scripts/          # Build/utility scripts
-.openai/          # Cloudflare Sites config (D1/R2 bindings)
+.openai/          # D1/R2 binding declarations (+ self-host D1 database_id)
 vite.config.ts    # Simulates D1/R2 bindings for local dev
 ```
 
 ## Important Conventions
 
-### Authentication & Headers
+### Authentication
 
-Signed-in visitors receive these headers:
-- `oai-authenticated-user-id` – stable user ID (same user, same Site; different across Sites)
-- `oai-authenticated-user-email` – user email
-- `oai-authenticated-user-full-name` – optional, percent-encoded UTF-8 (fall back to email if absent)
-- `oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`
+Identity comes from Sign in with Google, implemented in this app (see
+[README.md](README.md) "Sign in with Google" for the full picture):
 
-Example usage (see [README.md](README.md) for full pattern):
+- `app/google-auth.ts` — session cookie (`core_session`, HMAC-signed under the
+  `SESSION_SECRET` secret) and the `getAuthUser()` / `signInPath()` /
+  `signOutPath()` helpers.
+- `app/auth/{signin,callback,signout}/route.ts` — the OAuth flow itself.
+- Requests carrying the retired `oai-authenticated-user-*` headers are
+  anonymous; nothing may ever trust identity asserted in a request header.
+
+Example usage:
 ```tsx
-import { headers } from "next/headers";
+import { getAuthUser } from "@/app/google-auth";
 
 export default async function Home() {
-  const requestHeaders = await headers();
-  const userId = requestHeaders.get("oai-authenticated-user-id");
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  // Handle full name as optional
+  const user = await getAuthUser(); // null when anonymous
+  // user: { userId, email, displayName, fullName }
 }
 ```
 

@@ -3,6 +3,7 @@ import { getDb } from "../../../db";
 import { auditEvents } from "../../../db/schema";
 import { requireCapability } from "../access";
 import { EmptyState, PortalCardHeader, PortalPageIntro, PortalShell } from "../components";
+import { readFaultCopy, readRows } from "../read-guard";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +16,13 @@ const PAGE_SIZE = 100;
 export default async function AuditPage() {
   const session = await requireCapability("audit.view", "/portal/audit");
 
-  const events = await getDb()
-    .select()
-    .from(auditEvents)
-    .orderBy(desc(auditEvents.occurredAt), desc(auditEvents.id))
-    .limit(PAGE_SIZE);
+  const { rows: events, fault } = await readRows("audit_events", () =>
+    getDb()
+      .select()
+      .from(auditEvents)
+      .orderBy(desc(auditEvents.occurredAt), desc(auditEvents.id))
+      .limit(PAGE_SIZE),
+  );
 
   return (
     <PortalShell session={session} current="/portal/audit" section="Audit">
@@ -43,7 +46,12 @@ export default async function AuditPage() {
             title="Authorization events"
             description="Newest decisions first; access outcomes are append-only."
           />
-          {events.length === 0 ? (
+          {fault ? (
+            // Never "no events recorded" here. This is the page people consult
+            // to find out whether something happened; an unread table rendered
+            // as an empty one is the single most misleading thing it could say.
+            <EmptyState {...readFaultCopy(fault, "The audit log")} />
+          ) : events.length === 0 ? (
             <EmptyState
               title="No events recorded"
               body="This is expected on a freshly provisioned database. The request that rendered this page will appear once the page is reloaded."

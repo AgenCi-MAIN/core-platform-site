@@ -31,6 +31,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local Cloudflare Worker secrets (GOOGLE_CLIENT_*, SESSION_SECRET)
+.dev.vars*
+
 # vercel
 .vercel
 

@@ -33,5 +33,15 @@ declare namespace Cloudflare {
    */
   interface Env {
     DB?: D1Database;
+
+    /**
+     * Sign in with Google. All three are optional for the same reason `DB`
+     * is: a deployment where they are not yet set genuinely lacks them at
+     * runtime, and app/google-auth.ts refuses sign-in rather than crashing.
+     * Set with `wrangler secret put`, or `.dev.vars` locally.
+     */
+    GOOGLE_CLIENT_ID?: string;
+    GOOGLE_CLIENT_SECRET?: string;
+    SESSION_SECRET?: string;
   }
 }

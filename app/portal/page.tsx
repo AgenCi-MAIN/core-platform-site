@@ -48,17 +48,30 @@ export default async function PortalDashboard() {
   const granted = session.capabilities.length;
   const grantTone = granted >= TOTAL_CAPABILITIES ? "good" : granted < 5 ? "bad" : "warn";
 
-  // Seats actually granted. A failure here must not take the dashboard down —
-  // the count is informational, and the page has already passed authorization.
-  let seatsFilled = 0;
+  /**
+   * Seats actually granted. A failure here must not take the dashboard down —
+   * the count is informational, and the page has already passed authorization.
+   *
+   * But it must not be reported as zero either. This previously caught the
+   * error and left the count at 0, which rendered "4 seats pending an address":
+   * a confident statement about the roster, made at the one moment the roster
+   * could not be read. `null` means unknown, and the tile says so.
+   */
+  let seatsFilled: number | null = null;
   try {
     const [row] = await getDb().select({ value: count() }).from(portalMembers);
     seatsFilled = row?.value ?? 0;
-  } catch {
-    seatsFilled = 0;
+  } catch (error) {
+    console.error("[portal] could not count portal_members for the seats tile:", error);
   }
   const seatsTone =
-    seatsFilled >= TOTAL_SEATS ? "good" : seatsFilled >= TOTAL_SEATS - 1 ? "warn" : "bad";
+    seatsFilled === null
+      ? "warn"
+      : seatsFilled >= TOTAL_SEATS
+        ? "good"
+        : seatsFilled >= TOTAL_SEATS - 1
+          ? "warn"
+          : "bad";
 
   return (
     <PortalShell session={session} current="/portal" section="Dashboard">
@@ -117,13 +130,15 @@ export default async function PortalDashboard() {
           <article className={`portal-metric portal-metric-${seatsTone}`}>
             <span className="portal-metric-label">Seats</span>
             <strong className="portal-metric-value">
-              {seatsFilled}
+              {seatsFilled ?? "—"}
               <small className="portal-metric-of"> / {TOTAL_SEATS}</small>
             </strong>
             <span className="portal-metric-detail">
-              {seatsFilled === TOTAL_SEATS
-                ? "All principal seats granted"
-                : `${TOTAL_SEATS - seatsFilled} seat${TOTAL_SEATS - seatsFilled === 1 ? "" : "s"} pending an address`}
+              {seatsFilled === null
+                ? "Roster could not be read just now"
+                : seatsFilled === TOTAL_SEATS
+                  ? "All principal seats granted"
+                  : `${TOTAL_SEATS - seatsFilled} seat${TOTAL_SEATS - seatsFilled === 1 ? "" : "s"} pending an address`}
             </span>
           </article>
 

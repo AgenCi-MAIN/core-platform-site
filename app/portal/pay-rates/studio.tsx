@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { Rank as ModelRank, StudioInputs } from "./model";
 
 /**
  * Pay Rates Studio — the modelling surface for rank economics.
@@ -11,35 +12,30 @@ import { useMemo, useState } from "react";
  * consequence of a change before proposing it, not the place to make it.
  */
 
-type Rank = {
-  id: string;
-  name: string;
-  tier: string;
-  metal: string;
-  contract: number;
-  grants: number;
-  people: number;
-};
-
-const START: Rank[] = [
-  { id: "bronze", name: "Bronze", tier: "Entry", metal: "#c67c3e", contract: 90, grants: 0, people: 8 },
-  { id: "iron", name: "Iron", tier: "Producer", metal: "#9aa7b4", contract: 100, grants: 1, people: 10 },
-  { id: "ember", name: "Ember", tier: "Established", metal: "#e0764a", contract: 110, grants: 3, people: 10 },
-  { id: "apex", name: "Apex", tier: "Senior", metal: "#e0b64e", contract: 120, grants: 7, people: 5 },
-  { id: "obsidian", name: "Obsidian", tier: "Leader", metal: "#7b6bb0", contract: 140, grants: 15, people: 3 },
-  { id: "zenith", name: "Zenith", tier: "Principal", metal: "#bfe6f5", contract: 140, grants: 20, people: 2 },
-];
+/**
+ * The seed data arrives as props from the guarded server page and is NOT
+ * declared here. A `const` in this file would be compiled into a public asset
+ * chunk that the worker never sees, which is how the contract levels came to be
+ * readable without a session. See ./model.ts.
+ */
+type Rank = ModelRank;
 
 const money = (n: number) =>
   (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString();
 
-export function PayRatesStudio() {
-  const [ranks, setRanks] = useState<Rank[]>(START);
-  const [premium, setPremium] = useState(700);
-  const [leadCost, setLeadCost] = useState(15);
-  const [closeRate, setCloseRate] = useState(15);
-  const [apiPerAgent, setApiPerAgent] = useState(47);
-  const [dealsPerPerson, setDealsPerPerson] = useState(8);
+export function PayRatesStudio({
+  startRanks,
+  startInputs,
+}: {
+  startRanks: readonly Rank[];
+  startInputs: StudioInputs;
+}) {
+  const [ranks, setRanks] = useState<Rank[]>(() => startRanks.map((r) => ({ ...r })));
+  const [premium, setPremium] = useState(startInputs.premium);
+  const [leadCost, setLeadCost] = useState(startInputs.leadCost);
+  const [closeRate, setCloseRate] = useState(startInputs.closeRate);
+  const [apiPerAgent, setApiPerAgent] = useState(startInputs.apiPerAgent);
+  const [dealsPerPerson, setDealsPerPerson] = useState(startInputs.dealsPerPerson);
 
   function edit(id: string, field: keyof Rank, value: number) {
     setRanks((rs) => rs.map((r) => (r.id === id ? { ...r, [field]: value } : r)));

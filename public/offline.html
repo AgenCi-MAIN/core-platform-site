@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1116" />
+    <title>Offline — THRIVE</title>
+    <link rel="icon" href="/favicon.svg" />
+    <!--
+      Served by the service worker only when a navigation cannot reach the
+      network. It is deliberately self-contained and static: it shows nothing
+      about the member, the roster, or the workspace, because at this point the
+      server has not authorised anything. It is a signpost, not a fallback view.
+    -->
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100svh;
+        display: grid;
+        place-items: center;
+        padding: 32px 24px;
+        background: radial-gradient(120% 90% at 50% 0%, #16202e 0%, #0e1116 55%, #090b0f 100%);
+        color: #e7ecf3;
+        font: 400 16px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      main { width: 100%; max-width: 460px; text-align: center; }
+      img { width: 72px; height: 72px; border-radius: 18px; }
+      h1 {
+        margin: 26px 0 12px;
+        font-size: 24px;
+        font-weight: 780;
+        letter-spacing: -0.015em;
+      }
+      p { margin: 0 auto 18px; max-width: 40ch; color: #a8b4c4; font-size: 15px; }
+      .fine { font-size: 13px; color: #7d8899; }
+      button {
+        margin-top: 6px;
+        min-height: 44px;
+        padding: 11px 22px;
+        border: 1px solid #2b3746;
+        border-radius: 10px;
+        background: #18202b;
+        color: #e7ecf3;
+        font: inherit;
+        font-weight: 650;
+        font-size: 15px;
+        cursor: pointer;
+      }
+      button:hover { border-color: #2e9eff; color: #9ed3ff; }
+      button:focus-visible { outline: 3px solid #2e9eff; outline-offset: 2px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <img src="/icon-192.png" alt="" />
+      <h1>You&rsquo;re offline</h1>
+      <p>
+        THRIVE could not reach the network, so there is nothing to show. Your
+        workspace is not stored on this device.
+      </p>
+      <p class="fine">
+        Every portal page is authorised on the server at the moment you open it.
+        That check cannot happen offline, so the portal waits rather than showing
+        you a stale copy.
+      </p>
+      <button type="button" onclick="location.reload()">Try again</button>
+    </main>
+  </body>
+</html>

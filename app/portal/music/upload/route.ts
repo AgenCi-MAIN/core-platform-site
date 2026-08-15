@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
  * when, and what.
  */
 export async function POST(request: Request) {
-  const access = await resolvePortalAccess();
+  const access = await resolvePortalAccess(new URL(request.url).pathname);
   if (!access.ok) {
     return Response.json(
       { error: "Sign in required." },
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
 
 /** Remove a track. Owner and administrator only. */
 export async function DELETE(request: Request) {
-  const access = await resolvePortalAccess();
+  const access = await resolvePortalAccess(new URL(request.url).pathname);
   if (!access.ok) {
     return Response.json(
       { error: "Sign in required." },

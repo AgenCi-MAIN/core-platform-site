@@ -3038,3 +3038,333 @@ html[data-portal-theme="dark"] .pay-rank-net.is-good { color: #79dfad; }
 .pay-advice ol { display: grid; gap: 11px; margin: 10px 0 0; padding-left: 20px; }
 .pay-advice li { color: var(--portal-muted); font-size: var(--portal-type-body); line-height: 1.6; }
 .pay-advice strong { color: var(--portal-text); }
+
+/* Membership controls — grant, role change, status change.
+   Server-enforced; these styles dress the controls, they never gate them. */
+.member-controls { display: grid; gap: 14px; margin-top: 4px; }
+
+.member-note { margin: 0; padding: 10px 13px; border-radius: 8px; font-size: var(--portal-type-body); border: 1px solid; }
+.member-note-ok { color: #1f5c46; border-color: #bfe0d2; background: #f2fbf7; }
+.member-note-error { color: var(--portal-accent-strong); border-color: #e6c4c1; background: var(--portal-accent-soft); }
+
+.member-grant { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 15px; border: 1px solid var(--portal-line); border-radius: 10px; background: var(--portal-raised); }
+.member-field { display: grid; gap: 6px; flex: 1 1 190px; min-width: 0; }
+.member-field label { color: var(--portal-muted); font-size: var(--portal-type-label); font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.member-field input,
+.member-field select,
+.member-table select {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--portal-line-strong); border-radius: 8px;
+  /* NOT #fff. A literal white here is invisible in the dark theme, where
+     --portal-text is near-white: the grant and revoke controls rendered at
+     about 1.09:1 and read as blank plates. --portal-panel is #fff in the
+     bright theme, so this changes nothing there. */
+  background: var(--portal-panel); color: var(--portal-text);
+  font: inherit; font-size: var(--portal-type-body);
+}
+.member-field input:focus-visible,
+.member-field select:focus-visible,
+.member-table select:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 1px; }
+
+.member-grant button {
+  padding: 10px 18px; border: 1px solid var(--portal-accent); border-radius: 8px;
+  background: var(--portal-accent); color: #fff; font: inherit; font-weight: 800;
+  font-size: var(--portal-type-label); letter-spacing: .07em; text-transform: uppercase; cursor: pointer;
+}
+.member-grant button:hover:not(:disabled) { background: var(--portal-accent-strong); border-color: var(--portal-accent-strong); }
+.member-grant button:disabled { opacity: .55; cursor: default; }
+
+.member-table select { min-width: 132px; }
+.member-table select:disabled { opacity: .5; cursor: not-allowed; background: var(--portal-soft); }
+
+/* ============================================================
+   INSTALLED-APP SAFE AREAS
+   ------------------------------------------------------------
+   `viewportFit: "cover"` (app/layout.tsx) lets the page paint edge to edge,
+   which is what makes an installed copy look like an app rather than a page
+   in a box. The cost is that the notch, the rounded corners, and the home
+   indicator now sit on top of the layout instead of beside it, so every
+   surface that touches an edge has to say how far in its content starts.
+
+   `env()` resolves to 0 everywhere that has no inset — desktop, Android
+   without gesture bars, any browser tab — so these rules change nothing off
+   an installed phone.
+
+   Left and right are handled once on the outermost container rather than per
+   surface. Every element that touches a side edge already has its padding
+   re-tuned by the narrow-viewport rules above, and a blanket override down
+   here would win on precisely the screens that have insets — quietly undoing
+   the mobile spacing it was meant to protect. Top and bottom have no such
+   overrides, so those are added where they belong.
+   ============================================================ */
+
+.portal-shell,
+.site-page {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Sticky under the status bar in a standalone window, so the bar's contents
+   would otherwise sit on top of the section name and the account menu. */
+.portal-topbar { padding-top: calc(8px + env(safe-area-inset-top)); }
+.site-topbar { padding-top: calc(11px + env(safe-area-inset-top)); }
+
+/* Full-height and scrolled independently, so both ends need clearing. */
+.portal-sidebar {
+  padding-top: calc(14px + env(safe-area-inset-top));
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* Margin, not padding: the narrow-viewport rules above set this element's
+   padding and must keep it. */
+.portal-main { margin-bottom: env(safe-area-inset-bottom); }
+
+/* Sticky above the home indicator; without this the deck's controls sit
+   underneath it and the swipe gesture wins every tap. */
+.audio-deck { margin-bottom: env(safe-area-inset-bottom); }
+
+/* ============================================================
+   TOUCH AND INSTALLED-APP CORRECTIONS
+   ------------------------------------------------------------
+   Found by a review pass after the portal became installable. Everything
+   below either only applies to a touch pointer or resolves to zero on a
+   device with no insets, so none of it changes the desktop layout.
+   ============================================================ */
+
+/* The dark theme was swept for hard-coded colours once, at the "REMAINING
+   DARK-MODE GAPS" block above. The membership styles were added after that
+   sweep and missed it. This chip was the other survivor. */
+html[data-portal-theme="dark"] .member-note-ok {
+  color: #79dfad; border-color: #3d7659; background: #173325;
+}
+
+/**
+ * iOS zooms the viewport whenever a focused input renders below 16px, and in a
+ * standalone window there is no address bar to restore the scale afterwards —
+ * the member is left on a zoomed, sideways-panning page with no obvious way
+ * back. --portal-type-body is 13px, so every text field in the app triggers it,
+ * including the one on /access, which is the first screen anyone touches.
+ *
+ * Raised only for coarse pointers, so the desktop type scale is untouched.
+ * Deliberately NOT fixed with maximum-scale=1, which would take pinch-zoom away
+ * from everyone who needs it.
+ */
+@media (pointer: coarse) {
+  .access-input,
+  .member-field input,
+  .member-field select,
+  .member-table select { font-size: 16px; }
+}
+
+/**
+ * Touch targets. WCAG 2.5.5 asks for 44x44; the back control rendered at
+ * roughly 22x25 — about a quarter of that — nine pixels from the menu button,
+ * so a mis-tap opened the navigation instead of going back.
+ *
+ * These grow the hit area without moving anything visible, which is why they
+ * are min-height/min-width rather than padding.
+ */
+@media (pointer: coarse) {
+  .portal-back,
+  .portal-performance-toggle,
+  .portal-theme-control button,
+  .portal-recording-link,
+  .member-grant button { min-height: 44px; min-width: 44px; }
+
+  .portal-nav a,
+  .portal-signout { min-height: 44px; }
+
+  /* The hamburger's three bars are absolutely positioned inside this box, so
+     the box cannot simply grow — the bars are re-centred with it. */
+  .portal-menu-button,
+  .portal-drawer-close { width: 44px; height: 44px; }
+  .portal-menu-button::before,
+  .portal-menu-button::after,
+  .portal-menu-button > span:first-child { left: 50%; width: 16px; transform: translateX(-50%); }
+  .portal-menu-button::before { top: 14px; }
+  .portal-menu-button > span:first-child { top: 21px; }
+  .portal-menu-button::after { top: 28px; }
+
+  /**
+   * A range input with -webkit-appearance:none has a border box the height of
+   * its track — 4px here — so the volume slider and every pay-rate dial were
+   * four pixels tall to a finger. Give the element a real height and paint the
+   * thin track inside it.
+   */
+  .audio-deck-slider,
+  .pay-dial input[type="range"] { height: 44px; background: transparent; }
+  .audio-deck-slider::-webkit-slider-runnable-track,
+  .pay-dial input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px; border-radius: 999px; background: var(--portal-line-strong);
+  }
+  .audio-deck-slider::-moz-range-track,
+  .pay-dial input[type="range"]::-moz-range-track {
+    height: 4px; border-radius: 999px; background: var(--portal-line-strong);
+  }
+  .audio-deck-slider::-webkit-slider-thumb,
+  .pay-dial input[type="range"]::-webkit-slider-thumb { width: 20px; height: 20px; margin-top: -8px; }
+  .audio-deck-slider::-moz-range-thumb,
+  .pay-dial input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; }
+}
+
+/**
+ * Safe-area gaps the first pass missed.
+ *
+ * The lateral insets are applied to .portal-shell and .site-page, which covers
+ * anything laid out inside them. These four are not:
+ *
+ *  - /access and /portal/no-access render .portal-gate outside both shells,
+ *    and they are the two screens a non-member and a suspended member see.
+ *  - The mobile drawer is position:fixed in the top layer, so it resolves
+ *    against the viewport and never sees a container's padding.
+ *  - The drawer's close button is absolutely positioned from the padding box,
+ *    so its `top: 18px` was measured inside the new inset — putting it under
+ *    the Dynamic Island rather than below it.
+ *  - The governance footer is the last element on the page and sat under the
+ *    home indicator.
+ */
+.portal-gate {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.portal-sidebar-mobile {
+  padding-left: calc(12px + env(safe-area-inset-left));
+  width: min(280px, calc(100vw - 44px - env(safe-area-inset-left)));
+}
+
+.portal-sidebar-mobile .portal-drawer-close { top: calc(18px + env(safe-area-inset-top)); }
+
+.portal-footer { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+
+/**
+ * The section name is a hard floor in a nowrap topbar: without an ellipsis it
+ * refuses to shrink, and at 390px the row wants more width than the screen
+ * has, which turns into a document-level horizontal scroll on every page.
+ */
+@media (max-width: 620px) {
+  .portal-topbar-copy > * { min-width: 0; }
+  .portal-section-name {
+    min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+}
+
+/* ============================================================
+   CORRECTIONS TO THE CORRECTIONS
+   ------------------------------------------------------------
+   A review of the two blocks above found that the touch-target block bought
+   its 44px targets with width the topbar did not have. Growing the menu
+   button, the back control and both theme buttons added roughly 60px to a row
+   that had about 26px of slack at 390px — reintroducing the horizontal page
+   scroll the ellipsis rule above was written to remove. Bigger targets are
+   worth having; they are not worth paying for in sideways scroll.
+
+   Two chips come out instead. Both duplicate information available elsewhere,
+   and the row already drops .portal-connection and .portal-member-name at this
+   width for the same reason.
+   ============================================================ */
+
+@media (max-width: 620px) {
+  /* Membership status is on the dashboard and in the drawer's account block. */
+  .portal-status { display: none; }
+  /* The performance toggle is a preference, not a control needed mid-task. */
+  .portal-performance-toggle { display: none; }
+}
+
+/**
+ * The hamburger's three bars are positioned from the top edge, so growing the
+ * box to 44px left them measured against the old one. Centre them on the box
+ * instead of on a number, so the next size change cannot repeat this.
+ */
+@media (pointer: coarse) {
+  .portal-menu-button::before,
+  .portal-menu-button::after,
+  .portal-menu-button > span:first-child {
+    top: 50%; left: 50%; width: 16px; transform: translate(-50%, -50%);
+  }
+  .portal-menu-button::before { margin-top: -7px; }
+  .portal-menu-button > span:first-child { margin-top: 0; }
+  .portal-menu-button::after { margin-top: 7px; }
+
+  /* The drawer's close button grew with it; the head's gutter did not, and the
+     brand text now runs under the X. */
+  .portal-sidebar-mobile .portal-sidebar-head { padding-right: 62px; }
+}
+
+/**
+ * The pay-rate dials never got `-webkit-appearance: none`, so in Chrome and
+ * Safari the track and thumb rules above are inert — the element stays a
+ * native control and the only thing that applied was a 44px height on it.
+ * The audio deck resets appearance earlier in this file, which is why the same
+ * rules work there and not here.
+ */
+.pay-dial input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+@media (pointer: coarse) {
+  .audio-deck-slider::-webkit-slider-thumb,
+  .pay-dial input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px; height: 20px; margin-top: -8px;
+    border: 0; border-radius: 50%; background: var(--portal-accent);
+  }
+  .audio-deck-slider::-moz-range-thumb,
+  .pay-dial input[type="range"]::-moz-range-thumb {
+    width: 20px; height: 20px;
+    border: 0; border-radius: 50%; background: var(--portal-accent);
+  }
+}
+
+/**
+ * `.portal-gate` is not always outside the shell — /portal/pay-rates renders
+ * `portal-main portal-gate` inside it, so the refusal page there was taking the
+ * lateral inset from .portal-shell AND from .portal-gate, and the bottom inset
+ * from both .portal-main's margin and its own padding. Roughly double the
+ * indent, on one page, in landscape.
+ */
+.portal-main.portal-gate {
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
+/**
+ * The audio deck and the governance footer are SIBLINGS of .portal-shell, not
+ * children, so the lateral insets applied to the shell never reached them —
+ * and /access renders no .site-page at all, which left the first screen anyone
+ * touches unprotected in landscape. `.portal` is the one wrapper every one of
+ * these surfaces sits inside.
+ */
+.portal {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+.portal-shell,
+.site-page { padding-left: 0; padding-right: 0; }
+
+/**
+ * `100vh` on iOS is the URL-bar-collapsed height, so three nested wrappers each
+ * claiming it gives every portal page a phantom scroll in a browser tab. The
+ * mobile drawer already uses dvh, so nothing new is required to support it.
+ */
+.portal,
+.portal-shell,
+.portal-workspace,
+.site-page { min-height: 100dvh; }
+.portal-sidebar { height: 100dvh; }
+.portal-gate { min-height: 78dvh; }
+
+.member-apply {
+  margin-left: 8px; padding: 5px 10px;
+  border: 1px solid var(--portal-accent); border-radius: 7px;
+  background: var(--portal-accent-soft); color: var(--portal-accent-strong);
+  font: inherit; font-size: var(--portal-type-label); font-weight: 800;
+  white-space: nowrap; cursor: pointer;
+}
+.member-apply:hover:not(:disabled) { background: var(--portal-accent); color: #fff; }
+.member-apply:disabled { opacity: .55; cursor: default; }
+@media (pointer: coarse) { .member-apply { min-height: 44px; } }

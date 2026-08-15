@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "../../db";
 import {
@@ -8,18 +7,18 @@ import {
   type MemberStatus,
   type PortalRole,
 } from "../../db/schema";
-import { getChatGPTUser, chatGPTSignInPath, type ChatGPTUser } from "../chatgpt-auth";
+import { getAuthUser, signInPath, type AuthUser } from "../google-auth";
 
 /**
  * Server-side authorization for the CORE portal.
  *
  * Two independent checks stand between a visitor and any protected data:
  *
- *   1. Identity  — Sign in with ChatGPT proves who the visitor is.
+ *   1. Identity  — Sign in with Google proves who the visitor is.
  *   2. Membership — an active `portal_members` row proves they belong to CORE
  *                   and fixes their role.
  *
- * Identity alone grants nothing. Anyone with a ChatGPT account can complete
+ * Identity alone grants nothing. Anyone with a Google account can complete
  * step 1, so step 2 is what actually protects the portal. Both run on the
  * server on every request; nothing here may be moved to the client.
  *
@@ -132,9 +131,15 @@ const PORTAL_ROOT = "/portal";
  * Resolve the caller's portal session, or the specific reason they have none.
  * Every outcome is written to the audit log before it is returned.
  */
-export async function resolvePortalAccess(): Promise<AccessResult> {
-  const requestPath = await currentPath();
-  const user = await getChatGPTUser();
+export async function resolvePortalAccess(
+  /**
+   * The path being accessed, for the audit row. State it from a literal or from
+   * `new URL(request.url).pathname` — never from a request header. See the note
+   * above the removed `currentPath` helper for why this is a parameter.
+   */
+  requestPath: string | null = null,
+): Promise<AccessResult> {
+  const user = await getAuthUser();
 
   if (!user) {
     await recordAudit({
@@ -338,10 +343,12 @@ export async function requireCapability(
   capability: Capability,
   returnTo: string = PORTAL_ROOT,
 ): Promise<PortalSession> {
-  const result = await resolvePortalAccess();
+  // `returnTo` is a literal at every call site and is the page's own path,
+  // which makes it the honest value for the audit row.
+  const result = await resolvePortalAccess(returnTo);
 
   if (!result.ok) {
-    if (result.denial.kind === "anonymous") redirect(chatGPTSignInPath(returnTo));
+    if (result.denial.kind === "anonymous") redirect(signInPath(returnTo));
     redirect(`${PORTAL_ROOT}/no-access`);
   }
 
@@ -354,7 +361,7 @@ export async function requireCapability(
       actorEmail: session.email,
       actorSubjectId: session.subjectId,
       actorRole: session.role,
-      requestPath: await currentPath(),
+      requestPath: returnTo,
     });
     redirect(`${PORTAL_ROOT}/no-access?need=${encodeURIComponent(capability)}`);
   }
@@ -375,6 +382,8 @@ export async function assertCapability(
   session: PortalSession,
   capability: Capability,
   resource?: string,
+  /** The handler's own path, from `new URL(request.url).pathname`. */
+  requestPath?: string,
 ): Promise<void> {
   const allowed = can(session, capability);
   await recordAudit({
@@ -385,7 +394,7 @@ export async function assertCapability(
     actorSubjectId: session.subjectId,
     actorRole: session.role,
     resource,
-    requestPath: await currentPath(),
+    requestPath: requestPath ?? null,
   });
 
   if (!allowed) {
@@ -467,7 +476,7 @@ function tryGetDb(): PortalDb | null {
  * is treated as "not provisioned". A missing column, a constraint violation, or
  * a connection fault must not be swallowed by this.
  */
-function isMissingTableError(error: unknown): boolean {
+export function isMissingTableError(error: unknown): boolean {
   const message =
     error instanceof Error
       ? `${error.message} ${String((error as { cause?: unknown }).cause ?? "")}`
@@ -479,7 +488,7 @@ function isMissingTableError(error: unknown): boolean {
 async function bindSubjectOnFirstSignIn(
   db: PortalDb,
   member: typeof portalMembers.$inferSelect,
-  user: ChatGPTUser,
+  user: AuthUser,
 ): Promise<void> {
   const now = new Date().toISOString();
   const needsSubject = !member.subjectId;
@@ -512,16 +521,29 @@ async function bindSubjectOnFirstSignIn(
   }
 }
 
-async function currentPath(): Promise<string | null> {
-  try {
-    const requestHeaders = await headers();
-    return (
-      requestHeaders.get("x-invoke-path") ??
-      requestHeaders.get("x-matched-path") ??
-      requestHeaders.get("referer") ??
-      null
-    );
-  } catch {
-    return null;
-  }
-}
+/**
+ * The request path recorded on an audit row is now stated by the caller, never
+ * read from the request.
+ *
+ * It used to be `x-invoke-path ?? x-matched-path ?? referer`. All three are
+ * client-supplied. vinext strips `x-matched-path` inbound, but **not**
+ * `x-invoke-path`, and never sets it — so the first value was a raw, unfiltered
+ * request header, and `referer` behind it is no better. Whatever the caller
+ * chose was written into `audit_events.request_path` for the majority of rows.
+ *
+ * Nothing was granted by it: identity comes from the signed cookie and role
+ * from the members table, and neither consults this. But the audit log is the
+ * stated basis for trusting the access model, and one of its six columns was
+ * authored by whoever was being audited. A reviewer opening two hundred call
+ * recordings while sending `X-Invoke-Path: /portal/library` produced a
+ * plausible and completely false record of an afternoon.
+ *
+ * It also leaked: a same-origin `Referer` carries the full query string, so
+ * once `PAY_RATES_KEY` were enabled, the second factor would have been copied
+ * out of the URL into a table that everyone holding `audit.view` can read.
+ *
+ * Every guard already knows its own path as a literal — `requireCapability`
+ * takes it, route handlers derive it from `request.url`. So the path is passed
+ * down explicitly, and where no caller states one the column is `null`. A blank
+ * is a smaller lie than a confident wrong answer.
+ */

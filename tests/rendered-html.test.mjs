@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile, readdir } from "node:fs/promises";
 import { registerHooks } from "node:module";
 import test from "node:test";
 
@@ -115,7 +116,7 @@ test("protected portal routes refuse anonymous visitors and render nothing", asy
     const location = response.headers.get("location") ?? "";
     assert.match(
       location,
-      /\/signin-with-chatgpt\?/,
+      /\/auth\/signin\?/,
       `${pathname} must route to sign-in, got ${location}`,
     );
     assert.ok(
@@ -232,6 +233,156 @@ test("public surfaces carry no member or audit data", async () => {
         html,
         new RegExp(marker),
         `${pathname} leaked the marker ${marker}`,
+      );
+    }
+  }
+});
+
+/* ============================================================
+   Installable app (PWA)
+   ============================================================ */
+
+test("serves a web app manifest that installs to the portal", async () => {
+  const response = await fetchPath("/manifest.webmanifest", { accept: "*/*" });
+  assert.equal(response.status, 200);
+  assert.match(
+    response.headers.get("content-type") ?? "",
+    /application\/manifest\+json/i,
+    "a manifest served as anything else is ignored by the installer",
+  );
+
+  const manifest = JSON.parse(await response.text());
+  assert.equal(manifest.start_url, "/portal");
+  assert.equal(manifest.display, "standalone");
+  assert.equal(manifest.id, "/portal");
+
+  // Android's installer refuses without a 192 and a 512, and crops the icon to
+  // the launcher's shape unless a maskable one exists.
+  const sizes = manifest.icons.map((icon) => icon.sizes);
+  assert.ok(sizes.includes("192x192"), "no 192px icon — Android will not install");
+  assert.ok(sizes.includes("512x512"), "no 512px icon — Android will not install");
+  assert.ok(
+    manifest.icons.some((icon) => icon.purpose === "maskable"),
+    "no maskable icon — the mark gets clipped by the launcher mask",
+  );
+});
+
+test("the installable shell is declared in the document head", async () => {
+  const html = await (await render()).text();
+  assert.match(html, /rel="manifest"/, "no manifest link — nothing is installable");
+  assert.match(
+    html,
+    /rel="apple-touch-icon"[^>]*apple-touch-icon\.png/,
+    "iOS ignores the SVG icon and screenshots the page instead",
+  );
+  assert.match(
+    html,
+    /name="apple-mobile-web-app-capable"/,
+    "iOS before 16.4 will not launch standalone without the apple- prefixed name",
+  );
+  assert.match(html, /name="theme-color"/);
+  // Pinned because viewport-fit rides on the `width` field — see app/layout.tsx.
+  // Exactly one viewport meta, and it must carry the directive.
+  const viewports = html.match(/<meta name="viewport"[^>]*>/g) ?? [];
+  assert.equal(viewports.length, 1, "duplicate viewport meta tags");
+  assert.match(viewports[0], /width=device-width/);
+  assert.match(viewports[0], /viewport-fit=cover/);
+  assert.match(html, /serviceWorker/, "the service worker is never registered");
+});
+
+test("the service worker never caches an authenticated response", async () => {
+  // The whole access model is server-side. A cached /portal page would answer
+  // without re-resolving the session cookie or the member's row, so a signed-out
+  // or suspended device would keep serving whatever it last saw. This asserts
+  // the source of that guarantee rather than its effect, because a service
+  // worker cannot be exercised from Node.
+  const source = await readFile(new URL("../public/sw.js", import.meta.url), "utf8");
+
+  assert.match(
+    source,
+    /url\.pathname === "\/portal" \|\| url\.pathname\.startsWith\("\/portal\/"\)/,
+    "the /portal exclusion is gone — authenticated pages are now cacheable",
+  );
+  assert.match(
+    source,
+    /url\.pathname\.startsWith\("\/auth\/"\)/,
+    "the /auth exclusion is gone — sign-in and callback responses are cacheable",
+  );
+  // A /portal navigation may be intercepted to serve the static offline page on
+  // a network failure — the installed app starts at /portal, so that is the
+  // likeliest offline moment. It must remain a bare pass-through: no cache read
+  // and no cache write on that path.
+  /**
+   * Pinned positively rather than by forbidding things. An earlier version of
+   * this check listed what the branch must not contain, and a mutation that
+   * swapped the pass-through for `cacheFirst(request, STATIC_CACHE)` — which
+   * would serve a member a cached portal page — walked straight through it.
+   * Enumerating the ways to be wrong does not work; stating the one acceptable
+   * body does.
+   */
+  const branchStart = source.indexOf("const isPortal");
+  assert.ok(branchStart > 0, "could not locate the /portal branch — this check went stale");
+  const portalBranch = source.slice(branchStart, source.indexOf("\n  }\n", branchStart));
+
+  const normalised = portalBranch
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/[^\n]*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  assert.equal(
+    normalised,
+    'const isPortal = url.pathname === "/portal" || url.pathname.startsWith("/portal/"); ' +
+      'if (isPortal || url.pathname.startsWith("/auth/")) { ' +
+      'if (isPortal && request.mode === "navigate") { ' +
+      "event.respondWith(fetch(request).catch(offlinePage)); } return;",
+    "the /portal and /auth branch changed. This is the access boundary in the service worker: " +
+      "only a navigation may be intercepted, only to fall back to the static offline page when the " +
+      "network fails, and nothing here may read or write a cache. If the change is intended, " +
+      "re-read what it does to a suspended member's installed app before updating this string.",
+  );
+  assert.match(
+    source,
+    /request\.method !== "GET"/,
+    "non-GET requests are no longer passed straight through",
+  );
+
+  // Only these two caches may exist, and only these two rules may write to one.
+  const writes = source.match(/cache\.put\(/g) ?? [];
+  assert.equal(writes.length, 2, "a new cache write appeared — check what it stores");
+});
+
+test("restricted data never reaches a public client chunk", async () => {
+  /**
+   * Static assets under /assets are served by the ASSETS binding without ever
+   * touching the worker, so no session, capability, or audit check runs on
+   * them. Anything a `"use client"` file declares as a constant is compiled
+   * into one of those chunks and is readable by anyone — including an
+   * anonymous visitor — regardless of how well the page rendering it is
+   * guarded.
+   *
+   * That is not hypothetical: the rank contract levels, API grant counts, and
+   * per-rank headcount behind `leadership.view.all` shipped this way, in
+   * dist/client/assets/studio-*.js, cached immutably. They now live in a
+   * server module and arrive as props.
+   *
+   * This scans the built client bundle for those values. It is a coarse net on
+   * purpose — a substring check catches the mistake however it is reintroduced,
+   * including through a different component.
+   */
+  const dir = new URL("../dist/client/assets/", import.meta.url);
+  const files = (await readdir(dir)).filter((name) => name.endsWith(".js"));
+  assert.ok(files.length > 0, "no client chunks were built — this test would pass vacuously");
+
+  // Rank names and the shape the economics compile to.
+  const FORBIDDEN = ["Obsidian", "Zenith", "contract:140", "apiPerAgent:47"];
+
+  for (const name of files) {
+    const source = await readFile(new URL(name, dir), "utf8");
+    for (const marker of FORBIDDEN) {
+      assert.ok(
+        !source.includes(marker),
+        `restricted pay-rate data (${marker}) is readable in the public chunk assets/${name}`,
       );
     }
   }

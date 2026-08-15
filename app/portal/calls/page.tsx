@@ -9,6 +9,7 @@ import {
   PortalShell,
   PrototypeNotice,
 } from "../components";
+import { readFaultCopy, readRows } from "../read-guard";
 import { isCallRecordingStorageReady } from "./storage";
 
 export const dynamic = "force-dynamic";
@@ -17,11 +18,13 @@ const PAGE_SIZE = 50;
 
 export default async function CallsPage() {
   const session = await requireCapability("calls.review", "/portal/calls");
-  const calls = await getDb()
-    .select()
-    .from(dialerTransfers)
-    .orderBy(desc(dialerTransfers.receivedAt), desc(dialerTransfers.id))
-    .limit(PAGE_SIZE);
+  const { rows: calls, fault } = await readRows("dialer_transfers", () =>
+    getDb()
+      .select()
+      .from(dialerTransfers)
+      .orderBy(desc(dialerTransfers.receivedAt), desc(dialerTransfers.id))
+      .limit(PAGE_SIZE),
+  );
   const storageReady = isCallRecordingStorageReady();
   const readyCount = calls.filter(
     (call) => call.status === "ready" && call.consentStatus === "verified" && call.recordingObjectKey,
@@ -29,6 +32,13 @@ export default async function CallsPage() {
   const attentionCount = calls.filter(
     (call) => call.status === "needs_review" || call.status === "failed" || call.consentStatus !== "verified",
   ).length;
+  /**
+   * A failed read produces the same empty array as an empty table, so every
+   * count below would render a confident `0` over data nobody managed to look
+   * at. Show an em dash instead: the tile then says "not known", which is the
+   * truth, rather than "none", which is a claim.
+   */
+  const metric = (value: number) => (fault ? "—" : value);
 
   return (
     <PortalShell session={session} current="/portal/calls" section="Dialer Beta">
@@ -46,17 +56,17 @@ export default async function CallsPage() {
         <section className="portal-dialer-metrics" aria-label="Dialer transfer overview">
           <article className="portal-metric">
             <span className="portal-metric-label">Transferred calls</span>
-            <strong className="portal-metric-value">{calls.length}</strong>
+            <strong className="portal-metric-value">{metric(calls.length)}</strong>
             <span className="portal-metric-detail">Newest {PAGE_SIZE} protected transfer records</span>
           </article>
           <article className="portal-metric">
             <span className="portal-metric-label">Ready to open</span>
-            <strong className="portal-metric-value">{readyCount}</strong>
+            <strong className="portal-metric-value">{metric(readyCount)}</strong>
             <span className="portal-metric-detail">Recording ready and consent verified</span>
           </article>
           <article className="portal-metric">
             <span className="portal-metric-label">Needs attention</span>
-            <strong className="portal-metric-value">{attentionCount}</strong>
+            <strong className="portal-metric-value">{metric(attentionCount)}</strong>
             <span className="portal-metric-detail">Pending consent, review, processing, or recovery</span>
           </article>
         </section>
@@ -69,12 +79,18 @@ export default async function CallsPage() {
                 title="Transferred call library"
                 description="Only calls received through an approved source appear here."
               />
-              <span className={`portal-state portal-state-${calls.length > 0 ? "live" : "pending"}`}>
-                {calls.length > 0 ? "Transfers received" : "Awaiting first transfer"}
+              <span className={`portal-state portal-state-${!fault && calls.length > 0 ? "live" : "pending"}`}>
+                {fault
+                  ? "Inbox unavailable"
+                  : calls.length > 0
+                    ? "Transfers received"
+                    : "Awaiting first transfer"}
               </span>
             </div>
 
-            {calls.length === 0 ? (
+            {fault ? (
+              <EmptyState {...readFaultCopy(fault, "The transfer inbox")} />
+            ) : calls.length === 0 ? (
               <EmptyState
                 title="No dialer calls transferred yet"
                 body="The protected inbox and recording vault are prepared. Connect an approved dialer transfer source, verify recording consent, and send the first authorized call before a recording can appear here."
@@ -105,7 +121,7 @@ export default async function CallsPage() {
                           <td>
                             <strong>{call.callerNumberMasked ?? "Caller withheld"}</strong>
                             <span className="portal-cell-sub">
-                              {call.direction} Â· {call.sourceSystem} Â· {call.transferId}
+                              {call.direction} · {call.sourceSystem} · {call.transferId}
                             </span>
                           </td>
                           <td>

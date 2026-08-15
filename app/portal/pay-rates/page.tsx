@@ -1,6 +1,7 @@
 import { env } from "cloudflare:workers";
 import { can, recordAudit, requireCapability } from "../access";
 import { PortalPageIntro, PortalShell } from "../components";
+import { START_INPUTS, START_RANKS } from "./model";
 import { PayRatesStudio } from "./studio";
 
 export const dynamic = "force-dynamic";
@@ -110,7 +111,7 @@ export default async function PayRatesPage({
           </span>
         </p>
 
-        <PayRatesStudio />
+        <PayRatesStudio startRanks={START_RANKS} startInputs={START_INPUTS} />
 
         <section className="portal-card">
           <header className="portal-card-header">

@@ -3,7 +3,7 @@
  *
  * These tests boot the built worker in Miniflare — actual workerd, actual D1 —
  * apply the real migrations from db/sql/, and drive the portal over HTTP with
- * the identity headers the hosting platform injects. Everything here therefore
+ * the session cookie that Sign in with Google mints. Everything here therefore
  * covers the database-backed paths that cannot be reached from the plain-Node
  * suite in rendered-html.test.mjs: membership lookup, subject binding, role
  * resolution, capability enforcement, and audit writes.
@@ -11,6 +11,7 @@
  * Run `npm run build` first; these load dist/server.
  */
 import assert from "node:assert/strict";
+import { createHmac } from "node:crypto";
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -61,6 +62,32 @@ const INIT_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0001_portal_init.
 const SEED_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0002_portal_seed_owner.sql"), "utf8"));
 const SEEDED_OWNER_EMAIL = "bankerrunners@gmail.com";
 
+/**
+ * Identity is asserted the same way production does it: a session cookie
+ * HMAC-signed under SESSION_SECRET, minted here exactly as
+ * app/auth/callback/route.ts mints it. The secret is plumbed into the worker
+ * as a Miniflare binding, so a cookie signed with anything else must fail.
+ */
+const SESSION_SECRET = "portal-authorization-test-secret";
+
+function mintSessionToken(identity, { secret = SESSION_SECRET, expiresInSeconds = 3600 } = {}) {
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    sub: identity.subject,
+    email: identity.email,
+    name: identity.fullName ?? null,
+    iat: now,
+    exp: now + expiresInSeconds,
+  };
+  const body = `v1.${Buffer.from(JSON.stringify(payload)).toString("base64url")}`;
+  const mac = createHmac("sha256", secret).update(body).digest("base64url");
+  return `${body}.${mac}`;
+}
+
+function identityHeaders(identity) {
+  return identity ? { cookie: `core_session=${mintSessionToken(identity)}` } : {};
+}
+
 /** Boot a worker with a fresh, empty D1. `migrate`/`seed` opt into schema and data. */
 async function startPortal({ migrate = true, seed = true } = {}) {
   const mf = new Miniflare({
@@ -70,6 +97,7 @@ async function startPortal({ migrate = true, seed = true } = {}) {
     compatibilityFlags: ["nodejs_compat"],
     d1Databases: { DB: "site-creator-d1" },
     r2Buckets: { CALL_RECORDINGS: "core-call-recordings" },
+    bindings: { SESSION_SECRET },
     serviceBindings: { ASSETS: () => new Response("Not found", { status: 404 }) },
   });
 
@@ -83,12 +111,7 @@ async function startPortal({ migrate = true, seed = true } = {}) {
       redirect: "manual",
       headers: {
         accept: "text/html",
-        ...(identity
-          ? {
-              "oai-authenticated-user-id": identity.subject,
-              "oai-authenticated-user-email": identity.email,
-            }
-          : {}),
+        ...identityHeaders(identity),
       },
     });
 
@@ -463,12 +486,7 @@ function uploadRequest(portal, identity, filename, fields = {}) {
     redirect: "manual",
     headers: {
       "content-type": contentType,
-      ...(identity
-        ? {
-            "oai-authenticated-user-id": identity.subject,
-            "oai-authenticated-user-email": identity.email,
-          }
-        : {}),
+      ...identityHeaders(identity),
     },
   });
 }
@@ -476,12 +494,7 @@ function uploadRequest(portal, identity, filename, fields = {}) {
 function jsonGet(portal, pathname, identity) {
   return portal.mf.dispatchFetch(`http://localhost${pathname}`, {
     redirect: "manual",
-    headers: identity
-      ? {
-          "oai-authenticated-user-id": identity.subject,
-          "oai-authenticated-user-email": identity.email,
-        }
-      : {},
+    headers: identityHeaders(identity),
   });
 }
 
@@ -605,6 +618,43 @@ test("the music routes cannot be used to read a call recording", async (t) => {
   assert.equal(body.tracks.length, 0, "a non-music object must never appear in the library");
 });
 
+test("a track larger than 1 MB uploads — the framework limit does not decide", async (t) => {
+  // vinext classifies any multipart POST without an action id as a progressive
+  // Server Action and enforces experimental.serverActions.bodySizeLimit before
+  // the route handler runs. At its 1 MB default that rejected ordinary tracks
+  // with a plain-text 413 the client could not parse, so the browser reported
+  // a JSON syntax error and the real cause stayed hidden.
+  //
+  // next.config.ts raises the limit to match MAX_UPLOAD_BYTES. This asserts a
+  // payload well past the old ceiling reaches the route, so that if the two
+  // ever drift apart again the suite says so instead of the interface.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("owner@example.com", "owner");
+  const owner = { subject: "sub-owner", email: "owner@example.com" };
+
+  const parts = [{
+    name: "file",
+    filename: "long-track.mp3",
+    type: "audio/mpeg",
+    data: new Uint8Array(3 * 1024 * 1024).fill(0x55),
+  }];
+  const { body, contentType } = multipart(parts);
+
+  const res = await portal.mf.dispatchFetch("http://localhost/portal/music/upload", {
+    method: "POST",
+    body,
+    redirect: "manual",
+    headers: { "content-type": contentType, ...identityHeaders(owner) },
+  });
+
+  const text = await res.text();
+  assert.notEqual(res.status, 413, `3 MB upload was refused as too large: ${text}`);
+  assert.equal(res.status, 201, text);
+  assert.equal(JSON.parse(text).size, 3 * 1024 * 1024);
+});
+
 test("unsupported and empty files are refused", async (t) => {
   const portal = await startPortal();
   t.after(portal.dispose);
@@ -627,8 +677,7 @@ test("unsupported and empty files are refused", async (t) => {
     redirect: "manual",
     headers: {
       "content-type": emptyPayload.contentType,
-      "oai-authenticated-user-id": owner.subject,
-      "oai-authenticated-user-email": owner.email,
+      ...identityHeaders(owner),
     },
   });
   assert.equal(res.status, 400, "an empty file must be refused");
@@ -649,16 +698,269 @@ test("an owner can remove a track", async (t) => {
     {
       method: "DELETE",
       redirect: "manual",
-      headers: {
-        "oai-authenticated-user-id": owner.subject,
-        "oai-authenticated-user-email": owner.email,
-      },
+      headers: identityHeaders(owner),
     },
   );
   assert.equal(del.status, 200);
   assert.equal(await portal.recordings.get(key), null, "the object must be gone from R2");
 });
 
+
+/* ============================================================
+   Session integrity.
+
+   Identity used to come from oai-authenticated-user-* headers
+   that the Sites hosting platform injected and stripped from
+   outside requests. Self-hosted there is no such platform, so
+   anyone could send those headers. These tests pin down that a
+   request is identified ONLY by a session cookie signed under
+   this deployment's SESSION_SECRET.
+   ============================================================ */
+
+test("the retired platform identity headers grant nothing", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // Exactly the request that would have impersonated the owner before.
+  const response = await portal.mf.dispatchFetch("http://localhost/portal", {
+    redirect: "manual",
+    headers: {
+      accept: "text/html",
+      "oai-authenticated-user-id": "subject-owner-1",
+      "oai-authenticated-user-email": SEEDED_OWNER_EMAIL,
+    },
+  });
+
+  assert.equal(response.status, 307, "header-asserted identity must be anonymous");
+  assert.match(
+    response.headers.get("location") ?? "",
+    /\/auth\/signin\?/,
+    "an anonymous visitor is sent to sign-in",
+  );
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.decision === "deny" && r.reason === "anonymous"),
+    "the refusal must be recorded as anonymous, not as the impersonated member",
+  );
+});
+
+test("a forged, tampered, or expired session cookie is anonymous", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  const owner = { subject: "subject-owner-1", email: SEEDED_OWNER_EMAIL };
+  const valid = mintSessionToken(owner);
+
+  // Signed under the wrong secret; payload otherwise perfect.
+  const forged = mintSessionToken(owner, { secret: "not-the-deployment-secret" });
+  // Correct signature, payload altered afterwards.
+  const [, payload, mac] = valid.split(".");
+  const tamperedPayload = Buffer.from(
+    JSON.stringify({
+      ...JSON.parse(Buffer.from(payload, "base64url").toString()),
+      email: "attacker@example.com",
+    }),
+  ).toString("base64url");
+  const tampered = `v1.${tamperedPayload}.${mac}`;
+  // Correctly signed but past its expiry.
+  const expired = mintSessionToken(owner, { expiresInSeconds: -60 });
+
+  for (const [label, token] of [
+    ["forged", forged],
+    ["tampered", tampered],
+    ["expired", expired],
+    ["garbage", "v1.not-even-a-token"],
+  ]) {
+    const response = await portal.mf.dispatchFetch("http://localhost/portal", {
+      redirect: "manual",
+      headers: { accept: "text/html", cookie: `core_session=${token}` },
+    });
+    assert.equal(response.status, 307, `a ${label} cookie must be anonymous`);
+    assert.match(
+      response.headers.get("location") ?? "",
+      /\/auth\/signin\?/,
+      `a ${label} cookie must route to sign-in`,
+    );
+  }
+
+  // The control: the valid token this suite mints does admit the owner, so
+  // the refusals above are the signature check working, not a broken helper.
+  const control = await portal.get("/portal", owner);
+  assert.equal(control.status, 200, "the control cookie must be accepted");
+});
+
+/* ============================================================
+   Membership writes.
+
+   These are the actions that decide who reaches the portal at
+   all, so the interface is never what stops them — the route
+   re-resolves the session and asserts members.manage on every
+   request. The last two tests guard invariants whose failure
+   locks everyone out permanently, recoverable only through
+   direct database access.
+   ============================================================ */
+
+function manage(portal, identity, body) {
+  return portal.mf.dispatchFetch("http://localhost/portal/members/manage", {
+    method: "POST",
+    body: JSON.stringify(body),
+    redirect: "manual",
+    headers: { "content-type": "application/json", ...identityHeaders(identity) },
+  });
+}
+
+test("membership writes are refused without members.manage", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("manager@example.com", "manager");
+  await portal.addMember("target@example.com", "agent");
+
+  // A manager holds members.view — the roster is visible to them — but not
+  // members.manage. Reading the list must not imply changing it.
+  const res = await manage(portal, { subject: "sub-mgr", email: "manager@example.com" }, {
+    action: "role",
+    email: "target@example.com",
+    role: "owner",
+  });
+  assert.equal(res.status, 403, await res.text());
+
+  const row = await portal.db
+    .prepare("SELECT role FROM portal_members WHERE email = ?")
+    .bind("target@example.com")
+    .first();
+  assert.equal(row.role, "agent", "the role must be untouched");
+
+  const anon = await portal.mf.dispatchFetch("http://localhost/portal/members/manage", {
+    method: "POST",
+    body: JSON.stringify({ action: "grant", email: "x@example.com", role: "owner" }),
+    redirect: "manual",
+    headers: { "content-type": "application/json" },
+  });
+  assert.equal(anon.status, 401, "anonymous callers get nothing");
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.action === "members.manage" && r.decision === "deny"),
+    "the refusal must be recorded",
+  );
+});
+
+test("an owner grants access, and the grant is audited", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  const owner = { subject: "sub-owner-1", email: SEEDED_OWNER_EMAIL };
+  const res = await manage(portal, owner, {
+    action: "grant",
+    email: "  NewPerson@Example.COM ",
+    displayName: "New Person",
+    role: "agent",
+  });
+  assert.equal(res.status, 201, await res.text());
+
+  const row = await portal.db
+    .prepare("SELECT email, role, status, granted_by FROM portal_members WHERE email = ?")
+    .bind("newperson@example.com")
+    .first();
+  assert.ok(row, "the address must be stored lowercased and trimmed");
+  assert.equal(row.role, "agent");
+  assert.equal(row.status, "active");
+  assert.equal(row.granted_by, SEEDED_OWNER_EMAIL);
+
+  // Granting the same address twice must not create a second row — two rows
+  // for one person is the identity_ambiguous state the portal refuses.
+  const again = await manage(portal, owner, {
+    action: "grant",
+    email: "newperson@example.com",
+    role: "owner",
+  });
+  assert.equal(again.status, 409);
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.action === "members.grant" && r.decision === "allow"),
+    "the grant must be audited",
+  );
+});
+
+test("nobody changes their own role or status", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("admin@example.com", "admin");
+  const admin = { subject: "sub-admin", email: "admin@example.com" };
+
+  const promote = await manage(portal, admin, {
+    action: "role",
+    email: "admin@example.com",
+    role: "owner",
+  });
+  assert.equal(promote.status, 409, "self-promotion must be refused");
+
+  const revoke = await manage(portal, admin, {
+    action: "status",
+    email: "admin@example.com",
+    status: "revoked",
+  });
+  assert.equal(revoke.status, 409, "self-revocation must be refused");
+
+  const row = await portal.db
+    .prepare("SELECT role, status FROM portal_members WHERE email = ?")
+    .bind("admin@example.com")
+    .first();
+  assert.equal(row.role, "admin");
+  assert.equal(row.status, "active");
+});
+
+test("the last active owner cannot be demoted or suspended", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // Two owners: one acting, one the target. The target is the only *other*
+  // active owner, so removing them would still leave the actor — allowed.
+  await portal.addMember("second-owner@example.com", "owner");
+  const actor = { subject: "sub-owner-1", email: SEEDED_OWNER_EMAIL };
+
+  const demoteOne = await manage(portal, actor, {
+    action: "role",
+    email: "second-owner@example.com",
+    role: "manager",
+  });
+  assert.equal(demoteOne.status, 200, await demoteOne.text());
+
+  // Now the seeded owner is the last one. An admin tries to remove them.
+  await portal.addMember("admin@example.com", "admin");
+  const admin = { subject: "sub-admin", email: "admin@example.com" };
+
+  const demoteLast = await manage(portal, admin, {
+    action: "role",
+    email: SEEDED_OWNER_EMAIL,
+    role: "agent",
+  });
+  assert.equal(demoteLast.status, 409, "the last owner must not be demotable");
+
+  const suspendLast = await manage(portal, admin, {
+    action: "status",
+    email: SEEDED_OWNER_EMAIL,
+    status: "suspended",
+  });
+  assert.equal(suspendLast.status, 409, "the last owner must not be suspendable");
+
+  const row = await portal.db
+    .prepare("SELECT role, status FROM portal_members WHERE email = ?")
+    .bind(SEEDED_OWNER_EMAIL)
+    .first();
+  assert.equal(row.role, "owner", "the last owner survives both attempts");
+  assert.equal(row.status, "active");
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.reason === "last_active_owner_protected"),
+    "the protection must be audited by name",
+  );
+});
 
 /* ============================================================
    Identity resolution.
@@ -768,4 +1070,69 @@ test("the ordinary single-match paths still resolve", async (t) => {
     email: "nobody@example.com",
   });
   assert.equal(stranger.status, 307);
+});
+
+/* ============================================================
+   A missing table fails closed with an explanation, not a 500
+   ------------------------------------------------------------
+   resolvePortalAccess already fails closed when portal_members is absent, but
+   that protection covered sign-in only. Every page that queried a SECOND table
+   afterwards read it bare, so a database missing dialer_transfers or
+   audit_events threw and surfaced as HTTP 500 with a stack trace -- on a route
+   the member was entitled to see. The record documents two migration paths that
+   must not both be applied, so an absent table is a real possibility here, not
+   a hypothetical.
+   ============================================================ */
+
+test("a missing dialer_transfers table explains itself instead of throwing", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.db.prepare("DROP TABLE dialer_transfers").run();
+
+  const response = await portal.get("/portal/calls", {
+    subject: "subject-owner-1",
+    email: SEEDED_OWNER_EMAIL,
+  });
+
+  assert.equal(response.status, 200, "a missing table produced an error response");
+  const html = await response.text();
+
+  assert.match(html, /is not provisioned/, "the page did not say why it is empty");
+  assert.doesNotMatch(
+    html,
+    /no such table|D1_ERROR|SQLITE/i,
+    "the database driver's error text reached the member",
+  );
+  // The counts must not report zero over rows nobody managed to read.
+  assert.doesNotMatch(
+    html,
+    /Awaiting first transfer/,
+    "an unread inbox was described as an empty one",
+  );
+});
+
+test("the audit log never renders an unread table as an empty one", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // recordAudit swallows its own write failures by design, so dropping this
+  // table exercises the read path without breaking authorization.
+  await portal.db.prepare("DROP TABLE audit_events").run();
+
+  const response = await portal.get("/portal/audit", {
+    subject: "subject-owner-1",
+    email: SEEDED_OWNER_EMAIL,
+  });
+
+  assert.equal(response.status, 200);
+  const html = await response.text();
+
+  assert.match(html, /is not provisioned/);
+  assert.doesNotMatch(
+    html,
+    /No events recorded/,
+    "the audit log claimed nothing happened when it simply could not look",
+  );
+  assert.doesNotMatch(html, /no such table|D1_ERROR|SQLITE/i);
 });

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { KeyGlyph } from "../../key-glyph";
-import { chatGPTSignOutPath } from "../../chatgpt-auth";
+import { signOutPath } from "../../google-auth";
 import { resolvePortalAccess, type AccessDenial } from "../access";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +16,7 @@ export default async function NoAccessPage({
   searchParams: Promise<{ need?: string }>;
 }) {
   const { need } = await searchParams;
-  const result = await resolvePortalAccess();
+  const result = await resolvePortalAccess("/portal/no-access");
 
   const view = result.ok
     ? {
@@ -59,10 +59,10 @@ export default async function NoAccessPage({
 
         {view.showEmailRule ? (
           <p className="access-warning" role="note">
-            <strong>You MUST be signed in to ChatGPT in this browser using the
+            <strong>You MUST sign in with the Google account whose email is the
             SAME EMAIL you provided during onboarding.</strong> A different
-            ChatGPT account — including your own personal one — will be refused,
-            because the portal matches your ChatGPT identity against the address
+            Google account — including your own personal one — will be refused,
+            because the portal matches your Google identity against the address
             THRIVE has on file for you.
           </p>
         ) : null}
@@ -71,7 +71,7 @@ export default async function NoAccessPage({
           <Link className="button button-primary" href="/access">
             Portal access <KeyGlyph />
           </Link>
-          <a className="text-link" href={chatGPTSignOutPath("/access")}>
+          <a className="text-link" href={signOutPath("/access")}>
             Sign out <KeyGlyph />
           </a>
           <Link className="text-link" href="/">
