@@ -224,7 +224,7 @@ decisions. VIGIL reports and never edits. Neither can deploy.
       it refused once on a genuinely failing test (a Windows line-ending bug in
       the test itself, fixed as `bf294be`) and shipped only when green.
 - [x] ~~Rotate `SESSION_SECRET`~~ — done by the owner, 2026-08-15, value undisclosed.
-- [ ] **Delete stray D1 database `8`** (unchanged).
+- [x] ~~Delete stray D1 database `8`~~ — deleted by the owner, 2026-08-15.
 - [ ] **Confirm Nate Nguyen's and Oscar Valencia's sign-in addresses**, then
       grant — from Portal → Members after the deploy, not the console.
 - [ ] **Owner content decisions before or at deploy:** the pinned announcement
