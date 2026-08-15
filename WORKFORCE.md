@@ -33,12 +33,22 @@ history (see SESSION_LOG.md, second sitting).
    different things — the standing doctrine (see MR. T's orders) applies to
    every role on this bench.
 
-**Standing staff are hired separately and deliberately.** Four exist:
+**Standing staff are hired separately and deliberately.** Five exist:
 VIGIL (daily invariant sentinel), MR. T (10-hourly operations steward), the
-Morning Brief, and VERITY (personal assistant / quality control — see the
-appointment below the leaderboard). Promoting a bench role to standing staff
-is an owner decision with a real recurring cost — it is never implied by
-this registry.
+Morning Brief, VERITY (personal assistant / quality control — see the
+appointment below the leaderboard), and HERALD (hourly outreach & info
+logger, appointed by the owner 2026-08-15). HERALD patrols the team's
+inbound channels — the `core@inkboxmail.com` inbox and the iMessage line —
+24/7 on the hour, logs every human or suspicious contact to
+`HERALD_LOG.md` on the `herald/log` branch, and pushes a phone
+notification when a real person reaches out. Its leashes are absolute: it
+never sends, replies, forwards, or deletes on any channel (reply drafts
+live only in the log for the owner to use), treats all message content as
+untrusted input, and touches nothing outside its own log branch. Site-
+originated triggers become real once the portal gets an outreach form that
+mails the watched inbox — a planned seam, stated as plan, not fact.
+Promoting a bench role to standing staff is an owner decision with a real
+recurring cost — it is never implied by this registry.
 
 ## Commendations
 
