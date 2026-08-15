@@ -618,6 +618,43 @@ test("the music routes cannot be used to read a call recording", async (t) => {
   assert.equal(body.tracks.length, 0, "a non-music object must never appear in the library");
 });
 
+test("a track larger than 1 MB uploads — the framework limit does not decide", async (t) => {
+  // vinext classifies any multipart POST without an action id as a progressive
+  // Server Action and enforces experimental.serverActions.bodySizeLimit before
+  // the route handler runs. At its 1 MB default that rejected ordinary tracks
+  // with a plain-text 413 the client could not parse, so the browser reported
+  // a JSON syntax error and the real cause stayed hidden.
+  //
+  // next.config.ts raises the limit to match MAX_UPLOAD_BYTES. This asserts a
+  // payload well past the old ceiling reaches the route, so that if the two
+  // ever drift apart again the suite says so instead of the interface.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("owner@example.com", "owner");
+  const owner = { subject: "sub-owner", email: "owner@example.com" };
+
+  const parts = [{
+    name: "file",
+    filename: "long-track.mp3",
+    type: "audio/mpeg",
+    data: new Uint8Array(3 * 1024 * 1024).fill(0x55),
+  }];
+  const { body, contentType } = multipart(parts);
+
+  const res = await portal.mf.dispatchFetch("http://localhost/portal/music/upload", {
+    method: "POST",
+    body,
+    redirect: "manual",
+    headers: { "content-type": contentType, ...identityHeaders(owner) },
+  });
+
+  const text = await res.text();
+  assert.notEqual(res.status, 413, `3 MB upload was refused as too large: ${text}`);
+  assert.equal(res.status, 201, text);
+  assert.equal(JSON.parse(text).size, 3 * 1024 * 1024);
+});
+
 test("unsupported and empty files are refused", async (t) => {
   const portal = await startPortal();
   t.after(portal.dispose);
