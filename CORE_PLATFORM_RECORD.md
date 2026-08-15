@@ -41,7 +41,7 @@ Every allow and every deny is written to an append-only `audit_events` table.
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | GitHub repo | `bankerrunners/core-platform-site` |
 | Working branch | `claude/new-session-9a8g4o` (PR #1) |
-| Local checkout | `C:\Users\k2547\OneDrive\Desktop\Core Folder 1\core-platform-site` |
+| Local checkout | `C:\Users\k2547\OneDrive\Desktop\core-platform-site` — moved out of "Core Folder 1" on 2026-08-15; three frozen backup copies also exist under ARCHIVE, MAINBACK, and RE SUMMON — never work in those |
 
 The D1 id lives in `.openai/hosting.json`; `build/sites-vite-plugin.ts` carries
 it into `dist/server/wrangler.json` at build time, which is the config
