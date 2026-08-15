@@ -20,8 +20,8 @@ deploy-integrity hold a 1-sub grant each; allocation of a granted sub is the
 lead's own call (decentralized by owner order). Winning subs' standalone
 briefs: `SCOREBOARD/SUB-*.md`.
 
-MAIN oversight ladder: Test 1 PASSED (ceiling 50 trained lanes). Test 2
-(250) rides on the round-2 forward-build fleet.
+MAIN oversight ladder: Test 1 PASSED and Test 2 PASSED (2026-08-15) —
+ceiling 250 trained lanes, the top of the defined ladder.
 
 Standing staff (VIGIL, MR. T, HERALD, INVESTIGATOR, VERITY, Morning Brief)
 are hired separately by the owner and are NOT summonable from this
