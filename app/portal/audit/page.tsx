@@ -1,7 +1,7 @@
 import { desc } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { auditEvents } from "../../../db/schema";
-import { requireCapability } from "../access";
+import { requireFounder } from "../access";
 import { EmptyState, PortalCardHeader, PortalPageIntro, PortalShell } from "../components";
 import { readFaultCopy, readRows } from "../read-guard";
 
@@ -47,7 +47,12 @@ function summarizeDetail(detail: string | null): string {
  * including the request that rendered this page.
  */
 export default async function AuditPage() {
-  const session = await requireCapability("audit.view", "/portal/audit");
+  // Founder-only, by the owner's order (2026-08-15): the audit log answers
+  // exactly one identity — the seeded founder — regardless of role. Any
+  // other email, including a second owner, is refused and the refusal is
+  // itself audited. Identity comes from the HMAC-signed session, never a
+  // header.
+  const session = await requireFounder("/portal/audit");
 
   const { rows: events, fault } = await readRows("audit_events", () =>
     getDb()
