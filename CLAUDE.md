@@ -50,20 +50,24 @@ table.
 ## Commands
 
 ```bash
-npm run lint        # eslint
-npm run typecheck   # tsc --noEmit
-npm test            # builds, then runs both suites in Miniflare (real workerd + D1)
-npm run build       # required before deploy — bakes the D1 id into dist/
-npm run db:generate # after any change to db/schema.ts
+npm run lint         # eslint
+npm run typecheck    # tsc --noEmit
+npm test             # builds, then runs both suites in Miniflare (real workerd + D1)
+npm run build        # bakes the D1 id and the app into dist/
+npm run verify:build # preflight: is what is on disk actually deployable?
+npm run db:generate  # after any change to db/schema.ts
 ```
 
-Deploy (Windows, from the project directory — `git pull` → build → deploy, in
-that order; a deploy without a fresh build ships whatever `dist/` last held):
+Deploy (Windows, from the project directory, after `git pull`):
 
 ```powershell
-npm run build
-npx wrangler deploy -c dist/server/wrangler.json
+npm run deploy
 ```
+
+That is build → tests → preflight → `wrangler deploy`, chained so any failure
+stops it. Do not hand-roll the sequence: a deploy without a fresh build ships
+whatever `dist/` last held, and that failure is silent — it cost days once.
+`scripts/verify-build.mjs` is what now catches it.
 
 The test suite is the safety net for the access model — anonymous refusal on
 every guarded route, subject binding and conflict, identity ambiguity, suspended

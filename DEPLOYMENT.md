@@ -66,16 +66,25 @@ migration does not, so they collide. See README for the full explanation.
 
 ## Redeploying after a code change
 
-From the project directory, in this order — the build is what bakes the D1 id
-and the app code into the deploy config:
+From the project directory:
 
 ```powershell
 cd "C:\Users\k2547\OneDrive\Desktop\Core Folder 1\core-platform-site"
 git pull
 npm install
-npm run build
-npx wrangler deploy -c dist/server/wrangler.json
+npm run deploy
 ```
+
+`npm run deploy` chains build → tests → preflight → `wrangler deploy`, and any
+failure stops it before anything ships. The preflight
+(`scripts/verify-build.mjs`) is what makes gotcha 2 below impossible to hit
+silently: among other things it refuses when a source file is newer than the
+build output, or when the built config still carries the placeholder database
+id. Run it alone any time with `npm run verify:build` — it needs no network and
+no credentials.
+
+The long form still works if you need to deploy without the gate:
+`npm run build` then `npx wrangler deploy -c dist/server/wrangler.json`.
 
 Secrets survive deploys; they only need setting again if they change.
 

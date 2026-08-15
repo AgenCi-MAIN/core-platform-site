@@ -10,6 +10,8 @@
     "build": "vinext build",
     "start": "vinext start",
     "test": "npm run build && node --test tests/rendered-html.test.mjs tests/portal-authorization.test.mjs",
+    "verify:build": "node scripts/verify-build.mjs",
+    "deploy": "npm test && node scripts/verify-build.mjs && wrangler deploy -c dist/server/wrangler.json",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate"

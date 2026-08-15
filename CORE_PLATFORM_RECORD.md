@@ -259,27 +259,53 @@ migration does not, and they collide. The live database used the `db/sql/` path.
 
 ## 7. Deploying a change
 
-From the project directory, in this order. The build is what bakes the D1 id and
-the app code into the deploy config, so a deploy without a fresh build ships
-whatever `dist/` last contained.
+From the project directory:
 
 ```powershell
 cd "C:\Users\k2547\OneDrive\Desktop\Core Folder 1\core-platform-site"
 git pull
 npm install
-npm run build
-npx wrangler deploy -c dist/server/wrangler.json
+npm run deploy
 ```
 
-Secrets survive deploys; they only need setting again if they change.
+`npm run deploy` is build → 37 tests → preflight → `wrangler deploy`, chained so
+that any failure stops the deploy. It cannot ship a stale `dist/`, because the
+build always runs first and the preflight checks the result. Secrets survive
+deploys; they only need setting again if they change.
 
-### Verifying before you deploy
+### What the preflight checks, and why it exists
+
+`scripts/verify-build.mjs` runs between the tests and the deploy. It refuses if:
+
+- there is no build output, or the worker bundle is implausibly small;
+- the built config carries the placeholder database id `00000000-…`, or an id
+  that disagrees with `.openai/hosting.json`;
+- the `CALL_RECORDINGS` R2 binding or the assets directory is missing;
+- **any source file is newer than the build output** — this is the one that
+  catches trap § 9.2 directly;
+- the installable-app files (`sw.js`, `offline.html`, the icons) are not in
+  `dist/client`.
+
+It needs no network and no Cloudflare credentials, so `npm run verify:build` is
+safe to run on its own at any time to ask "is what is on disk deployable?"
+
+This exists because the silent-stale-build failure in § 9.2 cost days: `npm run
+build` failed invisibly on Windows, and every deploy afterwards reported success
+while shipping the previous version. Nothing in that loop ever said "this is
+stale". Now something does.
+
+### Running the checks individually
 
 ```powershell
-npm run lint        # eslint
-npm run typecheck   # tsc --noEmit
-npm test            # builds, then runs both suites in Miniflare (real workerd, real D1)
+npm run lint          # eslint
+npm run typecheck     # tsc --noEmit
+npm test              # builds, then runs both suites in Miniflare (real workerd, real D1)
+npm run verify:build  # preflight only, no build, no deploy
 ```
+
+To deploy without the gate — an emergency rollback, say — the long form still
+works: `npm run build` then `npx wrangler deploy -c dist/server/wrangler.json`.
+Prefer `npm run deploy`. The gate is there because this is an auth system.
 
 The test suite is the safety net for the access model. It boots the built worker
 in Miniflare with a real D1 and R2, applies the real migrations, and drives the
@@ -350,14 +376,27 @@ identity it is impersonating on every start. The role still comes from the
       Rotating signs everyone out and breaks nothing else.
 - [ ] **Delete the stray D1 database `8`**: `npx wrangler d1 delete 8`.
 - [ ] **Confirm Oscar Valencia's and Nate Nguyen's sign-in addresses**, then
-      grant them (section 5).
+      grant them. After the next deploy this no longer needs the D1 console —
+      use **Portal → Members**, which asserts `members.manage` server-side and
+      writes to the audit log under your name. Section 5 keeps the SQL for the
+      case where nobody can sign in at all.
 - [ ] **Consider a custom domain** in place of the workers.dev URL. Add the new
       `/auth/callback` URI to the Google OAuth client *before* cutting over, or
       sign-in breaks at the moment the domain changes.
-- [ ] **Wire member management into the portal UI**, so grants and revocations
-      stop requiring the D1 console. `members.manage` is already the gate; the
-      write actions were deliberately deferred.
+- [x] **Wire member management into the portal UI.** Done — `/portal/members`
+      now grants, changes roles, and changes status through
+      `/portal/members/manage`, which re-resolves the session and asserts
+      `members.manage` on every request. Three governance defaults are settled
+      in that route's header comment and each is reversible: one approver may
+      grant any role, nobody may change their own row, and the last active owner
+      cannot be demoted or suspended. Ships with the next deploy.
+- [x] **Make the portal installable on a phone.** Done — see § 10c.
 - [ ] **Merge PR #1** once the deployment is considered settled.
+- [ ] **Decide the Quoter seam.** The sidebar links out to
+      `app.insurancetoolkits.com`, which is outside this app's access model
+      entirely: revoking someone here does not revoke them there. Either label
+      it as leaving the portal, or bring it inside. This is a decision, not a
+      bug.
 
 ---
 
