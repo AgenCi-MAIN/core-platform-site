@@ -3368,3 +3368,8 @@ html[data-portal-theme="dark"] .member-note-ok {
 .member-apply:hover:not(:disabled) { background: var(--portal-accent); color: #fff; }
 .member-apply:disabled { opacity: .55; cursor: default; }
 @media (pointer: coarse) { .member-apply { min-height: 44px; } }
+
+/* Deck icons are SVG (emoji ignored CSS colour and rendered iOS-blue on a
+   dark page). Block display kills the baseline gap; pointer-events lets the
+   button, not the drawing, take the tap. */
+.audio-deck-button svg { display: block; pointer-events: none; }

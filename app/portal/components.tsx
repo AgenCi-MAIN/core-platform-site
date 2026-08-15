@@ -1,4 +1,5 @@
 import { signOutPath } from "../google-auth";
+import Link from "next/link";
 import { ROLE_LABELS, can, type Capability, type PortalSession } from "./access";
 import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
@@ -202,6 +203,18 @@ export function PortalShell({
         aria-label="Toggle portal navigation"
       />
 
+      {/* Nav links are client-side now, so tapping one no longer reloads the
+          page — which also means the mobile drawer no longer closes itself.
+          One delegated listener closes it on any link tap inside it. Inline
+          for the same reason as PortalThemeBoot: no props, no state, no
+          hydration boundary worth shipping. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html:
+            '(function(){if(window.__thriveDrawerClose)return;window.__thriveDrawerClose=1;document.addEventListener("click",function(e){var t=e.target instanceof Element?e.target:null;if(!t)return;var p=t.closest("#portal-mobile-navigation");if(p&&t.closest("a")&&typeof p.hidePopover==="function"){p.hidePopover()}})})();',
+        }}
+      />
+
       <aside className="portal-sidebar portal-sidebar-desktop" aria-label="THRIVE portal sidebar">
         <PortalSidebarContent session={session} current={current} visible={visible} />
       </aside>
@@ -284,13 +297,13 @@ function PortalSidebarContent({
   return (
     <>
       <div className="portal-sidebar-head">
-        <a className="portal-brand" href="/portal" aria-label="THRIVE portal dashboard">
+        <Link className="portal-brand" href="/portal" aria-label="THRIVE portal dashboard">
           <span className="portal-brand-mark" aria-hidden="true">T</span>
           <span className="portal-brand-copy">
             <strong>THRIVE</strong>
             <small>Operating portal</small>
           </span>
-        </a>
+        </Link>
         <span className="portal-brand-kicker">Protected workspace</span>
       </div>
 
@@ -302,22 +315,39 @@ function PortalSidebarContent({
           return (
             <div className="portal-nav-group" key={group}>
               <p className="portal-nav-group-label">{group}</p>
-              {groupItems.map((item) => (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  aria-current={item.href === current ? "page" : undefined}
-                  title={item.external ? `${item.label} — opens in a new tab` : item.label}
-                  {...(item.external
-                    ? { target: "_blank", rel: "noopener noreferrer" }
-                    : {})}
-                >
-                  <span className="portal-nav-icon" aria-hidden="true">
-                    <PortalNavMark name={item.icon} />
-                  </span>
-                  <span className="portal-nav-label">{item.label}</span>
-                </a>
-              ))}
+              {/* Internal links navigate client-side ON PURPOSE. A plain
+                  <a> is a full page load, which tears down the portal layout
+                  — and the audio deck inside it, killing the radio on every
+                  page switch. <Link> keeps the layout (and the playing
+                  <audio> element) alive across navigations. */}
+              {groupItems.map((item) =>
+                item.external ? (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    title={`${item.label} — opens in a new tab`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span className="portal-nav-icon" aria-hidden="true">
+                      <PortalNavMark name={item.icon} />
+                    </span>
+                    <span className="portal-nav-label">{item.label}</span>
+                  </a>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={item.href === current ? "page" : undefined}
+                    title={item.label}
+                  >
+                    <span className="portal-nav-icon" aria-hidden="true">
+                      <PortalNavMark name={item.icon} />
+                    </span>
+                    <span className="portal-nav-label">{item.label}</span>
+                  </Link>
+                ),
+              )}
             </div>
           );
         })}
@@ -336,6 +366,9 @@ function PortalSidebarContent({
           <strong>{session.displayName}</strong>
           <small>{ROLE_LABELS[session.role]}</small>
         </span>
+        {/* Deliberately a plain <a>, never <Link>: Link may prefetch its
+            target, and prefetching /auth/signout would sign the member out
+            for merely rendering the sidebar. */}
         <a className="portal-signout" href={signOutPath("/")} title="Sign out">
           <span className="portal-nav-icon" aria-hidden="true">
             <PortalNavMark name="signout" />
@@ -433,26 +466,40 @@ export function PortalWorkspaceDirectory({ session }: { session: PortalSession }
 
   return (
     <div className="portal-workspace-list">
-      {visible.map((item) => (
-        <a
-          className="portal-workspace-item"
-          href={item.href}
-          key={item.href}
-          {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-        >
-          <span className="portal-workspace-symbol" aria-hidden="true">
-            <PortalNavMark name={item.icon} />
-          </span>
-          <span className="portal-workspace-copy">
-            <strong>{item.label}</strong>
-            <small>{item.description}</small>
-          </span>
-          <span className="portal-workspace-meta">
-            <span className={`portal-state portal-state-${item.state}`}>{item.stateLabel}</span>
-            <span className="portal-workspace-action" aria-hidden="true">→</span>
-          </span>
-        </a>
-      ))}
+      {visible.map((item) => {
+        const body = (
+          <>
+            <span className="portal-workspace-symbol" aria-hidden="true">
+              <PortalNavMark name={item.icon} />
+            </span>
+            <span className="portal-workspace-copy">
+              <strong>{item.label}</strong>
+              <small>{item.description}</small>
+            </span>
+            <span className="portal-workspace-meta">
+              <span className={`portal-state portal-state-${item.state}`}>{item.stateLabel}</span>
+              <span className="portal-workspace-action" aria-hidden="true">→</span>
+            </span>
+          </>
+        );
+        // Same client-side rule as the sidebar, for the same reason: the
+        // radio must survive the navigation.
+        return item.external ? (
+          <a
+            className="portal-workspace-item"
+            href={item.href}
+            key={item.href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {body}
+          </a>
+        ) : (
+          <Link className="portal-workspace-item" href={item.href} key={item.href}>
+            {body}
+          </Link>
+        );
+      })}
     </div>
   );
 }
