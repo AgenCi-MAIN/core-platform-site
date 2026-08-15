@@ -3070,3 +3070,49 @@ html[data-portal-theme="dark"] .pay-rank-net.is-good { color: #79dfad; }
 
 .member-table select { min-width: 132px; }
 .member-table select:disabled { opacity: .5; cursor: not-allowed; background: var(--portal-soft); }
+
+/* ============================================================
+   INSTALLED-APP SAFE AREAS
+   ------------------------------------------------------------
+   `viewportFit: "cover"` (app/layout.tsx) lets the page paint edge to edge,
+   which is what makes an installed copy look like an app rather than a page
+   in a box. The cost is that the notch, the rounded corners, and the home
+   indicator now sit on top of the layout instead of beside it, so every
+   surface that touches an edge has to say how far in its content starts.
+
+   `env()` resolves to 0 everywhere that has no inset — desktop, Android
+   without gesture bars, any browser tab — so these rules change nothing off
+   an installed phone.
+
+   Left and right are handled once on the outermost container rather than per
+   surface. Every element that touches a side edge already has its padding
+   re-tuned by the narrow-viewport rules above, and a blanket override down
+   here would win on precisely the screens that have insets — quietly undoing
+   the mobile spacing it was meant to protect. Top and bottom have no such
+   overrides, so those are added where they belong.
+   ============================================================ */
+
+.portal-shell,
+.site-page {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Sticky under the status bar in a standalone window, so the bar's contents
+   would otherwise sit on top of the section name and the account menu. */
+.portal-topbar { padding-top: calc(8px + env(safe-area-inset-top)); }
+.site-topbar { padding-top: calc(11px + env(safe-area-inset-top)); }
+
+/* Full-height and scrolled independently, so both ends need clearing. */
+.portal-sidebar {
+  padding-top: calc(14px + env(safe-area-inset-top));
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* Margin, not padding: the narrow-viewport rules above set this element's
+   padding and must keep it. */
+.portal-main { margin-bottom: env(safe-area-inset-bottom); }
+
+/* Sticky above the home indicator; without this the deck's controls sit
+   underneath it and the swipe gesture wins every tap. */
+.audio-deck { margin-bottom: env(safe-area-inset-bottom); }

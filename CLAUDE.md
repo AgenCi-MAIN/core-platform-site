@@ -33,6 +33,12 @@ table.
 - **Never put secret values in files, commits, comments, or chat.** Only secret
   *names*. The three that must exist are `GOOGLE_CLIENT_ID`,
   `GOOGLE_CLIENT_SECRET`, and `SESSION_SECRET`.
+- **The service worker must never cache `/portal` or `/auth`.** `public/sw.js`
+  caches content-hashed assets and a few root files, and passes everything else
+  straight to the network. A cached portal page answers without re-resolving the
+  session or the member's row, which is the one way an installed phone can keep
+  serving a suspended member. A test pins the exclusions and the cache-write
+  count.
 - **Capabilities are deny-by-default.** A role holds exactly what
   `ROLE_CAPABILITIES` lists. Adding one is a governance decision, not a
   convenience fix — guard pages with `requireCapability`, writes with

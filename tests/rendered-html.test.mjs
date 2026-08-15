@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { registerHooks } from "node:module";
 import test from "node:test";
 
@@ -235,4 +236,85 @@ test("public surfaces carry no member or audit data", async () => {
       );
     }
   }
+});
+
+/* ============================================================
+   Installable app (PWA)
+   ============================================================ */
+
+test("serves a web app manifest that installs to the portal", async () => {
+  const response = await fetchPath("/manifest.webmanifest", { accept: "*/*" });
+  assert.equal(response.status, 200);
+  assert.match(
+    response.headers.get("content-type") ?? "",
+    /application\/manifest\+json/i,
+    "a manifest served as anything else is ignored by the installer",
+  );
+
+  const manifest = JSON.parse(await response.text());
+  assert.equal(manifest.start_url, "/portal");
+  assert.equal(manifest.display, "standalone");
+  assert.equal(manifest.id, "/portal");
+
+  // Android's installer refuses without a 192 and a 512, and crops the icon to
+  // the launcher's shape unless a maskable one exists.
+  const sizes = manifest.icons.map((icon) => icon.sizes);
+  assert.ok(sizes.includes("192x192"), "no 192px icon — Android will not install");
+  assert.ok(sizes.includes("512x512"), "no 512px icon — Android will not install");
+  assert.ok(
+    manifest.icons.some((icon) => icon.purpose === "maskable"),
+    "no maskable icon — the mark gets clipped by the launcher mask",
+  );
+});
+
+test("the installable shell is declared in the document head", async () => {
+  const html = await (await render()).text();
+  assert.match(html, /rel="manifest"/, "no manifest link — nothing is installable");
+  assert.match(
+    html,
+    /rel="apple-touch-icon"[^>]*apple-touch-icon\.png/,
+    "iOS ignores the SVG icon and screenshots the page instead",
+  );
+  assert.match(
+    html,
+    /name="apple-mobile-web-app-capable"/,
+    "iOS before 16.4 will not launch standalone without the apple- prefixed name",
+  );
+  assert.match(html, /name="theme-color"/);
+  // Pinned because viewport-fit rides on the `width` field — see app/layout.tsx.
+  // Exactly one viewport meta, and it must carry the directive.
+  const viewports = html.match(/<meta name="viewport"[^>]*>/g) ?? [];
+  assert.equal(viewports.length, 1, "duplicate viewport meta tags");
+  assert.match(viewports[0], /width=device-width/);
+  assert.match(viewports[0], /viewport-fit=cover/);
+  assert.match(html, /serviceWorker/, "the service worker is never registered");
+});
+
+test("the service worker never caches an authenticated response", async () => {
+  // The whole access model is server-side. A cached /portal page would answer
+  // without re-resolving the session cookie or the member's row, so a signed-out
+  // or suspended device would keep serving whatever it last saw. This asserts
+  // the source of that guarantee rather than its effect, because a service
+  // worker cannot be exercised from Node.
+  const source = await readFile(new URL("../public/sw.js", import.meta.url), "utf8");
+
+  assert.match(
+    source,
+    /url\.pathname === "\/portal" \|\| url\.pathname\.startsWith\("\/portal\/"\)/,
+    "the /portal exclusion is gone — authenticated pages are now cacheable",
+  );
+  assert.match(
+    source,
+    /url\.pathname\.startsWith\("\/auth\/"\)/,
+    "the /auth exclusion is gone — sign-in and callback responses are cacheable",
+  );
+  assert.match(
+    source,
+    /request\.method !== "GET"/,
+    "non-GET requests are no longer passed straight through",
+  );
+
+  // Only these two caches may exist, and only these two rules may write to one.
+  const writes = source.match(/cache\.put\(/g) ?? [];
+  assert.equal(writes.length, 2, "a new cache write appeared — check what it stores");
 });

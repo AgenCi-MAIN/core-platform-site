@@ -407,6 +407,57 @@ them: state what runs today as fact, label what is planned as planned, and say
 out loud what the technology cannot do. A board that finds overstatement on its
 own stops believing the accurate parts too.
 
+## 10c. Installing the portal on a phone (PWA)
+
+The portal is installable. On iOS: Safari → Share → **Add to Home Screen**. On
+Android: Chrome offers **Install app** on its own. It opens without browser
+chrome, keeps its own icon, and starts at `/portal`.
+
+This is not a second application. There is no App Store listing, no Apple
+developer account, no separate codebase, and nothing to review before a change
+reaches a member's phone — an installed copy is the same site in a standalone
+window, and it picks up every deploy. It is also why building it was a day
+rather than the two to four months a native iOS app would have been.
+
+**Installing grants nothing.** The installed shell is a browser sending the same
+`core_session` cookie to the same guarded routes, and every one of them
+re-resolves identity and membership server-side. A visitor with no membership
+row who installs it lands on `/access`, exactly as they would in a tab.
+
+The service worker is the part worth reading before changing. `public/sw.js`
+caches content-hashed build assets and a handful of root files, and **nothing
+else** — no navigation, and nothing under `/portal` or `/auth`. That exclusion
+is load-bearing, not a performance trade-off: a cached portal page would answer
+without re-checking the session, so a suspended member's phone would keep
+serving them the book of business and a signed-out device would keep showing
+whatever it last saw. Anything the worker does not recognise is passed to the
+network untouched. A test asserts the exclusions and the number of cache writes,
+so adding one fails the suite rather than a member's device.
+
+When the network is gone, a navigation gets `public/offline.html` — a static
+page that shows nothing about anyone.
+
+| Path | What |
+| --- | --- |
+| `app/manifest.ts` | Web app manifest → `/manifest.webmanifest` |
+| `public/sw.js` | Service worker — asset cache only, never `/portal` |
+| `public/offline.html` | Offline fallback for navigations |
+| `app/service-worker-boot.tsx` | Registration script, deferred to `load` |
+| `public/icon-*.png`, `public/apple-touch-icon.png` | Install icons |
+
+The icons were rasterised from `public/favicon.svg` by a script in the session
+scratchpad, not by hand: the container had no imaging library, so it wrote the
+PNGs with `zlib` and `struct` directly. To change the mark, edit the SVG and
+re-render at 192, 512, maskable 512 (full-bleed, mark inside the safe circle),
+and 180 for iOS.
+
+Two things about this stack are worth knowing before touching the head tags.
+vinext's viewport renderer has no `viewportFit` case, so that directive rides on
+the `width` field in `app/layout.tsx`; and its `appleWebApp.capable` emits only
+the modern `mobile-web-app-capable` name, which Safari does not read — the
+`apple-` prefixed one is added through `other`. Both are commented at the point
+of use and pinned by tests.
+
 ## 11. Where things are
 
 | Path | What |
@@ -417,6 +468,7 @@ own stops believing the accurate parts too.
 | `app/portal/access.ts` | Authorization: capabilities, roles, resolution, audit |
 | `app/google-auth.ts`, `app/auth/*` | Sign in with Google |
 | `db/schema.ts`, `db/sql/`, `drizzle/` | Data model and migrations |
+| `app/manifest.ts`, `public/sw.js`, `public/offline.html` | Installable-app layer — see § 10c |
 | `tests/` | Access-model test suites (Node test runner + Miniflare) |
 | `scripts/dev-signin.mjs` | Local sign-in shim, development only |
 | `.openai/hosting.json` | Binding declarations and the real D1 id |
