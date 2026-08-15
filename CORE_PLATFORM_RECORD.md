@@ -149,7 +149,12 @@ Capabilities are enforced server-side, not merely hidden in the interface.
 | `leadership.view.all` | ✅ | ✅ | ✅ | — | — | — |
 | `members.view` | ✅ | ✅ | ✅ | — | — | — |
 | `members.manage` | ✅ | ✅ | — | — | — | — |
-| `audit.view` | ✅ | ✅ | — | — | — | — |
+| `pet.chat` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+`audit.view` is granted to **no role**: the audit log and the INVESTIGATOR
+console are founder-only, gated by identity (`requireFounder`), not by
+capability — see the governance note in § 5. The name survives only as the
+audit-row action for those pages' own allow/deny records.
 
 Guard a page with `requireCapability(...)`; guard a write with
 `assertCapability(...)`. Never import `app/portal/access.ts` from a
