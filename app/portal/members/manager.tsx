@@ -189,6 +189,10 @@ export function MemberControls({
           <tbody>
             {members.map((m) => {
               const isSelf = m.email === selfEmail;
+              // Owner rows are peer-protected — the route refuses these
+              // changes regardless, the disabled control just says so up
+              // front. See /portal/members/manage governance note 4.
+              const locked = isSelf || m.role === "owner";
               return (
                 <tr key={m.email}>
                   <td>
@@ -202,7 +206,7 @@ export function MemberControls({
                     <select
                       aria-label={`Role for ${m.email}`}
                       value={pick(`role:${m.email}`, m.role)}
-                      disabled={isSelf}
+                      disabled={locked}
                       onChange={(e) => choose(`role:${m.email}`, e.target.value)}
                     >
                       {ROLES.map((r) => (
@@ -241,7 +245,7 @@ export function MemberControls({
                     <select
                       aria-label={`Status for ${m.email}`}
                       value={pick(`status:${m.email}`, m.status)}
-                      disabled={isSelf}
+                      disabled={locked}
                       onChange={(e) => choose(`status:${m.email}`, e.target.value)}
                     >
                       {STATUSES.map((s) => (
@@ -290,9 +294,10 @@ export function MemberControls({
       </div>
 
       <p className="portal-fine">
-        Your own row is fixed here: nobody changes their own role or status, and
-        the last active owner cannot be demoted or suspended. Every change is
-        written to the audit log under your name.
+        Your own row is fixed here, and so is every owner&apos;s: nobody changes
+        their own role or status, and owner rows cannot be changed from the
+        portal at all — changing an owner is a database-console operation.
+        Every change is written to the audit log under your name.
       </p>
     </div>
   );

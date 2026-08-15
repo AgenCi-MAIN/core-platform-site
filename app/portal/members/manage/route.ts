@@ -1,4 +1,4 @@
-import { and, eq, ne, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { getDb } from "../../../../db";
 import {
   MEMBER_STATUSES,
@@ -40,11 +40,17 @@ export const dynamic = "force-dynamic";
  *      enforced here. It prevents self-promotion, and it prevents the more
  *      common accident of an owner revoking themselves.
  *
- *   3. THE LAST ACTIVE OWNER IS PROTECTED. The final active owner cannot be
- *      demoted, suspended, or revoked. Without this the portal can be locked
- *      permanently by one wrong click, recoverable only through direct database
- *      access — which is precisely the dependency this interface exists to
- *      remove.
+ *   3. OWNER ROWS ARE PEER-PROTECTED. Nobody — another owner and an
+ *      administrator alike — changes an owner's role or status through this
+ *      route. With several active owners, any one of them could otherwise
+ *      suspend the rest and hold the portal alone. Changing an owner is
+ *      deliberately pushed down to the D1 console (CORE_PLATFORM_RECORD.md
+ *      § 5), where only the person operating the infrastructure can act.
+ *      Set by the owner, 2026-08-15. This subsumes the earlier, narrower
+ *      rule ("the last active owner cannot be demoted or suspended"): no
+ *      owner can be demoted or suspended here, so the portal cannot be left
+ *      ownerless through this route. If this rule is ever relaxed, the
+ *      last-active-owner floor must be reinstated in the same commit.
  *
  * Every outcome, allowed or refused, is written to the audit log.
  */
@@ -136,33 +142,6 @@ export async function POST(request: Request) {
     );
   }
 
-  /**
-   * Would this change leave the portal with no active owner? Counts owners
-   * other than the target, so it answers "is this the last one" directly.
-   *
-   * KNOWN WINDOW: the count and the write are separate statements, so two
-   * administrators demoting two different owners in the same instant could
-   * each see the other still standing and both succeed. It needs simultaneous
-   * action by two people on a roster of a handful, and it is recoverable —
-   * an owner row can be restored from the D1 console with the SQL in
-   * CORE_PLATFORM_RECORD.md § 5. Closing it properly means a conditional
-   * UPDATE or a transaction; worth doing if this roster ever grows to the
-   * point where two administrators plausibly act at once.
-   */
-  async function wouldStrandThePortal(targetEmail: string): Promise<boolean> {
-    const [row] = await db
-      .select({ n: sql<number>`count(*)` })
-      .from(portalMembers)
-      .where(
-        and(
-          eq(portalMembers.role, "owner"),
-          eq(portalMembers.status, "active"),
-          ne(portalMembers.email, targetEmail),
-        ),
-      );
-    return (row?.n ?? 0) === 0;
-  }
-
   const now = new Date().toISOString();
 
   /* ---------------------------- grant ---------------------------- */
@@ -222,6 +201,25 @@ export async function POST(request: Request) {
 
   if (!member) return bad("No membership record for that address.", 404);
 
+  // Owner rows are peer-protected: refused before any other consideration,
+  // for role and status alike. See governance note 4.
+  if (member.role === "owner") {
+    await recordAudit({
+      action: `members.${action}_change`,
+      decision: "deny",
+      reason: "owner_peer_protected",
+      actorEmail: session.email,
+      actorSubjectId: session.subjectId,
+      actorRole: session.role,
+      resource: `member:${email}`,
+      requestPath: path,
+    });
+    return bad(
+      "Owner rows cannot be changed from the portal. Changing an owner is a database-console operation.",
+      409,
+    );
+  }
+
   if (action === "role") {
     const role = payload.role;
     if (typeof role !== "string" || !isPortalRole(role)) {
@@ -229,28 +227,6 @@ export async function POST(request: Request) {
     }
     if (role === member.role) {
       return bad(`That member already holds ${role}.`);
-    }
-
-    if (
-      member.role === "owner" &&
-      member.status === "active" &&
-      role !== "owner" &&
-      (await wouldStrandThePortal(email))
-    ) {
-      await recordAudit({
-        action: "members.role_change",
-        decision: "deny",
-        reason: "last_active_owner_protected",
-        actorEmail: session.email,
-        actorSubjectId: session.subjectId,
-        actorRole: session.role,
-        resource: `member:${email}`,
-        requestPath: path,
-      });
-      return bad(
-        "This is the last active owner. Grant owner to someone else before changing this one.",
-        409,
-      );
     }
 
     await db
@@ -282,28 +258,6 @@ export async function POST(request: Request) {
   }
   if (status === member.status) {
     return bad(`That member is already ${status}.`);
-  }
-
-  if (
-    member.role === "owner" &&
-    member.status === "active" &&
-    status !== "active" &&
-    (await wouldStrandThePortal(email))
-  ) {
-    await recordAudit({
-      action: "members.status_change",
-      decision: "deny",
-      reason: "last_active_owner_protected",
-      actorEmail: session.email,
-      actorSubjectId: session.subjectId,
-      actorRole: session.role,
-      resource: `member:${email}`,
-      requestPath: path,
-    });
-    return bad(
-      "This is the last active owner. Grant owner to someone else before suspending or revoking this one.",
-      409,
-    );
   }
 
   const note = text(payload.note, 400);

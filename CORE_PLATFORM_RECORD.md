@@ -148,11 +148,19 @@ Guard a page with `requireCapability(...)`; guard a write with
 | --- | --- | --- | --- |
 | `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) | owner | bootstrap, 2026-08-14 |
 | `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | by Shawn, 2026-08-14 |
+| `epiclife.nguyen@gmail.com` | Nate Nguyen | owner | by Shawn, from the portal, confirmed on the live roster 2026-08-15 |
 
-Pending: **Oscar Valencia** and **Nate Nguyen** are named as owners in the
-agreement record, but their sign-in addresses were never confirmed. Confirm the
-exact Google address each one signs in with before granting — seeding a wrong
-address grants nothing and looks like a broken portal.
+Pending: **Oscar Valencia** is named as an owner in the agreement record, but
+his sign-in address was never confirmed. Confirm the exact Google address he
+signs in with before granting — seeding a wrong address grants nothing and
+looks like a broken portal.
+
+**Owner rows are peer-protected (governance, set by Shawn 2026-08-15).** No
+owner or administrator can change another owner's role or status from the
+portal — `/portal/members/manage` refuses with `owner_peer_protected` and the
+refusal is audited. Changing or removing an owner is a D1-console operation
+only (the SQL below). This subsumes the earlier last-active-owner rule: no
+owner can be demoted or suspended through the route at all.
 
 ### How membership actually works
 
@@ -385,11 +393,10 @@ identity it is impersonating on every start. The role still comes from the
       disclosed to anyone (which is the correct way to do it). All prior
       session cookies are invalid; one fresh Google sign-in per member.
 - [x] ~~Delete the stray D1 database `8`~~ — deleted by the owner, 2026-08-15.
-- [ ] **Confirm Oscar Valencia's and Nate Nguyen's sign-in addresses**, then
-      grant them. After the next deploy this no longer needs the D1 console —
-      use **Portal → Members**, which asserts `members.manage` server-side and
-      writes to the audit log under your name. Section 5 keeps the SQL for the
-      case where nobody can sign in at all.
+- [ ] **Confirm Oscar Valencia's sign-in address**, then grant him from
+      **Portal → Members**. ~~Nate Nguyen~~ — granted by Shawn from the portal
+      as `epiclife.nguyen@gmail.com`, confirmed on the live roster 2026-08-15.
+      Section 5 keeps the SQL for the case where nobody can sign in at all.
 - [ ] **Consider a custom domain** in place of the workers.dev URL. Add the new
       `/auth/callback` URI to the Google OAuth client *before* cutting over, or
       sign-in breaks at the moment the domain changes.
@@ -398,8 +405,10 @@ identity it is impersonating on every start. The role still comes from the
       `/portal/members/manage`, which re-resolves the session and asserts
       `members.manage` on every request. Three governance defaults are settled
       in that route's header comment and each is reversible: one approver may
-      grant any role, nobody may change their own row, and the last active owner
-      cannot be demoted or suspended. Ships with the next deploy.
+      grant any role, nobody may change their own row, and owner rows are
+      peer-protected — no owner or administrator changes another owner from
+      the portal (set by Shawn 2026-08-15, superseding the last-active-owner
+      rule). Ships with the next deploy.
 - [x] **Make the portal installable on a phone.** Done — see § 10c.
 - [ ] **Merge PR #1** once the deployment is considered settled.
 - [ ] **Decide the Quoter seam.** The sidebar links out to
