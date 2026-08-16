@@ -1,4 +1,4 @@
-# SCOREBOARD — Fleet Economy, tournaments 1 & 2 (2026-08-15)
+# SCOREBOARD — Fleet Economy, tournaments 1–3 (updated 2026-08-16)
 
 Final standings by **confirmed production per token**, the only currency this
 board recognizes. Funded by Yuxiang Mao (Shawn), owner. Administered by
@@ -48,6 +48,12 @@ next time.*
   ranked findings, platform security-clean, 2 sub grants earned.
 - Tournament 2 (`forward-build-fleet`): 13 agents, ~1.21M tokens, 12-item
   ranked build docket, 5 ready-to-build, 0 new grants (bar held).
+- Tournament 3 (`leadtech-plug-fleet`, 2026-08-16): 11 agents, 10 delivered
+  (adversary lane crashed — re-attempted from the subs' pool), ~955K tokens
+  — under both prior rounds for a harder product class (a working LeadTech
+  ingest socket). Verdict apply-with-fixes; MAIN's step-zero check caught a
+  dead route path before any apply. Inverted judgment: the O.G. 10 render
+  the efficiency verdict on MAIN. Full record in WORKFORCE.md.
 - Fix batch shipped from docket ranks 1–4: cap fix, consent audit + guard,
   verify-build watch, 4 new negative tests, doc truth restoration.
   Suite: **46/46 green.**
