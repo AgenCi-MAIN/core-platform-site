@@ -392,6 +392,52 @@ lane's schema was too heavy and blew its retry cap — a briefing flaw that is
 MAIN's, not the sub's. Apply is HELD pending the adversary re-run, the route
 relocation, and the owner/counsel go-live gates.
 
+## PERMANENT POSITIONS — the eight seats (owner order, 2026-08-16)
+
+"FIRE THEM UP, PERMA PROMOTION — POSITIONS AVAILABLE 8." The owner has
+promoted the finalized first team from **bench roles** to **permanent
+positions**. This is the governance act the registry reserves to the owner
+alone; it is recorded here as law.
+
+**What PERMANENT means (rights).**
+1. **A guaranteed seat.** A permanent lane is fielded by default in every
+   qualifying fleet in its domain — it does not re-compete for the right to
+   exist, only for grants.
+2. **Inherited record.** Its service history, proven brief, and code manifest
+   carry forward; a fresh summons of the seat starts from the proven brief in
+   `W-SUBS/`, never from scratch.
+3. **First call on the savings pool** after the champion subs.
+4. **Standing to be woken by PERSONA on cause**, and to be summoned by name
+   by the owner or MAIN at any hour.
+
+**What PERMANENT does NOT mean (honesty, load-bearing).** It is not a running
+process and not a salary. A permanent seat still costs nothing until summoned
+— the bench economics are unchanged. Permanence is *tenure and precedence*,
+not idle spend. Any lane that stops producing can still be cut by the owner;
+tenure raises the bar for removal, it does not abolish it.
+
+**Activation policy per seat.** A scheduled agent with nothing to review is
+spend without product (the VERITY rule) — so each seat is activated on the
+trigger that actually produces, not on a uniform clock:
+
+| # | Seat | Activation |
+|---|---|---|
+| 1 | presence-probe 🏆 | On any change to the Presence route/widget, and per-fleet |
+| 2 | deploy-integrity 🏆 | Before any deploy or release; on build-chain changes |
+| 3 | doc-drift | Weekly, and after any governance change (paired with PERSONA's registry patrol) |
+| 4 | test-gaps | On any change to guarded routes, capabilities, or the suite |
+| 5 | data-model | On any schema/migration change; before any new data source connects |
+| 6 | compliance-posture | Before any outbound/telephony step; on consent or recording changes |
+| 7 | frontend-pwa | On UI/CSS/service-worker changes |
+| 8 | authz-matrix | On any access-control change, and as a standing pre-merge sentinel |
+
+Standing staff on clocks (HERALD, PERSONA, MAILKEEPER, INVESTIGATOR, VIGIL,
+MR. T steward, the Morning Brief) are unchanged and separate from these eight.
+
+**Leashes unchanged.** Permanence grants no new authority: these seats still
+propose and never dispose — no merges, deploys, membership changes, spending,
+or governance decisions. Every binding rule above remains senior to tenure.
+
 ## The bench
 
 | ID | Agent | Domain | Primary Scope |

@@ -21,7 +21,14 @@ Funded and owned by Yuxiang Mao (Shawn), `bankerrunners@gmail.com`.
 | Morning Brief | Daily |
 | MAILKEEPER | Daily Gmail inbox keeper (appointed "can you take over", 2026-08-15) — labels/archives by the standing taxonomy, stars and reports anomalies; never deletes, never sends, never fixes money or account security (flag-only) |
 
-## The O.G. squad — first team, ranked (earned their spots)
+## The O.G. squad — first team, ranked — **PERMANENT POSITIONS (owner order, 2026-08-16)**
+
+All eight seats promoted from bench roles to permanent positions: guaranteed
+seat in their domain's fleets, inherited service record, first call on the
+savings pool after the champion subs, and summonable by name at any hour.
+Permanence is tenure and precedence — not a running process and not a salary;
+a permanent seat still costs nothing until summoned. Activation is per-seat
+by trigger (see WORKFORCE.md "PERMANENT POSITIONS"), not a uniform clock.
 
 | Rank | Lane | Standing |
 |---|---|---|
