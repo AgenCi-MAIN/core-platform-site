@@ -169,7 +169,7 @@ Guard a page with `requireCapability(...)`; guard a write with
 | `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) | owner | bootstrap, 2026-08-14 |
 | `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | by Shawn, 2026-08-14 |
 | `epiclife.nguyen@gmail.com` | Nate Nguyen | owner | by Shawn, from the portal, confirmed on the live roster 2026-08-15 |
-| `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | owner | approved by Shawn 2026-08-15 ("shawn-aprooved"); PENDING — grant not yet executed in the portal |
+| `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | owner | approved by Shawn 2026-08-15 ("shawn-aprooved"); granted from the portal 2026-08-15, first sign-in bound 2026-08-16 — LIVE (roster screenshot verified by the owner) |
 
 Pending: **Oscar Valencia** is named as an owner in the agreement record, but
 his sign-in address was never confirmed. Confirm the exact Google address he

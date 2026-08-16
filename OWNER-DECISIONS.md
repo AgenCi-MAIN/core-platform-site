@@ -20,7 +20,7 @@ an action) · 🔵 OPEN (still the owner's to decide)
 | A4 | `pet.chat` granted to all six roles (the Presence isolation contract) | ✅ |
 | A5 | Proton aliases are **not** identities — none sign in, never grant an alias a member row; sole founder identity is the Gmail address | ✅ |
 | A6 | Ryan Davidson + Nate Nguyen seated as owners | ✅ |
-| A7 | **Andrew Davidson** (`andrew.davidson.zenith@gmail.com`) approved as owner | ⏳ awaiting the portal grant |
+| A7 | **Andrew Davidson** (`andrew.davidson.zenith@gmail.com`) approved as owner | ✅ granted from the portal 2026-08-15; signed in and bound 2026-08-16 (roster verified by the owner) |
 | A8 | Oscar Valencia — named as owner, no grant until his exact sign-in address is confirmed | 🔵 |
 
 ## B. The AI staff
@@ -95,8 +95,7 @@ an action) · 🔵 OPEN (still the owner's to decide)
 
 ## What still needs the owner (the short list)
 
-1. **Andrew's portal grant** — 2 minutes in Members (A7)
-2. **Inkbox $30 upgrade** — unlocks the staff phone number (D3, D4)
+1. **Inkbox $30 upgrade** — unlocks the staff phone number (D3, D4)
 3. **`PRESENCE_MODEL`** — one word for the ~5× cost cut (C4)
 4. **Counsel on the consent line**, then the socket greenlight (E7)
 5. **Carrier statements + LeadTech CPL data** — the pilot's entry ticket (E3)
