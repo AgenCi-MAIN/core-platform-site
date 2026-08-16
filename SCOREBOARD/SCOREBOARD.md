@@ -79,3 +79,10 @@ next time.*
   **B18** — the *Codex-project-first* entry gate in WORKFORCE.md
   (context-loading rule for local workers; grants nothing). Suite after
   merge: **50/50 green**, verified by a full run in-session.
+- **DEPLOYED (2026-08-16, by the owner from `C:\dev`):** live version
+  `877e0c99` — ships the HIGH open-redirect fix, the six sweep fixes,
+  and the call-review surface. First attempt hit a transient Cloudflare
+  10013 at asset upload; retry succeeded. The 50-test suite (incl. the
+  open-redirect regression) ran inside the deploy chain. External probe
+  of the live route now returns 403 for anonymous callers — Cloudflare
+  Access fronts the workers.dev domain, so edge auth sits before the app.
