@@ -1,165 +1,218 @@
-# vinext-starter
+# CORE-J.A.R.V.I.S 2.0.0 — THRIVE Agency Operating Portal
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+A permissioned operating portal for the THRIVE agency, deployed as a single
+Cloudflare Worker with a D1 database and R2 storage via
+[Vinext](https://github.com/cloudflare/vinext).
+
+**Architecture and governance reference:** [GRANDPLAN.md](GRANDPLAN.md)  
+**Operating record (live URLs, database IDs, deploy history):** [CORE_PLATFORM_RECORD.md](CORE_PLATFORM_RECORD.md)
+
+---
+
+## What this is
+
+The public site at `/` and `/tour` is open to anyone. Everything under
+`/portal` is closed by default and opens only to people who hold an active
+membership row at the role that row carries. Two independent checks run on
+every request:
+
+1. **Identity** — Sign in with Google proves who the visitor is.
+2. **Membership** — an active `portal_members` row in D1 proves they belong to
+   CORE and fixes their role.
+
+Identity alone grants nothing. The portal fails closed: if the database is
+unreachable or unmigrated, access is refused rather than assumed. Every allow
+and every deny is written to an append-only `audit_events` table.
+
+---
+
+## Architecture
+
+```
+Browser
+  │
+  ├── /          Public overview (THRIVE model, five ranks)
+  ├── /tour      Onboarding tour
+  ├── /access    Public sign-in intake (never looks up membership — by design)
+  ├── /auth/**   OAuth 2.0 + PKCE flow with Google
+  │
+  └── /portal/** Closed — requires identity + active membership
+        ├── identity:   HMAC-SHA256 signed cookie (SESSION_SECRET)
+        └── membership: D1 portal_members row (role + status)
+
+Cloudflare D1
+  ├── portal_members   allowlist, role, subject binding
+  ├── audit_events     append-only access log
+  └── dialer_transfers call metadata (recording bytes live in R2)
+
+Cloudflare R2
+  └── CALL_RECORDINGS  audio bytes
+```
+
+---
+
+## Role / capability matrix
+
+| Capability | owner | admin | manager | reviewer | agent | support |
+|------------|:-----:|:-----:|:-------:|:--------:|:-----:|:-------:|
+| `portal.access` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `dashboard.view.self` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `book.view.self` | ✓ | ✓ | ✓ | | ✓ | |
+| `calls.review` | ✓ | ✓ | ✓ | ✓ | | |
+| `scripts.manage` | ✓ | ✓ | | ✓ | | |
+| `team.view` | ✓ | ✓ | ✓ | ✓ | | ✓ |
+| `leadership.view.all` | ✓ | ✓ | ✓ | | | |
+| `members.view` | ✓ | ✓ | ✓ | | | |
+| `members.manage` | ✓ | ✓ | | | | |
+| `audit.view` | ✓ | ✓ | | | | |
+
+Capabilities are deny-by-default. Guard pages with `requireCapability(...)`,
+writes with `assertCapability(...)`. Never import `app/portal/access.ts` from
+a `"use client"` file.
+
+---
 
 ## Prerequisites
 
 - Node.js `>=22.13.0`
 
-## Quick Start
+## Prerequisites
+
+Node.js `>=22.13.0`
+
+## Quick start
 
 ```bash
 npm install
-npm run dev
-npm run build
+npm run dev          # local dev server (Vinext + Wrangler together)
+npm run build        # production build
+npm run typecheck    # TypeScript strict check
+npm run lint         # ESLint
+npm run test         # build + run both test suites in Miniflare
+npm run deploy       # test → preflight → wrangler deploy (use this, not bare wrangler)
 ```
 
-This starter does not use `wrangler.jsonc`.
+This project does not use `wrangler.jsonc`. Bindings are declared in
+`.openai/hosting.json`; `wrangler.json` is generated into `dist/server/` at
+build time — that is the config `wrangler deploy` reads.
 
-## Included Shape
+## Project layout
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares the D1 and R2 bindings (and, for self-hosted
-  deploys, the real D1 `database_id`)
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
+```
+app/              Next.js application
+├── google-auth.ts      Identity: HMAC-signed core_session cookie
+├── portal/             Authenticated application
+│   ├── access.ts       Authorization: membership, roles, capabilities, audit
+│   ├── pay-rates/      Restricted — leadership.view.all only
+│   ├── members/        Restricted — members.view / members.manage
+│   ├── audit/          Restricted — audit.view
+│   └── ...             Other portal sections
+├── auth/               OAuth flow: signin / callback / signout
+├── access/             Public sign-in intake
+└── tour/               Public onboarding tour
+db/
+├── schema.ts           Drizzle schema
+└── sql/                Hand-written migrations (THE path for the live DB)
+drizzle/                Generated migrations (never apply to the live DB)
+worker/index.ts         Cloudflare Worker entry
+public/sw.js            Service worker (never caches /portal or /auth)
+tests/                  Node test runner suites
+scripts/                verify-build.mjs, dev-signin.mjs
+```
 
 ## Sign in with Google
 
-Identity comes from a first-party Google OAuth flow implemented in this app —
-there is no hosting platform in front of it. `app/google-auth.ts` owns the
-session; `app/auth/{signin,callback,signout}/route.ts` own the flow:
+Identity is first-party — no hosting platform authenticates for us.
+`app/google-auth.ts` owns the session; `app/auth/` owns the flow.
 
-- `/auth/signin` starts an authorization-code flow with PKCE against Google.
+- `/auth/signin` starts an authorization-code flow with PKCE.
 - `/auth/callback` exchanges the code server-side and mints the `core_session`
-  cookie — an HMAC-SHA256-signed token under `SESSION_SECRET`. Only verified
-  Google addresses (`email_verified`) are accepted.
+  cookie: an HMAC-SHA256-signed token under `SESSION_SECRET`. Only
+  `email_verified` Google addresses are accepted.
 - `/auth/signout` clears the session cookie.
-- `getAuthUser()` reads identity from the cookie on every request. Any cookie
-  that fails verification — bad signature, expired, malformed — is anonymous.
-- Use `signInPath(returnTo)` / `signOutPath(returnTo)` for browser links; the
-  helpers validate the return path.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity.
+- `getAuthUser()` reads identity on every request. Any cookie that fails
+  verification — bad signature, expired, malformed — is anonymous.
 
-The retired `oai-authenticated-user-*` headers from the previous hosting
-platform are ignored entirely; a request carrying them is anonymous. This is
-load-bearing: self-hosted, any client could send those headers, so nothing may
-trust them. `tests/portal-authorization.test.mjs` pins this down.
+The retired `oai-authenticated-user-*` headers are ignored. Self-hosted, any
+client can send them; they are therefore untrusted by construction.
+`tests/portal-authorization.test.mjs` pins this shut.
 
-Sign-in requires three secrets, absent from git:
+Secrets (set with `wrangler secret put`, or `.dev.vars` locally):
 
 | Secret | Purpose |
 | --- | --- |
 | `GOOGLE_CLIENT_ID` | OAuth client from Google Cloud console |
-| `GOOGLE_CLIENT_SECRET` | Its secret; used only server-side in the code exchange |
-| `SESSION_SECRET` | Long random string signing session cookies; rotating it signs everyone out |
+| `GOOGLE_CLIENT_SECRET` | Server-side only; never exposed to the client |
+| `SESSION_SECRET` | Signs session cookies; rotating it signs everyone out |
 
-Locally, put them in `.dev.vars` (gitignored). For a signed-in local session
-without a Google round-trip, use the shim: `AS_EMAIL=you@example.com node
-scripts/dev-signin.mjs` — it mints the same cookie the callback mints, using
-the same `SESSION_SECRET` from `.dev.vars`.
+Local dev without a real Google round-trip:
 
-Sign in with Google establishes identity only; it does not prove membership.
-`portal_members` decides who gets in, exactly as before.
+```bash
+AS_EMAIL=you@example.com node scripts/dev-signin.mjs
+```
 
 ## Deploying to your own Cloudflare account
 
-**Already deployed once.** [DEPLOYMENT.md](DEPLOYMENT.md) records what is live —
-URL, database and bucket ids, how the schema was applied, the redeploy command,
-and the Windows-specific traps worth reading before touching any of this again.
-The runbook below is the from-scratch path.
+**Already deployed.** See [DEPLOYMENT.md](DEPLOYMENT.md) for what is live,
+the database ID, and the redeploy command. The runbook below is the
+from-scratch path.
 
-One-time setup:
-
-1. **OAuth client** — In [Google Cloud console](https://console.cloud.google.com/apis/credentials)
-   create an OAuth client ID of type "Web application". Add the authorized
-   redirect URI `https://<your-worker-domain>/auth/callback` (and
-   `http://localhost:3001/auth/callback` for local dev if you want the real
-   flow locally). Note the client ID and secret.
-2. **Authenticate wrangler** — `npx wrangler login`.
+1. **OAuth client** — [Google Cloud console](https://console.cloud.google.com/apis/credentials) →
+   Web application client. Add `https://<worker-domain>/auth/callback` as an
+   authorized redirect URI.
+2. **Authenticate** — `npx wrangler login`
 3. **Provision storage**:
    ```bash
    npx wrangler d1 create site-creator-d1
    npx wrangler r2 bucket create site-creator-r2
    ```
-   Copy the `database_id` UUID that `d1 create` prints into the
-   `d1_database_id` field of `.openai/hosting.json`.
-4. **Apply the schema and the owner seed** (this is the manual `db/sql/` path;
-   see the next section before mixing it with drizzle migrations):
+   Copy the `database_id` into `.openai/hosting.json`.
+4. **Apply schema and seed**:
    ```bash
    npx wrangler d1 execute site-creator-d1 --file=db/sql/0001_portal_init.sql --remote
    npx wrangler d1 execute site-creator-d1 --file=db/sql/0002_portal_seed_owner.sql --remote
    ```
+   Read `0002`'s header comments before applying.
 5. **Deploy**:
    ```bash
-   npm run build
-   npx wrangler deploy -c dist/server/wrangler.json
+   npm run deploy
    ```
-6. **Set the secrets** (prompted interactively; applies without a redeploy):
+6. **Set secrets**:
    ```bash
    npx wrangler secret put GOOGLE_CLIENT_ID -c dist/server/wrangler.json
    npx wrangler secret put GOOGLE_CLIENT_SECRET -c dist/server/wrangler.json
    npx wrangler secret put SESSION_SECRET -c dist/server/wrangler.json
    ```
-   Generate `SESSION_SECRET` with `openssl rand -base64 48` or similar.
-7. Visit the site, sign in with the seeded owner's Google account, and you are
-   in. Subsequent deploys are just step 5.
+   Generate `SESSION_SECRET`: `openssl rand -base64 48`
 
-## Useful Commands
+Subsequent deploys: `npm run deploy`.
 
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+## Database schema
 
-## Learn More
+Two migration trees — apply only one to any given database:
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+| Path | Idempotent | Use for |
+| --- | --- | --- |
+| `db/sql/0001_portal_init.sql` | Yes (`IF NOT EXISTS`) | Live D1 database |
+| `drizzle/` (generated) | No | Local / dev only |
 
-## CORE Portal (Phase 2)
+After changing `db/schema.ts`, run `npm run db:generate` to keep the generated
+migrations in sync.
 
-The authenticated CORE application lives under `app/portal/`, separate from the
-public presentation page at `app/page.tsx`.
+## Known gotchas
 
-- `app/portal/access.ts` — server-side authorization. Two checks run on every
-  request: Sign in with Google establishes identity, and an active
-  `portal_members` row establishes CORE membership and role. Identity alone
-  grants nothing.
-- `db/schema.ts` — `portal_members` (the allowlist) and `audit_events`
-  (append-only allow/deny record).
-- `db/sql/0001_portal_init.sql` — the same schema as hand-written DDL, for
-  applying manually with `wrangler d1 execute`.
-- `db/sql/0002_portal_seed_owner.sql` — first-owner bootstrap. **Read its header
-  comments before applying.**
+- **No wrangler.jsonc** — bindings live in `.openai/hosting.json`; `dist/server/wrangler.json` is generated at build time.
+- **Two migration trees** — apply `db/sql/` only to the live database; see above.
+- **Never import `app/portal/access.ts` from `"use client"` files** — authorization must never run in the browser.
+- **Service worker must never cache `/portal` or `/auth`** — a cached page answers without re-resolving the session; a test pins this.
+- **Capabilities are deny-by-default** — adding one to a role is a governance decision.
+- **Windows/PowerShell dev** — npm scripts have no `FOO=bar cmd` inline env syntax; use `.dev.vars` instead.
 
-### How the schema actually reaches a deployed database
+## Resources
 
-Self-hosted on your own Cloudflare account, nothing applies migrations for
-you: you run the two files in `db/sql/` against the real database with
-`wrangler d1 execute` (step 4 of the deploy runbook above). A fresh database
-with the schema but no members fails closed — nobody can sign in, including
-the owners — so `0002_portal_seed_owner.sql` seeds the first owner; **read its
-header comments before applying it**.
-
-The `drizzle/` directory holds the equivalent history as generated drizzle
-migrations (kept in sync via `npm run db:generate` after any change to
-`db/schema.ts`). Applying `db/sql/0001_portal_init.sql` by hand *and* applying
-the drizzle migrations to the same database will collide: `0001` uses
-`CREATE TABLE IF NOT EXISTS`, the generated migration does not. Pick one path
-per database — the runbook uses the `db/sql/` path.
-
-Capabilities are deny-by-default; roles are `owner`, `admin`, `manager`,
-`reviewer`, `agent`, `support`. Guard a page with `requireCapability(...)` and a
-write with `assertCapability(...)`. Never import `app/portal/access.ts` from a
-`"use client"` file.
-
-The portal fails closed: if the `DB` binding is unreachable, access is refused
-rather than assumed. Full design notes, provisioning steps, verification state,
-and open decisions are in `CORE_JARVIS_PORTAL_ARCHITECTURE.md` in the workspace
-root.
+- [GRANDPLAN.md](GRANDPLAN.md) — architecture, rules, capability matrix
+- [CORE_PLATFORM_RECORD.md](CORE_PLATFORM_RECORD.md) — live URLs, IDs, deploy history
+- [DEPLOYMENT.md](DEPLOYMENT.md) — deploy runbook and Windows traps
+- [Vinext](https://github.com/cloudflare/vinext)
+- [Drizzle ORM D1](https://orm.drizzle.team/docs/get-started/d1-new)
+- [Cloudflare D1](https://developers.cloudflare.com/d1/)

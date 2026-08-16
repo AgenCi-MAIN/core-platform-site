@@ -27,7 +27,17 @@
  * sw.js on their own, so a deploy is enough to retire it.
  */
 
-const VERSION = "core-pwa-v1";
+/**
+ * Cache namespace version. Bump this string on every deploy that should
+ * invalidate previously cached assets. The `activate` handler below deletes
+ * any cache whose name is not in the current `keep` set, so a new version
+ * automatically evicts the old one on the next service-worker activation.
+ *
+ * Convention: keep this in sync with the `version` field in package.json.
+ * When cutting a new release, update both. The `activate` event will then
+ * clean up the old caches on all installed devices.
+ */
+const VERSION = "core-pwa-v2.0.0";
 const ASSET_CACHE = `${VERSION}-assets`;
 const STATIC_CACHE = `${VERSION}-static`;
 const OFFLINE_URL = "/offline.html";

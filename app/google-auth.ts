@@ -225,11 +225,19 @@ export function readCookie(header: string | null, name: string): string | null {
 }
 
 export function sessionCookieHeader(token: string, secure: boolean): string {
-  return cookieHeader(SESSION_COOKIE, token, SESSION_TTL_SECONDS, secure);
+  // SameSite=Strict: the session cookie is never needed on a cross-site
+  // navigation (the OAuth redirect lands on /auth/callback using the txn
+  // cookie, not this one). Strict prevents it from being sent on any
+  // cross-origin top-level navigation, providing defence-in-depth against
+  // CSRF for the portal's write paths.
+  return cookieHeader(SESSION_COOKIE, token, SESSION_TTL_SECONDS, secure, "Strict");
 }
 
 export function txnCookieHeader(token: string, secure: boolean): string {
-  return cookieHeader(TXN_COOKIE, token, TXN_TTL_SECONDS, secure);
+  // SameSite=Lax: the transaction cookie must survive the redirect back from
+  // Google. Lax allows it on top-level same-site navigations while blocking
+  // it on cross-site subresource requests.
+  return cookieHeader(TXN_COOKIE, token, TXN_TTL_SECONDS, secure, "Lax");
 }
 
 export function clearedCookieHeader(name: string, secure: boolean): string {
@@ -241,12 +249,10 @@ function cookieHeader(
   value: string,
   maxAge: number,
   secure: boolean,
+  sameSite: "Lax" | "Strict" = "Lax",
 ): string {
-  // SameSite=Lax: sent on top-level navigations, so the redirect back from
-  // Google carries the transaction cookie, while cross-site subresource
-  // requests do not carry the session.
   return (
-    `${name}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}` +
+    `${name}=${value}; Path=/; HttpOnly; SameSite=${sameSite}; Max-Age=${maxAge}` +
     (secure ? "; Secure" : "")
   );
 }

@@ -27,6 +27,61 @@ const nextConfig: NextConfig = {
       bodySizeLimit: 40 * 1024 * 1024,
     },
   },
+
+  /**
+   * HTTP caching policy.
+   *
+   * Public pages (/, /tour) are safe to cache at the CDN edge for a short
+   * window — they carry no member data. Portal and auth routes must never be
+   * cached at any layer: a cached page answers without re-resolving the
+   * session cookie or the member's row.
+   *
+   * The service worker enforces the same boundary in the browser:
+   * /portal and /auth are always passed straight to the network.
+   */
+  async headers() {
+    return [
+      {
+        // Public pages — cache for 60 s, serve stale for up to 10 min
+        // while revalidating in the background.
+        source: "/",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=60, stale-while-revalidate=600",
+          },
+        ],
+      },
+      {
+        source: "/tour",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=60, stale-while-revalidate=600",
+          },
+        ],
+      },
+      {
+        // Portal and auth — never cached, never stored.
+        source: "/portal/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store",
+          },
+        ],
+      },
+      {
+        source: "/auth/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

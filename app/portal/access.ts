@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getDb } from "../../db";
 import {
@@ -171,36 +171,31 @@ export async function resolvePortalAccess(
   /**
    * Resolve the membership row by SUBJECT FIRST, then by email.
    *
-   * Both `email` and `subject_id` are unique, so each lookup returns at most
-   * one row — but they can return two DIFFERENT rows. That happens when a
-   * subject is already bound to one membership and the address they now
-   * present belongs to another: an address was reassigned, or a second row was
-   * created for someone who already had one.
-   *
-   * The previous single `or(email, subject)` query with `limit(1)` and no
-   * ordering resolved that case arbitrarily. Whichever row the database
-   * happened to return decided whether the person was let in, refused as
-   * revoked, or — worse — bound to a membership that was never theirs.
-   *
-   * The subject is the strong identity: it is issued by the provider and, once
-   * bound, is permanent. An address is not. So the subject wins, and a genuine
-   * conflict between the two is refused rather than guessed.
+   * A single query fetches all rows matching either the subject or the email.
+   * That is at most two rows (each column carries a UNIQUE index). We separate
+   * them afterwards so the subject always wins — it is the strong identity,
+   * issued by the provider and permanent once bound. An address is mutable.
+   * If the two match different rows, we refuse rather than guess.
    */
   let subjectRow: typeof portalMembers.$inferSelect | undefined;
   let emailRow: typeof portalMembers.$inferSelect | undefined;
 
   try {
-    [subjectRow] = await db
+    const rows = await db
       .select()
       .from(portalMembers)
-      .where(eq(portalMembers.subjectId, user.userId))
-      .limit(1);
+      .where(
+        or(
+          eq(portalMembers.subjectId, user.userId),
+          eq(portalMembers.email, email),
+        ),
+      )
+      .limit(2);
 
-    [emailRow] = await db
-      .select()
-      .from(portalMembers)
-      .where(eq(portalMembers.email, email))
-      .limit(1);
+    for (const row of rows) {
+      if (row.subjectId === user.userId) subjectRow = row;
+      else if (row.email === email) emailRow = row;
+    }
   } catch (error) {
     // A bound database whose migration has not been applied has no
     // portal_members table. That used to escape as an unhandled error and
@@ -418,6 +413,16 @@ export type AuditInput = {
  * Append one audit row. Never throws: a logging failure must not become a
  * denial-of-service on the portal, but it is surfaced on the server console so
  * the gap is visible.
+ *
+ * NOTE ON PERFORMANCE: `recordAudit` is currently awaited inline on every
+ * portal request, which means the D1 insert holds the response until it
+ * completes. The improvement — firing allow-path writes via `ctx.waitUntil` so
+ * they finish after the response is sent — requires the Cloudflare execution
+ * context to be accessible from inside Next.js server components. Vinext does
+ * not yet expose it through the `cloudflare:workers` module at the app layer.
+ * Once it does (or once a custom store threads `ctx` in), deny-path writes can
+ * stay awaited (they must complete before the redirect) and allow-path writes
+ * can move into `waitUntil`. Tracked in GRANDPLAN.md.
  */
 export async function recordAudit(input: AuditInput): Promise<void> {
   try {

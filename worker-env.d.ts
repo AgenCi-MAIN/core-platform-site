@@ -43,5 +43,13 @@ declare namespace Cloudflare {
     GOOGLE_CLIENT_ID?: string;
     GOOGLE_CLIENT_SECRET?: string;
     SESSION_SECRET?: string;
+
+    /**
+     * Optional second factor for the Pay Rates Studio page. When set, the
+     * page requires the supplied value as a query-string key in addition to
+     * the `leadership.view.all` capability. Lives in the deployment
+     * environment (never committed). See app/portal/pay-rates/page.tsx.
+     */
+    PAY_RATES_KEY?: string;
   }
 }

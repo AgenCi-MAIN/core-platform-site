@@ -36,8 +36,7 @@ export default async function PayRatesPage({
 }) {
   const session = await requireCapability("leadership.view.all", "/portal/pay-rates");
 
-  const runtime = env as unknown as { PAY_RATES_KEY?: string };
-  const required = runtime.PAY_RATES_KEY;
+  const required = env.PAY_RATES_KEY;
   const supplied = (await searchParams).key;
 
   if (required && supplied !== required) {
