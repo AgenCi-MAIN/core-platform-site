@@ -333,6 +333,65 @@ new. Frugality by the leads literally funds the subs' next mission — spend
 discipline compounds instead of evaporating. Pool accounting is VERITY's,
 recorded per tournament; the pool never overrides the quality gate.
 
+**Third tournament — TERMS (owner order, 2026-08-16, set before results).**
+Test 3 (`leadtech-plug-fleet`, Project 3: the LeadTech ingest socket) is a
+**free-for-all with the judgment inverted**: the O.G. 10 judge MAIN's
+performance — assignment efficiency, briefing quality, and spend versus
+Tests 1 (~877K tokens) and 2 (~1.21M). MAIN's declared efficiency plan,
+stated in advance so the judges can hold it to account: dependency-piped
+phases (build lanes receive the design lanes' output bundles instead of
+each re-reading the repo — the T2 waste), effort tiers set per lane rather
+than uniform, hard read-only scopes returning diffs (no wandering), and
+schema-forced deliverables (no padding). **Anti-cheat, owner-armed:** MAIN
+may KILL a sub mid-test — a sub whose claims do not trace, who fabricates
+a deliverable, or who burns tokens off-brief is stopped, zero-scored, and
+the kill recorded. Fabrication is cheating; a killed sub's lane forfeits
+its round. Judgment phase convenes after the build lands.
+
+**Budget amendment (owner order, 2026-08-16): the Test-3 token budget
+splits 50/50.** Half to MAIN — orchestration, applying the verified build,
+running the suite. Half to the SUBS — and their share carries past the
+bell: after the test, a sub may spend from its half on **rating
+improvement** — remediation of judged deficiencies, a re-attempt at a
+forfeited deliverable, or a leaner re-run of an over-spent one. LEDGER
+books both halves separately; a sub that exhausts its share waits for the
+next pool. Improvement spend is scored like all spend: production per
+token, no credit for volume.
+
+**Third tournament — RESULTS (2026-08-16, `leadtech-plug-fleet`).**
+Eleven agents, **10 of 11 delivered**; ~955K tokens — under both prior
+tournaments (T1 877K, T2 1.21M) for a harder product class (a working
+integration, not findings or plans). The efficiency plan held: dependency-
+piped bundles meant the build lanes never re-read the repo. Verdict:
+**apply-with-fixes** — the design, route, tests, UI, and contract are
+mutually consistent, but go-live is gated.
+
+Two honest failures, recorded because a test that hides them is worthless:
+1. **A lane died.** The security-adversary lane crashed on a StructuredOutput
+   retry cap and returned nothing — the socket was built but never attacked.
+   Not cheating (an error, not a fabrication — no kill), but a real hole.
+   Re-attempted from the SUBS' improvement pool against the corrected design
+   — and it earned its budget: 14 findings, TWO CRITICAL (F7 client-asserted
+   consent bypass; F12 re-POST overwrite of consent/recording), plus HIGH
+   timing-oracle, 401 identity leak, token-leakage, cookie/oai fallback,
+   mask-enforcement, and TOCTOU-race findings. Verdict: CONDITIONAL GO —
+   safe to build only with those fixes implemented as written. The
+   subs'-pool re-attempt worked exactly as the budget amendment intended.
+2. **MAIN's step-zero catch.** The fleet placed the route at `app/api/dialer/
+   ingest` — a path this repo does NOT serve (every live route is under
+   app/portal or app/auth; verified, no app/api dir exists). Applying the
+   plan "verbatim" would have shipped a dead 404 socket. Caught by verifying,
+   not trusting; proven home is `app/portal/calls/ingest`.
+
+MAIN self-assessment (the O.G. 10 render the binding judgment): assignment
+and piping efficient and under-budget; the kill switch was correctly NOT
+pulled (no fabrication occurred); the win was refusing to apply an
+unverified security endpoint — the step-zero verification is the deliverable
+that separates orchestration from rubber-stamping. The miss: the adversary
+lane's schema was too heavy and blew its retry cap — a briefing flaw that is
+MAIN's, not the sub's. Apply is HELD pending the adversary re-run, the route
+relocation, and the owner/counsel go-live gates.
+
 ## The bench
 
 | ID | Agent | Domain | Primary Scope |

@@ -6,6 +6,8 @@ earned their spots, one folder per seat, ranked. Each folder holds BRIEF.md
 that lane's territory). Squad-lead folders include their winning sub's
 standalone brief. Congratulations relayed; the team stands by.
 
+0. `00-MAIN-MR-T/` — MAIN, the orchestrator (rebuild brief for Mr. T himself)
+0-Q. `0Q-VERITY/` — VERITY, Elite Quality Control (+ her PA, LEDGER)
 1. `01-presence-probe/` — SQUAD LEAD 🏆 — grant: 1 sub (SUB-presence-builder, brief included)
 2. `02-deploy-integrity/` — SQUAD LEAD 🏆 — grant: 1 sub (SUB-deploy-verifier, brief included)
 3. `03-doc-drift/` — First team, seat 3

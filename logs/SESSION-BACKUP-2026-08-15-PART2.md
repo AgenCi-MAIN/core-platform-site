@@ -72,3 +72,48 @@ HERALD hourly into this session at :48 (two quiet patrols since Part 1 —
 "no new outreach" both). VIGIL daily, MR. T 10-hourly, INVESTIGATOR hourly
 :53, VERITY per-fleet. Founder gates, Presence isolation contract, and all
 Part-1 security rules unchanged and in force.
+
+## Amendment (2026-08-15, late): the first staff outbound send
+
+One outbound email has been sent by the staff: at the owner's explicit
+order ("send this file to ryan"), MAIN sent Ryan Davidson
+(ryandavidson.zenith@gmail.com) a short note from the owner's own Gmail
+carrying the owner's chosen Google-Doc link (Gmail message id
+1a0074df7e6242ef). A direct Drive-share was attempted first and refused by
+permissions. Second send, same day: at the owner's explicit order ("TEST EMAIL TO
+ryandavidson.zenith@gmail.com ... REDRAFT THIS WARNING"), MAIN sent Ryan a
+sample JARVIS ops-warning email (Gmail message id 1a0079275464e434),
+subject-stamped [TEST] and body-labeled that every figure is simulated —
+fabricated numbers must never travel unlabeled. Third send, same day, owner-ordered: an introduction/report email to Ryan
+(Gmail message id 1a007979fa1cedc5) — priorities (Presence, gated outbound
+expansion), the fleet system, and the email-prompt pipeline, stated
+honestly: inbound prompts are logged by HERALD and flagged to the owner,
+who green-lights before MAIN executes — emailed instructions never
+auto-execute. Ryan invited to test the loop via core@inkboxmail.com.
+Fourth send, same day, owner-ordered ("sent this RYAN VERBATUM to ryan so
+he can plug in work force"): WORKFORCE.md delivered verbatim — uploaded to
+the Drive HQ folder (file id 1dvSHhSD_hB7xPv7wXYmFJvlS4Wf9Mskd), shared to
+Ryan as reader, plus a short email with the link and a plug-in guide
+(Gmail message id 1a007a30e9d20a24) routing his requests through the
+HERALD-gated pipeline. Fifth send, same day, owner-ordered: welcome/system-explainer email to
+Andrew Davidson (andrew.davidson.zenith@gmail.com, Gmail message id
+1a007aa600510d55) — the parallel-agent architecture, the 100-role bench,
+both tournaments' data compared honestly, and the approval-gated pipeline.
+Sixth send, same day, owner-ordered ("send a color included doc...
+explaining your strategy"): a styled HTML strategy brief — "The Circle"
+(five stations, the 90-day pilot, the exit thesis) — sent to BOTH Ryan
+and Andrew Davidson (Gmail message id 1a007ac559d6ee1f). Seventh send, owner-ordered ("i mean ryan"): the system explainer of
+send #5 delivered to Ryan verbatim (Gmail message id 1a007b0660494259);
+the WORKFORCE.md Drive doc was also shared to Andrew as reader. Eighth send, owner-ordered ("ryam sending you email, please respong
+kindly"): Ryan sent a full 36-month "Thrive Intelligence OS" blueprint to
+the owner's Gmail (message id 1a007c9fc9727026 — data graph, conversation
+intelligence, phased rollout to routing/prediction/digital twin, IPO
+posture, 5-7 person AI team); MAIN replied in-thread (message id
+1a007cbaf4be6ed2) — substantive agreement on the data-graph-first order,
+two honest notes (margin-at-scale calibration; timelines set by data
+access), and the Phase 0 = 90-day-pilot equivalence with the three data
+asks. These eight are the only staff-originated sends to date; the
+never-send rule stands for everything not explicitly ordered, message by
+message. Recorded here because the privacy-page verification fleet
+correctly refused to accept an undocumented precedent — a send that is not
+in the record does not exist.

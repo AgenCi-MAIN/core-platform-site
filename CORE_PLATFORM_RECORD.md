@@ -169,6 +169,7 @@ Guard a page with `requireCapability(...)`; guard a write with
 | `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) | owner | bootstrap, 2026-08-14 |
 | `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | by Shawn, 2026-08-14 |
 | `epiclife.nguyen@gmail.com` | Nate Nguyen | owner | by Shawn, from the portal, confirmed on the live roster 2026-08-15 |
+| `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | owner | approved by Shawn 2026-08-15 ("shawn-aprooved"); PENDING — grant not yet executed in the portal |
 
 Pending: **Oscar Valencia** is named as an owner in the agreement record, but
 his sign-in address was never confirmed. Confirm the exact Google address he
@@ -631,10 +632,14 @@ by 10DLC campaign registration (Inkbox enforces this too), which matches the
 portal's own no-outbound-consumer-texting stance. HERALD's hourly patrols
 pick up SMS to the new number automatically once it exists.
 
-**The parked number.** `(850) 809-0050` sits at NumberBarn on the $2.99/mo
-Park plan, under one of the owner's alias logins (vendor login, not a portal
-identity — § 5). It does nothing yet; the open decision is whether to port
-it into Inkbox later or keep it parked as a Florida-market asset.
+**The parked number — owner decision, 2026-08-15 evening.** `(850) 809-0050`
+sits at NumberBarn on the $2.99/mo Park plan under one of the owner's alias
+logins. NumberBarn's charge card was declined on 2026-08-11 and the owner
+ruled **"disregard — using Inkbox"**: telephony consolidates on Inkbox, the
+declined card is deliberately left unfixed, and it is understood that
+NumberBarn will eventually release the 850 number for non-payment —
+accepted, not an accident. If that number ever matters again, the payment
+method must be fixed before NumberBarn's grace window closes.
 
 ## 11. Where things are
 
