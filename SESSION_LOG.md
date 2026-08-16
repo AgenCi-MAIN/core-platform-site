@@ -244,3 +244,38 @@ CLAUDE.md, and the record, and gains the one power this container never had:
 deploying. The owner was advised, and the advice stands in writing: sleep off,
 screen lock on and short, and no unattended sessions with permissions bypassed
 on a machine that holds deploy credentials.
+
+---
+
+# Third sitting — 2026-08-16
+
+## 12. Identity rebuild: CORE-J.A.R.V.I.S 2.0.0
+
+The system identity was formally consolidated under **CORE-J.A.R.V.I.S 2.0.0**
+as the overseeing intelligence for THRIVE. Changes committed as `70239cc`:
+
+- `package.json` — name: `core-jarvis`, version: `2.0.0`
+- `app/layout.tsx` — page title and applicationName updated to `CORE-J.A.R.V.I.S 2.0.0`
+- `app/manifest.ts` — PWA name and short_name updated to `CORE-J.A.R.V.I.S 2.0.0`
+- `CAPABILITY-JOURNAL.md` — created; evidence log for reusable operating lessons
+- `WORKFORCE.md` — three verification sub-agents added to the bench:
+  - **JARVIS-101** — Capability Cross-Reference Auditor
+  - **JARVIS-102** — Session & Training Consistency Checker
+  - **JARVIS-103** — Evaluation Suite Validator
+- `SESSION-BACKUP-2026-08-16.md` — full point-in-time state snapshot created
+
+**What did not change:** Auth model, deploy gate, service worker exclusions, test
+suite, database schema, capability matrix. No structural changes — identity
+rename only.
+
+**Still pending (owner action required):** Worker rename on Cloudflare to
+`core-jarvis` requires dashboard action + `npm run deploy`. Do not rename
+`.openai/hosting.json` until ready — mismatch breaks the live site.
+
+## 13. Open items carried forward
+
+- [ ] Confirm Nate Nguyen's and Oscar Valencia's sign-in addresses, then grant
+- [ ] Owner content decisions (pinned announcement, library drafts, incentive doc expiry Aug 31, `LEAD_COST`)
+- [ ] Governance: `portal.access` gate and `music.manage` split
+- [ ] Quoter seam decision
+- [ ] Worker rename on Cloudflare when ready
