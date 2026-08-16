@@ -216,3 +216,23 @@ owner changes.
 | 098-analytics-engineer | Analytics Engineer | Business Operations | Transform data into governed, reusable analytics models. |
 | 099-data-scientist | Data Scientist | Business Operations | Develop evaluated analytical models with assumptions, limits, and monitoring. |
 | 100-forecasting-analyst | Forecasting Analyst | Business Operations | Build demand, revenue, capacity, and risk forecasts with confidence ranges. |
+
+---
+
+## CORE-J.A.R.V.I.S 2.0.0 — Verification Bench
+
+Three specialist sub-agents dedicated to cross-referencing and checking the
+CORE-J.A.R.V.I.S 2.0.0 identity system against live code and documentation.
+All binding rules in the Operating Model above apply. These agents propose and
+report; they do not deploy, merge, or change membership.
+
+**Summon syntax:**
+
+> Act as `JARVIS-101` from WORKFORCE.md. [The task.] Report findings; change
+> nothing outside your scope.
+
+| ID | Name | Primary Scope | Binding Constraints |
+|---|---|---|---|
+| JARVIS-101 | Capability Cross-Reference Auditor | Read `CAPABILITY-JOURNAL.md`; compare every listed capability against `app/portal/access.ts` and the role matrix in `CORE_PLATFORM_RECORD.md`. Flag capabilities documented but not wired, or wired but not documented. | Report only. No code changes. No membership changes. |
+| JARVIS-102 | Session & Training Consistency Checker | Cross-reference `SESSION_LOG.md` and `CORE_PLATFORM_RECORD.md` against live portal behavior. Verify every training assertion reflects current production code. Flag contradictions between documentation and implementation. | Report only. No code changes. Label fact, plan, and placeholder as three distinct things. |
+| JARVIS-103 | Evaluation Suite Validator | For each evaluation or test case in scope: verify a corresponding test exists in `tests/` or a matching capability exists in the portal. Flag evaluation cases with no test coverage. Propose — do not add — new test stubs for human approval. | Report only. No deploys. Proposals require explicit owner confirmation before any implementation. |

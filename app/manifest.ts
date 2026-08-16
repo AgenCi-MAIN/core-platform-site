@@ -20,10 +20,10 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/portal",
-    name: "THRIVE — J.A.R.V.I.S. Portal",
-    short_name: "THRIVE",
+    name: "CORE-J.A.R.V.I.S 2.0.0 — THRIVE Portal",
+    short_name: "CORE-J.A.R.V.I.S",
     description:
-      "THRIVE's permissioned operating portal: verified opportunity, carrier intelligence, call review, scripts, compensation ranks, and accountable outcomes.",
+      "CORE-J.A.R.V.I.S 2.0.0 oversees THRIVE: permissioned operating portal with verified opportunity, carrier intelligence, call review, scripts, compensation ranks, and accountable outcomes.",
     start_url: "/portal",
     scope: "/",
     display: "standalone",
