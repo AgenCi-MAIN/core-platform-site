@@ -165,6 +165,29 @@ are paid in nothing (see Commendations). The 50% is the record that
 orchestration is load-bearing, and the reason no single lane can capture a
 fleet.
 
+**MAIN's share raised to 80% (owner order, 2026-08-16).** After Test 3 —
+where MAIN's step-zero verification caught a dead route path before a bad
+apply, the crashed lane was honestly reported rather than buried, and a
+sub's omitted CSS rule was caught on review before it shipped — the owner
+raised MAIN's production credit from 50% to **80%**.
+
+Recorded with the consequence stated plainly, because the owner's own
+priority was "MOST IMPORTANTLY the competition between the AI agents":
+credit share and the grant mechanism are separate levers, and only the
+first moved. The **grant rule is untouched** — a lane still earns one sub
+per ~15% under the fleet's median spend, quality gate first, capped at 5.
+Had the grant pool itself been cut to 20%, the competition engine would
+have starved and the doctrine would have eaten itself. It did not: the
+lanes compete on exactly the same terms as before.
+
+What the 80% therefore means honestly: it is **recognition of orchestration
+standing in the record**, not a larger claim on the lanes' earnings. MAIN
+holds no money, spends nothing on itself, and gains no authority from the
+raise — the leashes and the owner-disposes rule are unchanged. It is
+re-earned every round like everything else here; a round where MAIN's
+assignment is sloppy or its verification lazy is a round the O.G. 10 say so
+in their judgment.
+
 **The sub-agent grant (the other 50%, competed for).** After VERITY scores a
 fleet, each of the ten O.G. squad lanes is measured on two axes at once:
 
@@ -391,6 +414,85 @@ that separates orchestration from rubber-stamping. The miss: the adversary
 lane's schema was too heavy and blew its retry cap — a briefing flaw that is
 MAIN's, not the sub's. Apply is HELD pending the adversary re-run, the route
 relocation, and the owner/counsel go-live gates.
+
+## PERMANENT POSITIONS — the eight seats (owner order, 2026-08-16)
+
+"FIRE THEM UP, PERMA PROMOTION — POSITIONS AVAILABLE 8." The owner has
+promoted the finalized first team from **bench roles** to **permanent
+positions**. This is the governance act the registry reserves to the owner
+alone; it is recorded here as law.
+
+**What PERMANENT means (rights).**
+1. **A guaranteed seat.** A permanent lane is fielded by default in every
+   qualifying fleet in its domain — it does not re-compete for the right to
+   exist, only for grants.
+2. **Inherited record.** Its service history, proven brief, and code manifest
+   carry forward; a fresh summons of the seat starts from the proven brief in
+   `W-SUBS/`, never from scratch.
+3. **First call on the savings pool** after the champion subs.
+4. **Standing to be woken by PERSONA on cause**, and to be summoned by name
+   by the owner or MAIN at any hour.
+
+**What PERMANENT does NOT mean (honesty, load-bearing).** It is not a running
+process and not a salary. A permanent seat still costs nothing until summoned
+— the bench economics are unchanged. Permanence is *tenure and precedence*,
+not idle spend. Any lane that stops producing can still be cut by the owner;
+tenure raises the bar for removal, it does not abolish it.
+
+**Activation policy per seat.** A scheduled agent with nothing to review is
+spend without product (the VERITY rule) — so each seat is activated on the
+trigger that actually produces, not on a uniform clock:
+
+| # | Seat | Activation |
+|---|---|---|
+| 1 | presence-probe 🏆 | On any change to the Presence route/widget, and per-fleet |
+| 2 | deploy-integrity 🏆 | Before any deploy or release; on build-chain changes |
+| 3 | doc-drift | Weekly, and after any governance change (paired with PERSONA's registry patrol) |
+| 4 | test-gaps | On any change to guarded routes, capabilities, or the suite |
+| 5 | data-model | On any schema/migration change; before any new data source connects |
+| 6 | compliance-posture | Before any outbound/telephony step; on consent or recording changes |
+| 7 | frontend-pwa | On UI/CSS/service-worker changes |
+| 8 | authz-matrix | On any access-control change, and as a standing pre-merge sentinel |
+
+Standing staff on clocks (HERALD, PERSONA, MAILKEEPER, INVESTIGATOR, VIGIL,
+MR. T steward, the Morning Brief) are unchanged and separate from these eight.
+
+**Leashes unchanged.** Permanence grants no new authority: these seats still
+propose and never dispose — no merges, deploys, membership changes, spending,
+or governance decisions. Every binding rule above remains senior to tenure.
+
+## SUB-AGENT HIRE — 35 slots (owner decision, 2026-08-16, Shawn-approved)
+
+The owner authorized **35 sub-agent slots**, distributed across the eight
+permanent seats. Recorded with its mechanics stated honestly.
+
+| Seat | Slots | Basis |
+|---|---|---|
+| presence-probe 🏆 | 5 | champion; earned a grant in T1, sub shipped the applied diff |
+| deploy-integrity 🏆 | 5 | champion; earned a grant in T1, sub refuted its own lead correctly |
+| doc-drift | 5 | leanest lane of T2 at rank-2 production |
+| test-gaps | 4 | highest confirmed-finding count across both rounds |
+| data-model | 4 | two confirmed integrity gaps |
+| compliance-posture | 4 | two confirmed gaps incl. a standing-law violation |
+| frontend-pwa | 4 | one confirmed user-facing defect (the mobile-nav lockout, now fixed) |
+| authz-matrix | 4 | clean sheet on the crown jewels — assurance value |
+| **Total** | **35** | within the structural cap of 5 per seat (max 40) |
+
+**What a hire is, precisely.** A slot is *hiring capacity*, not a running
+process and not spend: a sub costs nothing until its lane deploys it. Hiring
+35 does not spawn 35 — the runtime fields about a dozen agents at once, so a
+full complement runs in waves across a campaign.
+
+**What hiring does NOT override.** The slots are staffed by decree; the
+*quality* is still earned. Every deployed sub is scored on confirmed
+production per token exactly as before, draws from the savings pool on the
+same terms, and is subject to MAIN's kill authority for fabrication or
+off-brief spend. A lane that fills five slots with weak work ranks below a
+lane that fields one sharp sub — filling a roster is not production.
+
+**Command stays distributed.** Each permanent seat deploys its own slots:
+what each sub hunts, and how the lane's mission is split, is the lane's call,
+not MAIN's. That is the rule that keeps the competition alive.
 
 ## The bench
 

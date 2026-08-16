@@ -13,8 +13,19 @@ import {
 
 export const dynamic = "force-dynamic";
 
-/** The full capability set, so the dashboard shows held-of-total. */
-const TOTAL_CAPABILITIES = CAPABILITIES.length;
+/**
+ * The role-grantable capability set, so the dashboard shows held-of-total.
+ *
+ * `audit.view` is deliberately excluded: it is founder-gated by identity and
+ * held by NO role (removed from every role 2026-08-15 — see
+ * CORE_PLATFORM_RECORD.md § 4 and CAPABILITY-JOURNAL.md). Counting it made the
+ * total eleven, which pinned every owner and admin — who hold the complete
+ * grantable set — at "10 / 11" in a warn tone, and made the "good" tone
+ * unreachable by anyone. The number was confidently wrong on every dashboard.
+ */
+const TOTAL_CAPABILITIES = CAPABILITIES.filter(
+  (capability) => capability !== "audit.view",
+).length;
 
 /**
  * Principal seats: Shawn, Ryan, Nate, Oscar. Stated by the owner rather than
@@ -136,7 +147,7 @@ export default async function PortalDashboard() {
             <span className="portal-metric-detail">
               {seatsFilled === null
                 ? "Roster could not be read just now"
-                : seatsFilled === TOTAL_SEATS
+                : seatsFilled >= TOTAL_SEATS
                   ? "All principal seats granted"
                   : `${TOTAL_SEATS - seatsFilled} seat${TOTAL_SEATS - seatsFilled === 1 ? "" : "s"} pending an address`}
             </span>

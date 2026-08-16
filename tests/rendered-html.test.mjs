@@ -399,3 +399,106 @@ test("restricted data never reaches a public client chunk", async () => {
     }
   }
 });
+
+test("the mobile navigation drawer ships both the popover and the checkbox fallback", async () => {
+  // The drawer opens through the Popover API on modern engines, but Safari
+  // 15.4-16.x and other pre-2023 browsers have no :popover-open — there the
+  // drawer never opens and every portal sub-page strands the member with no
+  // navigation at all. A visually-hidden checkbox (#portal-mobile-drawer),
+  // revealed via :has(...:checked), is the fallback. BOTH mechanisms must stay
+  // present and mutually @supports-guarded, or one class of browser silently
+  // loses navigation while the other has two drawers fighting. Pinned against
+  // the source because the portal shell renders only behind an authenticated
+  // session, so the built worker never emits this markup to an anonymous
+  // request.
+  const shell = await readFile(
+    new URL("../app/portal/components.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(shell, /popover="auto"/, "the drawer is no longer a popover");
+  assert.match(
+    shell,
+    /popoverTarget="portal-mobile-navigation"/,
+    "the popover open control is gone",
+  );
+  assert.match(
+    shell,
+    /id="portal-mobile-drawer"/,
+    "the checkbox fallback that lets pre-popover browsers open the drawer is gone",
+  );
+  assert.match(
+    shell,
+    /htmlFor="portal-mobile-drawer"/,
+    "no label is bound to the fallback checkbox — it can never be toggled",
+  );
+
+  const css = await readFile(
+    new URL("../app/globals.css", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    css,
+    /@supports selector\(:popover-open\)/,
+    "the popover rules are no longer @supports-guarded — they fight the fallback",
+  );
+  assert.match(
+    css,
+    /@supports not selector\(:popover-open\)/,
+    "the checkbox fallback rules are gone — pre-popover browsers cannot open the drawer",
+  );
+  assert.match(
+    css,
+    /:has\(\.portal-mobile-drawer-toggle:checked\)/,
+    "the :has() rule that reveals the fallback drawer is gone",
+  );
+  assert.match(
+    css,
+    /\.portal-mobile-drawer-toggle \{|\.portal-mobile-drawer-toggle,/,
+    "the fallback checkbox is no longer visually hidden — it renders as a stray control",
+  );
+});
+
+test("sign-out refuses a return path that normalizes into a protocol-relative URL", async () => {
+  // Open-redirect regression. `/..//evil.com` starts with a single slash, so it
+  // passes a naive leading-`//` guard — but the URL parser normalizes the `..`
+  // away and the path becomes `//evil.com`, whose origin still reads as ours.
+  // Emitted verbatim into a Location header, `//evil.com` is a protocol-
+  // relative URL and the browser resolves it to https://evil.com. This surface
+  // is unauthenticated and the value is attacker-supplied, so the guard must
+  // re-check AFTER normalization, not only before it.
+  const hostile = [
+    "/..//evil.com",
+    "/foo/..//evil.com",
+    "/./..//attacker.example",
+    "//evil.com",
+  ];
+
+  for (const path of hostile) {
+    const response = await fetchPath(
+      `/auth/signout?return_to=${encodeURIComponent(path)}`,
+    );
+    const location = response.headers.get("location") ?? "";
+    assert.ok(
+      !location.startsWith("//"),
+      `return_to=${path} produced a protocol-relative redirect: ${location}`,
+    );
+    assert.doesNotMatch(
+      location,
+      /evil\.com|attacker\.example/,
+      `return_to=${path} leaked an external host into the redirect: ${location}`,
+    );
+  }
+
+  // A genuine in-app path still round-trips, so the guard is not simply
+  // refusing everything.
+  const ok = await fetchPath(
+    `/auth/signout?return_to=${encodeURIComponent("/portal/calls")}`,
+  );
+  assert.match(
+    ok.headers.get("location") ?? "",
+    /\/portal\/calls|\/access|\//,
+    "a legitimate return path must still be honored",
+  );
+});
