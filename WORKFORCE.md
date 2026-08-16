@@ -358,6 +358,34 @@ books both halves separately; a sub that exhausts its share waits for the
 next pool. Improvement spend is scored like all spend: production per
 token, no credit for volume.
 
+**Third tournament — RESULTS (2026-08-16, `leadtech-plug-fleet`).**
+Eleven agents, **10 of 11 delivered**; ~955K tokens — under both prior
+tournaments (T1 877K, T2 1.21M) for a harder product class (a working
+integration, not findings or plans). The efficiency plan held: dependency-
+piped bundles meant the build lanes never re-read the repo. Verdict:
+**apply-with-fixes** — the design, route, tests, UI, and contract are
+mutually consistent, but go-live is gated.
+
+Two honest failures, recorded because a test that hides them is worthless:
+1. **A lane died.** The security-adversary lane crashed on a StructuredOutput
+   retry cap and returned nothing — the socket was built but never attacked.
+   Not cheating (an error, not a fabrication — no kill), but a real hole.
+   Re-attempted from the SUBS' improvement pool against the corrected design.
+2. **MAIN's step-zero catch.** The fleet placed the route at `app/api/dialer/
+   ingest` — a path this repo does NOT serve (every live route is under
+   app/portal or app/auth; verified, no app/api dir exists). Applying the
+   plan "verbatim" would have shipped a dead 404 socket. Caught by verifying,
+   not trusting; proven home is `app/portal/calls/ingest`.
+
+MAIN self-assessment (the O.G. 10 render the binding judgment): assignment
+and piping efficient and under-budget; the kill switch was correctly NOT
+pulled (no fabrication occurred); the win was refusing to apply an
+unverified security endpoint — the step-zero verification is the deliverable
+that separates orchestration from rubber-stamping. The miss: the adversary
+lane's schema was too heavy and blew its retry cap — a briefing flaw that is
+MAIN's, not the sub's. Apply is HELD pending the adversary re-run, the route
+relocation, and the owner/counsel go-live gates.
+
 ## The bench
 
 | ID | Agent | Domain | Primary Scope |
