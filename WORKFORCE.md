@@ -370,7 +370,13 @@ Two honest failures, recorded because a test that hides them is worthless:
 1. **A lane died.** The security-adversary lane crashed on a StructuredOutput
    retry cap and returned nothing — the socket was built but never attacked.
    Not cheating (an error, not a fabrication — no kill), but a real hole.
-   Re-attempted from the SUBS' improvement pool against the corrected design.
+   Re-attempted from the SUBS' improvement pool against the corrected design
+   — and it earned its budget: 14 findings, TWO CRITICAL (F7 client-asserted
+   consent bypass; F12 re-POST overwrite of consent/recording), plus HIGH
+   timing-oracle, 401 identity leak, token-leakage, cookie/oai fallback,
+   mask-enforcement, and TOCTOU-race findings. Verdict: CONDITIONAL GO —
+   safe to build only with those fixes implemented as written. The
+   subs'-pool re-attempt worked exactly as the budget amendment intended.
 2. **MAIN's step-zero catch.** The fleet placed the route at `app/api/dialer/
    ingest` — a path this repo does NOT serve (every live route is under
    app/portal or app/auth; verified, no app/api dir exists). Applying the
