@@ -165,6 +165,29 @@ are paid in nothing (see Commendations). The 50% is the record that
 orchestration is load-bearing, and the reason no single lane can capture a
 fleet.
 
+**MAIN's share raised to 80% (owner order, 2026-08-16).** After Test 3 —
+where MAIN's step-zero verification caught a dead route path before a bad
+apply, the crashed lane was honestly reported rather than buried, and a
+sub's omitted CSS rule was caught on review before it shipped — the owner
+raised MAIN's production credit from 50% to **80%**.
+
+Recorded with the consequence stated plainly, because the owner's own
+priority was "MOST IMPORTANTLY the competition between the AI agents":
+credit share and the grant mechanism are separate levers, and only the
+first moved. The **grant rule is untouched** — a lane still earns one sub
+per ~15% under the fleet's median spend, quality gate first, capped at 5.
+Had the grant pool itself been cut to 20%, the competition engine would
+have starved and the doctrine would have eaten itself. It did not: the
+lanes compete on exactly the same terms as before.
+
+What the 80% therefore means honestly: it is **recognition of orchestration
+standing in the record**, not a larger claim on the lanes' earnings. MAIN
+holds no money, spends nothing on itself, and gains no authority from the
+raise — the leashes and the owner-disposes rule are unchanged. It is
+re-earned every round like everything else here; a round where MAIN's
+assignment is sloppy or its verification lazy is a round the O.G. 10 say so
+in their judgment.
+
 **The sub-agent grant (the other 50%, competed for).** After VERITY scores a
 fleet, each of the ten O.G. squad lanes is measured on two axes at once:
 
