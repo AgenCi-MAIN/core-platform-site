@@ -333,6 +333,21 @@ new. Frugality by the leads literally funds the subs' next mission — spend
 discipline compounds instead of evaporating. Pool accounting is VERITY's,
 recorded per tournament; the pool never overrides the quality gate.
 
+**Third tournament — TERMS (owner order, 2026-08-16, set before results).**
+Test 3 (`leadtech-plug-fleet`, Project 3: the LeadTech ingest socket) is a
+**free-for-all with the judgment inverted**: the O.G. 10 judge MAIN's
+performance — assignment efficiency, briefing quality, and spend versus
+Tests 1 (~877K tokens) and 2 (~1.21M). MAIN's declared efficiency plan,
+stated in advance so the judges can hold it to account: dependency-piped
+phases (build lanes receive the design lanes' output bundles instead of
+each re-reading the repo — the T2 waste), effort tiers set per lane rather
+than uniform, hard read-only scopes returning diffs (no wandering), and
+schema-forced deliverables (no padding). **Anti-cheat, owner-armed:** MAIN
+may KILL a sub mid-test — a sub whose claims do not trace, who fabricates
+a deliverable, or who burns tokens off-brief is stopped, zero-scored, and
+the kill recorded. Fabrication is cheating; a killed sub's lane forfeits
+its round. Judgment phase convenes after the build lands.
+
 ## The bench
 
 | ID | Agent | Domain | Primary Scope |
