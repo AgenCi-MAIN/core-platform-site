@@ -406,6 +406,14 @@ test("Dialer Beta lists transferred calls and gates protected recording playback
     const recording = await portal.get("/portal/calls/recording?id=1", reviewer);
     assert.equal(recording.status, 200);
     assert.equal(recording.headers.get("content-type"), "audio/mpeg");
+    // A recording is consent- AND capability-gated on every request. It must
+    // never be HTTP-cacheable: a stored copy would replay past a later consent
+    // revocation or capability loss without the worker re-running either gate.
+    assert.match(
+      recording.headers.get("cache-control") ?? "",
+      /no-store/,
+      "call recordings must be no-store — a cacheable copy bypasses the consent and capability re-check",
+    );
     assert.deepEqual(new Uint8Array(await recording.arrayBuffer()), new Uint8Array([73, 68, 51, 4]));
 
     const refused = await portal.get("/portal/calls/recording?id=1", {
@@ -614,6 +622,16 @@ test("an owner uploads a track, and every member can list and play it", async (t
   );
   assert.equal(play.status, 200, "a member must be able to stream");
   assert.match(play.headers.get("content-type") ?? "", /^audio\//);
+  // Member audio must never be HTTP-cacheable. A stored copy answers the next
+  // request without the worker re-resolving the session or the member's row —
+  // the exact boundary public/sw.js excludes /portal to protect, arriving one
+  // layer up through the HTTP cache. `max-age` here would keep a suspended
+  // member's browser serving audio their membership no longer entitles them to.
+  assert.match(
+    play.headers.get("cache-control") ?? "",
+    /no-store/,
+    "member audio must be no-store — a cacheable copy bypasses the membership re-check",
+  );
 
   const supportUpload = await uploadRequest(portal, support, "nope.mp3");
   assert.equal(supportUpload.status, 403, "support must not be able to upload");

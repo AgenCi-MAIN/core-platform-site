@@ -147,7 +147,7 @@ export default async function PortalDashboard() {
             <span className="portal-metric-detail">
               {seatsFilled === null
                 ? "Roster could not be read just now"
-                : seatsFilled === TOTAL_SEATS
+                : seatsFilled >= TOTAL_SEATS
                   ? "All principal seats granted"
                   : `${TOTAL_SEATS - seatsFilled} seat${TOTAL_SEATS - seatsFilled === 1 ? "" : "s"} pending an address`}
             </span>

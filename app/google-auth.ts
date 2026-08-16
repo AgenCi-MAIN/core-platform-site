@@ -265,6 +265,15 @@ export function safeRelativeReturnPath(value: string): string {
     return "/";
   }
   if (url.origin !== "https://app.local") return "/";
+  // A `..` segment can normalize a path down to one that BEGINS with `//`
+  // even though the raw input did not: "/..//evil.com" survives the guard
+  // above, and the URL parser resolves it to pathname "//evil.com" while the
+  // origin still reads as ours. Returned verbatim into a Location header that
+  // is a protocol-relative URL, and the browser resolves it to https://evil.com
+  // — an open redirect on an unauthenticated surface, reachable through the
+  // sign-out and sign-in return_to parameters. Re-check after normalization,
+  // not just before it.
+  if (url.pathname.startsWith("//")) return "/";
   if (isReservedAuthPath(url.pathname)) return "/";
 
   return `${url.pathname}${url.search}${url.hash}`;

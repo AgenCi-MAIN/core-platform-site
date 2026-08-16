@@ -126,7 +126,20 @@ if (wranglerRaw !== null) {
 const hostingRaw = await readFile(path.join(root, ".openai/hosting.json"), "utf8").catch(
   () => null,
 );
-const hosting = hostingRaw ? JSON.parse(hostingRaw) : null;
+// Guarded like the wrangler parse above: a JSON typo in the file the record
+// instructs people to edit should produce this preflight's named failure, not
+// a raw SyntaxError stack trace.
+let hosting = null;
+if (hostingRaw !== null) {
+  try {
+    hosting = JSON.parse(hostingRaw);
+  } catch {
+    fail(
+      ".openai/hosting.json is not valid JSON.",
+      "The build reads it to bake the D1 id, and this preflight reads it to confirm the built id matches the committed one. Fix the JSON before deploying.",
+    );
+  }
+}
 
 if (built) {
   const d1 = built.d1_databases?.[0];
