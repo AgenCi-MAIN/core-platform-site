@@ -13,7 +13,10 @@ keeps. If a value ever lands in this file, rotate it rather than deleting it.
 ## 1. What this is
 
 A permissioned operating portal for THRIVE, deployed as a single Cloudflare
-Worker. The public site is open to anyone; everything under `/portal` is closed
+Worker. The app serves a public site and a closed `/portal` — but since
+2026-08-16 Cloudflare Access fronts the whole workers.dev domain: anonymous
+requests are refused 403 at the edge before this application runs (see §16).
+Everything under `/portal` is closed
 by default and opens only to people who hold a membership row, at the role that
 row carries. Two independent checks run on every request:
 
@@ -55,7 +58,9 @@ it into `dist/server/wrangler.json` at build time, which is the config
 
 ## 3. Identity — Sign in with Google
 
-Implemented in the app itself; there is no hosting platform in front of it.
+Implemented in the app itself. (Since 2026-08-16 Cloudflare Access sits in
+front of the domain, but the app trusts nothing from it — identity still comes
+only from the app's own `core_session` cookie.)
 
 | File | Responsibility |
 | --- | --- |
@@ -98,6 +103,14 @@ Authorized JavaScript origins: none — the flow is entirely server-side.
 The consent screen is **External** and unpublished, so first-time users see an
 "unverified app" interstitial. That is expected for a private app; continue via
 **Advanced → Go to THRIVE Portal**.
+
+**Status 2026-08-16: the OAuth client is DISABLED.** Sign-in currently fails
+with Google's `Error 401: disabled_client` for every user. This is not a
+credential-value problem — see trap #8. The owner must re-enable the client in
+Google Cloud console (APIs & Services → Credentials → the client → Enable), or
+mint a replacement and rotate `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`. Until
+then no session can be minted and the portal is unreachable to everyone.
+Remove this paragraph when the client is confirmed working again.
 
 ### Secrets (names only)
 
@@ -344,7 +357,7 @@ npm install
 npm run deploy
 ```
 
-`npm run deploy` is build → the full test suite (42 cases at this writing) →
+`npm run deploy` is build → the full test suite (50 cases at this writing) →
 preflight → `wrangler deploy`, chained so
 that any failure stops the deploy. It cannot ship a stale `dist/`, because the
 build always runs first and the preflight checks the result. Secrets survive
@@ -442,6 +455,11 @@ identity it is impersonating on every start. The role still comes from the
 7. **Google takes a minute or two to propagate credential changes.** An
    `invalid_client` immediately after saving may just be timing — wait two
    minutes and retry once before assuming the value is wrong.
+8. **`Error 401: disabled_client` is not `invalid_client`.** `invalid_client`
+   means the value is wrong (traps 6–7). `disabled_client` means the client
+   itself was turned off or deleted in Google Cloud console — the stored
+   secrets may be perfectly correct. Do not rebuild credentials for it; check
+   the client's enabled state first. Hit live on 2026-08-16.
 
 ---
 

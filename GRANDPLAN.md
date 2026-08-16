@@ -21,7 +21,7 @@
 ```
 Browser
   │
-  ├── / , /tour          ← Public (open to anyone; no auth required)
+  ├── / , /tour          ← App-level public (no app auth) — but Cloudflare Access 403s anonymous requests at the edge since 2026-08-16
   ├── /access            ← Public intake (intentionally looks up NOTHING)
   ├── /auth/signin       ← OAuth start (PKCE)
   ├── /auth/callback     ← OAuth completion → mints core_session cookie
@@ -88,7 +88,7 @@ Step 2 is what actually protects the portal.
 | `leadership.view.all` | ✓ | ✓ | ✓ | | | |
 | `members.view` | ✓ | ✓ | ✓ | | | |
 | `members.manage` | ✓ | ✓ | | | | |
-| `audit.view` | ✓ | ✓ | | | | |
+| `audit.view` | — | — | — | — | — | — |
 
 **Rules:**
 - Capabilities are deny-by-default; a role holds exactly what is listed.
@@ -216,7 +216,8 @@ worker before anything else.
 ## Open decisions / roadmap
 
 - [ ] Connect CRM, carrier, and dialer data sources to the portal.
-- [ ] `dialer_transfers` inbox and review flow (D1 + R2 wired; UI pending).
+- [x] `dialer_transfers` inbox and review flow — live as of 877e0c99
+  (2026-08-16); see CORE_PLATFORM_RECORD §12.
 - [ ] Goal engine: turn pace targets into daily operating numbers.
 - [ ] Script versioning: compliance-reviewed language folded back from calls.
 - [ ] Portfolio memory: aggregate case outcomes back into coaching context.

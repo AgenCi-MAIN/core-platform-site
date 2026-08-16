@@ -9,7 +9,10 @@ deploy sequence, and the traps that have already cost time once.
 
 A permissioned operating portal for THRIVE, deployed as one Cloudflare Worker at
 `https://site-creator-vinext-starter.bankerrunners.workers.dev`. The public site
-is open; everything under `/portal` is closed by default.
+was designed open, but as of 2026-08-16 Cloudflare Access fronts the entire
+workers.dev domain — anonymous requests get 403 at the edge before the app
+runs. Everything under `/portal` remains additionally closed by the app's own
+checks.
 
 Two independent checks run on every request: **Sign in with Google** establishes
 identity, and an active `portal_members` row establishes membership and role.
