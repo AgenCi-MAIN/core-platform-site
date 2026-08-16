@@ -38,3 +38,24 @@ yet diligenced):
   advance-treadmill finding applies to any FE book).
 
 Nothing here is verified beyond the owner's statement; labeled accordingly.
+
+## Integration targets (owner-supplied, 2026-08-16)
+
+External partner systems to plug INTO CORE, all following ONE reusable
+ingest-socket pattern (authenticated by a secret NAME set via wrangler and
+exchanged out-of-band; deny-by-default; audited; idempotent; fail-closed):
+
+1. **LeadTech CRM** — call transfers → `dialer_transfers`. Socket being
+   built by the Test-3 fleet (`leadtech-plug-fleet`). Andrew is owner and
+   gave permission. The Leadership page's "Call operations" source row.
+2. **Retention AI** (`retention-os.ai`, Thrive Companies agent portal) —
+   persistency / lapse / chargeback data. SECOND source; reuses the
+   LeadTech socket pattern with its own table (not `dialer_transfers` —
+   different shape). Andrew's system; permission given 2026-08-16. The
+   Leadership page's "Retention / persistency" source row (already present,
+   marked Not connected).
+
+Credential rule for every socket: value never in chat/files; a burned
+credential (one pasted into a transcript) is rotated before use. No CORE
+process logs into a partner system with a pasted password — CORE receives
+authenticated POSTs, it does not scrape.
