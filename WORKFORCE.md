@@ -348,6 +348,16 @@ a deliverable, or who burns tokens off-brief is stopped, zero-scored, and
 the kill recorded. Fabrication is cheating; a killed sub's lane forfeits
 its round. Judgment phase convenes after the build lands.
 
+**Budget amendment (owner order, 2026-08-16): the Test-3 token budget
+splits 50/50.** Half to MAIN — orchestration, applying the verified build,
+running the suite. Half to the SUBS — and their share carries past the
+bell: after the test, a sub may spend from its half on **rating
+improvement** — remediation of judged deficiencies, a re-attempt at a
+forfeited deliverable, or a leaner re-run of an over-spent one. LEDGER
+books both halves separately; a sub that exhausts its share waits for the
+next pool. Improvement spend is scored like all spend: production per
+token, no credit for volume.
+
 ## The bench
 
 | ID | Agent | Domain | Primary Scope |
