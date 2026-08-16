@@ -96,9 +96,9 @@ an action) · 🔵 OPEN (still the owner's to decide)
 ## What still needs the owner (the short list)
 
 1. **Inkbox $30 upgrade** — unlocks the staff phone number (D3, D4)
-3. **`PRESENCE_MODEL`** — one word for the ~5× cost cut (C4)
-4. **Counsel on the consent line**, then the socket greenlight (E7)
-5. **Carrier statements + LeadTech CPL data** — the pilot's entry ticket (E3)
+2. **`PRESENCE_MODEL`** — one word for the ~5× cost cut (C4)
+3. **Counsel on the consent line**, then the socket greenlight (E7)
+4. **Carrier statements + LeadTech CPL data** — the pilot's entry ticket (E3)
 6. **The A/B/C centralization decision** (E6)
 7. Oscar's sign-in address (A8) · Copilot cancel (D6) · Slack trials (D8)
 
