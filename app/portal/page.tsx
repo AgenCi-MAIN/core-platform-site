@@ -1,7 +1,9 @@
 import { count } from "drizzle-orm";
+import Link from "next/link";
 import { getDb } from "../../db";
 import { portalMembers } from "../../db/schema";
 import { CAPABILITIES, ROLE_LABELS, requireCapability } from "./access";
+import { ANNOUNCEMENTS } from "./announcements/content";
 import { METAL_FOR_ROLE, RankMedallion } from "../rank-medallion";
 import {
   PortalCardHeader,
@@ -34,6 +36,11 @@ const TOTAL_CAPABILITIES = CAPABILITIES.filter(
  * point.
  */
 const TOTAL_SEATS = 4;
+
+/** The single owner-pinned announcement is surfaced on the signed-in home. */
+const PINNED_ANNOUNCEMENT = [...ANNOUNCEMENTS]
+  .filter((announcement) => announcement.pinned)
+  .sort((a, b) => b.date.localeCompare(a.date))[0] ?? null;
 
 /** Roman numeral per role, struck into its medallion. */
 const ROLE_NUMERAL: Record<string, string> = {
@@ -104,6 +111,23 @@ export default async function PortalDashboard() {
             <span className="portal-state portal-state-pending">Business sources pending</span>
           </div>
         </div>
+
+        {PINNED_ANNOUNCEMENT ? (
+          <Link
+            className="portal-card portal-dashboard-announcement"
+            href={`/portal/announcements#${PINNED_ANNOUNCEMENT.id}`}
+          >
+            <span className="portal-dashboard-announcement-mark" aria-hidden="true">2.0</span>
+            <span className="portal-dashboard-announcement-copy">
+              <span className="portal-dashboard-announcement-kicker">Pinned release · New announcement</span>
+              <strong>{PINNED_ANNOUNCEMENT.title}</strong>
+              <small>{PINNED_ANNOUNCEMENT.body[0]?.replaceAll("**", "")}</small>
+            </span>
+            <span className="portal-dashboard-announcement-action" aria-hidden="true">
+              Read announcement <span>→</span>
+            </span>
+          </Link>
+        ) : null}
 
         <section className="portal-metric-grid" aria-label="Session overview">
           {/* Membership: green when active, red otherwise. Status is the one

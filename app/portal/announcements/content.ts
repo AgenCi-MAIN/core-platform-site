@@ -34,6 +34,17 @@ export const ANNOUNCEMENT_CATEGORY_LABELS: Record<Announcement["category"], stri
 
 export const ANNOUNCEMENTS: readonly Announcement[] = [
   {
+    id: "what-2-0-0-is",
+    title: "What 2.0.0 is",
+    date: "2026-08-16",
+    author: "Shawn",
+    category: "release",
+    pinned: true,
+    body: [
+      "The version number jumps from 0.1.0 to 2.0.0 because the thing itself changed class twice. 1.x was the portal: identity, membership, capabilities, the audit spine. 2.0 is the portal **plus a working AI staff** — a model-powered member surface, standing agents on schedules, and a scored fleet economy governing how machine labor is allocated. This file is the finalization record for that whole.",
+    ],
+  },
+  {
     id: "jarvis-introduction",
     title: "Introducing J.A.R.V.I.S.",
     date: "2026-08-13",
@@ -46,25 +57,6 @@ export const ANNOUNCEMENTS: readonly Announcement[] = [
       "What I do is narrower and more useful than it sounds. I check that every person who opens a page is allowed to open it, and I write down every one of those decisions — the refusals as well as the approvals — in a log nobody can quietly edit. I keep this portal's records honest: where a system is not connected yet, I make the page say so instead of showing you a number that looks impressive and means nothing.",
       "I will tell you when I do not know something. I will tell you when something has not been verified. If I have made a mistake, the log will show it, and I would rather you find it there than not at all.",
       "You will not get a message from me unless you opened a page or someone sent you one. I cannot contact you on my own, and I will not claim otherwise.",
-    ],
-  },
-  {
-    id: "jarvis-1-0-0",
-    title: "CORE-J.A.R.V.I.S. 1.0.0",
-    // Date supplied by the owner as 09/12/2026. Note it is later than the date
-    // this announcement was authored, and the body says "tonight" — confirm
-    // whether this is intentionally post-dated for a scheduled release.
-    date: "2026-09-12",
-    author: "Shawn",
-    category: "release",
-    pinned: true,
-    body: [
-      "CORE-J.A.R.V.I.S 1.0.0 will be available tonight, concluding development of the Central Reasoning System. Version 1.0.0 also debuts the Passive Income Stream Blueprint Generator.",
-    ],
-    roadmap: [
-      "Manager-level editing access with secure confirmation for recruitment",
-      "Sub AI Agent Teams",
-      "Additional capabilities to follow",
     ],
   },
 ];

@@ -662,3 +662,164 @@ The access page deliberately performs **no** membership lookup: an
 unauthenticated page that reported whether an address holds membership would be
 a roster enumeration oracle. Its response is byte-identical for a member and a
 stranger. Keep it that way.
+
+## 12. Operational update — authenticated dialer inbox and call review
+
+Completed 2026-08-15 in the working tree.
+
+The Call Lab now has a complete authenticated read-and-playback flow over the
+existing data bindings:
+
+- `/portal/calls` remains the D1-backed transfer inbox and now links each
+  transfer to `/portal/calls/review/:id`.
+- `/portal/calls/review` is a guarded landing page; the path-parameter detail
+  route is the canonical review hand-off because the current Vinext page
+  adapter does not reliably expose query parameters to RSC page components.
+- The detail view renders protected transfer context from `dialer_transfers`,
+  lifecycle and consent state, reviewer prompts, and a conditional R2 audio
+  player.
+- Playback remains independently guarded by the signed-session membership
+  resolver, `calls.review`, verified consent, `ready` lifecycle state, a
+  recording object key, and the `CALL_RECORDINGS` R2 binding. Responses remain
+  private and `no-store`.
+- Recording object keys are constrained to the `calls/` namespace and audio
+  content types are sanitized before the response is emitted. Invalid
+  namespaces are refused and audited.
+- No new capability was added and no role grant changed. Existing owners,
+  administrators, managers, and reviewers retain `calls.review`; agents and
+  support remain denied by default.
+- Structured coaching notes are intentionally not persisted by this read-only
+  flow. A future write path needs an approved review record, retention policy,
+  reviewer ownership, and a separate audited capability decision.
+
+Verification completed:
+
+- `npm run typecheck` — passed.
+- `npm run lint` — passed.
+- `npm test` — passed, 49 tests.
+- `npm run verify:build` — passed; build reported safe to deploy.
+
+## 13. Operational update — Agency Drive and Gmail reconciliation
+
+Completed 2026-08-15 through the connected Google account. No credentials,
+one-time codes, message bodies, or secret values were copied into this record.
+
+Google Drive was reconciled against the prior session transcript rather than
+assuming its reported moves were complete:
+
+- `CORE — THRIVE AGENCY HQ` is now the only item at the My Drive root.
+- The canonical `Mr.T-2.0.0 — skills rack` document was moved into Agency HQ.
+- The extra shared copy was renamed as superseded and moved, without changing
+  its sharing state, into the new `90 — Archive & Superseded` folder.
+- Nothing was deleted.
+- The existing native Google Doc `00 — THE AGENCY (master file)` remains the
+  master index. A connector-verified status section was appended with a native
+  date chip, headings, and lists covering Drive, Gmail, portal delivery,
+  integrity boundaries, and the owner-review queue.
+
+Gmail was organized with reversible labels and selective archiving:
+
+- Added `AGENCY/Action Required`, `AGENCY/Development & Deployments`,
+  `AGENCY/Security & Access`, and `AGENCY/Telecom & Dialer`.
+- Reused the existing Vendors, Receipts, Security Alerts, and Marketing labels.
+- Labeled 31 messages across 18 threads as Action Required. At verification,
+  18 of those messages across 17 threads remained unread for owner review.
+- Marked read and archived 17 completed GitHub session-notification threads,
+  five expired access-code threads, and four passive subscription/community
+  threads. Three older receipt messages were labeled and archived. No message
+  was deleted.
+- The declined NumberBarn card notice was removed from Action Required, marked
+  read, and archived under the standing owner decision to disregard that
+  parked-number payment.
+- Post-cleanup inbox verification reported 47 messages across 30 threads, with
+  22 messages across 20 threads unread. Current access codes and unresolved
+  human, billing, security, and onboarding items were deliberately retained.
+
+Integrity correction: claims in older records about an active Inkbox staff
+inbox, hourly HERALD polling, iMessage routing, persistent AI staff, phone
+provisioning, or automated external outreach were not verified by this
+assignment. They remain proposed or unconfirmed until the relevant service and
+automation are connected and checked. AI task runtimes are not continuous
+people; continuity comes from authenticated systems and durable records.
+
+## 14. Owner-declared first Pro Plan Enterprise seed
+
+Recorded from Yuxiang Mao's direct instruction on 2026-08-15.
+
+- **Seed designation:** `1st-ProPlanEnterprise` (normalized from the owner's
+  wording, "1st-ProPlanEnterprice").
+- **Seeded by:** Yuxiang Mao (Shawn).
+- **Owner-stated timestamp:** 11:33 on 2026-08-15. The instruction did not
+  specify AM/PM or a timezone, so this record does not infer either one.
+- **Commercial amount shown:** $200.00 monthly subscription plus $12.80 sales
+  tax, for $212.80 due at checkout.
+- **Evidence status:** owner-declared seed; payment completion not yet verified.
+  The supplied checkout image still displayed the `Subscribe` action and is
+  evidence of the quoted amount, not a successful charge or receipt.
+- **Access effect:** none. This record does not grant, expand, or activate
+  "total proxy access." `bankerrunners@gmail.com` retains only the founder and
+  owner permissions already established by the portal's audited capability
+  model. Any new proxy authority requires a defined scope, successful payment
+  evidence if payment is a prerequisite, and a separate approved access change.
+
+## 15. Workforce Codex-project entry gate
+
+Owner instruction recorded on 2026-08-15: **the workforce must enter through
+the CORE Codex project first.** This rule is now in force in `WORKFORCE.md`.
+
+Operationally, each workforce assignment must start with the active workspace
+confirmed as `C:\Users\k2547\OneDrive\Desktop\20xchat` and with `AGENTS.md`,
+`CLAUDE.md`, `CORE_PLATFORM_RECORD.md`, and the applicable role brief loaded.
+This is a project-context gate, not a credential grant: it does not authenticate
+the worker to the production portal or any external service, alter a member
+row, add a capability, or expand proxy authority. If the correct project
+context cannot be verified, the assignment must fail closed before work begins.
+
+## 16. CORE 2.0.0 portal announcement
+
+Published 2026-08-16 from Shawn's direct instruction.
+
+- **Title:** `What 2.0.0 is`.
+- **Author displayed:** Shawn.
+- **Source:** the owner-supplied text already recorded under the same heading in
+  `RELEASE-2.0.0.md`; the portal renders that text without AI-authored additions.
+- **Placement:** the announcement is the single pinned release on
+  `/portal/announcements`, and its headline and text preview are surfaced on
+  the authenticated `/portal` dashboard.
+- **Audience and access:** every active portal role can read it through the
+  existing `dashboard.view.self` guard. No capability, membership, role, or
+  authentication rule changed.
+- **Verification:** TypeScript and lint passed; the production suite passed all
+  50 tests, including an active-support-role render of the dashboard and full
+  announcement plus the existing anonymous-refusal coverage. The deployment
+  preflight confirmed the D1 id, R2 binding, current source, and static assets.
+- **Deployment:** Cloudflare Worker version
+  `a25dd5c8-46e7-4e6a-b751-73a1346e92e0` activated successfully at
+  `https://site-creator-vinext-starter.bankerrunners.workers.dev`.
+
+Post-deploy unauthenticated HTTP checks returned a Cloudflare Access redirect
+for `/`, `/portal`, and `/portal/announcements`. That external access layer is
+currently in front of the application, including the formerly public root; the
+deployment did not alter the Cloudflare Access policy. The portal's own signed
+session, membership, and capability checks remain independently enforced behind
+that layer.
+
+## 17. Operational update — retired J.A.R.V.I.S. 1.0.0 release post
+
+Completed 2026-08-16 from Shawn's direct instruction to take down the post.
+
+- Removed the announcement record `jarvis-1-0-0`, titled
+  `CORE-J.A.R.V.I.S. 1.0.0`, including its release statement and roadmap list.
+- Preserved the pinned `What 2.0.0 is` release and the existing J.A.R.V.I.S.
+  introduction.
+- No authentication, membership, capability, role, D1, R2, or Cloudflare
+  Access rule changed.
+- The production build completed, all 50 portal authorization and rendering
+  tests passed, and deployment verification passed.
+- Cloudflare Worker version `a48e884f-81dc-4297-8fd3-d37c6a326471` deployed
+  successfully at
+  `https://site-creator-vinext-starter.bankerrunners.workers.dev`.
+- The retired post title, record ID, and Passive Income Stream Blueprint text
+  are absent from both the current source and built deployment output. An
+  unauthenticated request to `/portal/announcements` continues to receive the
+  expected Cloudflare Access redirect.

@@ -1274,11 +1274,36 @@ button, .button, .nav-cta, .text-link {
 .dialpad-call.is-idle { opacity: .4; pointer-events: none; }
 .dialpad-fine { text-align: center; }
 
-.portal-dialer-table { min-width: 980px; }
+.portal-dialer-table { min-width: 1080px; }
 .portal-dialer-table th:last-child,
 .portal-dialer-table td:last-child { text-align: right; }
 .portal-recording-link { display: inline-flex; align-items: center; min-height: 30px; padding: 5px 9px; border: 1px solid var(--portal-accent); border-radius: 7px; background: var(--portal-accent-soft); color: var(--portal-accent-strong); font-size: 10px; font-weight: 800; white-space: nowrap; }
 .portal-recording-link:hover { background: var(--portal-accent); color: #fff; }
+.portal-call-review { gap: 18px; }
+.portal-call-review-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.portal-call-back { display: inline-flex; align-items: center; gap: 7px; color: var(--portal-muted); font-size: 11px; font-weight: 800; text-decoration: none; }
+.portal-call-back:hover { color: var(--portal-accent-strong); }
+.portal-call-back span { color: var(--portal-accent); font-size: 18px; line-height: 1; }
+.portal-call-review-summary { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.portal-call-review-summary .portal-intro { margin-bottom: 0; }
+.portal-call-review-state { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; padding-bottom: 5px; }
+.portal-call-review-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(280px, .75fr); gap: 16px; align-items: start; }
+.portal-call-player-card,
+.portal-call-review-guide { min-width: 0; }
+.portal-call-player { display: grid; gap: 10px; }
+.portal-call-player audio { width: 100%; min-height: 44px; }
+.portal-call-player .portal-fine { margin: 0; }
+.portal-review-steps { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; counter-reset: review-step; }
+.portal-review-steps li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 10px; counter-increment: review-step; }
+.portal-review-steps li::before { content: counter(review-step, decimal-leading-zero); display: grid; place-items: center; width: 28px; height: 28px; border: 1px solid var(--portal-line-strong); border-radius: 8px; color: var(--portal-accent-strong); font-size: 10px; font-weight: 850; }
+.portal-review-steps strong { display: block; color: var(--portal-text); font-size: 12px; }
+.portal-review-steps span { display: block; margin-top: 3px; color: var(--portal-muted); font-size: 11px; line-height: 1.5; }
+.portal-call-review-guide > .portal-fine { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--portal-line); }
+.portal-call-facts-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.portal-call-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; margin: 0; }
+.portal-call-facts div { min-width: 0; }
+.portal-call-facts dt { color: var(--portal-muted); font-size: 10px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; }
+.portal-call-facts dd { margin: 4px 0 0; color: var(--portal-text); font-size: 12px; font-weight: 750; overflow-wrap: anywhere; }
 .portal-call-consent-verified,
 .portal-call-status-ready { color: var(--portal-success); border-color: #add7c1; background: #edf8f2; }
 .portal-call-consent-pending,
@@ -1397,6 +1422,11 @@ html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"]
   .portal-dashboard-grid { grid-template-columns: 1fr; }
   .portal-dashboard-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .portal-dialer-grid { grid-template-columns: 1fr; }
+  .portal-call-review-summary,
+  .portal-call-review-header { align-items: flex-start; flex-direction: column; }
+  .portal-call-review-state { justify-content: flex-start; padding-bottom: 0; }
+  .portal-call-review-grid,
+  .portal-call-facts-grid { grid-template-columns: 1fr; }
   .portal-dialer-readiness .portal-readiness-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 20px; }
 }
 
@@ -2109,6 +2139,7 @@ html[data-portal-performance="boost"] .library-index-item:hover { transform: non
 
 .announce-body { display: grid; gap: 11px; max-width: 78ch; }
 .announce-body p { margin: 0; color: var(--portal-muted); font-size: var(--portal-type-body); line-height: 1.68; }
+.announce-body strong { color: var(--portal-text); font-weight: 820; }
 
 .announce-roadmap {
   display: grid; gap: 8px; padding: 13px 15px;
@@ -2133,6 +2164,42 @@ html[data-portal-theme="dark"] .announce-tag-operations { color: #f0d69a; border
 html[data-portal-theme="dark"] .announce-tag-recognition { color: #79dfad; border-color: #3d7659; background: #173325; }
 
 html[data-portal-performance="boost"] .announce-card-pinned { box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+
+.portal-dashboard-announcement {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  color: inherit;
+  text-decoration: none;
+  border-color: color-mix(in srgb, var(--portal-accent) 45%, var(--portal-line));
+  background: linear-gradient(120deg, var(--portal-accent-soft), var(--portal-panel) 48%);
+}
+.portal-dashboard-announcement:hover { border-color: var(--portal-accent); transform: translateY(-1px); }
+.portal-dashboard-announcement-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: var(--portal-accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -.03em;
+  box-shadow: 0 10px 22px -15px var(--portal-accent);
+}
+.portal-dashboard-announcement-copy { display: grid; gap: 3px; min-width: 0; }
+.portal-dashboard-announcement-kicker { color: var(--portal-accent-strong); font-size: 9px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.portal-dashboard-announcement-copy > strong { font-size: 16px; line-height: 1.2; }
+.portal-dashboard-announcement-copy > small { display: -webkit-box; overflow: hidden; color: var(--portal-muted); font-size: 11px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.portal-dashboard-announcement-action { display: inline-flex; align-items: center; gap: 7px; color: var(--portal-accent-strong); font-size: 10px; font-weight: 850; white-space: nowrap; }
+.portal-dashboard-announcement-action span { font-size: 17px; }
+
+@media (max-width: 720px) {
+  .portal-dashboard-announcement { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
+  .portal-dashboard-announcement-action { grid-column: 2; }
+}
 
 /* --- J.A.R.V.I.S. mark + system announcements -------------- */
 .jarvis-mark { display: block; border-radius: 50%; flex: none; }

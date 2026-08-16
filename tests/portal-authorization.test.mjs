@@ -199,6 +199,39 @@ test("a seeded owner signs in, binds their subject, and is audited", async () =>
   }
 });
 
+test("active members see Shawn's pinned 2.0.0 announcement", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("support-announcements@example.com", "support");
+  const member = {
+    subject: "subject-support-announcements",
+    email: "support-announcements@example.com",
+  };
+
+  const dashboard = await portal.get("/portal", member);
+  assert.equal(dashboard.status, 200);
+  const dashboardHtml = await dashboard.text();
+  assert.match(dashboardHtml, /What 2\.0\.0 is/);
+  assert.match(dashboardHtml, /href="\/portal\/announcements#what-2-0-0-is"/);
+
+  const response = await portal.get("/portal/announcements", member);
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  // React may place empty hydration comments between adjacent text segments;
+  // compare what the member sees, not those invisible transport markers.
+  const visibleHtml = html.replaceAll("<!-- -->", "");
+  assert.match(html, /id="what-2-0-0-is"/);
+  assert.match(visibleHtml, /Posted by Shawn/);
+  assert.match(visibleHtml, /version number jumps from 0\.1\.0 to 2\.0\.0/);
+  assert.match(visibleHtml, /<strong>plus a working AI staff<\/strong>/);
+  assert.equal(
+    (html.match(/aria-label="Pinned announcement"/g) ?? []).length,
+    1,
+    "the new release must be the single pinned announcement",
+  );
+});
+
 test("subject binding happens once, not on every sign-in", async () => {
   const portal = await startPortal();
   try {
@@ -401,7 +434,23 @@ test("Dialer Beta lists transferred calls and gates protected recording playback
     const html = await page.text();
     assert.match(html, /Dialer transfer/);
     assert.match(html, /transfer-test-001/);
+    assert.match(html, /Review call/);
     assert.match(html, /Open recording/);
+
+    const review = await portal.get("/portal/calls/review/1", reviewer);
+    assert.equal(review.status, 200);
+    const reviewHtml = await review.text();
+    assert.match(reviewHtml, /Protected call review/);
+    assert.match(reviewHtml, /transfer-test-001/);
+    assert.match(reviewHtml, /Recording playback/);
+    assert.match(reviewHtml, /portal\/calls\/recording\?id=1/);
+
+    const deniedReview = await portal.get("/portal/calls/review/1", {
+      subject: "subject-agent-calls",
+      email: "agent-calls@example.com",
+    });
+    assert.equal(deniedReview.status, 307, "an agent without calls.review cannot open call review");
+    assert.match(deniedReview.headers.get("location") ?? "", /\/portal\/no-access/);
 
     const recording = await portal.get("/portal/calls/recording?id=1", reviewer);
     assert.equal(recording.status, 200);
@@ -1215,6 +1264,35 @@ test("a recording without verified consent is refused, byteless, and the refusal
         r.reason === "consent_not_verified",
     ),
     "every deny is audited — the consent refusal included",
+  );
+});
+
+test("an entitled reviewer cannot use a transfer row to read another R2 namespace", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("reviewer-key@example.com", "reviewer");
+  await portal.db
+    .prepare(
+      `INSERT INTO dialer_transfers
+        (transfer_id, source_system, direction, status, consent_status,
+         recording_object_key, recording_mime_type)
+       VALUES (?, 'test-dialer', 'inbound', 'ready', 'verified', ?, 'audio/mpeg')`,
+    )
+    .bind("transfer-invalid-key", "music/private.mp3")
+    .run();
+  await portal.recordings.put("music/private.mp3", new Uint8Array([1, 2, 3, 4]));
+
+  const response = await portal.get("/portal/calls/recording?id=1", {
+    subject: "sub-reviewer-key",
+    email: "reviewer-key@example.com",
+  });
+  assert.equal(response.status, 409);
+  assert.match(await response.text(), /metadata is invalid/i);
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.action === "calls.recording.open" && r.reason === "recording_key_invalid"),
+    "invalid recording namespace access is audited",
   );
 });
 

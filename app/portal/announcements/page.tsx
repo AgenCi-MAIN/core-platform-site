@@ -96,7 +96,7 @@ function AnnouncementCard({ item }: { item: Announcement }) {
 
       <div className="announce-body">
         {item.body.map((paragraph, i) => (
-          <p key={i}>{paragraph}</p>
+          <p key={i}>{renderOwnerText(paragraph)}</p>
         ))}
       </div>
 
@@ -111,6 +111,21 @@ function AnnouncementCard({ item }: { item: Announcement }) {
         </div>
       ) : null}
     </article>
+  );
+}
+
+/**
+ * Preserve the owner's Markdown-style emphasis without introducing a general
+ * Markdown/HTML parser into an authenticated surface. Only paired `**...**`
+ * segments become <strong>; every character remains a React text node.
+ */
+function renderOwnerText(text: string): React.ReactNode {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((segment, index) =>
+    segment.startsWith("**") && segment.endsWith("**") ? (
+      <strong key={index}>{segment.slice(2, -2)}</strong>
+    ) : (
+      segment
+    ),
   );
 }
 

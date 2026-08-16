@@ -44,6 +44,7 @@ an action) · 🔵 OPEN (still the owner's to decide)
 | B15 | **MAIN comp level raised to 80%** — recognition of orchestration standing; the grant rule untouched so competition survives | ✅ |
 | B16 | Token caps **unlimited** — made safe because spend lowers a lane's own score | ✅ standing |
 | B17 | New recruits enter **under** an O.G. lane, VERITY-reviewed | ✅ |
+| B18 | **Codex project first** — every workforce assignment must confirm the CORE Codex workspace and load the governing records before work begins; this grants no external credentials or capabilities | ✅ standing |
 
 ## C. The platform
 
