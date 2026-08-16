@@ -212,6 +212,20 @@ export function PortalShell({
         aria-label="Toggle portal navigation"
       />
 
+      {/* Fallback drawer state for engines without the Popover API (Safari
+          15.4–16.x and other pre-2023 builds): a visually-hidden checkbox,
+          driven by a <label> open control and :has(...:checked) in globals.css
+          — the same proven mechanism as #portal-sidebar-toggle above. Without
+          it those browsers cannot open the mobile drawer at all, which strands
+          the member with no navigation on every portal sub-page. Modern
+          browsers use the popover and leave this untouched. */}
+      <input
+        className="portal-mobile-drawer-toggle"
+        id="portal-mobile-drawer"
+        type="checkbox"
+        aria-label="Toggle mobile navigation"
+      />
+
       {/* Nav links are client-side now, so tapping one no longer reloads the
           page — which also means the mobile drawer no longer closes itself.
           One delegated listener closes it on any link tap inside it. Inline
@@ -220,7 +234,7 @@ export function PortalShell({
       <script
         dangerouslySetInnerHTML={{
           __html:
-            '(function(){if(window.__thriveDrawerClose)return;window.__thriveDrawerClose=1;document.addEventListener("click",function(e){var t=e.target instanceof Element?e.target:null;if(!t)return;var p=t.closest("#portal-mobile-navigation");if(p&&t.closest("a")&&typeof p.hidePopover==="function"){p.hidePopover()}})})();',
+            '(function(){if(window.__thriveDrawerClose)return;window.__thriveDrawerClose=1;function u(){var c=document.getElementById("portal-mobile-drawer");if(c&&c.checked){c.checked=false}}document.addEventListener("click",function(e){var t=e.target instanceof Element?e.target:null;if(!t)return;var p=t.closest("#portal-mobile-navigation");if(p&&t.closest("a")){if(typeof p.hidePopover==="function"){p.hidePopover()}u()}});document.addEventListener("keydown",function(e){if(e.key==="Escape"){u()}})})();',
         }}
       />
 
@@ -235,7 +249,7 @@ export function PortalShell({
         popover="auto"
       >
         <button
-          className="portal-drawer-close"
+          className="portal-drawer-close portal-drawer-close-popover"
           type="button"
           popoverTarget="portal-mobile-navigation"
           popoverTargetAction="hide"
@@ -243,8 +257,28 @@ export function PortalShell({
           <span aria-hidden="true">×</span>
           <span className="sr-only">Close navigation</span>
         </button>
+        {/* Fallback close: unchecking #portal-mobile-drawer slides the drawer
+            shut where the popover hide button is inert. */}
+        <label
+          className="portal-drawer-close portal-drawer-close-fallback"
+          htmlFor="portal-mobile-drawer"
+          title="Close navigation"
+        >
+          <span aria-hidden="true">×</span>
+          <span className="sr-only">Close navigation</span>
+        </label>
         <PortalSidebarContent session={session} current={current} visible={visible} />
       </aside>
+
+      {/* Backdrop for the checkbox fallback: the popover path gets a native
+          ::backdrop, this gives the fallback the same dimmed click-to-close
+          overlay. Hidden unless there is no popover support and the drawer is
+          open. */}
+      <label
+        className="portal-drawer-backdrop"
+        htmlFor="portal-mobile-drawer"
+        aria-hidden="true"
+      />
 
       <div className="portal-workspace">
         <header className="portal-topbar">
@@ -262,6 +296,16 @@ export function PortalShell({
             >
               <span aria-hidden="true" />
             </button>
+            {/* Fallback open control for engines without the Popover API. CSS
+                shows exactly one of these two per @supports branch. */}
+            <label
+              className="portal-menu-button portal-menu-button-mobile-fallback"
+              htmlFor="portal-mobile-drawer"
+              title="Open navigation"
+            >
+              <span aria-hidden="true" />
+              <span className="sr-only">Open navigation</span>
+            </label>
             <PortalBackControl />
             <span className="portal-topbar-copy">
               <strong className="portal-section-name">{section}</strong>

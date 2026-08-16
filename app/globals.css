@@ -837,7 +837,11 @@ button, .button, .nav-cta, .text-link {
   transition: grid-template-columns .18s ease;
 }
 
-.portal-sidebar-toggle {
+/* Both drawer/collapse state checkboxes are visually hidden but remain in the
+   accessibility tree and focusable, so :has(...:checked) can drive layout and
+   keyboard users can still toggle them. */
+.portal-sidebar-toggle,
+.portal-mobile-drawer-toggle {
   position: fixed;
   width: 1px;
   height: 1px;
@@ -1164,6 +1168,8 @@ button, .button, .nav-cta, .text-link {
 /* Desktop collapse and mobile drawer are separate controls so closed navigation
    never remains in the keyboard order on small screens. */
 .portal-menu-button-mobile,
+.portal-menu-button-mobile-fallback,
+.portal-drawer-backdrop,
 .portal-sidebar-mobile { display: none; }
 .portal-menu-button-desktop { display: grid; }
 .portal-sidebar-desktop { display: flex; }
@@ -1346,11 +1352,33 @@ html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"]
   .portal-sidebar-desktop,
   .portal-menu-button-desktop,
   .portal-sidebar-toggle { display: none; }
-  .portal-menu-button-mobile { display: grid; }
   .portal-sidebar-mobile { position: fixed; inset: 0 auto 0 0; width: min(280px, calc(100vw - 44px)); height: 100dvh; max-height: none; margin: 0; padding: 14px 12px 12px; overflow-y: auto; border: 0; border-right: 1px solid var(--portal-line); background: var(--portal-sidebar); color: var(--portal-text); box-shadow: 20px 0 50px rgba(16, 24, 40, .2); transform: translateX(-102%); transition: transform .18s ease, display .18s allow-discrete, overlay .18s allow-discrete; }
-  .portal-sidebar-mobile:popover-open { display: flex; flex-direction: column; transform: translateX(0); }
-  .portal-sidebar-mobile::backdrop { background: rgba(17, 20, 25, .46); }
-  @starting-style { .portal-sidebar-mobile:popover-open { transform: translateX(-102%); } }
+
+  /* Modern engines drive the drawer through the Popover API and its top layer. */
+  @supports selector(:popover-open) {
+    .portal-menu-button-mobile { display: grid; }
+    .portal-drawer-close-fallback { display: none; }
+    .portal-sidebar-mobile:popover-open { display: flex; flex-direction: column; transform: translateX(0); }
+    .portal-sidebar-mobile::backdrop { background: rgba(17, 20, 25, .46); }
+    @starting-style { .portal-sidebar-mobile:popover-open { transform: translateX(-102%); } }
+  }
+
+  /* Engines without :popover-open (Safari 15.4–16.x and other pre-2023 builds)
+     cannot open a popover at all — the drawer never came on-screen, so every
+     portal sub-page stranded the member with no navigation. Fall back to a
+     visually-hidden checkbox revealed through :has(...:checked), the same
+     proven mechanism as the desktop #portal-sidebar-toggle collapse. The
+     shared .portal-sidebar-mobile rule above supplies the slide transform and
+     transition, so the animation and the reduced-motion opt-out (which targets
+     .portal-sidebar-mobile) apply to this path unchanged. Explicit z-index
+     replaces the popover top layer, which this path cannot use. */
+  @supports not selector(:popover-open) {
+    .portal-menu-button-mobile-fallback { display: grid; }
+    .portal-drawer-close-popover { display: none; }
+    .portal-shell:has(.portal-mobile-drawer-toggle:checked) .portal-drawer-backdrop { display: block; position: fixed; inset: 0; z-index: 40; border: 0; background: rgba(17, 20, 25, .46); }
+    .portal-shell:has(.portal-mobile-drawer-toggle:checked) .portal-sidebar-mobile { display: flex; flex-direction: column; transform: translateX(0); z-index: 41; }
+    .portal-mobile-drawer-toggle:focus-visible ~ .portal-workspace .portal-menu-button-mobile-fallback { outline: 3px solid var(--portal-accent); outline-offset: 2px; }
+  }
   .portal-sidebar-mobile .portal-drawer-close { position: absolute; top: 18px; right: 14px; z-index: 2; }
   .portal-sidebar-mobile .portal-sidebar-head { padding-right: 40px; }
   .portal-sidebar-mobile .portal-brand-copy,
