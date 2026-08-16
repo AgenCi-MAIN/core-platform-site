@@ -70,3 +70,12 @@ next time.*
   slots** hired across them by standing; MAIN's production credit raised
   to **80%** with the grant rule untouched so competition survives. See
   WORKFORCE.md and OWNER-DECISIONS.md.
+- Owner-direct work landed on main (2026-08-16, commits `635b707` +
+  `d6d293a`, authored by Shawn from his machine — flagged by PERSONA,
+  verified and merged by MAIN): the authenticated **call-review surface**
+  (`/portal/calls/review`, guarded by the new `calls.review` capability,
+  deny-by-default matrix updated in the record), recording-route
+  hardening, a portal error boundary, `GRANDPLAN.md`, and governance
+  **B18** — the *Codex-project-first* entry gate in WORKFORCE.md
+  (context-loading rule for local workers; grants nothing). Suite after
+  merge: **50/50 green**, verified by a full run in-session.
