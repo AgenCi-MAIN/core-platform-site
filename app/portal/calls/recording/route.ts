@@ -3,7 +3,7 @@ import { getDb } from "../../../../db";
 import { dialerTransfers } from "../../../../db/schema";
 import { can, recordAudit, resolvePortalAccess } from "../../access";
 import { readRows } from "../../read-guard";
-import { getCallRecordingsBucket } from "../storage";
+import { getCallRecordingsBucket, type RecordingObject } from "../storage";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,8 @@ export async function GET(request: Request) {
     return new Response(null, { status: 403 });
   }
 
-  const id = Number.parseInt(new URL(request.url).searchParams.get("id") ?? "", 10);
+  const rawId = new URL(request.url).searchParams.get("id") ?? "";
+  const id = /^\d+$/.test(rawId) ? Number(rawId) : NaN;
   if (!Number.isSafeInteger(id) || id <= 0) {
     return Response.json({ error: "Invalid call recording id." }, { status: 400 });
   }
@@ -76,10 +77,30 @@ export async function GET(request: Request) {
     return Response.json({ error: "Recording is not ready yet." }, { status: 409 });
   }
 
+  if (!isCallRecordingKey(call.recordingObjectKey)) {
+    await recordAudit({
+      action: "calls.recording.open",
+      decision: "deny",
+      reason: "recording_key_invalid",
+      actorEmail: session.email,
+      actorSubjectId: session.subjectId,
+      actorRole: session.role,
+      resource: `dialer_transfer:${call.id}`,
+      requestPath: new URL(request.url).pathname,
+    });
+    return Response.json({ error: "Recording metadata is invalid." }, { status: 409 });
+  }
+
   const bucket = getCallRecordingsBucket();
   if (!bucket) return Response.json({ error: "Recording storage is unavailable." }, { status: 503 });
 
-  const object = await bucket.get(call.recordingObjectKey);
+  let object: RecordingObject | null;
+  try {
+    object = await bucket.get(call.recordingObjectKey);
+  } catch (error) {
+    console.error("[portal] call recording storage read failed:", error);
+    return Response.json({ error: "Recording storage is unavailable." }, { status: 503 });
+  }
   if (!object) return new Response(null, { status: 404 });
 
   await recordAudit({
@@ -99,9 +120,25 @@ export async function GET(request: Request) {
       "cache-control": "private, no-store",
       "content-disposition": `inline; filename="core-call-${call.id}"`,
       "content-length": String(object.size),
-      "content-type": call.recordingMimeType ?? object.httpMetadata?.contentType ?? "audio/mpeg",
+      "content-type": safeAudioContentType(
+        call.recordingMimeType ?? object.httpMetadata?.contentType,
+      ),
       etag: object.etag,
       "x-content-type-options": "nosniff",
     },
   });
+}
+
+/**
+ * The bucket is shared with other private portal media. A transfer row is
+ * trusted metadata only after its object key is constrained to the call prefix;
+ * an entitled reviewer must never be able to turn this endpoint into a reader
+ * for another media namespace.
+ */
+function isCallRecordingKey(key: string): boolean {
+  return key.startsWith("calls/") && key.length > "calls/".length && !key.includes("..") && !key.includes("\\");
+}
+
+function safeAudioContentType(value: string | undefined): string {
+  return value?.toLowerCase().startsWith("audio/") ? value : "application/octet-stream";
 }

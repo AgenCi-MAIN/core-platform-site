@@ -8,6 +8,25 @@ works, reports, and ends.
 
 ## Operating model
 
+### Entry gate — Codex project first
+
+Owner instruction, 2026-08-15: **every workforce assignment begins inside the
+CORE Codex project before any role starts work.** For this repository, the
+worker must confirm that the active workspace is
+`C:\Users\k2547\OneDrive\Desktop\20xchat`, then read `AGENTS.md`, `CLAUDE.md`,
+`CORE_PLATFORM_RECORD.md`, and the applicable role brief before acting. The
+worker must keep its task scope and authorization boundary explicit throughout
+the assignment.
+
+Entering through the Codex project establishes project context only. It does
+not create portal membership, grant a capability, authenticate an external
+service, or give a worker independent credentials. External access remains
+subject to the project's signed-session, active-membership, capability, and
+human-authorization controls. No worker may ask another worker to reveal,
+store, or relay passwords, session cookies, API keys, OAuth tokens, or other
+secrets. If the correct project context cannot be verified, the worker fails
+closed and does not begin the assignment.
+
 **To summon a specialist**, from any Claude session in this repository:
 
 > Act as `024-security-engineer` from WORKFORCE.md. [The task.] Report

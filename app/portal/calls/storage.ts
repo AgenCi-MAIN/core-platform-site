@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 
-type RecordingObject = {
+export type RecordingObject = {
   body: ReadableStream;
   etag: string;
   size: number;

@@ -1,4 +1,5 @@
 import { desc } from "drizzle-orm";
+import Link from "next/link";
 import { getDb } from "../../../db";
 import { dialerTransfers } from "../../../db/schema";
 import { requireCapability } from "../access";
@@ -139,6 +140,14 @@ export default async function CallsPage() {
                             <span className={`portal-state portal-call-status-${call.status}`}>
                               {humanize(call.status)}
                             </span>
+                          </td>
+                          <td>
+                            <Link
+                              className="portal-recording-link"
+                              href={`/portal/calls/review/${call.id}`}
+                            >
+                              Review call
+                            </Link>
                           </td>
                           <td>
                             {canOpen ? (
