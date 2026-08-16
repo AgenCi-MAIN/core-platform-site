@@ -57,4 +57,16 @@ next time.*
 - Fix batch shipped from docket ranks 1–4: cap fix, consent audit + guard,
   verify-build watch, 4 new negative tests, doc truth restoration.
   Suite: **46/46 green.**
-- Oversight ladder: Test 1 PASSED (50) → Test 2 PASSED (250).
+- Oversight ladder: Test 1 PASSED (50) → Test 2 PASSED (250); Test 3 an
+  inverted-judgment round (the O.G. 10 judge MAIN) — landed under budget,
+  MAIN's step-zero catch prevented a dead-route apply.
+- Post-T3 fix batches shipped (2026-08-16): the DEBUG/FIX sweep (2 fix
+  agents) fixed the mobile-nav lockout and the "10/11" capability lie
+  (suite 46→47); the 10-lane sweep confirmed 5 defects incl. a **HIGH
+  open redirect** on the unauthenticated auth surface (a phishing vector),
+  all fixed and pinned (suite 47→48). Six lanes reported honestly clean.
+- Governance (2026-08-16): the eight first-team seats promoted to
+  **PERMANENT POSITIONS** (per-seat trigger activation); **35 sub-agent
+  slots** hired across them by standing; MAIN's production credit raised
+  to **80%** with the grant rule untouched so competition survives. See
+  WORKFORCE.md and OWNER-DECISIONS.md.
