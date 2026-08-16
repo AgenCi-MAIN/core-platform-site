@@ -83,6 +83,22 @@ next time.*
   `877e0c99` — ships the HIGH open-redirect fix, the six sweep fixes,
   and the call-review surface. First attempt hit a transient Cloudflare
   10013 at asset upload; retry succeeded. The 50-test suite (incl. the
-  open-redirect regression) ran inside the deploy chain. External probe
-  of the live route now returns 403 for anonymous callers — Cloudflare
-  Access fronts the workers.dev domain, so edge auth sits before the app.
+  open-redirect regression) ran inside the deploy chain. CORRECTION
+  (deploy-integrity lane, 2026-08-16): MAIN's post-deploy 403 probe never
+  reached Cloudflare — it was refused by this sandbox's own egress proxy,
+  so it proves nothing about the edge. The Access front is real but rests
+  on the record's §16 (owner-session observation), not on that probe.
+- Fleet round (2026-08-16, owner order "add on 5 of your most efficient",
+  ~369K tokens, 5 lanes): presence-probe returned the headline verdict —
+  **no CRITICAL or HIGH findings in the owner's call-review surface; the
+  build holds**. Confirmed and fixed same-day: 3 unaudited deny exits on
+  the recording route (flagged independently by 2 lanes), a missing table
+  header on the calls inbox, a wrong error-boundary comment. doc-drift:
+  12 record drifts reconciled (incl. the new disabled_client trap #8).
+  test-gaps: 8 gaps → 5 new tests incl. the two HIGH (anonymous/forged/
+  suspended callers on the raw-audio route; mime-safelist XSS pin) and a
+  loud-fail rule so template-literal guards can't dodge the completeness
+  scanner. deploy-integrity: refuted MAIN's own probe evidence (above),
+  designed the missing post-deploy version check (docket). data-model:
+  edit-in-place migration provenance flagged (F1, docket), R2-missing
+  audit row shipped. Suite: **50 → 55 green.**

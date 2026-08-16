@@ -56,7 +56,21 @@ export async function GET(request: Request) {
   }
   const [call] = rows;
 
-  if (!call) return new Response(null, { status: 404 });
+  if (!call) {
+    // An entitled reviewer asked for a transfer that does not exist. Unaudited,
+    // an id sweep mapping the index would be invisible to the log.
+    await recordAudit({
+      action: "calls.recording.open",
+      decision: "deny",
+      reason: "transfer_not_found",
+      actorEmail: session.email,
+      actorSubjectId: session.subjectId,
+      actorRole: session.role,
+      resource: `dialer_transfer:${id}`,
+      requestPath: new URL(request.url).pathname,
+    });
+    return new Response(null, { status: 404 });
+  }
   if (call.consentStatus !== "verified") {
     // An entitled reviewer was refused on consent grounds — in an all-party
     // consent regime this is the deny the audit log most needs to hold.
@@ -74,6 +88,17 @@ export async function GET(request: Request) {
     return Response.json({ error: "Recording access is unavailable until consent is verified." }, { status: 409 });
   }
   if (call.status !== "ready" || !call.recordingObjectKey) {
+    await recordAudit({
+      action: "calls.recording.open",
+      decision: "deny",
+      reason: "recording_not_ready",
+      actorEmail: session.email,
+      actorSubjectId: session.subjectId,
+      actorRole: session.role,
+      resource: `dialer_transfer:${call.id}`,
+      requestPath: new URL(request.url).pathname,
+      detail: JSON.stringify({ status: call.status, hasKey: Boolean(call.recordingObjectKey) }),
+    });
     return Response.json({ error: "Recording is not ready yet." }, { status: 409 });
   }
 
@@ -101,7 +126,25 @@ export async function GET(request: Request) {
     console.error("[portal] call recording storage read failed:", error);
     return Response.json({ error: "Recording storage is unavailable." }, { status: 503 });
   }
-  if (!object) return new Response(null, { status: 404 });
+  if (!object) {
+    // D1 says ready and keyed, R2 has no object — metadata claims a recording
+    // the vault does not hold. The loudest possible integrity event; it must
+    // never die as a silent 404.
+    console.error(
+      `[portal] recording object missing from R2 for dialer_transfer:${call.id} (${call.recordingObjectKey})`,
+    );
+    await recordAudit({
+      action: "calls.recording.open",
+      decision: "deny",
+      reason: "recording_object_missing",
+      actorEmail: session.email,
+      actorSubjectId: session.subjectId,
+      actorRole: session.role,
+      resource: `dialer_transfer:${call.id}`,
+      requestPath: new URL(request.url).pathname,
+    });
+    return new Response(null, { status: 404 });
+  }
 
   await recordAudit({
     action: "calls.recording.open",

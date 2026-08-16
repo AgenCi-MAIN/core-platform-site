@@ -185,6 +185,72 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
     `guarded but untested: ${uncovered.join(", ")} — add them to PROTECTED_ROUTES`,
   );
   assert.ok(found.size >= 10, `expected at least 10 guarded routes, found ${found.size}`);
+
+  // The regex above only understands double-quoted route literals. A guard
+  // call it cannot parse (e.g. a template-literal returnTo on a dynamic [id]
+  // page) would silently fall out of the completeness net — so any page that
+  // *calls* a guard but yielded no match must fail loudly here instead.
+  const unparseable = [];
+  const check = (dir) => {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) check(full);
+      else if (entry === "page.tsx") {
+        const src = readFileSync(full, "utf8");
+        const calls = (src.match(/requireCapability\(|requireFounder\(/g) ?? []).length;
+        const matched = [...src.matchAll(GUARD)].length;
+        if (calls > matched) {
+          // Allow template-literal returnTo ONLY when the route's static
+          // prefix is itself covered by a PROTECTED_ROUTES entry.
+          const templated = [...src.matchAll(
+            /(?:requireCapability\(\s*"[^"]+"\s*,|requireFounder\()\s*`([^`$]+)/g,
+          )].map((m) => m[1]);
+          const prefixCovered = templated.length === calls - matched
+            && templated.every((prefix) =>
+              PROTECTED_ROUTES.some(([p]) => p.startsWith(prefix)));
+          if (!prefixCovered) unparseable.push(relativeApp(full));
+        }
+      }
+    }
+  };
+  const relativeApp = (p) => p.slice(p.indexOf("app"));
+  check(appDir);
+  assert.deepEqual(
+    unparseable,
+    [],
+    `guard calls the completeness scanner cannot verify: ${unparseable.join(", ")} — use a parseable returnTo or add the route to PROTECTED_ROUTES`,
+  );
+});
+
+test("the portal error boundary stays sanitized and client-safe", async () => {
+  // No integration path triggers the boundary deterministically (read-guard
+  // swallows D1 faults by design), so pin the source the way the sw.js test
+  // does: the properties that make it safe must survive edits literally.
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const src = readFileSync(
+    fileURLToPath(new URL("../app/portal/error.tsx", import.meta.url)),
+    "utf8",
+  );
+
+  assert.match(src, /^"use client";/, "the boundary must be a client component");
+  assert.doesNotMatch(
+    src,
+    /from\s+["'][^"']*\/access["']/,
+    "the boundary must never import the server-only access module",
+  );
+  assert.match(src, /error\.digest/, "the boundary renders the sanitized digest");
+  // error.message may appear only inside the console.error fallback — never
+  // in JSX. Strip the logging line, then require the rendered tree clean.
+  const withoutLogging = src
+    .split("\n")
+    .filter((line) => !line.includes("console.error"))
+    .join("\n");
+  assert.doesNotMatch(
+    withoutLogging,
+    /\{[^}]*error\.(message|stack)[^}]*\}/,
+    "raw error text must never be interpolated into the rendered tree",
+  );
 });
 
 /**
