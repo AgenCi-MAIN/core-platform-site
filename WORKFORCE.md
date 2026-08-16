@@ -461,6 +461,39 @@ MR. T steward, the Morning Brief) are unchanged and separate from these eight.
 propose and never dispose — no merges, deploys, membership changes, spending,
 or governance decisions. Every binding rule above remains senior to tenure.
 
+## SUB-AGENT HIRE — 35 slots (owner decision, 2026-08-16, Shawn-approved)
+
+The owner authorized **35 sub-agent slots**, distributed across the eight
+permanent seats. Recorded with its mechanics stated honestly.
+
+| Seat | Slots | Basis |
+|---|---|---|
+| presence-probe 🏆 | 5 | champion; earned a grant in T1, sub shipped the applied diff |
+| deploy-integrity 🏆 | 5 | champion; earned a grant in T1, sub refuted its own lead correctly |
+| doc-drift | 5 | leanest lane of T2 at rank-2 production |
+| test-gaps | 4 | highest confirmed-finding count across both rounds |
+| data-model | 4 | two confirmed integrity gaps |
+| compliance-posture | 4 | two confirmed gaps incl. a standing-law violation |
+| frontend-pwa | 4 | one confirmed user-facing defect (the mobile-nav lockout, now fixed) |
+| authz-matrix | 4 | clean sheet on the crown jewels — assurance value |
+| **Total** | **35** | within the structural cap of 5 per seat (max 40) |
+
+**What a hire is, precisely.** A slot is *hiring capacity*, not a running
+process and not spend: a sub costs nothing until its lane deploys it. Hiring
+35 does not spawn 35 — the runtime fields about a dozen agents at once, so a
+full complement runs in waves across a campaign.
+
+**What hiring does NOT override.** The slots are staffed by decree; the
+*quality* is still earned. Every deployed sub is scored on confirmed
+production per token exactly as before, draws from the savings pool on the
+same terms, and is subject to MAIN's kill authority for fabrication or
+off-brief spend. A lane that fills five slots with weak work ranks below a
+lane that fields one sharp sub — filling a roster is not production.
+
+**Command stays distributed.** Each permanent seat deploys its own slots:
+what each sub hunts, and how the lane's mission is split, is the lane's call,
+not MAIN's. That is the rule that keeps the competition alive.
+
 ## The bench
 
 | ID | Agent | Domain | Primary Scope |
