@@ -312,3 +312,15 @@ live watch. The old session remains reachable for direct conversation
 until the account's cancellation (due Sep 11, before the Sep 12 renewal),
 which completes the succession recorded in
 `W-SUBS/00-MAIN-MR-T/INJECTION-2026-08-17.md`.
+
+**Amendment — 2026-08-17, by the founder's correction.** The sentence above
+originally read "including the Sep 13 reminder." Corrected at his word: the
+routines that hold the live watch are the ones **re-created on the new
+account on 2026-08-17**, and **new HQ is ACTIVE** — the office of MAIN and
+the Commissioner's bench are both held here, and the new account's registry
+is the operating watch. The original wording stands above, amended here
+rather than rewritten, per the house rule.
+
+This amendment settles WHO holds the watch. It does not settle WHAT nine of
+those triggers are carrying — see the verified live state below, which is a
+separate finding and remains open.
