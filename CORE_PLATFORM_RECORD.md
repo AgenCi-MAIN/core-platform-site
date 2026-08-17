@@ -468,6 +468,28 @@ identity it is impersonating on every start. The role still comes from the
    itself was turned off or deleted in Google Cloud console — the stored
    secrets may be perfectly correct. Do not rebuild credentials for it; check
    the client's enabled state first. Hit live on 2026-08-16.
+9. **"This One-Time Pin has already been used!" on a phone, while the same
+   account signs in fine on the desktop.** This is the Cloudflare Access wall
+   (§16), not the portal's Google sign-in — Access is configured with One-Time
+   PIN, so it mails a code. The Access email carries both a six-digit code and
+   a single-use login link, and the link is spent by the first GET that touches
+   it. On iOS, Gmail pre-fetches links before the user taps, so the fetch spends
+   the code and the tap arrives second. The desktop escapes it because the code
+   is typed into the tab already waiting.
+   **Workaround:** never tap the link. Leave the tab on the "enter code" prompt,
+   copy the six digits, and paste them back into *that same tab* — requesting a
+   fresh code from a new tab invalidates the one the old tab awaits.
+   **On an installed PWA (§10c) it is worse:** an iOS home-screen web app has
+   its own cookie container, so an Access session completed in Safari does not
+   carry into the installed icon, and leaving the app to fetch the code tends to
+   lose the waiting context. PWA plus One-Time PIN fights itself on iOS.
+   **The real fix is a governance decision, not a workaround:** point the Access
+   policy at Google as the identity provider instead of One-Time PIN. Members
+   already sign into the portal with Google and phones stay signed into Google,
+   so the second round-trip disappears. That is a Zero Trust dashboard change to
+   the outer wall protecting everything — founder's call, and the Access config
+   is not in this repo (see the recovery docket, §6: screenshot it).
+   Hit live on 2026-08-17, on the phone, from the welcome email's own link.
 
 ---
 
