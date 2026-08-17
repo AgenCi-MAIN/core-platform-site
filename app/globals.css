@@ -2494,13 +2494,16 @@ html[data-portal-theme="dark"] .site-pillar-mark { background: var(--portal-soft
 
 /* --- Performance boost -------------------------------------- */
 html[data-portal-performance="boost"] .site-topbar { backdrop-filter: none; background: var(--portal-panel); }
-html[data-portal-performance="boost"] .site-brand-mark,
 html[data-portal-performance="boost"] .rank-mark,
 html[data-portal-performance="boost"] .site-pillar-mark,
 html[data-portal-performance="boost"] .site-cta,
 html[data-portal-performance="boost"] .site-cta-card { background: var(--portal-panel); box-shadow: none; }
-html[data-portal-performance="boost"] .site-brand-mark,
 html[data-portal-performance="boost"] .rank-mark { background: var(--portal-brand-surface); }
+/* BOOST keeps the brand mark GOLD (owner order, 2026-08-17). Boost exists to
+   drop expensive paint — blur, animation — not the identity. A static gold
+   gradient costs nothing per frame; only the sweep reflection is animation,
+   and that is already stopped separately below. Repainting the mark obsidian
+   here was why the public topbar "T" showed dark whenever boost was on. */
 html[data-portal-performance="boost"] .site-pillar-mark { background: var(--portal-soft); }
 html[data-portal-performance="boost"] .site-cta { background: var(--portal-accent); }
 html[data-portal-performance="boost"] .site-pulse { animation: none; }
