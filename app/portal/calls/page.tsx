@@ -108,6 +108,7 @@ export default async function CallsPage() {
                       <th scope="col">Duration</th>
                       <th scope="col">Consent</th>
                       <th scope="col">Status</th>
+                      <th scope="col">Review</th>
                       <th scope="col">Recording</th>
                     </tr>
                   </thead>

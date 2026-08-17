@@ -10,7 +10,7 @@ and the strategy blueprints.
 **Canonical source:** GitHub `bankerrunners/core-platform-site` — always
 current; this handoff is a point-in-time copy.
 **Live platform:** `https://site-creator-vinext-starter.bankerrunners.workers.dev`
-(Version 6881308a as of 2026-08-16).
+(Version 877e0c99 as of 2026-08-16 — open-redirect fix + call-review surface live).
 **No secret values** appear anywhere in this package — only secret *names*.
 The three-to-four secrets live in Cloudflare/Google, re-entered by the owner.
 
@@ -36,7 +36,7 @@ The three-to-four secrets live in Cloudflare/Google, re-entered by the owner.
   - `app/auth/` — Sign in with Google (signin, callback, signout).
   - `app/google-auth.ts` — session cookie mint/verify (HMAC).
 - `db/` — data model: `schema.ts`, `sql/` (the LIVE migration path), `drizzle/` (generated).
-- `tests/` — the safety net: `portal-authorization.test.mjs` (Miniflare/D1 runtime, 46 cases), `rendered-html.test.mjs`.
+- `tests/` — the safety net: `portal-authorization.test.mjs` (Miniflare/D1 runtime, 50 cases total with `rendered-html.test.mjs`).
 - `build/`, `scripts/`, `public/` — build plugin, the `verify-build` preflight, the installable-PWA layer (`sw.js`).
 - `worker-env.d.ts`, `next.config.ts`, `vite.config.ts`, `package.json` — config.
 
@@ -84,7 +84,7 @@ The three-to-four secrets live in Cloudflare/Google, re-entered by the owner.
 npm ci
 npm run lint        # eslint
 npm run typecheck   # tsc --noEmit
-npm test            # builds, then 46 tests in Miniflare (real workerd + D1)
+npm test            # builds, then 50 tests in Miniflare (real workerd + D1)
 npm run build       # bakes the D1 id and the app into dist/
 npm run verify:build
 ```
@@ -106,7 +106,8 @@ are historical — never worked in.
   (2 criticals found) but **not applied** — held for route relocation, the 14
   fixes, the contract rewrite, and counsel sign-off on the Florida all-party
   consent line. See WORKFORCE.md Test 3 and the adversary findings.
-- Andrew Davidson's owner seat is approved but **pending the portal grant**.
+- Andrew Davidson's owner seat is LIVE — granted from the portal, first
+  sign-in bound 2026-08-16.
 - Open owner decisions: PRESENCE_MODEL (Haiku), the Inkbox $30 upgrade,
   carrier statements (the pilot's entry ticket), the A/B/C centralization
   decision, Oscar Valencia's address.

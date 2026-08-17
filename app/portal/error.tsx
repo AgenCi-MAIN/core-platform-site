@@ -24,8 +24,9 @@ export default function PortalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Surface in the server console where the operator can see it. The digest
-    // is the stable, de-duplicated identifier Next.js produces for the error.
+    // This is a "use client" boundary, so this logs to the member's browser
+    // console, not the server. The digest is the stable identifier the server
+    // substitutes after sanitizing; the raw message never leaves the worker.
     console.error("[portal] unhandled error", error.digest ?? error.message);
   }, [error]);
 

@@ -391,6 +391,16 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
     const auditOk = await portal.get("/portal/audit", founder);
     assert.equal(auditOk.status, 200, "the founder reads the audit log");
 
+    // Migration 2026-08-17: the incoming primary identity also holds founder
+    // access during the transition, so an audit-surface lockout is impossible
+    // if the new address is slow to bind. It must be BOTH a member (granted in
+    // the live DB via db/sql/0003) and in FOUNDER_EMAILS — mirror that here.
+    // Remove this once bankerrunners is dropped from FOUNDER_EMAILS.
+    await portal.addMember("btcmao518@gmail.com", "owner");
+    const migratedFounder = { subject: "sub-founder-migrated", email: "btcmao518@gmail.com" };
+    const migratedOk = await portal.get("/portal/investigator", migratedFounder);
+    assert.equal(migratedOk.status, 200, "the migrated founder identity is admitted");
+
     const rows = await portal.audit();
     assert.ok(
       rows.some((r) => r.reason === "founder_only" && r.decision === "deny"),
@@ -1294,6 +1304,175 @@ test("an entitled reviewer cannot use a transfer row to read another R2 namespac
     rows.some((r) => r.action === "calls.recording.open" && r.reason === "recording_key_invalid"),
     "invalid recording namespace access is audited",
   );
+});
+
+test("the recording route is closed to anonymous, forged, and suspended callers", async (t) => {
+  // The raw-audio endpoint sits outside both completeness nets (it is a route
+  // handler, not a page.tsx), so its anonymous branch was structurally
+  // invisible to the suite until this test. Seed a fully streamable recording
+  // first: a pass here would have leaked real bytes.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("reviewer-gate@example.com", "reviewer");
+  const reviewer = { subject: "sub-reviewer-gate", email: "reviewer-gate@example.com" };
+  await portal.db
+    .prepare(
+      `INSERT INTO dialer_transfers
+        (transfer_id, source_system, direction, status, consent_status,
+         recording_object_key, recording_mime_type)
+       VALUES ('transfer-gate', 'test-dialer', 'inbound', 'ready', 'verified', 'calls/gate.mp3', 'audio/mpeg')`,
+    )
+    .run();
+  await portal.recordings.put("calls/gate.mp3", new Uint8Array([1, 2, 3, 4]));
+
+  // Control: the entitled reviewer streams it, so the refusals below are the
+  // gate working, not a broken fixture.
+  const control = await portal.get("/portal/calls/recording?id=1", reviewer);
+  assert.equal(control.status, 200, "the control stream must succeed");
+
+  const anon = await portal.get("/portal/calls/recording?id=1", null);
+  assert.equal(anon.status, 401, "anonymous callers must be refused");
+  assert.equal(await anon.text(), "", "the anonymous refusal must be byteless");
+
+  const forged = mintSessionToken(reviewer, { secret: "not-the-deployment-secret" });
+  const forgedRes = await portal.mf.dispatchFetch("http://localhost/portal/calls/recording?id=1", {
+    redirect: "manual",
+    headers: { cookie: `core_session=${forged}` },
+  });
+  assert.equal(forgedRes.status, 401, "a forged cookie is anonymous here too");
+  assert.equal(await forgedRes.text(), "", "the forged refusal must be byteless");
+
+  // Mid-session revocation: suspend the reviewer and replay the exact request
+  // that just succeeded. This is the UI's stated promise — "playback re-checks
+  // your membership on every request" — pinned.
+  await portal.db
+    .prepare("UPDATE portal_members SET status='suspended' WHERE email=?")
+    .bind("reviewer-gate@example.com")
+    .run();
+  const suspended = await portal.get("/portal/calls/recording?id=1", reviewer);
+  assert.equal(suspended.status, 403, "a suspended member's replay must be refused");
+  assert.equal(await suspended.text(), "", "the suspension refusal must be byteless");
+});
+
+test("a stored non-audio mime type cannot turn the recording stream into markup", async (t) => {
+  // recording_mime_type is data-plane content. If the safelist is ever dropped
+  // ("just trust the stored mime"), a text/html row becomes stored XSS served
+  // inline on the portal origin. Pin the safelist and nosniff together.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("reviewer-mime@example.com", "reviewer");
+  await portal.db
+    .prepare(
+      `INSERT INTO dialer_transfers
+        (transfer_id, source_system, direction, status, consent_status,
+         recording_object_key, recording_mime_type)
+       VALUES ('transfer-mime', 'test-dialer', 'inbound', 'ready', 'verified', 'calls/mime.bin', 'text/html')`,
+    )
+    .run();
+  await portal.recordings.put(
+    "calls/mime.bin",
+    new TextEncoder().encode("<script>document.title='owned'</script>"),
+  );
+
+  const response = await portal.get("/portal/calls/recording?id=1", {
+    subject: "sub-reviewer-mime",
+    email: "reviewer-mime@example.com",
+  });
+  assert.equal(response.status, 200);
+  assert.equal(
+    response.headers.get("content-type"),
+    "application/octet-stream",
+    "a non-audio stored mime must be forced to octet-stream",
+  );
+  assert.equal(
+    response.headers.get("x-content-type-options"),
+    "nosniff",
+    "nosniff must accompany the stream",
+  );
+});
+
+test("roles without calls.review get byteless refusals and an audited recording deny", async (t) => {
+  // Both capability-less roles, not just agent: support losing its exclusion
+  // by editing accident is a governance regression only this pairing catches.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.db
+    .prepare(
+      `INSERT INTO dialer_transfers
+        (transfer_id, source_system, direction, status, consent_status,
+         caller_number_masked, recording_object_key, recording_mime_type)
+       VALUES ('transfer-secret-001', 'test-dialer', 'inbound', 'ready', 'verified',
+               '(***) ***-0042', 'calls/secret.mp3', 'audio/mpeg')`,
+    )
+    .run();
+
+  for (const role of ["agent", "support"]) {
+    await portal.addMember(`${role}-nocap@example.com`, role);
+    const identity = { subject: `sub-${role}-nocap`, email: `${role}-nocap@example.com` };
+
+    const page = await portal.get("/portal/calls/review/1", identity);
+    assert.equal(page.status, 307, `${role} must be redirected off the review page`);
+    const pageBody = await page.text();
+    assert.equal(pageBody, "", `the ${role} redirect must carry no body`);
+    assert.doesNotMatch(pageBody, /transfer-secret-001|0042/, `no PII may reach ${role}`);
+
+    const stream = await portal.get("/portal/calls/recording?id=1", identity);
+    assert.equal(stream.status, 403, `${role} must not stream recordings`);
+    assert.equal(await stream.text(), "", `the ${role} stream refusal must be byteless`);
+  }
+
+  const rows = await portal.audit();
+  for (const role of ["agent", "support"]) {
+    assert.ok(
+      rows.some(
+        (r) =>
+          r.action === "calls.recording.open" &&
+          r.decision === "deny" &&
+          r.reason === "capability_not_held" &&
+          r.actor_email === `${role}-nocap@example.com`,
+      ),
+      `the ${role} capability deny must be audited`,
+    );
+  }
+});
+
+test("recording route edge branches: bad ids 400, misses audited 404, dropped table honest 503", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("reviewer-edge@example.com", "reviewer");
+  const reviewer = { subject: "sub-reviewer-edge", email: "reviewer-edge@example.com" };
+
+  for (const bad of ["abc", "0", "-1", "1e3", "999999999999999999999", ""]) {
+    const res = await portal.get(`/portal/calls/recording?id=${bad}`, reviewer);
+    assert.equal(res.status, 400, `id=${JSON.stringify(bad)} must be refused as invalid`);
+  }
+
+  // A miss on a real table: 404, and — new with this batch — audited, so an
+  // id sweep mapping the transfer index is visible in the log.
+  const miss = await portal.get("/portal/calls/recording?id=99", reviewer);
+  assert.equal(miss.status, 404);
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some(
+      (r) =>
+        r.action === "calls.recording.open" &&
+        r.decision === "deny" &&
+        r.reason === "transfer_not_found",
+    ),
+    "a transfer miss must be audited",
+  );
+
+  // The unmigrated-database case is real here (record § 9): the route must
+  // answer with honest copy, never the driver's stack trace.
+  await portal.db.prepare("DROP TABLE dialer_transfers").run();
+  const fault = await portal.get("/portal/calls/recording?id=1", reviewer);
+  assert.equal(fault.status, 503, "a missing table is a fault, not a crash");
+  const faultBody = await fault.text();
+  assert.doesNotMatch(faultBody, /no such table|D1_ERROR|SQLITE/i, "driver text must not leak");
 });
 
 test("leadership economics refuse every role that lacks leadership.view.all", async (t) => {

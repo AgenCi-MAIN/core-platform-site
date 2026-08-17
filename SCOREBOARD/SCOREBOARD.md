@@ -57,4 +57,59 @@ next time.*
 - Fix batch shipped from docket ranks 1–4: cap fix, consent audit + guard,
   verify-build watch, 4 new negative tests, doc truth restoration.
   Suite: **46/46 green.**
-- Oversight ladder: Test 1 PASSED (50) → Test 2 PASSED (250).
+- Oversight ladder: Test 1 PASSED (50) → Test 2 PASSED (250); Test 3 an
+  inverted-judgment round (the O.G. 10 judge MAIN) — landed under budget,
+  MAIN's step-zero catch prevented a dead-route apply.
+- Post-T3 fix batches shipped (2026-08-16): the DEBUG/FIX sweep (2 fix
+  agents) fixed the mobile-nav lockout and the "10/11" capability lie
+  (suite 46→47); the 10-lane sweep confirmed 5 defects incl. a **HIGH
+  open redirect** on the unauthenticated auth surface (a phishing vector),
+  all fixed and pinned (suite 47→48). Six lanes reported honestly clean.
+- Governance (2026-08-16): the eight first-team seats promoted to
+  **PERMANENT POSITIONS** (per-seat trigger activation); **35 sub-agent
+  slots** hired across them by standing; MAIN's production credit raised
+  to **80%** with the grant rule untouched so competition survives. See
+  WORKFORCE.md and OWNER-DECISIONS.md.
+- Owner-direct work landed on main (2026-08-16, commits `635b707` +
+  `d6d293a`, authored by Shawn from his machine — flagged by PERSONA,
+  verified and merged by MAIN): the authenticated **call-review surface**
+  (`/portal/calls/review`, guarded by the new `calls.review` capability,
+  deny-by-default matrix updated in the record), recording-route
+  hardening, a portal error boundary, `GRANDPLAN.md`, and governance
+  **B18** — the *Codex-project-first* entry gate in WORKFORCE.md
+  (context-loading rule for local workers; grants nothing). Suite after
+  merge: **50/50 green**, verified by a full run in-session.
+- **DEPLOYED (2026-08-16, by the owner from `C:\dev`):** live version
+  `877e0c99` — ships the HIGH open-redirect fix, the six sweep fixes,
+  and the call-review surface. First attempt hit a transient Cloudflare
+  10013 at asset upload; retry succeeded. The 50-test suite (incl. the
+  open-redirect regression) ran inside the deploy chain. CORRECTION
+  (deploy-integrity lane, 2026-08-16): MAIN's post-deploy 403 probe never
+  reached Cloudflare — it was refused by this sandbox's own egress proxy,
+  so it proves nothing about the edge. The Access front is real but rests
+  on the record's §16 (owner-session observation), not on that probe.
+- Fleet round (2026-08-16, owner order "add on 5 of your most efficient",
+  ~369K tokens, 5 lanes): presence-probe returned the headline verdict —
+  **no CRITICAL or HIGH findings in the owner's call-review surface; the
+  build holds**. Confirmed and fixed same-day: 3 unaudited deny exits on
+  the recording route (flagged independently by 2 lanes), a missing table
+  header on the calls inbox, a wrong error-boundary comment. doc-drift:
+  12 record drifts reconciled (incl. the new disabled_client trap #8).
+  test-gaps: 8 gaps → 5 new tests incl. the two HIGH (anonymous/forged/
+  suspended callers on the raw-audio route; mime-safelist XSS pin) and a
+  loud-fail rule so template-literal guards can't dodge the completeness
+  scanner. deploy-integrity: refuted MAIN's own probe evidence (above),
+  designed the missing post-deploy version check (docket). data-model:
+  edit-in-place migration provenance flagged (F1, docket), R2-missing
+  audit row shipped. Suite: **50 → 55 green.**
+- Identity-crisis round (2026-08-17, ~382K tokens, 5 lanes, owner order
+  after Google locked bankerrunners@gmail.com): **unanimous 5/5 verdict —
+  keep the Cloudflare account, swap its email in place; no new account,
+  no new host.** data-model found the ⏰ 7-day cookie cliff (portal fully
+  dark for all owners by ~08-23 without the OAuth rebuild) and that
+  Ryan's 36-month blueprint exists only inside the locked Gmail.
+  test-gaps corrected its own task premise (wrangler has no `r2 object
+  list` — enumeration via D1/dashboard). deploy-integrity costed the
+  fresh-account contingency and found the "dead inbox slow fuse" that
+  the email swap defuses. Full docket + runbooks:
+  strategy/2026-08-17-identity-recovery-docket.md.

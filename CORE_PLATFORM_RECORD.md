@@ -13,7 +13,10 @@ keeps. If a value ever lands in this file, rotate it rather than deleting it.
 ## 1. What this is
 
 A permissioned operating portal for THRIVE, deployed as a single Cloudflare
-Worker. The public site is open to anyone; everything under `/portal` is closed
+Worker. The app serves a public site and a closed `/portal` — but since
+2026-08-16 Cloudflare Access fronts the whole workers.dev domain: anonymous
+requests are refused 403 at the edge before this application runs (see §16).
+Everything under `/portal` is closed
 by default and opens only to people who hold a membership row, at the role that
 row carries. Two independent checks run on every request:
 
@@ -55,7 +58,9 @@ it into `dist/server/wrangler.json` at build time, which is the config
 
 ## 3. Identity — Sign in with Google
 
-Implemented in the app itself; there is no hosting platform in front of it.
+Implemented in the app itself. (Since 2026-08-16 Cloudflare Access sits in
+front of the domain, but the app trusts nothing from it — identity still comes
+only from the app's own `core_session` cookie.)
 
 | File | Responsibility |
 | --- | --- |
@@ -98,6 +103,21 @@ Authorized JavaScript origins: none — the flow is entirely server-side.
 The consent screen is **External** and unpublished, so first-time users see an
 "unverified app" interstitial. That is expected for a private app; continue via
 **Advanced → Go to THRIVE Portal**.
+
+**Status 2026-08-17: the OAuth client is GONE with its account — rebuild, do
+not chase re-enable.** Root cause found: Google LOCKED the owner's
+`bankerrunners@gmail.com` account itself. The `Error 401: disabled_client` is
+downstream of that — the client lives in that account's Cloud project, and it
+cannot be re-enabled without recovering the account. The recovery path chosen:
+mint a NEW OAuth client in a fresh Cloud project under the owner's new
+identity (`btcmao518@gmail.com`), same single redirect URI, then rotate
+`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` via `wrangler secret put` — no code
+change is needed, the client values are runtime secrets. Cloudflare dashboard
+access survives (its password is independent of Gmail), which also allows
+adding btcmao518 to the Access policy so edge login codes reach a live inbox.
+Google recovery of bankerrunners continues in parallel — GitHub, Drive
+backups, and the Cloudflare account email still point at it. Remove this
+paragraph when sign-in is confirmed working on the new client.
 
 ### Secrets (names only)
 
@@ -169,7 +189,7 @@ Guard a page with `requireCapability(...)`; guard a write with
 | `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) | owner | bootstrap, 2026-08-14 |
 | `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | by Shawn, 2026-08-14 |
 | `epiclife.nguyen@gmail.com` | Nate Nguyen | owner | by Shawn, from the portal, confirmed on the live roster 2026-08-15 |
-| `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | owner | approved by Shawn 2026-08-15 ("shawn-aprooved"); PENDING — grant not yet executed in the portal |
+| `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | owner | approved by Shawn 2026-08-15 ("shawn-aprooved"); granted from the portal 2026-08-15, first sign-in bound 2026-08-16 — LIVE (roster screenshot verified by the owner) |
 
 Pending: **Oscar Valencia** is named as an owner in the agreement record, but
 his sign-in address was never confirmed. Confirm the exact Google address he
@@ -344,7 +364,7 @@ npm install
 npm run deploy
 ```
 
-`npm run deploy` is build → the full test suite (42 cases at this writing) →
+`npm run deploy` is build → the full test suite (50 cases at this writing) →
 preflight → `wrangler deploy`, chained so
 that any failure stops the deploy. It cannot ship a stale `dist/`, because the
 build always runs first and the preflight checks the result. Secrets survive
@@ -442,6 +462,11 @@ identity it is impersonating on every start. The role still comes from the
 7. **Google takes a minute or two to propagate credential changes.** An
    `invalid_client` immediately after saving may just be timing — wait two
    minutes and retry once before assuming the value is wrong.
+8. **`Error 401: disabled_client` is not `invalid_client`.** `invalid_client`
+   means the value is wrong (traps 6–7). `disabled_client` means the client
+   itself was turned off or deleted in Google Cloud console — the stored
+   secrets may be perfectly correct. Do not rebuild credentials for it; check
+   the client's enabled state first. Hit live on 2026-08-16.
 
 ---
 

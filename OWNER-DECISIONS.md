@@ -20,8 +20,9 @@ an action) · 🔵 OPEN (still the owner's to decide)
 | A4 | `pet.chat` granted to all six roles (the Presence isolation contract) | ✅ |
 | A5 | Proton aliases are **not** identities — none sign in, never grant an alias a member row; sole founder identity is the Gmail address | ✅ |
 | A6 | Ryan Davidson + Nate Nguyen seated as owners | ✅ |
-| A7 | **Andrew Davidson** (`andrew.davidson.zenith@gmail.com`) approved as owner | ⏳ awaiting the portal grant |
+| A7 | **Andrew Davidson** (`andrew.davidson.zenith@gmail.com`) approved as owner | ✅ granted from the portal 2026-08-15; signed in and bound 2026-08-16 (roster verified by the owner) |
 | A8 | Oscar Valencia — named as owner, no grant until his exact sign-in address is confirmed | 🔵 |
+| A9 | **Owner identity migration to `btcmao518@gmail.com`** (owner order 2026-08-17, confirmed final). Additive owner grant staged (`db/sql/0003`); founder access staged as a two-identity transition set (`FOUNDER_EMAILS` = btcmao518 + bankerrunners) so the audit surface can't lock out mid-move. `bankerrunners` retained as fallback until btcmao518 is confirmed signing in and bound, then dropped. **Blocked on the disabled Google OAuth client** — no sign-in possible until it is re-enabled. History (seed, prior grants, audit) is left intact, not rewritten. | ⏳ staged; awaits live grant + OAuth re-enable + sign-in proof |
 
 ## B. The AI staff
 
@@ -95,11 +96,10 @@ an action) · 🔵 OPEN (still the owner's to decide)
 
 ## What still needs the owner (the short list)
 
-1. **Andrew's portal grant** — 2 minutes in Members (A7)
-2. **Inkbox $30 upgrade** — unlocks the staff phone number (D3, D4)
-3. **`PRESENCE_MODEL`** — one word for the ~5× cost cut (C4)
-4. **Counsel on the consent line**, then the socket greenlight (E7)
-5. **Carrier statements + LeadTech CPL data** — the pilot's entry ticket (E3)
+1. **Inkbox $30 upgrade** — unlocks the staff phone number (D3, D4)
+2. **`PRESENCE_MODEL`** — one word for the ~5× cost cut (C4)
+3. **Counsel on the consent line**, then the socket greenlight (E7)
+4. **Carrier statements + LeadTech CPL data** — the pilot's entry ticket (E3)
 6. **The A/B/C centralization decision** (E6)
 7. Oscar's sign-in address (A8) · Copilot cancel (D6) · Slack trials (D8)
 

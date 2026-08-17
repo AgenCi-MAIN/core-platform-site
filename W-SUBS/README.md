@@ -1,5 +1,7 @@
 # W-SUBS — the finalized first team, ranked top down
 
+**Status (2026-08-16):** the eight seats below are **PERMANENT POSITIONS** (owner order), each holding hired sub-agent slots (35 total, distributed by standing). A kit is the re-summonable brief for a tenured seat; permanence is precedence, not a running process — a seat still costs nothing until summoned. See WORKFORCE.md "PERMANENT POSITIONS" and "SUB-AGENT HIRE".
+
 Owner's order, 2026-08-15: complete rebuild kits for the eight lanes that
 earned their spots, one folder per seat, ranked. Each folder holds BRIEF.md
 (the re-summonable role) and CODE-MANIFEST.md (the exact repo files that are
