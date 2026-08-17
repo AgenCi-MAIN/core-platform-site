@@ -201,42 +201,6 @@ test("a seeded owner signs in, binds their subject, and is audited", async () =>
   }
 });
 
-test("training renders the approved script verbatim to every active role", async (t) => {
-  const portal = await startPortal();
-  t.after(portal.dispose);
-
-  // agent is the least-privileged production role that takes live calls — if
-  // training reaches agents, it reaches everyone via dashboard.view.self.
-  await portal.addMember("agent-training@example.com", "agent");
-  const member = {
-    subject: "subject-agent-training",
-    email: "agent-training@example.com",
-  };
-
-  const response = await portal.get("/portal/training", member);
-  assert.equal(response.status, 200);
-  const html = await response.text();
-
-  // The three sections, in order.
-  assert.match(html, /id="training-training"/);
-  assert.match(html, /id="training-introductions"/);
-  assert.match(html, /id="training-angles"/);
-
-  // The loaded script renders VERBATIM — these phrases are the owner's own
-  // words from my_script_1.docx and must never be reworded by the renderer.
-  assert.match(html, /Inbound Call Process — Variation 1/);
-  assert.match(html, /That’s a carrier I can help you with\. Do you have your policy number\?/);
-  assert.match(html, /Always use the word 'verify'/);
-
-  // Empty slots exist by name and say they are awaiting content — never filled.
-  assert.match(html, /Term To perm/);
-  assert.match(html, /Cancelation intro/);
-  assert.match(html, /Awaiting THRIVE content/);
-
-  // The content-locked governance note ships on the page.
-  assert.match(html, /may not write, reword, or summarise it/);
-});
-
 test("active members see Shawn's pinned 2.0.0 announcement", async (t) => {
   const portal = await startPortal();
   t.after(portal.dispose);
@@ -268,6 +232,101 @@ test("active members see Shawn's pinned 2.0.0 announcement", async (t) => {
     1,
     "the new release must be the single pinned announcement",
   );
+});
+
+test("active members open Training with one verbatim intro and labelled empty slots", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  const roles = ["owner", "admin", "manager", "reviewer", "agent", "support"];
+  let html = "";
+  let agentHtml = "";
+  for (const role of roles) {
+    const email = `${role}-training@example.com`;
+    await portal.addMember(email, role);
+    const response = await portal.get("/portal/training", {
+      subject: `subject-${role}-training`,
+      email,
+    });
+    assert.equal(response.status, 200, `${role} can open Training`);
+    const roleHtml = await response.text();
+    assert.match(roleHtml, /href="\/portal\/training"/, `${role} sees the Training nav item`);
+    if (role === "agent") agentHtml = roleHtml;
+    if (role === "support") html = roleHtml;
+  }
+
+  const visibleHtml = html.replaceAll("<!-- -->", "");
+  assert.ok(
+    agentHtml.indexOf('href="/portal/training"') < agentHtml.indexOf('href="/portal/book"'),
+    "Training stays above Book of Business for members who can see both",
+  );
+
+  assert.match(html, /id="training"/);
+  assert.match(html, /id="introductions"/);
+  assert.match(html, /id="call-angles"/);
+  assert.match(visibleHtml, /Inbound Call Process — Variation 1/);
+  assert.match(visibleHtml, /That’s a carrier I can help you with\. Do you have your policy number\?/);
+  assert.match(visibleHtml, /Always use the word 'verify'\./);
+
+  for (const label of [
+    "Client States Problem First ...",
+    "Death Claim Discovery Intro",
+    "Non life Discovery Intro",
+    "Cancelation intro",
+    "Quote Shopper Intro for CS...",
+    "Intro Tips and Tricks",
+    "Standard To Preferred",
+    "Term To perm",
+    "Cash Surrender",
+    "Loan Forgiveness",
+    "Death Claim Extension",
+    "Non Insurance Extension",
+    "Consolidation",
+    "Work Policy",
+    "Quote Shopper Angle",
+  ]) {
+    assert.match(visibleHtml, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  assert.equal(
+    (html.match(/data-content-state="not-loaded"/g) ?? []).length,
+    16,
+    "the standalone Training section and every unloaded supplied label stay explicitly empty",
+  );
+  assert.equal(
+    (html.match(/data-content-state="loaded"/g) ?? []).length,
+    1,
+    "only the owner-supplied Word script may be loaded",
+  );
+  assert.equal(
+    (html.match(/<small class="training-title-pending">/g) ?? []).length,
+    2,
+    "truncated screenshot labels are disclosed instead of completed",
+  );
+  assert.doesNotMatch(visibleHtml, /AI-generated script|Suggested script|Draft script/i);
+
+  const stranger = await portal.get("/portal/training", {
+    subject: "subject-stranger-training",
+    email: "stranger-training@example.com",
+  });
+  assert.equal(stranger.status, 307);
+  assert.match(stranger.headers.get("location") ?? "", /\/portal\/no-access$/);
+  assert.equal(await stranger.text(), "", "a nonmember receives no Training body");
+
+  await portal.addMember("suspended-training@example.com", "agent", "suspended");
+  const suspended = await portal.get("/portal/training", {
+    subject: "subject-suspended-training",
+    email: "suspended-training@example.com",
+  });
+  assert.equal(suspended.status, 307);
+  assert.match(suspended.headers.get("location") ?? "", /\/portal\/no-access$/);
+  assert.equal(await suspended.text(), "", "a suspended member receives no Training body");
+
+  const denials = (await portal.audit()).filter(
+    (row) => row.request_path === "/portal/training" && row.decision === "deny",
+  );
+  assert.ok(denials.some((row) => row.reason === "not_a_member"));
+  assert.ok(denials.some((row) => row.reason === "status_suspended"));
 });
 
 test("subject binding happens once, not on every sign-in", async () => {

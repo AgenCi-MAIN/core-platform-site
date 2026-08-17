@@ -91,9 +91,9 @@ const NAV: readonly NavItem[] = [
     capability: "dashboard.view.self",
     icon: "training",
     group: "Operations",
-    description: "Approved introductions, call angles, and training modules — verbatim.",
+    description: "THRIVE-approved introductions, call angles, and training language.",
     state: "live",
-    stateLabel: "Available",
+    stateLabel: "Approved content",
   },
   {
     href: "/portal/book",
@@ -217,7 +217,7 @@ const MISSION_GROUPS = [
     code: "01",
     title: "Operating Floor",
     description: "Move conversations, policy work, governed language, and team execution.",
-    routes: ["/portal/calls", "/portal/book", "/portal/scripts", "/portal/team"],
+    routes: ["/portal/training", "/portal/calls", "/portal/book", "/portal/scripts", "/portal/team"],
   },
   {
     id: "signal-intelligence",
@@ -249,6 +249,7 @@ const MISSION_GROUPS = [
 
 const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/command": "Command Center",
+  "/portal/training": "Training",
   "/portal/calls": "Call Lab",
   "/portal/book": "Book",
   "/portal/scripts": "Scripts",
@@ -765,12 +766,11 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <circle cx="16.6" cy="15.5" r="2.2" />
     </>
   ),
-  // Mortarboard — training.
+  // Open training guide with an approval check.
   training: (
     <>
-      <path d="M12 4.5 21 9l-9 4.5L3 9l9-4.5z" />
-      <path d="M6.5 11.5v4.2c0 1.1 2.5 2.3 5.5 2.3s5.5-1.2 5.5-2.3v-4.2" />
-      <path d="M21 9v4.5" />
+      <path d="M4.5 5.5h6.2c1.8 0 3.3.7 4.3 1.8v12.2c-1-1.1-2.5-1.8-4.3-1.8H4.5V5.5z" />
+      <path d="M19.5 5.5H15c-.7 0-1.4.1-2 .3M15.7 12.7l1.7 1.7 3.1-3.4" />
     </>
   ),
   // Briefcase — the book of business.

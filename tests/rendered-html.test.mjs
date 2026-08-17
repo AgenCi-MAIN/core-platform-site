@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { registerHooks } from "node:module";
 import test from "node:test";
@@ -301,6 +302,36 @@ test("FOUNDER_EMAILS holds exactly one identity", async () => {
   );
 });
 
+test("every portal page except no-access declares exactly one server guard", async () => {
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join, relative } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const portalDir = fileURLToPath(new URL("../app/portal", import.meta.url));
+  const failures = [];
+
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        walk(full);
+      } else if (entry === "page.tsx") {
+        const routeFile = relative(portalDir, full).replaceAll("\\", "/");
+        if (routeFile === "no-access/page.tsx") continue;
+        const source = readFileSync(full, "utf8");
+        const guards = source.match(/requireCapability\(|requireFounder\(/g) ?? [];
+        if (guards.length !== 1) failures.push(`${routeFile} (${guards.length} guards)`);
+      }
+    }
+  };
+  walk(portalDir);
+
+  assert.deepEqual(
+    failures,
+    [],
+    `portal pages missing one unambiguous guard: ${failures.join(", ")}`,
+  );
+});
+
 test("Founder shortcuts are deliberate anchors, never prefetched redirect handlers", async () => {
   const source = await readFile(
     new URL("../app/portal/command/page.tsx", import.meta.url),
@@ -337,6 +368,71 @@ test("Founder shortcuts are deliberate anchors, never prefetched redirect handle
     css,
     /\.portal:has\(\.fcc-thumb-dock\) > \.presence \{\s*bottom: calc\(148px \+ env\(safe-area-inset-bottom\)\);\s*\}/,
     "the shipped Presence overlaps the Command Center's mobile thumb dock",
+  );
+});
+
+test("Training is guarded, ordered above Book of Business, and stays server-only", async () => {
+  const navigation = await readFile(
+    new URL("../app/portal/components.tsx", import.meta.url),
+    "utf8",
+  );
+  const page = await readFile(
+    new URL("../app/portal/training/page.tsx", import.meta.url),
+    "utf8",
+  );
+  const library = await readFile(
+    new URL("../app/portal/training/library.ts", import.meta.url),
+    "utf8",
+  );
+
+  const trainingNav = navigation.indexOf('href: "/portal/training"');
+  const bookNav = navigation.indexOf('href: "/portal/book"');
+  assert.ok(trainingNav >= 0, "Training is missing from portal navigation");
+  assert.ok(bookNav >= 0, "Book of Business is missing from portal navigation");
+  assert.ok(trainingNav < bookNav, "Training must stay above Book of Business");
+  assert.match(
+    page,
+    /requireCapability\("dashboard\.view\.self", "\/portal\/training"\)/,
+    "Training lost its literal server-side guard",
+  );
+  assert.doesNotMatch(
+    `${page}\n${library}`,
+    /^["']use client["'];/m,
+    "approved training language moved into a public client module",
+  );
+  assert.match(
+    page,
+    /<pre className="script-body training-script-body">\{slot\.body\}<\/pre>/,
+    "approved training text is no longer rendered directly",
+  );
+  assert.doesNotMatch(
+    page,
+    /slot\.body\.(?:trim|replace|slice|substring)|marked\(|dangerouslySetInnerHTML/,
+    "approved training text is transformed before rendering",
+  );
+});
+
+test("the approved Training body remains byte-verbatim", async () => {
+  const library = await readFile(
+    new URL("../app/portal/training/library.ts", import.meta.url),
+    "utf8",
+  );
+  const literal = library.match(
+    /^export const DIRECT_CARRIER_QUESTION_INTRO_BODY = (".*");$/m,
+  )?.[1];
+  assert.ok(literal, "approved Training body must remain a JSON-compatible string literal");
+  const body = JSON.parse(literal);
+
+  assert.equal(Buffer.byteLength(body, "utf8"), 3765);
+  assert.equal((body.match(/\n/g) ?? []).length, 130);
+  assert.equal(
+    createHash("sha256").update(body, "utf8").digest("hex"),
+    "04740e30b911a5da2c1435eae4f5f0eb11e085d73b4db8448810bde3c92b89d8",
+  );
+  assert.equal(
+    (library.match(/\n    state: "approved",\n    body:/g) ?? []).length,
+    1,
+    "exactly one human-approved script body is loaded",
   );
 });
 
@@ -625,6 +721,8 @@ test("restricted data never reaches a public client chunk", async () => {
     // their presence in immutable assets would bypass every route guard.
     "session_01W4UZQ4izQyBNT2HEd9D9PK",
     "T3-S02-D01",
+    // Human-authored training copy belongs only in authenticated server output.
+    "That’s a carrier I can help you with.",
   ];
 
   for (const name of files) {
