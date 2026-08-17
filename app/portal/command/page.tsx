@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { JarvisCommandPrompt } from "../command-prompt";
-import { requireFounder } from "../access";
+import { requireCommandCenter } from "../access";
 import { PortalShell } from "../components";
 
 export const dynamic = "force-dynamic";
@@ -374,7 +374,7 @@ function QueueRow({ item }: { item: QueueItem }) {
 }
 
 export default async function FounderCommandCenter() {
-  const session = await requireFounder("/portal/command", "command.view");
+  const session = await requireCommandCenter("/portal/command", "command.view");
   const unavailableSignals = SIGNAL_ITEMS.filter(
     (item) => item.tone === "unavailable",
   ).length;

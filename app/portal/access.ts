@@ -404,6 +404,70 @@ export function isFounder(session: PortalSession): boolean {
 }
 
 /**
+ * Command Center access — the founder plus individually NAMED helpers.
+ *
+ * Granted per person by founder order, never per role: Andrew Davidson
+ * (helper dev) was added by the founder's explicit instruction on 2026-08-17
+ * ("unlock COMMAND CENTER for ANDREW DAVIDSON"). THIS SET governs the Command
+ * Center page only; the audit log, the investigator, and every /go/* handoff
+ * remain founder-only — they answer FOUNDER_EMAILS, not this set. Note
+ * plainly: a listed helper's WIDER portal access comes from their member
+ * role, which this allowlist neither grants nor limits — Andrew is already a
+ * live, bound owner (OWNER-DECISIONS A7; the Command Center grant is A13),
+ * so he holds every role capability by that grant, not by this one.
+ *
+ * Like FOUNDER_EMAILS this is identity, not a header claim: tested only
+ * against the cookie-resolved session email, entries lowercase. A test pins
+ * this set's exact contents so a quiet addition fails in CI rather than
+ * shipping — widening it is a governance decision recorded in
+ * OWNER-DECISIONS.md, not a code convenience.
+ */
+export const COMMAND_CENTER_EMAILS: ReadonlySet<string> = new Set([
+  ...FOUNDER_EMAILS,
+  "andrew.davidson.zenith@gmail.com",
+]);
+
+export function isCommandCenter(session: PortalSession): boolean {
+  return COMMAND_CENTER_EMAILS.has(normalizeEmail(session.email));
+}
+
+/**
+ * Guard for the Command Center page. Identical in shape to `requireFounder`
+ * but gated on COMMAND_CENTER_EMAILS, and its denial rows say so honestly:
+ * reason "command_only", because "founder_only" would be a false statement in
+ * an append-only log once the gate admits a named helper. Membership is still
+ * required first — an allowlisted address with no active member row never
+ * reaches this check.
+ */
+export async function requireCommandCenter(
+  returnTo: string = PORTAL_ROOT,
+  action: string = "command.view",
+): Promise<PortalSession> {
+  const result = await resolvePortalAccess(returnTo);
+
+  if (!result.ok) {
+    if (result.denial.kind === "anonymous") redirect(signInPath(returnTo));
+    redirect(`${PORTAL_ROOT}/no-access`);
+  }
+
+  const { session } = result;
+  if (!isCommandCenter(session)) {
+    await recordAudit({
+      action,
+      decision: "deny",
+      reason: "command_only",
+      actorEmail: session.email,
+      actorSubjectId: session.subjectId,
+      actorRole: session.role,
+      requestPath: returnTo,
+    });
+    redirect(`${PORTAL_ROOT}/no-access`);
+  }
+
+  return session;
+}
+
+/**
  * Guard for a founder-only page. Identical to `requireCapability` except the
  * gate is the seeded identity itself, not a capability a role can hold — so
  * the audit log stays reachable by exactly one person even if others are

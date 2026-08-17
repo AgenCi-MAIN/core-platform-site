@@ -549,7 +549,7 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
   }
 });
 
-test("the Founder Command Center and every /go handoff answer only the migrated founder", async (t) => {
+test("the Command Center answers its named allowlist; every /go handoff answers only the founder", async (t) => {
   const portal = await startPortal();
   t.after(portal.dispose);
 
@@ -586,19 +586,38 @@ test("the Founder Command Center and every /go handoff answer only the migrated 
     assert.equal(await retired.text(), "", `${pathname} must emit no body to the retired identity`);
   }
 
-  const founderOnlyDenials = (await portal.audit())
-    .filter((row) => row.decision === "deny" && row.reason === "founder_only")
-    .map((row) => `${row.actor_email}|${row.request_path}`)
+  // /portal/command now sits behind COMMAND_CENTER_EMAILS (founder order
+  // 2026-08-17) and its denial rows honestly say "command_only"; the three
+  // /go/* handoffs remain founder-gated and keep saying "founder_only".
+  // The action column is pinned too: these rows land in an append-only table,
+  // so a surface recording the wrong action is a false statement nothing can
+  // retract — exactly what access.ts's requireFounder comment warns about.
+  const GATE_ACTIONS = {
+    "/portal/command": ["command_only", "command.view"],
+    "/go/hq": ["founder_only", "go.hq"],
+    "/go/routines": ["founder_only", "go.routines"],
+    "/go/desk": ["founder_only", "go.desk"],
+  };
+  const gateDenials = (await portal.audit())
+    .filter(
+      (row) =>
+        row.decision === "deny" &&
+        (row.reason === "founder_only" || row.reason === "command_only"),
+    )
+    .map((row) => `${row.actor_email}|${row.request_path}|${row.reason}|${row.action}`)
     .sort();
   assert.deepEqual(
-    founderOnlyDenials,
+    gateDenials,
     guarded
-      .flatMap((pathname) => [
-        `${otherOwner.email}|${pathname}`,
-        `${retiredFounder.email}|${pathname}`,
-      ])
+      .flatMap((pathname) => {
+        const [reason, action] = GATE_ACTIONS[pathname];
+        return [
+          `${otherOwner.email}|${pathname}|${reason}|${action}`,
+          `${retiredFounder.email}|${pathname}|${reason}|${action}`,
+        ];
+      })
       .sort(),
-    "each guarded path must audit both non-founder identities as founder_only denials",
+    "each guarded path must audit both refused identities under its own gate's honest reason and action",
   );
 
   await portal.addMember("btcmao518@gmail.com", "owner");
@@ -662,6 +681,49 @@ test("the Founder Command Center and every /go handoff answer only the migrated 
     "the desk shortcut must stay a fixed compose-to handoff with no caller input",
   );
   assert.equal(deskLocation.hash, "");
+
+  // Andrew Davidson — the named helper added by founder order 2026-08-17
+  // (OWNER-DECISIONS A13). Provisioned as OWNER here because that mirrors the
+  // live roster (A7: owner, bound 2026-08-16) — which also proves the sharper
+  // fact that even an owner seat does not open the founder-only surfaces.
+  // Command Center answers him; every /go/* handoff still refuses him,
+  // because the allowlist's scope is THE COMMAND CENTER PAGE ONLY. (Probed
+  // after the audit deepEqual above so his denial rows don't disturb it.)
+  await portal.addMember("andrew.davidson.zenith@gmail.com", "owner");
+  const helper = {
+    subject: "sub-command-helper-andrew",
+    email: "andrew.davidson.zenith@gmail.com",
+  };
+
+  const helperCommand = await portal.get("/portal/command", helper);
+  assert.equal(
+    helperCommand.status,
+    200,
+    "the named helper opens the Command Center",
+  );
+  assert.match(await helperCommand.text(), /Your field console\./);
+
+  for (const pathname of ["/go/hq", "/go/routines", "/go/desk"]) {
+    const heldShut = await portal.get(pathname, helper);
+    assert.equal(
+      heldShut.status,
+      307,
+      `${pathname} must still refuse the Command Center helper — the grant is command-only`,
+    );
+    assert.match(heldShut.headers.get("location") ?? "", /\/portal\/no-access$/);
+    assert.equal(await heldShut.text(), "", `${pathname} must emit no body to the helper`);
+  }
+
+  // The helper's grant must not have leaked toward the founder-only pages.
+  for (const pathname of ["/portal/audit", "/portal/investigator"]) {
+    const sealed = await portal.get(pathname, helper);
+    assert.equal(
+      sealed.status,
+      307,
+      `${pathname} must refuse the Command Center helper — it stays founder-only`,
+    );
+    assert.match(sealed.headers.get("location") ?? "", /\/portal\/no-access$/);
+  }
 });
 
 test("Dialer Beta lists transferred calls and gates protected recording playback", async () => {
@@ -2279,7 +2341,13 @@ test("LeadTech renders the honest not-connected state to leadership and refuses 
   // the surface must render its honest "not connected" state — never fake
   // pipeline data — to a leadership-capable role, and must refuse a role that
   // does not hold leadership.view.all.
-  const portal = await startPortal();
+  //
+  // The outbound seam is armed so this also pins NO EXTERNAL CALLS: an
+  // attempted fetch would 500, flip the page to its error card, and fail the
+  // "Connect LeadTech" match.
+  const portal = await startPortal({
+    anthropic: () => new Response("unexpected anthropic call", { status: 500 }),
+  });
   t.after(portal.dispose);
 
   // manager holds leadership.view.all (owner/admin/manager do; agent does not).
@@ -2312,4 +2380,71 @@ test("LeadTech renders the honest not-connected state to leadership and refuses 
   assert.equal(agentRes.status, 307, "an agent lacks leadership.view.all");
   assert.match(agentRes.headers.get("location") ?? "", /\/portal\/no-access/);
   assert.equal(await agentRes.text(), "", "a refused agent receives no body");
+});
+
+test("Retreaver and Twilio render honest not-connected states to leadership and refuse an agent", async (t) => {
+  // Deploy-time reality: none of RETREAVER_API_KEY / TWILIO_ACCOUNT_SID /
+  // TWILIO_AUTH_TOKEN are set as Miniflare bindings, so both read-only call
+  // surfaces must render their honest "not connected" states — never fake
+  // call data — to a leadership-capable role, and must refuse a role that
+  // does not hold leadership.view.all.
+  //
+  // The outbound seam is armed so this pins NO EXTERNAL CALLS, not just the
+  // rendered HTML: any fetch the worker attempted would hit the seam's loud
+  // 500, flip the surface to its error card, and fail the "Connect …" match
+  // below. Without the seam, a refactor that probed upstream before the key
+  // check would pass this test while hitting the real network in production.
+  const portal = await startPortal({
+    anthropic: () => new Response("unexpected anthropic call", { status: 500 }),
+  });
+  t.after(portal.dispose);
+
+  await portal.addMember("manager-callapis@example.com", "manager");
+  await portal.addMember("agent-callapis@example.com", "agent");
+
+  const surfaces = [
+    {
+      path: "/portal/retreaver",
+      connect: /Connect Retreaver/,
+      secrets: [/RETREAVER_API_KEY/],
+      // Nothing about the upstream call may leak into the rendered surface.
+      markers: ["api.retreaver.com", "api_key="],
+    },
+    {
+      path: "/portal/twilio",
+      connect: /Connect Twilio/,
+      secrets: [/TWILIO_ACCOUNT_SID/, /TWILIO_AUTH_TOKEN/],
+      markers: ["api.twilio.com", "Basic ", "2010-04-01"],
+    },
+  ];
+
+  for (const surface of surfaces) {
+    const managerRes = await portal.get(surface.path, {
+      subject: "subject-manager-callapis",
+      email: "manager-callapis@example.com",
+    });
+    assert.equal(managerRes.status, 200, `leadership can open ${surface.path}`);
+    const html = await managerRes.text();
+
+    assert.match(html, surface.connect, `${surface.path} must render its not-connected state`);
+    for (const secret of surface.secrets) {
+      assert.match(html, secret, `${surface.path} setup must name the secret to set`);
+    }
+    assert.match(html, /wrangler secret put/, `${surface.path} shows the setup instruction`);
+
+    // No fabricated call data: with no credentials set, no data table may appear.
+    assert.doesNotMatch(html, /<table/, `${surface.path} not-connected surface must show no data table`);
+
+    for (const marker of surface.markers) {
+      assert.ok(!html.includes(marker), `${surface.path} leaked ${marker}`);
+    }
+
+    const agentRes = await portal.get(surface.path, {
+      subject: "subject-agent-callapis",
+      email: "agent-callapis@example.com",
+    });
+    assert.equal(agentRes.status, 307, `an agent lacks leadership.view.all on ${surface.path}`);
+    assert.match(agentRes.headers.get("location") ?? "", /\/portal\/no-access/);
+    assert.equal(await agentRes.text(), "", "a refused agent receives no body");
+  }
 });

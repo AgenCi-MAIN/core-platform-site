@@ -108,6 +108,8 @@ const PROTECTED_ROUTES = [
   "/portal/leadership",
   "/portal/leadtech",
   "/portal/library",
+  "/portal/retreaver",
+  "/portal/twilio",
   "/portal/members",
   "/portal/pay-rates",
   "/portal/music",
@@ -165,11 +167,12 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
   const appDir = fileURLToPath(new URL("../app", import.meta.url));
 
   // Second argument of requireCapability(capability, returnTo) is the route;
-  // requireFounder(returnTo) takes the route directly. Both are guards, and a
-  // founder-gated page OR redirect handler shipping without an
-  // anonymous-refusal test is the same failure as a capability-gated one —
-  // the regex must see them both.
-  const GUARD = /(?:requireCapability\(\s*"[^"]+"\s*,|requireFounder\()\s*"([^"]+)"/g;
+  // requireFounder(returnTo) and requireCommandCenter(returnTo) take the
+  // route directly. All three are guards, and a page shipping behind any of
+  // them without an anonymous-refusal test is the same failure — the regex
+  // must see them all.
+  const GUARD =
+    /(?:requireCapability\(\s*"[^"]+"\s*,|requireFounder\(|requireCommandCenter\()\s*"([^"]+)"/g;
 
   const found = new Set();
   const walk = (dir) => {
@@ -205,7 +208,9 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
       if (statSync(full).isDirectory()) check(full);
       else if (entry === "page.tsx" || entry === "route.ts") {
         const src = readFileSync(full, "utf8");
-        const calls = (src.match(/requireCapability\(|requireFounder\(/g) ?? []).length;
+        const calls = (
+          src.match(/requireCapability\(|requireFounder\(|requireCommandCenter\(/g) ?? []
+        ).length;
         const matched = [...src.matchAll(GUARD)].length;
         if (calls > matched) {
           // Allow template-literal returnTo ONLY when the route's static
@@ -263,7 +268,9 @@ test("every portal page calls a guard — no page ships unguarded", async () => 
         const rel = full.slice(full.indexOf("app")).split("\\").join("/");
         if (UNGUARDED_BY_DESIGN.has(rel)) continue;
         const src = readFileSync(full, "utf8");
-        if (!/requireCapability\(|requireFounder\(/.test(src)) unguarded.push(rel);
+        if (!/requireCapability\(|requireFounder\(|requireCommandCenter\(/.test(src)) {
+          unguarded.push(rel);
+        }
       }
     }
   };
@@ -278,10 +285,12 @@ test("every portal page calls a guard — no page ships unguarded", async () => 
 
 /**
  * A8-1. FOUNDER_EMAILS is the sole gate on /portal/audit, /portal/investigator,
- * /portal/command and every /go/* handoff — identity, not capability, so no
- * role grant can widen it and no test of roles can narrow it. The runtime
- * suite proves specific addresses are refused; this pins the SET ITSELF, so
- * that quietly adding a second founder fails here rather than shipping.
+ * and every /go/* handoff — identity, not capability, so no role grant can
+ * widen it and no test of roles can narrow it. (/portal/command moved to the
+ * COMMAND_CENTER_EMAILS gate by founder order 2026-08-17 — pinned in the next
+ * test.) The runtime suite proves specific addresses are refused; this pins
+ * the SET ITSELF, so that quietly adding a second founder fails here rather
+ * than shipping.
  */
 test("FOUNDER_EMAILS holds exactly one identity", async () => {
   const source = await readFile(
@@ -303,6 +312,48 @@ test("FOUNDER_EMAILS holds exactly one identity", async () => {
   );
 });
 
+/**
+ * COMMAND_CENTER_EMAILS is the founder plus individually NAMED helpers, each
+ * added by an explicit founder order. Pinning the exact contents means a
+ * quiet addition fails here rather than shipping — widening this set is a
+ * governance decision, not a code change. Andrew Davidson was added by
+ * founder order 2026-08-17 ("unlock COMMAND CENTER for ANDREW DAVIDSON"),
+ * scope: the Command Center page only.
+ */
+test("COMMAND_CENTER_EMAILS holds exactly the founder and Andrew Davidson", async () => {
+  const source = await readFile(
+    new URL("../app/portal/access.ts", import.meta.url),
+    "utf8",
+  );
+
+  const declaration = source.match(
+    /COMMAND_CENTER_EMAILS[^=]*=\s*new Set\(\[([^\]]*)\]\)/,
+  );
+  assert.ok(
+    declaration,
+    "COMMAND_CENTER_EMAILS must be a literal Set spreading FOUNDER_EMAILS — keep it greppable",
+  );
+
+  // Exactly ONE spread, and it is FOUNDER_EMAILS — a second spread would
+  // widen the set without appearing in the quoted-literal check below.
+  const spreads = [...declaration[1].matchAll(/\.\.\.\s*([A-Za-z_$][\w$]*)/g)].map((m) => m[1]);
+  assert.deepEqual(
+    spreads,
+    ["FOUNDER_EMAILS"],
+    "COMMAND_CENTER_EMAILS must spread FOUNDER_EMAILS and nothing else",
+  );
+
+  // Both quote styles and template literals count as literals here, so a
+  // single-quoted addition cannot dodge the pin; a template literal has no
+  // legitimate reason to exist in this Set and fails the exact-match below.
+  const addresses = [...declaration[1].matchAll(/["'`]([^"'`]+)["'`]/g)].map((m) => m[1]);
+  assert.deepEqual(
+    addresses,
+    ["andrew.davidson.zenith@gmail.com"],
+    "COMMAND_CENTER_EMAILS changed — a named helper is added only by founder order, recorded in OWNER-DECISIONS.md",
+  );
+});
+
 test("every portal page except no-access declares exactly one server guard", async () => {
   const { readdirSync, readFileSync, statSync } = await import("node:fs");
   const { join, relative } = await import("node:path");
@@ -319,7 +370,8 @@ test("every portal page except no-access declares exactly one server guard", asy
         const routeFile = relative(portalDir, full).replaceAll("\\", "/");
         if (routeFile === "no-access/page.tsx") continue;
         const source = readFileSync(full, "utf8");
-        const guards = source.match(/requireCapability\(|requireFounder\(/g) ?? [];
+        const guards =
+          source.match(/requireCapability\(|requireFounder\(|requireCommandCenter\(/g) ?? [];
         if (guards.length !== 1) failures.push(`${routeFile} (${guards.length} guards)`);
       }
     }

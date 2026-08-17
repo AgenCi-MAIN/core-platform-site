@@ -1,7 +1,14 @@
 import { signOutPath } from "../google-auth";
 import { ThriveMark } from "../thrive-mark";
 import Link from "next/link";
-import { ROLE_LABELS, can, isFounder, type Capability, type PortalSession } from "./access";
+import {
+  ROLE_LABELS,
+  can,
+  isCommandCenter,
+  isFounder,
+  type Capability,
+  type PortalSession,
+} from "./access";
 import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
 import { PortalThemeControl } from "../theme-control";
@@ -19,6 +26,8 @@ type PortalIconName =
   | "book"
   | "calls"
   | "leadtech"
+  | "retreaver"
+  | "twilio"
   | "scripts"
   | "team"
   | "leadership"
@@ -42,6 +51,12 @@ type NavItem = {
    * server-side with requireFounder — this flag only controls the sidebar.
    */
   founderOnly?: boolean;
+  /**
+   * Visible to COMMAND_CENTER_EMAILS (the founder plus named helpers),
+   * regardless of role. The page behind it enforces the same set server-side
+   * with requireCommandCenter — this flag only controls the sidebar.
+   */
+  commandOnly?: boolean;
   stateLabel: string;
 };
 
@@ -62,10 +77,10 @@ const NAV: readonly NavItem[] = [
     capability: "audit.view",
     icon: "command",
     group: "Workspace",
-    description: "Founder-only workforce, decisions, signals, and field handoffs.",
+    description: "Workforce, decisions, signals, and field handoffs. Founder + named helpers.",
     state: "live",
-    founderOnly: true,
-    stateLabel: "Founder only",
+    commandOnly: true,
+    stateLabel: "Command access",
   },
   {
     href: "/portal/announcements",
@@ -124,6 +139,26 @@ const NAV: readonly NavItem[] = [
     icon: "leadtech",
     group: "API",
     description: "LeadTech contacts and pipeline, rendered natively inside CORE.",
+    state: "live",
+    stateLabel: "Leadership",
+  },
+  {
+    href: "/portal/retreaver",
+    label: "Retreaver",
+    capability: "leadership.view.all",
+    icon: "retreaver",
+    group: "API",
+    description: "Ad campaign to central number to agent — inbound call routing, read-only.",
+    state: "live",
+    stateLabel: "Leadership",
+  },
+  {
+    href: "/portal/twilio",
+    label: "Twilio",
+    capability: "leadership.view.all",
+    icon: "twilio",
+    group: "API",
+    description: "Central numbers and the inbound call log, read-only.",
     state: "live",
     stateLabel: "Leadership",
   },
@@ -299,7 +334,11 @@ export function PortalShell({
   children: React.ReactNode;
 }) {
   const visible = NAV.filter((item) =>
-    item.founderOnly ? isFounder(session) : can(session, item.capability),
+    item.founderOnly
+      ? isFounder(session)
+      : item.commandOnly
+        ? isCommandCenter(session)
+        : can(session, item.capability),
   );
 
   return (
@@ -644,7 +683,11 @@ export function PortalPlaceholderPage({
 
 export function PortalWorkspaceDirectory({ session }: { session: PortalSession }) {
   const visible = NAV.filter((item) =>
-    item.founderOnly ? isFounder(session) : can(session, item.capability),
+    item.founderOnly
+      ? isFounder(session)
+      : item.commandOnly
+        ? isCommandCenter(session)
+        : can(session, item.capability),
   );
 
   return (
@@ -817,6 +860,25 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
   // Funnel — the pipeline.
   leadtech: (
     <path d="M4 5h16l-6.2 7.2v6.3l-3.6 1.8v-8.1L4 5z" />
+  ),
+  // One inbound line splitting to two — the call router. Three nodes, not
+  // four: at the sidebar's 17px render size denser geometry smudges.
+  retreaver: (
+    <>
+      <circle cx="5" cy="12" r="2.6" />
+      <circle cx="19" cy="5" r="2.6" />
+      <circle cx="19" cy="19" r="2.6" />
+      <path d="M7.3 10.9 16.7 6.1M7.3 13.1l9.4 4.8" />
+    </>
+  ),
+  // Antenna mast with waves — the phone line. Arc radius kept tight so the
+  // wave bulge survives the 24→17px downscale instead of reading as bars.
+  twilio: (
+    <>
+      <path d="M12 10.5V20.5M9 20.5h6" />
+      <circle cx="12" cy="8.5" r="2" />
+      <path d="M8.5 5a4.6 4.6 0 0 0 0 7M15.5 5a4.6 4.6 0 0 1 0 7" />
+    </>
   ),
   // Document with lines.
   scripts: (
