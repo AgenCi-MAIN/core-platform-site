@@ -964,3 +964,43 @@ checking, and only one of them was a delivery problem.
 The rule this leaves behind: an email body is HTML, not XML. Never wrap it in a
 CDATA section, and check a send's stored `body_html` rather than trusting that
 a `sent` status means the message rendered.
+
+## 19. Outbound send — morning brief to all active members
+
+Sent 2026-08-17 on the owner's explicit order ("send a morning brief in detail
+to ALL members including me. Stating what was improved"). Recorded because an
+outbound send that is not in the record does not exist.
+
+- **From:** `out-reach@inkboxmail.com` — the platform identity (Mr.T), sent
+  through Inkbox. `reply_to` set to the desk. Open tracking off.
+- **To:** every active member on the roster (§5), one individual send each so
+  delivery status is per-recipient and the greeting is personal. The retired
+  `bankerrunners@gmail.com` row was skipped — Google-locked, the inbox is dead.
+
+| Recipient | Inkbox message id | Status at send-time check |
+| --- | --- | --- |
+| `btcmao518@gmail.com` (Shawn) | `6c298a89-7512-44a8-a797-8a3135c3d800` | `delivered`; stored `body_html` verified to begin at the opening `<div>` (§18a rule) |
+| `ryandavidson.zenith@gmail.com` (Ryan Davidson) | `a4ad883c-74fc-4004-a202-6cc39ab81c31` | `sent` |
+| `epiclife.nguyen@gmail.com` (Nate Nguyen) | `635fa64f-8a98-462f-bf36-e7a8f125ac26` | `sent` |
+| `andrew.davidson.zenith@gmail.com` (Andrew Davidson) | `1497e7ec-1605-4a88-a8dd-3ac01dce24a8` | `sent` |
+
+- **Subject:** `CORE / THRIVE — Morning Brief, August 17, 2026`. Identical
+  body for all four recipients apart from the greeting name.
+- **Contents, all drawn from this record and the merged PR trail:** the
+  2026-08-16 Cloudflare Access edge lock and the three fail-closed layers; the
+  founder identity migration to `btcmao518@gmail.com` (A9), stated without any
+  secret value; the command prompt + portal chrome deploy (PR #36) and the
+  Tournament 3 Field Console merge (PR #39); the public-page dark-theme
+  overlay fix (PR #37, serving version `7427f4f4`); the Tier 1 hardening batch
+  (PR #40: D5-1 rebuild lockout, A8-5 audit action truthfulness, T4-1 inverse
+  guard net, A8-1 founder-set pin) with the suite at 58/58; Inkbox key hygiene
+  closed (B19/10d) and the old-account trigger stand-down (§ of PR #42). A
+  closing note restates that the desk sends only on the founder's explicit
+  order and that replies are drafted, never acted on autonomously.
+- **What the brief deliberately omits:** member roster details beyond what
+  each member already is (no other members' emails appear in anyone's copy —
+  each send is single-recipient), the nine caption-only routine briefs and
+  other open gaps (internal, founder-facing, not member-facing), and all
+  secret names and values.
+- **No change** to source, authentication, membership, capabilities, roles,
+  D1, R2, or the Cloudflare Access policy. Nothing was deployed.
