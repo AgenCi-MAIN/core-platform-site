@@ -1041,3 +1041,7 @@ recorded exactly as given).
   channel opens and the founder says the word. Until an opt-in exists, the
   desk has no outbound text path to any member except the founder's own
   iMessage thread.
+
+**Correction, same day:** the founder confirmed "Andre" was a typo for
+**Andrew Davidson** — +1 941 210 1411 is Andrew's number, as presumed above.
+His pending draft now greets him as Andrew.
