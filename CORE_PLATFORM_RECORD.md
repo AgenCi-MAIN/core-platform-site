@@ -483,12 +483,14 @@ identity it is impersonating on every start. The role still comes from the
    its own cookie container, so an Access session completed in Safari does not
    carry into the installed icon, and leaving the app to fetch the code tends to
    lose the waiting context. PWA plus One-Time PIN fights itself on iOS.
-   **The real fix is a governance decision, not a workaround:** point the Access
-   policy at Google as the identity provider instead of One-Time PIN. Members
-   already sign into the portal with Google and phones stay signed into Google,
-   so the second round-trip disappears. That is a Zero Trust dashboard change to
-   the outer wall protecting everything — founder's call, and the Access config
-   is not in this repo (see the recovery docket, §6: screenshot it).
+   **The real fix is decided (A11, owner order 2026-08-17):** point Access at
+   Google as the identity provider and retire the codes. It removes the email
+   round-trip; it does not remove the second sign-in, since Access and the
+   portal remain independent OAuth flows. That is Zero Trust dashboard work on
+   the outer wall protecting everything, and the Access config is not in this
+   repo (recovery docket §6: screenshot it) — steps, ordering, and the
+   lockout-safe cutover are in
+   `strategy/2026-08-17-access-google-idp-runbook.md`.
    Hit live on 2026-08-17, on the phone, from the welcome email's own link.
 
 ---
