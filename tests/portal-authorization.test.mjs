@@ -391,6 +391,16 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
     const auditOk = await portal.get("/portal/audit", founder);
     assert.equal(auditOk.status, 200, "the founder reads the audit log");
 
+    // Migration 2026-08-17: the incoming primary identity also holds founder
+    // access during the transition, so an audit-surface lockout is impossible
+    // if the new address is slow to bind. It must be BOTH a member (granted in
+    // the live DB via db/sql/0003) and in FOUNDER_EMAILS — mirror that here.
+    // Remove this once bankerrunners is dropped from FOUNDER_EMAILS.
+    await portal.addMember("btcmao518@gmail.com", "owner");
+    const migratedFounder = { subject: "sub-founder-migrated", email: "btcmao518@gmail.com" };
+    const migratedOk = await portal.get("/portal/investigator", migratedFounder);
+    assert.equal(migratedOk.status, 200, "the migrated founder identity is admitted");
+
     const rows = await portal.audit();
     assert.ok(
       rows.some((r) => r.reason === "founder_only" && r.decision === "deny"),

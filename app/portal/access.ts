@@ -380,19 +380,29 @@ export function can(session: PortalSession, capability: Capability): boolean {
 }
 
 /**
- * The founder — the single seeded identity (see db/sql/0002). Some surfaces
- * are closed to everyone but this person, regardless of role or capability:
- * a second owner does not inherit them. Kept lowercase because identity is
- * always compared normalized.
+ * The founder identities. Some surfaces (audit, investigator) are closed to
+ * everyone but the founder, regardless of role or capability: a second owner
+ * does not inherit them.
+ *
+ * MIGRATION 2026-08-17: the owner is moving their primary sign-in identity to
+ * btcmao518@gmail.com. During the transition BOTH the new identity and the
+ * original seed (bankerrunners@gmail.com) hold founder access, so a binding
+ * problem on the new address can never lock the owner out of the audit log.
+ * Once btcmao518 is confirmed signing in and bound, remove bankerrunners from
+ * this set so the founder surfaces answer exactly one identity again.
  *
  * This is identity, not a header claim: it is only ever tested against
  * `session.email`, which is resolved from the HMAC-signed cookie. There is no
- * request-header path to it, on purpose.
+ * request-header path to it, on purpose. Entries are lowercase because identity
+ * is always compared normalized.
  */
-export const FOUNDER_EMAIL = "bankerrunners@gmail.com";
+export const FOUNDER_EMAILS: ReadonlySet<string> = new Set([
+  "btcmao518@gmail.com",
+  "bankerrunners@gmail.com", // fallback during migration — remove once btcmao518 is verified
+]);
 
 export function isFounder(session: PortalSession): boolean {
-  return normalizeEmail(session.email) === FOUNDER_EMAIL;
+  return FOUNDER_EMAILS.has(normalizeEmail(session.email));
 }
 
 /**
