@@ -22,7 +22,7 @@ an action) · 🔵 OPEN (still the owner's to decide)
 | A6 | Ryan Davidson + Nate Nguyen seated as owners | ✅ |
 | A7 | **Andrew Davidson** (`andrew.davidson.zenith@gmail.com`) approved as owner | ✅ granted from the portal 2026-08-15; signed in and bound 2026-08-16 (roster verified by the owner) |
 | A8 | Oscar Valencia — named as owner, no grant until his exact sign-in address is confirmed | 🔵 |
-| A9 | **Owner identity migration to `btcmao518@gmail.com`** (owner order 2026-08-17, confirmed final). Additive owner grant staged (`db/sql/0003`); founder access staged as a two-identity transition set (`FOUNDER_EMAILS` = btcmao518 + bankerrunners) so the audit surface can't lock out mid-move. `bankerrunners` retained as fallback until btcmao518 is confirmed signing in and bound, then dropped. **Blocked on the disabled Google OAuth client** — no sign-in possible until it is re-enabled. History (seed, prior grants, audit) is left intact, not rewritten. | ⏳ staged; awaits live grant + OAuth re-enable + sign-in proof |
+| A9 | **Owner identity migration to `btcmao518@gmail.com`** (owner order 2026-08-17, confirmed final). Root cause: Google locked `bankerrunners@gmail.com`. Executed same day: new OAuth client under the new identity (`core-portal` project), secrets rotated, owner row applied via the D1 console, sign-in + subject binding verified, founder-only audit log read live by the new identity. Cleanup staged: `FOUNDER_EMAILS` now answers btcmao518 alone; live-instruction docs swept (history untouched). Retired address keeps its owner row for the record; it can never sign in. | ✅ verified live 2026-08-17; cleanup awaiting merge + deploy |
 
 ## B. The AI staff
 

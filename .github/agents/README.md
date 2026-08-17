@@ -1,8 +1,9 @@
 # Trained Lanes - the summonable fleet
 
 Platform 2.0.0. Designed by Mr. T (J.A.R.V.I.S., MAIN). Funded and owned by
-Yuxiang Mao (Shawn), bankerrunners@gmail.com - initial owner seeded at portal
-provisioning, sign-in address confirmed 2026-08-13. Owner: active.
+Yuxiang Mao (Shawn), btcmao518@gmail.com (since 2026-08-17; originally seeded
+as bankerrunners@gmail.com on 2026-08-13, retired when Google locked that
+account). Owner: active.
 
 Each file here is a **trained lane**: a role brief that has been fielded,
 VERITY-scored, and confirmed productive in a Fleet Economy tournament

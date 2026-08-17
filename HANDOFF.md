@@ -6,7 +6,8 @@ follow the map. Everything named here is in this repository — one clone
 holds the source code, the logs, the agent personas, the tournament records,
 and the strategy blueprints.
 
-**Owner:** Yuxiang Mao (Shawn), `bankerrunners@gmail.com`.
+**Owner:** Yuxiang Mao (Shawn), `btcmao518@gmail.com` (since 2026-08-17;
+previously `bankerrunners@gmail.com`, retired — Google locked that account).
 **Canonical source:** GitHub `bankerrunners/core-platform-site` — always
 current; this handoff is a point-in-time copy.
 **Live platform:** `https://site-creator-vinext-starter.bankerrunners.workers.dev`

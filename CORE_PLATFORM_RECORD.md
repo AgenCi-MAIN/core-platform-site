@@ -104,20 +104,17 @@ The consent screen is **External** and unpublished, so first-time users see an
 "unverified app" interstitial. That is expected for a private app; continue via
 **Advanced → Go to THRIVE Portal**.
 
-**Status 2026-08-17: the OAuth client is GONE with its account — rebuild, do
-not chase re-enable.** Root cause found: Google LOCKED the owner's
-`bankerrunners@gmail.com` account itself. The `Error 401: disabled_client` is
-downstream of that — the client lives in that account's Cloud project, and it
-cannot be re-enabled without recovering the account. The recovery path chosen:
-mint a NEW OAuth client in a fresh Cloud project under the owner's new
-identity (`btcmao518@gmail.com`), same single redirect URI, then rotate
-`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` via `wrangler secret put` — no code
-change is needed, the client values are runtime secrets. Cloudflare dashboard
-access survives (its password is independent of Gmail), which also allows
-adding btcmao518 to the Access policy so edge login codes reach a live inbox.
-Google recovery of bankerrunners continues in parallel — GitHub, Drive
-backups, and the Cloudflare account email still point at it. Remove this
-paragraph when sign-in is confirmed working on the new client.
+**RESOLVED 2026-08-17: the client lives in the `core-portal` Cloud project
+under `btcmao518@gmail.com`** (project id `core-portal-505803`). Google locked
+the original `bankerrunners@gmail.com` account on 2026-08-17, killing the old
+client with it; a new client was minted under the new identity, the two
+Google secrets rotated via `wrangler secret put`, and sign-in verified live
+the same night (btcmao518 signed in, bound, and read the founder-only audit
+log). Full incident + decision record:
+`strategy/2026-08-17-identity-recovery-docket.md`. Still open from that
+docket: the Cloudflare account email swap (blocked on a lost password —
+support ticket path; a scoped API token hedge exists), and Google recovery of
+the old account for GitHub/Drive.
 
 ### Secrets (names only)
 
@@ -186,7 +183,8 @@ Guard a page with `requireCapability(...)`; guard a write with
 
 | Email | Name | Role | Granted |
 | --- | --- | --- | --- |
-| `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) | owner | bootstrap, 2026-08-14 |
+| `btcmao518@gmail.com` | Yuxiang Mao (Shawn) — **current founder identity** | owner | owner-migration 2026-08-17 (`db/sql/0003`); signed in and bound 2026-08-17 |
+| `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) — retired identity (Google locked the account 2026-08-17; cannot sign in; row retained for the record) | owner | bootstrap, 2026-08-14 |
 | `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | by Shawn, 2026-08-14 |
 | `epiclife.nguyen@gmail.com` | Nate Nguyen | owner | by Shawn, from the portal, confirmed on the live roster 2026-08-15 |
 | `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | owner | approved by Shawn 2026-08-15 ("shawn-aprooved"); granted from the portal 2026-08-15, first sign-in bound 2026-08-16 — LIVE (roster screenshot verified by the owner) |
@@ -204,7 +202,8 @@ alias addresses (as shown on his admin panel: `bankerrunners@pm.me`,
 `CORE_inbox_pm@pm…` — those last were truncated on screen; confirm the full
 spelling before ever writing one anywhere that matters). All of them are the
 same person. **None of them signs in to the portal.** The one and only portal
-identity for Shawn is `bankerrunners@gmail.com`. Never grant an alias its own
+identity for Shawn is `btcmao518@gmail.com` (migrated 2026-08-17 from
+`bankerrunners@gmail.com`, which Google locked). Never grant an alias its own
 member row — a second row for the same human is the identity-ambiguity state
 the portal refuses, and an alias grant would sit unused as a standing
 credential. NumberBarn (business line) is registered under one of these
@@ -212,9 +211,11 @@ aliases; that is a vendor login, not a portal identity.
 
 **The audit log and the INVESTIGATOR console are founder-only (governance,
 set by Shawn 2026-08-15).** Both `/portal/audit` and `/portal/investigator`
-are gated by `requireFounder` — identity, not capability: only the seeded
-founder (`bankerrunners@gmail.com`, the sole 2026-08-13 seed, verified via
-Google sign-in and the HMAC-signed session) resolves them. Any other email —
+are gated by `requireFounder` — identity, not capability: only the founder
+(`btcmao518@gmail.com` since the 2026-08-17 migration; originally the
+2026-08-13 seed `bankerrunners@gmail.com`, retired when Google locked it —
+verified via Google sign-in and the HMAC-signed session) resolves them. Any
+other email —
 including a second owner — is refused and the refusal audited as
 `founder_only`. `audit.view` was removed from every role's grant list (the
 capability name survives only as the audit-row action). In the sidebar, the
@@ -277,7 +278,7 @@ VALUES
     'Their Name',
     'agent',              -- owner | admin | manager | reviewer | agent | support
     'active',
-    'bankerrunners@gmail.com',
+    'btcmao518@gmail.com',
     'Granted by Shawn on YYYY-MM-DD.'
   );
 
@@ -285,7 +286,7 @@ INSERT INTO `audit_events`
   (`actor_email`, `action`, `decision`, `reason`, `resource`, `detail`)
 VALUES
   (
-    'bankerrunners@gmail.com',
+    'btcmao518@gmail.com',
     'members.manage',
     'allow',
     'role_granted',
@@ -425,7 +426,7 @@ mints the same cookie the callback mints, signed with the `SESSION_SECRET` from
 
 ```powershell
 # .dev.vars in the repo root must contain SESSION_SECRET=<any long string>
-$env:AS_EMAIL="bankerrunners@gmail.com"; node scripts/dev-signin.mjs
+$env:AS_EMAIL="btcmao518@gmail.com"; node scripts/dev-signin.mjs
 ```
 
 Then browse `http://127.0.0.1:3010` instead of the dev server directly. The shim

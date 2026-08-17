@@ -384,22 +384,25 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
     const auditDenied = await portal.get("/portal/audit", otherOwner);
     assert.equal(auditDenied.status, 307, "a non-founder owner cannot read the audit log");
 
-    // The seeded founder (bankerrunners@gmail.com) is admitted to both.
-    const founder = { subject: "sub-founder", email: SEEDED_OWNER_EMAIL };
+    // Migration completed 2026-08-17: the founder is btcmao518@gmail.com. It
+    // must be BOTH a member (granted in the live DB via db/sql/0003) and in
+    // FOUNDER_EMAILS — mirror that here.
+    await portal.addMember("btcmao518@gmail.com", "owner");
+    const founder = { subject: "sub-founder-migrated", email: "btcmao518@gmail.com" };
     const ok = await portal.get("/portal/investigator", founder);
     assert.equal(ok.status, 200, "the founder identity is admitted");
     const auditOk = await portal.get("/portal/audit", founder);
     assert.equal(auditOk.status, 200, "the founder reads the audit log");
 
-    // Migration 2026-08-17: the incoming primary identity also holds founder
-    // access during the transition, so an audit-surface lockout is impossible
-    // if the new address is slow to bind. It must be BOTH a member (granted in
-    // the live DB via db/sql/0003) and in FOUNDER_EMAILS — mirror that here.
-    // Remove this once bankerrunners is dropped from FOUNDER_EMAILS.
-    await portal.addMember("btcmao518@gmail.com", "owner");
-    const migratedFounder = { subject: "sub-founder-migrated", email: "btcmao518@gmail.com" };
-    const migratedOk = await portal.get("/portal/investigator", migratedFounder);
-    assert.equal(migratedOk.status, 200, "the migrated founder identity is admitted");
+    // The RETIRED founder identity (the seeded owner, Google account locked
+    // 2026-08-17) keeps its owner membership for the historical record but
+    // must no longer pass the founder gate — the gate answers exactly one
+    // identity again.
+    const retired = { subject: "sub-founder", email: SEEDED_OWNER_EMAIL };
+    const retiredDenied = await portal.get("/portal/investigator", retired);
+    assert.equal(retiredDenied.status, 307, "the retired founder identity is refused");
+    const retiredAuditDenied = await portal.get("/portal/audit", retired);
+    assert.equal(retiredAuditDenied.status, 307, "the retired identity cannot read the audit log");
 
     const rows = await portal.audit();
     assert.ok(
@@ -488,7 +491,10 @@ test("Dialer Beta lists transferred calls and gates protected recording playback
 test("the audit page renders real recorded events for an owner", async () => {
   const portal = await startPortal();
   try {
-    const identity = { subject: "subject-owner-1", email: SEEDED_OWNER_EMAIL };
+    // The audit page is founder-only; since 2026-08-17 the founder is
+    // btcmao518@gmail.com (member row via db/sql/0003 in production).
+    await portal.addMember("btcmao518@gmail.com", "owner");
+    const identity = { subject: "sub-founder-migrated", email: "btcmao518@gmail.com" };
     await (await portal.get("/portal", identity)).text();
 
     const response = await portal.get("/portal/audit", identity);
@@ -1674,12 +1680,14 @@ test("the audit log never renders an unread table as an empty one", async (t) =>
   t.after(portal.dispose);
 
   // recordAudit swallows its own write failures by design, so dropping this
-  // table exercises the read path without breaking authorization.
+  // table exercises the read path without breaking authorization. The page is
+  // founder-only, so authenticate as the migrated founder identity.
+  await portal.addMember("btcmao518@gmail.com", "owner");
   await portal.db.prepare("DROP TABLE audit_events").run();
 
   const response = await portal.get("/portal/audit", {
-    subject: "subject-owner-1",
-    email: SEEDED_OWNER_EMAIL,
+    subject: "sub-founder-migrated",
+    email: "btcmao518@gmail.com",
   });
 
   assert.equal(response.status, 200);

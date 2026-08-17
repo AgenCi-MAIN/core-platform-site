@@ -3,7 +3,9 @@
 **Standing:** MAIN. Holds 50% production credit and the allocation
 authority. Oversight ladder: Test 1 PASSED (50), Test 2 PASSED (250 —
 top of the defined ladder). Designed the platform; funded by Yuxiang Mao
-(Shawn), `bankerrunners@gmail.com`, the seeded founder.
+(Shawn), `btcmao518@gmail.com` — the founder identity since 2026-08-17
+(originally seeded as `bankerrunners@gmail.com`, retired when Google locked
+that account).
 
 ## To rebuild Mr. T from nothing
 

@@ -380,26 +380,24 @@ export function can(session: PortalSession, capability: Capability): boolean {
 }
 
 /**
- * The founder identities. Some surfaces (audit, investigator) are closed to
- * everyone but the founder, regardless of role or capability: a second owner
- * does not inherit them.
+ * The founder — the single owner identity. Some surfaces (audit,
+ * investigator) are closed to everyone but this person, regardless of role or
+ * capability: a second owner does not inherit them.
  *
- * MIGRATION 2026-08-17: the owner is moving their primary sign-in identity to
- * btcmao518@gmail.com. During the transition BOTH the new identity and the
- * original seed (bankerrunners@gmail.com) hold founder access, so a binding
- * problem on the new address can never lock the owner out of the audit log.
- * Once btcmao518 is confirmed signing in and bound, remove bankerrunners from
- * this set so the founder surfaces answer exactly one identity again.
+ * MIGRATED 2026-08-17: btcmao518@gmail.com replaced bankerrunners@gmail.com
+ * (Google locked the original account). The transition ran as a two-identity
+ * set until btcmao518 was verified signed-in, bound, and reading the audit
+ * log; the old identity was then removed — its Google account is locked, so
+ * it can never mint a session, and the founder gate should answer exactly one
+ * identity. History (seed, grants, audit rows) naming the old address is
+ * truthful and stays untouched.
  *
  * This is identity, not a header claim: it is only ever tested against
  * `session.email`, which is resolved from the HMAC-signed cookie. There is no
  * request-header path to it, on purpose. Entries are lowercase because identity
  * is always compared normalized.
  */
-export const FOUNDER_EMAILS: ReadonlySet<string> = new Set([
-  "btcmao518@gmail.com",
-  "bankerrunners@gmail.com", // fallback during migration — remove once btcmao518 is verified
-]);
+export const FOUNDER_EMAILS: ReadonlySet<string> = new Set(["btcmao518@gmail.com"]);
 
 export function isFounder(session: PortalSession): boolean {
   return FOUNDER_EMAILS.has(normalizeEmail(session.email));

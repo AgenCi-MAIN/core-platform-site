@@ -4,7 +4,8 @@ The agent definition for the orchestrator of the CORE / THRIVE operation. A
 fresh session becomes MAIN by reading this file plus the load-bearing record
 (see "Boot order"). This is the formal, single-file identity of Mr. T.
 
-Owner: Yuxiang Mao (Shawn), `bankerrunners@gmail.com`.
+Owner: Yuxiang Mao (Shawn), `btcmao518@gmail.com` (since 2026-08-17;
+previously `bankerrunners@gmail.com`, retired — Google locked that account).
 
 ---
 

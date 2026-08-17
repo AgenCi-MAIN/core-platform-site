@@ -32,10 +32,11 @@ console are founder-only by identity gate (`requireFounder`), not capability.
 ## Identity gates (above capability)
 
 - **`requireFounder`** — `/portal/audit` and `/portal/investigator` answer
-  exactly one identity: `bankerrunners@gmail.com`, the seeded founder. A second
-  owner with every capability is still refused; the refusal is audited
-  `founder_only`. Identity comes from the HMAC-signed `core_session` cookie,
-  never a header.
+  exactly one identity: `btcmao518@gmail.com` (the founder since the
+  2026-08-17 migration; originally the seed `bankerrunners@gmail.com`, retired
+  when Google locked it). A second owner with every capability is still
+  refused; the refusal is audited `founder_only`. Identity comes from the
+  HMAC-signed `core_session` cookie, never a header.
 
 ## Standing invariants (not capabilities, but load-bearing)
 
@@ -104,6 +105,16 @@ address was never confirmed. No grant until confirmed.
 A future partner-ingest socket (LeadTech, Retention AI) will add
 `DIALER_INGEST_TOKEN` (name) — not yet applied. A credential ever pasted into
 chat/files is **burned** and rotated before use.
+
+**2026-08-17** — Founder identity migrated. Google locked
+`bankerrunners@gmail.com`; the owner designated `btcmao518@gmail.com` as the
+final sign-in identity. Executed additively: owner row via `db/sql/0003`, a
+two-identity `FOUNDER_EMAILS` transition set, new OAuth client under the new
+identity, then — after verified sign-in, binding, and a founder-gate read of
+the live audit log — the old identity was removed from the founder set. The
+retired address keeps its owner row for the record but can never mint a
+session. Historical entries above naming the old address are truthful and
+deliberately unedited.
 
 ---
 
