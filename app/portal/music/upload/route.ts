@@ -121,7 +121,18 @@ export async function DELETE(request: Request) {
   }
 
   const { session } = access;
+  const path = new URL(request.url).pathname;
+
   if (!can(session, "members.manage")) {
+    await recordAudit({
+      action: "music.delete",
+      decision: "deny",
+      reason: "capability_not_held",
+      actorEmail: session.email,
+      actorSubjectId: session.subjectId,
+      actorRole: session.role,
+      requestPath: path,
+    });
     return Response.json({ error: "Not permitted." }, { status: 403 });
   }
 

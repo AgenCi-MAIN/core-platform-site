@@ -13,7 +13,10 @@ import { useRouter } from "next/navigation";
  * Escape is guarded, because it already means "dismiss" in several places and
  * hijacking it would break them. It is ignored when:
  *   - a popover or dialog is open (the mobile navigation drawer is a popover,
- *     and Escape must close that, not navigate away from the page)
+ *     and Escape must close that, not navigate away from the page); on
+ *     engines without the Popover API the drawer is a checked fallback
+ *     checkbox instead, and the shell's inline listener closes it and
+ *     marks the event consumed via preventDefault
  *   - focus is in a text field, textarea, select, or anything contenteditable
  *   - a modifier key is held
  *   - there is nothing to go back to
@@ -52,8 +55,23 @@ export function PortalBackControl({ fallback = "/portal" }: { fallback?: string 
         }
       }
 
-      // Let Escape dismiss an open popover or dialog instead of navigating.
-      if (document.querySelector("[popover]:popover-open, dialog[open]")) return;
+      // Let Escape dismiss an open dialog instead of navigating.
+      if (document.querySelector("dialog[open]")) return;
+
+      // Same for an open popover — queried on its own, because selector-list
+      // parsing for querySelector is non-forgiving: one unrecognized
+      // pseudo-class rejects the WHOLE list. Combined with dialog[open] this
+      // threw SyntaxError on every keypress on exactly the pre-Popover
+      // engines (Safari 15.4–16.x) the drawer's checkbox fallback serves,
+      // so Escape-to-go-back never ran there at all. On those engines the
+      // open drawer is the checked fallback checkbox — treat that as the
+      // thing Escape is dismissing.
+      try {
+        if (document.querySelector("[popover]:popover-open")) return;
+      } catch {
+        const drawer = document.getElementById("portal-mobile-drawer");
+        if (drawer instanceof HTMLInputElement && drawer.checked) return;
+      }
 
       goBack();
     }

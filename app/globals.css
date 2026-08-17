@@ -840,7 +840,14 @@ button, .button, .nav-cta, .text-link {
 
 /* Both drawer/collapse state checkboxes are visually hidden but remain in the
    accessibility tree and focusable, so :has(...:checked) can drive layout and
-   keyboard users can still toggle them. */
+   keyboard users can still toggle them — but each is focusable ONLY inside
+   the window where checking it does something visible. Outside that window a
+   1px invisible checkbox is a tab stop with no effect and no focus
+   indication, which fails WCAG 2.4.7. The desktop collapse toggle goes
+   display: none under 900px (in the 899px media query below); the mobile
+   drawer toggle goes display: none here and is restored solely inside the
+   pre-Popover fallback branch — the one place its :has(...:checked) rules
+   exist. */
 .portal-sidebar-toggle,
 .portal-mobile-drawer-toggle {
   position: fixed;
@@ -849,6 +856,7 @@ button, .button, .nav-cta, .text-link {
   opacity: 0;
   pointer-events: none;
 }
+.portal-mobile-drawer-toggle { display: none; }
 
 .portal-shell:has(.portal-sidebar-toggle:checked) { grid-template-columns: 68px minmax(0, 1fr); }
 
@@ -1400,6 +1408,11 @@ html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"]
      .portal-sidebar-mobile) apply to this path unchanged. Explicit z-index
      replaces the popover top layer, which this path cannot use. */
   @supports not selector(:popover-open) {
+    /* The one window where the fallback checkbox works: restore it to the
+       keyboard order here, mirroring how the desktop collapse toggle exists
+       only on desktop. Everywhere else it stays display: none (base rule)
+       so it is never a focusable control with no visible effect. */
+    .portal-mobile-drawer-toggle { display: inline-block; }
     .portal-menu-button-mobile-fallback { display: grid; }
     .portal-drawer-close-popover { display: none; }
     .portal-shell:has(.portal-mobile-drawer-toggle:checked) .portal-drawer-backdrop { display: block; position: fixed; inset: 0; z-index: 40; border: 0; background: rgba(17, 20, 25, .46); }

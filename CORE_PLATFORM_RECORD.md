@@ -43,12 +43,15 @@ Every allow and every deny is written to an append-only `audit_events` table.
 | D1 database | `site-creator-d1` — `e00c30f0-7017-49d8-9f81-446cef9e32c3` |
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | GitHub repo | `bankerrunners/core-platform-site` |
-| Working branch | `claude/new-session-9a8g4o` (PR #1) |
+| Working branch | `main` — PR #1 (`claude/new-session-9a8g4o`) merged long ago; work lands on `main` through squash-merged pull requests (the PR trail) |
 | Local checkout | **`C:\dev\core-platform-site` — the working copy. Deploy from here.** Corrected 2026-08-17: this row previously named `C:\Users\k2547\OneDrive\Desktop\core-platform-site`, which is **not** the copy deploys run from and **must not be worked in**. A git repository inside OneDrive fights the sync client for file handles: on 2026-08-17 that produced three escalating `Deletion of directory ... failed. Should I try again?` prompts in a single operation — first a remote-tracking ref, then untracked build output, then **`app/auth/callback`, which is tracked source**, leaving a half-reset tree one command away from a deploy. Three frozen backup copies also exist under ARCHIVE, MAINBACK, and RE SUMMON — never work in those either. |
 
-The D1 id lives in `.openai/hosting.json`; `build/sites-vite-plugin.ts` carries
-it into `dist/server/wrangler.json` at build time, which is the config
-`wrangler deploy` actually reads.
+The D1 id lives in `.openai/hosting.json`; `vite.config.ts` reads it into the
+D1 binding config it hands the Cloudflare Vite plugin, which emits
+`dist/server/wrangler.json` at build time — the config `wrangler deploy`
+actually reads. (`build/sites-vite-plugin.ts` does not carry the id: it copies
+`hosting.json` and `drizzle/` into `dist/.openai/`. Corrected 2026-08-17
+against the code.)
 
 ~~Stray resource to clean up~~ — the accidental empty D1 database named `8`
 (`5bc64b69-1c83-4826-adf8-dcad4f576885`) was deleted by the owner on
@@ -259,7 +262,10 @@ live in the interface. Every one of them posts to `/portal/members/manage`,
 which re-resolves the session, asserts `members.manage`, and writes an audit row
 under your name whatever the outcome. Three rules are enforced server-side and
 cannot be clicked past: one approver may grant any role, nobody may change their
-own row, and the last active owner cannot be demoted or suspended.
+own row, and owner rows are peer-protected — no owner's role or status can be
+changed through the route at all (governance, set by Shawn 2026-08-15,
+superseding the earlier last-active-owner rule; see the note above and the
+route's own header comment).
 
 **The D1 console is now the fallback, not the procedure.** It is still the only
 way in when nobody can sign in at all — an empty roster, a locked-out owner, a
@@ -382,7 +388,7 @@ npm install
 npm run deploy
 ```
 
-`npm run deploy` is build → the full test suite (50 cases at this writing) →
+`npm run deploy` is build → the full test suite (64 cases at this correction, 2026-08-17 — a grep count of `^test(` across `tests/*.mjs`) →
 preflight → `wrangler deploy`, chained so
 that any failure stops the deploy. It cannot ship a stale `dist/`, because the
 build always runs first and the preflight checks the result. Secrets survive
@@ -551,7 +557,10 @@ identity it is impersonating on every start. The role still comes from the
       the portal (set by Shawn 2026-08-15, superseding the last-active-owner
       rule). Ships with the next deploy.
 - [x] **Make the portal installable on a phone.** Done — see § 10c.
-- [ ] **Merge PR #1** once the deployment is considered settled.
+- [x] ~~**Merge PR #1**~~ — merged long ago; `main` has been the working
+      branch since, and development has continued through the PR trail (see
+      RELEASE-2.0.0.md and the deploy log in DEPLOYMENT.md). This box sat
+      stale; corrected 2026-08-17.
 - [ ] **Decide the Quoter seam.** The sidebar links out to
       `app.insurancetoolkits.com`, which is outside this app's access model
       entirely: revoking someone here does not revoke them there. Either label

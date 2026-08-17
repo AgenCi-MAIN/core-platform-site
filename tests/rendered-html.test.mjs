@@ -796,6 +796,62 @@ test("the mobile navigation drawer ships both the popover and the checkbox fallb
   );
 });
 
+test("the drawer checkbox is a tab stop only where it works, and Escape-back survives pre-popover engines", async () => {
+  // Two regressions pinned shut:
+  //
+  // 1. WCAG 2.4.7 — outside the @supports-not fallback branch the
+  //    #portal-mobile-drawer checkbox drives nothing, so left focusable it
+  //    is an invisible 1px tab stop with no focus indication. It must be
+  //    display: none by default and restored to the keyboard order ONLY
+  //    inside the fallback branch, mirroring the desktop collapse toggle
+  //    that goes display: none under 900px.
+  //
+  // 2. querySelector selector-list parsing is non-forgiving: one unknown
+  //    pseudo-class rejects the WHOLE list, so ":popover-open, dialog[open]"
+  //    threw SyntaxError on exactly the pre-Popover engines the checkbox
+  //    fallback exists for, killing Escape-to-go-back there. The
+  //    :popover-open probe must sit alone inside try/catch, and the shell's
+  //    Escape-close of the fallback drawer must preventDefault so one
+  //    keypress cannot both dismiss the drawer and navigate back.
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(
+    css,
+    /\.portal-mobile-drawer-toggle \{ display: none; \}/,
+    "the fallback checkbox is back in the keyboard order outside its functional window",
+  );
+  const fallbackBranch = css.split("@supports not selector(:popover-open)")[1] ?? "";
+  assert.match(
+    fallbackBranch,
+    /\.portal-mobile-drawer-toggle \{ display: inline-block; \}/,
+    "the fallback branch no longer restores the checkbox — pre-popover keyboard users cannot open the drawer",
+  );
+
+  const back = await readFile(
+    new URL("../app/portal/back-control.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.doesNotMatch(
+    back,
+    /querySelector\(\s*["'][^"']*:popover-open[^"']*,/,
+    ":popover-open is back inside a querySelector selector list — SyntaxError on pre-popover engines",
+  );
+  assert.match(
+    back,
+    /try \{\s*if \(document\.querySelector\("\[popover\]:popover-open"\)\) return;\s*\} catch \{/,
+    "the :popover-open probe is no longer try/caught — pre-popover engines throw on every Escape",
+  );
+
+  const shell = await readFile(
+    new URL("../app/portal/components.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(
+    shell,
+    /e\.key==="Escape"&&u\(\)\)\{e\.preventDefault\(\)\}/,
+    "the drawer's Escape-close no longer consumes the event — one keypress would dismiss AND navigate",
+  );
+});
+
 test("sign-out refuses a return path that normalizes into a protocol-relative URL", async () => {
   // Open-redirect regression. `/..//evil.com` starts with a single slash, so it
   // passes a naive leading-`//` guard — but the URL parser normalizes the `..`

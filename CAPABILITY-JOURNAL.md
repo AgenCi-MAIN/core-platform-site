@@ -88,6 +88,12 @@ Ryan's brother) — owner seat **APPROVED** by the founder. **PENDING** the
 portal grant (the founder executes it in Members; MAIN then marks the record
 row live). Verify the exact Google sign-in address before granting.
 
+**2026-08-17 — correction to the entry above (appended; the original line
+stands as written).** The grant did not stay pending: CORE_PLATFORM_RECORD.md
+§5 and the owner ledger record it executed from the portal on 2026-08-15 and
+the first sign-in bound on 2026-08-16 — LIVE, roster screenshot verified by
+the owner.
+
 **PENDING (unresolved):** Oscar Valencia — named as an owner but his sign-in
 address was never confirmed. No grant until confirmed.
 

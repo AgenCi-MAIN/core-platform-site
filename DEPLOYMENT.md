@@ -19,17 +19,24 @@ the owner keeps.
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | First owner | `bankerrunners@gmail.com`, role `owner`, seeded by SQL |
 | Second owner | `ryandavidson.zenith@gmail.com`, role `owner`, granted 2026-08-14 |
-| Source branch | `claude/new-session-9a8g4o` (PR #1) |
+| Source branch | `main` (originally `claude/new-session-9a8g4o`, merged as PR #1; work has landed on `main` through the PR trail since) |
 
-The D1 id is committed in `.openai/hosting.json`; `build/sites-vite-plugin.ts`
-carries it into `dist/server/wrangler.json` at build time, which is the config
-`wrangler deploy` reads.
+The D1 id is committed in `.openai/hosting.json`; `vite.config.ts` reads it
+into the D1 binding config it hands the Cloudflare Vite plugin, which emits
+`dist/server/wrangler.json` at build time — the config `wrangler deploy`
+reads. (`build/sites-vite-plugin.ts` does not carry the id: it copies
+`hosting.json` and `drizzle/` into `dist/.openai/` and hides the Vite build
+manifest. Corrected 2026-08-17 against the code.)
 
 ## Identity
 
 Sign in with Google, implemented in-app — see README "Sign in with Google".
-The Google OAuth client is a **Web application** client in the Google Cloud
-project for this account, with exactly one authorized redirect URI:
+The Google OAuth client is a **Web application** client in the `core-portal`
+Google Cloud project (`core-portal-505803`) under `btcmao518@gmail.com` —
+re-homed 2026-08-17 after Google locked the original `bankerrunners@gmail.com`
+account, killing the old client with it (see CORE_PLATFORM_RECORD.md §3 and
+`strategy/2026-08-17-identity-recovery-docket.md`). Exactly one authorized
+redirect URI:
 
 ```
 https://site-creator-vinext-starter.bankerrunners.workers.dev/auth/callback
