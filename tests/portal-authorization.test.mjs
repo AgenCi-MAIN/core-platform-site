@@ -201,6 +201,42 @@ test("a seeded owner signs in, binds their subject, and is audited", async () =>
   }
 });
 
+test("training renders the approved script verbatim to every active role", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // agent is the least-privileged production role that takes live calls — if
+  // training reaches agents, it reaches everyone via dashboard.view.self.
+  await portal.addMember("agent-training@example.com", "agent");
+  const member = {
+    subject: "subject-agent-training",
+    email: "agent-training@example.com",
+  };
+
+  const response = await portal.get("/portal/training", member);
+  assert.equal(response.status, 200);
+  const html = await response.text();
+
+  // The three sections, in order.
+  assert.match(html, /id="training-training"/);
+  assert.match(html, /id="training-introductions"/);
+  assert.match(html, /id="training-angles"/);
+
+  // The loaded script renders VERBATIM — these phrases are the owner's own
+  // words from my_script_1.docx and must never be reworded by the renderer.
+  assert.match(html, /Inbound Call Process — Variation 1/);
+  assert.match(html, /That’s a carrier I can help you with\. Do you have your policy number\?/);
+  assert.match(html, /Always use the word 'verify'/);
+
+  // Empty slots exist by name and say they are awaiting content — never filled.
+  assert.match(html, /Term To perm/);
+  assert.match(html, /Cancelation intro/);
+  assert.match(html, /Awaiting THRIVE content/);
+
+  // The content-locked governance note ships on the page.
+  assert.match(html, /may not write, reword, or summarise it/);
+});
+
 test("active members see Shawn's pinned 2.0.0 announcement", async (t) => {
   const portal = await startPortal();
   t.after(portal.dispose);
