@@ -162,6 +162,18 @@ Secrets survive deploys; they only need setting again if they change.
   #38's entry also calling 7427f4f4 the first post-gate code deploy. Merged
   here into the one true timeline: 5c9ed9eb came first and closed the
   follow-up; 7427f4f4 is the current serving version.
+- 2026-08-17 (third): **version `95741dc5-8d09-4400-8a00-71d806912195`** —
+  deployed by the owner from `C:\dev\core-platform-site` at `main@4375633`.
+  **First code deploy of the Tournament 3 winner and of Tier 1.** New over
+  7427f4f4: the S02 Field Console — `/portal/command` plus the `/go/hq`,
+  `/go/routines` and `/go/desk` handoffs, every one founder-gated by
+  `requireFounder` — and Tier 1 batch 1 (D5-1 runbook lockout, A8-1 identity
+  pin, A8-5 audit-action parameter across all six founder call sites, T4-1
+  inverse guard net). Suite 55 → **60**, green inside the chain; preflight
+  passed. `/portal/command` is reachable in production from this version
+  onward; before it, the surface existed only in the repository.
+  Version id captured at deploy time via the `Tee-Object` practice — third
+  consecutive id preserved, none lost since it was adopted.
 - Account note: the Cloudflare ACCOUNT email is being swapped to
   btcmao518@gmail.com via support ticket (password lost, old inbox dead) —
   see strategy/2026-08-17-identity-recovery-docket.md. The `bankerrunners`
