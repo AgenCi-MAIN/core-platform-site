@@ -877,3 +877,29 @@ Completed 2026-08-16 from Shawn's direct instruction to take down the post.
   are absent from both the current source and built deployment output. An
   unauthenticated request to `/portal/announcements` continues to receive the
   expected Cloudflare Access redirect.
+
+## 18. Outbound send — platform welcome email to the founder
+
+Sent 2026-08-17 on the owner's explicit order ("send welcome email to me from
+platform"). Recorded because an outbound send that is not in the record does
+not exist.
+
+- **From:** `out-reach@inkboxmail.com` — the platform identity (Mr.T, MAIN
+  orchestrator), sent through Inkbox. Not from the founder's Gmail; "from
+  platform" was read as the platform's own identity.
+- **To:** `btcmao518@gmail.com` (Yuxiang Mao / Shawn, current founder identity).
+- **Subject:** `Welcome to the CORE / THRIVE platform`.
+- **Inkbox message id:** `41a4a7bd-fdd8-4562-aa4e-ec9c103040ca`; thread
+  `a2da7f18-f2e2-455f-bcb1-1f6816f3ea57`. Status `sent`. Open tracking off.
+- **Contents, all drawn from this record:** the founder's roster row and owner
+  role; the live URL and which Google address signs in; the three access layers
+  (Cloudflare Access at the edge since 2026-08-16, identity, membership) and the
+  fact that membership fails closed; deny-by-default capabilities and the
+  append-only `audit_events` table; the sidebar surfaces (§10a); the two caveats
+  worth stating — Audit and INVESTIGATOR are founder-only by identity rather
+  than capability, and Quoter is an outbound third-party link outside the access
+  model; PWA install and the `/portal` + `/auth` caching exclusion; and a closing
+  note that this identity never sends on its own authority.
+- **No change** to source, authentication, membership, capabilities, roles, D1,
+  R2, or the Cloudflare Access policy. Nothing was deployed. No secret value
+  appears in the message.
