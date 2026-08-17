@@ -2273,3 +2273,43 @@ test("the audit log never renders an unread table as an empty one", async (t) =>
   );
   assert.doesNotMatch(html, /no such table|D1_ERROR|SQLITE/i);
 });
+
+test("LeadTech renders the honest not-connected state to leadership and refuses an agent", async (t) => {
+  // Deploy-time reality: LEADTECH_API_KEY is NOT set as a Miniflare binding, so
+  // the surface must render its honest "not connected" state — never fake
+  // pipeline data — to a leadership-capable role, and must refuse a role that
+  // does not hold leadership.view.all.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // manager holds leadership.view.all (owner/admin/manager do; agent does not).
+  await portal.addMember("manager-leadtech@example.com", "manager");
+  const managerRes = await portal.get("/portal/leadtech", {
+    subject: "subject-manager-leadtech",
+    email: "manager-leadtech@example.com",
+  });
+  assert.equal(managerRes.status, 200, "leadership can open LeadTech");
+  const html = await managerRes.text();
+
+  assert.match(html, /Connect LeadTech/, "the honest not-connected state must render");
+  assert.match(html, /LEADTECH_API_KEY/, "the one-time setup names the secret to set");
+  assert.match(html, /wrangler secret put/, "the setup instruction is shown");
+
+  // No fabricated pipeline: with no key set, no data table may appear.
+  assert.doesNotMatch(html, /<table/, "the not-connected surface must show no data table");
+
+  // Nothing about the upstream call may leak into the rendered surface.
+  for (const marker of ["Bearer", "services.leadconnectorhq.com", "ousHLoknBNJ0uEw8IUGu"]) {
+    assert.ok(!html.includes(marker), `LeadTech surface leaked ${marker}`);
+  }
+
+  // An agent lacks leadership.view.all and is refused to the explanation page.
+  await portal.addMember("agent-leadtech@example.com", "agent");
+  const agentRes = await portal.get("/portal/leadtech", {
+    subject: "subject-agent-leadtech",
+    email: "agent-leadtech@example.com",
+  });
+  assert.equal(agentRes.status, 307, "an agent lacks leadership.view.all");
+  assert.match(agentRes.headers.get("location") ?? "", /\/portal\/no-access/);
+  assert.equal(await agentRes.text(), "", "a refused agent receives no body");
+});

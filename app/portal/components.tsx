@@ -17,6 +17,7 @@ type PortalIconName =
   | "training"
   | "book"
   | "calls"
+  | "leadtech"
   | "scripts"
   | "team"
   | "leadership"
@@ -114,6 +115,16 @@ const NAV: readonly NavItem[] = [
     description: "Transferred call access and permissioned coaching review.",
     state: "live",
     stateLabel: "Beta ready",
+  },
+  {
+    href: "/portal/leadtech",
+    label: "LeadTech",
+    capability: "leadership.view.all",
+    icon: "leadtech",
+    group: "Operations",
+    description: "LeadTech contacts and pipeline, rendered natively inside CORE.",
+    state: "live",
+    stateLabel: "Leadership",
   },
   {
     href: "/portal/scripts",
@@ -787,6 +798,10 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
   // Phone handset.
   calls: (
     <path d="M5.5 4h3l1.5 4-2 1.6a12.5 12.5 0 0 0 6.4 6.4L16 14l4 1.5v3A1.5 1.5 0 0 1 18.4 20C10.9 19.4 4.6 13.1 4 5.6A1.5 1.5 0 0 1 5.5 4z" />
+  ),
+  // Funnel — the pipeline.
+  leadtech: (
+    <path d="M4 5h16l-6.2 7.2v6.3l-3.6 1.8v-8.1L4 5z" />
   ),
   // Document with lines.
   scripts: (
