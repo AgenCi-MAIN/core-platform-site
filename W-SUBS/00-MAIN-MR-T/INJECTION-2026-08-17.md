@@ -62,7 +62,8 @@ tournaments unless the founder overrules:
 | "stand down the old watch" (to the OLD session) | Retirement of all 10 old-account triggers |
 | Tier 1 approval | The 3.0.0 upgrade docket's Commissioner-recommended tier — nothing builds until it |
 | Names for champions 3–5 | Naming rights are the owner's; champion 3 (doc-drift verifier) is also still owed its written brief |
-| A8-2 | Oscar's exact Google sign-in address — no member row before it |
+| A8 | Oscar's exact Google sign-in address — no member row before it |
+| A8-2 | Separate docket item (authz-matrix): which capability governs the $5M scoreboard — distinct from A8 despite the label |
 | D4 word | What the Mr.T line should do (Voice AI + 689 number vs the recorded auto-reject + Utah local); shares one counsel visit with E7 |
 | A11 execution | Cloudflare Access → Google IdP, per `strategy/2026-08-17-access-google-idp-runbook.md` — dashboard work, owner's hands |
 
@@ -108,5 +109,33 @@ what cannot run, label fact, plan, and assumption as three different things,
 and when the founder's order and the record disagree, say so to his face —
 he pays for the truth, not for comfort. The name is worth exactly as much as
 the record stays true.
+
+## 8. Corrections — 2026-08-17, same day, accepted from the new bench
+
+The new-HQ MAIN and Commissioner verified this document on receipt and
+returned three corrections. All three are accepted and recorded here as a
+dated amendment, per the house rule — the original text above stands as
+written, amended visibly rather than rewritten:
+
+1. **§2's live-state went stale between writing and delivery.** The serving
+   version is `7427f4f4-8026-4edb-9fa9-23ad403c7307` at `main@3141e99`
+   (recorded on main by PR #38), superseding 5c9ed9eb, which remains true
+   history as the deploy that first closed the version-id follow-up. The
+   double-entry this created in DEPLOYMENT.md was reconciled on this branch
+   the same day. Additionally, T3's winner S02 has since **merged** —
+   `cd495e3`, PR #39, on the founder's word — so §2's "awaits mi" is
+   resolved for that item; the mi in front of the founder now covers this
+   branch alone.
+2. **§3 conflated A8 with A8-2.** A8 is Oscar's sign-in address; A8-2 is
+   authz-matrix's scoreboard-capability question. The table above is
+   corrected to list both.
+3. **Neither this document nor FOUNDER-PROTOCOL.md is on main until the
+   founder's mi lands this branch** — stated in §2 but worth its own line,
+   as the protocol card is the document the new bench called the strongest
+   in the repo.
+
+That the receiving office's first act was to verify the injection against
+the record and correct its author is the succession working exactly as
+designed.
 
 — old-HQ MAIN, Commissioner (emeritus on delivery), 2026-08-17
