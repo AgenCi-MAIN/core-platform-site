@@ -94,7 +94,13 @@ One-time setup:
    ```bash
    npx wrangler d1 execute site-creator-d1 --file=db/sql/0001_portal_init.sql --remote
    npx wrangler d1 execute site-creator-d1 --file=db/sql/0002_portal_seed_owner.sql --remote
+   npx wrangler d1 execute site-creator-d1 --file=db/sql/0003_add_owner_btcmao518.sql --remote
    ```
+   **All three, in order — `0003` is not optional.** `0002` seeds
+   `bankerrunners@gmail.com`, which Google locked on 2026-08-17 and which can
+   never sign in again. Only `0003` grants the live founder identity. Stopping
+   at `0002` produces a portal that builds, deploys, and answers — and that
+   nobody on earth can log into, including the founder.
 5. **Deploy**:
    ```bash
    npm run build
@@ -107,8 +113,12 @@ One-time setup:
    npx wrangler secret put SESSION_SECRET -c dist/server/wrangler.json
    ```
    Generate `SESSION_SECRET` with `openssl rand -base64 48` or similar.
-7. Visit the site, sign in with the seeded owner's Google account, and you are
-   in. Subsequent deploys are just step 5.
+7. Visit the site and sign in with the Google account granted by **`0003`** —
+   the current founder identity. Do **not** expect the `0002` seed address to
+   work; it is retired and Google-locked. If you skipped `0003` at step 4, this
+   is where you discover it, locked out of your own portal, with the D1 console
+   as the only way back in (see `CORE_PLATFORM_RECORD.md` §5). Subsequent
+   deploys are just step 5.
 
 ## Useful Commands
 

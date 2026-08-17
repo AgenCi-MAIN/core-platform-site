@@ -374,7 +374,7 @@ function QueueRow({ item }: { item: QueueItem }) {
 }
 
 export default async function FounderCommandCenter() {
-  const session = await requireFounder("/portal/command");
+  const session = await requireFounder("/portal/command", "command.view");
   const unavailableSignals = SIGNAL_ITEMS.filter(
     (item) => item.tone === "unavailable",
   ).length;

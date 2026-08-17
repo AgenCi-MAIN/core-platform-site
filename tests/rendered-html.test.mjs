@@ -227,6 +227,79 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
   );
 });
 
+/**
+ * T4-1, the OTHER direction. The scanner above is guard-first: it collects
+ * routes that *call* a guard and proves each is tested. A page that calls NO
+ * guard at all yields no match, adds nothing to `found`, and passes the
+ * loud-fail check too (calls > matched is 0 > 0) — so an unguarded portal page
+ * was invisible to the entire suite. This net runs the opposite way: every
+ * page under app/portal must call a guard, or name itself as a deliberate
+ * exception here.
+ */
+test("every portal page calls a guard — no page ships unguarded", async () => {
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+
+  const portalDir = fileURLToPath(new URL("../app/portal", import.meta.url));
+
+  // Deliberate, reasoned exceptions. Adding to this list is a governance act:
+  // each entry states why the page is safe to serve without a guard.
+  const UNGUARDED_BY_DESIGN = new Map([
+    // Refused visitors land here; guarding it would redirect-loop the people
+    // it exists to explain things to.
+    ["app/portal/no-access/page.tsx", "landing page for refused visitors"],
+  ]);
+
+  const unguarded = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) walk(full);
+      else if (entry === "page.tsx") {
+        const rel = full.slice(full.indexOf("app")).split("\\").join("/");
+        if (UNGUARDED_BY_DESIGN.has(rel)) continue;
+        const src = readFileSync(full, "utf8");
+        if (!/requireCapability\(|requireFounder\(/.test(src)) unguarded.push(rel);
+      }
+    }
+  };
+  walk(portalDir);
+
+  assert.deepEqual(
+    unguarded.sort(),
+    [],
+    `portal pages that call no guard: ${unguarded.join(", ")} — add requireCapability/requireFounder, or justify it in UNGUARDED_BY_DESIGN`,
+  );
+});
+
+/**
+ * A8-1. FOUNDER_EMAILS is the sole gate on /portal/audit, /portal/investigator,
+ * /portal/command and every /go/* handoff — identity, not capability, so no
+ * role grant can widen it and no test of roles can narrow it. The runtime
+ * suite proves specific addresses are refused; this pins the SET ITSELF, so
+ * that quietly adding a second founder fails here rather than shipping.
+ */
+test("FOUNDER_EMAILS holds exactly one identity", async () => {
+  const source = await readFile(
+    new URL("../app/portal/access.ts", import.meta.url),
+    "utf8",
+  );
+
+  const declaration = source.match(
+    /FOUNDER_EMAILS[^=]*=\s*new Set\(\[([^\]]*)\]\)/,
+  );
+  assert.ok(declaration, "FOUNDER_EMAILS must be a literal Set — keep it greppable");
+
+  const addresses = [...declaration[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+
+  assert.deepEqual(
+    addresses,
+    ["btcmao518@gmail.com"],
+    "FOUNDER_EMAILS changed — adding a founder is a governance decision (A2/A9), not a code change",
+  );
+});
+
 test("Founder shortcuts are deliberate anchors, never prefetched redirect handlers", async () => {
   const source = await readFile(
     new URL("../app/portal/command/page.tsx", import.meta.url),
