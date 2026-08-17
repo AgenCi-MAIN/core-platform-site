@@ -44,7 +44,7 @@ Every allow and every deny is written to an append-only `audit_events` table.
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | GitHub repo | `bankerrunners/core-platform-site` |
 | Working branch | `claude/new-session-9a8g4o` (PR #1) |
-| Local checkout | `C:\Users\k2547\OneDrive\Desktop\core-platform-site` — moved out of "Core Folder 1" on 2026-08-15; three frozen backup copies also exist under ARCHIVE, MAINBACK, and RE SUMMON — never work in those |
+| Local checkout | **`C:\dev\core-platform-site` — the working copy. Deploy from here.** Corrected 2026-08-17: this row previously named `C:\Users\k2547\OneDrive\Desktop\core-platform-site`, which is **not** the copy deploys run from and **must not be worked in**. A git repository inside OneDrive fights the sync client for file handles: on 2026-08-17 that produced three escalating `Deletion of directory ... failed. Should I try again?` prompts in a single operation — first a remote-tracking ref, then untracked build output, then **`app/auth/callback`, which is tracked source**, leaving a half-reset tree one command away from a deploy. Three frozen backup copies also exist under ARCHIVE, MAINBACK, and RE SUMMON — never work in those either. |
 
 The D1 id lives in `.openai/hosting.json`; `build/sites-vite-plugin.ts` carries
 it into `dist/server/wrangler.json` at build time, which is the config
@@ -505,12 +505,16 @@ identity it is impersonating on every start. The role still comes from the
       **Portal → Members**. ~~Nate Nguyen~~ — granted by Shawn from the portal
       as `epiclife.nguyen@gmail.com`, confirmed on the live roster 2026-08-15.
       Section 5 keeps the SQL for the case where nobody can sign in at all.
-- [ ] **Record the Worker version id on the next deploy.** The 2026-08-17
-      founder-gate deploy (the one that shipped PR #24's `FOUNDER_EMAILS` lock)
-      is owner-confirmed but its version id was never written down — it existed
-      only in the terminal. Owner's instruction, 2026-08-17: capture the id from
-      the next `npm run deploy` and record it here, so the live-version trail
-      picks back up.
+- [x] ~~**Record the Worker version id on the next deploy.**~~ **Done
+      2026-08-17.** Live version is
+      **`7427f4f4-8026-4edb-9fa9-23ad403c7307`**, deployed by the owner from
+      `C:\dev\core-platform-site` at `main@3141e99`. The version trail is
+      restored. The gap it closes: the earlier 08-17 founder-gate deploy is
+      owner-confirmed but its id existed only in the terminal and was lost, so
+      between 08-16 and now the record could say *what* was live but not
+      *which build*. **Standing practice that fixed it, keep using it:** pipe
+      the deploy through `Tee-Object` to a dated log file — the id survives the
+      scrollback. See §7.
 - [ ] **Consider a custom domain** in place of the workers.dev URL. Add the new
       `/auth/callback` URI to the Google OAuth client *before* cutting over, or
       sign-in breaks at the moment the domain changes.
