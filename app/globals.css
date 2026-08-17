@@ -1007,6 +1007,29 @@ button, .button, .nav-cta, .text-link {
 .portal-nav-group + .portal-nav-group { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--portal-line); }
 .portal-nav-group-label { margin: 0 9px 1px; color: var(--portal-subtle); font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .portal-nav-group-sub { margin: 0 9px 6px; color: var(--portal-muted); font-size: 9.5px; font-weight: 600; letter-spacing: .01em; line-height: 1.25; }
+
+/* LeadTech section tabs — server-rendered links, one active via aria-current. */
+.portal-leadtab-row { display: flex; gap: 10px; flex-wrap: wrap; margin: 4px 0 18px; }
+.portal-leadtab {
+  flex: 1 1 180px;
+  display: grid;
+  gap: 3px;
+  padding: 12px 15px;
+  border: 1px solid var(--portal-line);
+  border-radius: 12px;
+  background: var(--portal-card, transparent);
+  text-decoration: none;
+  color: var(--portal-muted);
+}
+.portal-leadtab strong { color: var(--portal-text); font-size: 13.5px; font-weight: 800; letter-spacing: .01em; }
+.portal-leadtab span { font-size: 10.5px; font-weight: 600; line-height: 1.3; }
+.portal-leadtab:hover { border-color: var(--portal-line-strong); }
+.portal-leadtab[aria-current="page"] {
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  box-shadow: inset 0 -3px 0 var(--portal-accent);
+}
+.portal-leadtab[aria-current="page"] strong { color: var(--portal-accent-strong); }
 /* The symbol is an svg now — the font declarations from the letter-chip era
    are gone; CSS is the only size authority (the element carries no
    width/height attributes). */

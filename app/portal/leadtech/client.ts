@@ -23,6 +23,10 @@ import { env } from "cloudflare:workers";
  *
  * These functions NEVER throw to the caller and NEVER log the key or the
  * fetched bodies.
+ *
+ * The surface is TABBED (pipeline / contacts / engagement) and each tab has
+ * its own fetcher so one tab's upstream failure never blanks the others, and
+ * opening one tab never spends the other tabs' requests.
  */
 
 // ===========================================================================
@@ -53,12 +57,16 @@ const LOCATION_ID = "ousHLoknBNJ0uEw8IUGu";
 
 /**
  * Location-scoped, read-only endpoints. Query params are built ONLY from the
- * constants above — no external value ever enters a URL. VERIFY vs current GHL
- * API docs: path, param naming (contacts uses `locationId`, opportunity search
- * uses `location_id` in the v2 docs as of this build), and response shape.
+ * constants above — no external value ever enters a URL. VERIFY each vs
+ * current GHL API docs: path, param naming (contacts uses `locationId`,
+ * opportunity search uses `location_id` in the v2 docs as of this build), and
+ * response shape.
  */
-const CONTACTS_PATH = `/contacts/?locationId=${LOCATION_ID}&limit=25`;
-const OPPORTUNITIES_PATH = `/opportunities/search?location_id=${LOCATION_ID}&limit=25`;
+const CONTACTS_PATH = `/contacts/?locationId=${LOCATION_ID}&limit=100`;
+const OPPORTUNITIES_PATH = `/opportunities/search?location_id=${LOCATION_ID}&limit=100`;
+const PIPELINES_PATH = `/opportunities/pipelines?locationId=${LOCATION_ID}`;
+const CONVERSATIONS_PATH = `/conversations/search?locationId=${LOCATION_ID}&limit=50`;
+const CALENDARS_PATH = `/calendars/?locationId=${LOCATION_ID}`;
 
 // ===========================================================================
 // Public result types
@@ -72,6 +80,12 @@ export type LeadContact = {
   /** Masked — first initial + domain only. Raw email never leaves this module. */
   emailMasked: string | null;
   addedAt: string | null;
+  /** LeadTech tags on the contact — plain labels, safe to render. */
+  tags: string[];
+  /** Where LeadTech says the contact came from (form, import, integration…). */
+  source: string | null;
+  /** Do-not-disturb flag as recorded in LeadTech. */
+  dnd: boolean;
 };
 
 export type LeadOpportunity = {
@@ -80,17 +94,60 @@ export type LeadOpportunity = {
   /** open | won | lost | abandoned (as returned by GHL). VERIFY. */
   status: string | null;
   monetaryValue: number | null;
+  /** Resolved via the pipelines endpoint; null when unresolvable. */
+  pipelineId: string | null;
+  stageId: string | null;
+  createdAt: string | null;
 };
 
-export type LeadTechResult =
+export type LeadPipelineStage = { id: string; name: string | null };
+
+export type LeadPipeline = {
+  id: string;
+  name: string | null;
+  stages: LeadPipelineStage[];
+};
+
+export type LeadConversation = {
+  id: string;
+  /** Contact display name as LeadTech returns it. Bodies are NEVER carried. */
+  contactName: string | null;
+  /** Channel: SMS, Email, Call… (as returned). VERIFY. */
+  type: string | null;
+  lastMessageAt: string | null;
+  /** Last message CHANNEL/type only — message BODIES never leave this module. */
+  lastMessageType: string | null;
+  unreadCount: number | null;
+};
+
+export type LeadCalendar = {
+  id: string;
+  name: string | null;
+  isActive: boolean | null;
+};
+
+export type PipelineTabData = {
+  pipelines: LeadPipeline[];
+  opportunities: LeadOpportunity[];
+};
+
+export type ContactsTabData = { contacts: LeadContact[] };
+
+export type EngagementTabData = {
+  conversations: LeadConversation[];
+  calendars: LeadCalendar[];
+};
+
+export type LeadTechResult<T> =
   | { state: "not_connected" }
   | { state: "error"; reason: string }
-  | { state: "ok"; contacts: LeadContact[]; opportunities: LeadOpportunity[] };
+  | { state: "ok"; data: T };
 
 // ===========================================================================
 // PII masking — done HERE, server-side, so raw phone/email never even reach
 // the page or the rendered HTML. Mirrors the Call Lab, which stores/shows a
-// masked caller number.
+// masked caller number. Conversation and message BODIES are never fetched into
+// a rendered field at all — only channel, date, and unread count.
 // ===========================================================================
 
 function maskPhone(raw: unknown): string | null {
@@ -142,12 +199,19 @@ async function ghlGet(path: string, apiKey: string): Promise<unknown> {
   return response.json();
 }
 
+function safeReason(error: unknown): string {
+  if (error instanceof UpstreamError) return error.message;
+  return "Could not reach LeadTech.";
+}
+
 /**
- * Fetch the location's contacts and opportunities (the pipeline). Returns a
- * typed result and never throws. When the key is absent the caller gets
- * not_connected; any failure becomes an honest error state.
+ * Shared shell for every tab fetcher: key check -> parallel GETs -> parse,
+ * with the never-throw / honest-error contract in one place.
  */
-export async function fetchLeadTech(): Promise<LeadTechResult> {
+async function fetchTab<T>(
+  paths: string[],
+  parse: (bodies: unknown[]) => T,
+): Promise<LeadTechResult<T>> {
   const apiKey = env.LEADTECH_API_KEY;
   if (!apiKey) {
     // Honest "not connected" — exactly like the Presence's 503. Never fake data.
@@ -155,15 +219,8 @@ export async function fetchLeadTech(): Promise<LeadTechResult> {
   }
 
   try {
-    const [contactsRaw, opportunitiesRaw] = await Promise.all([
-      ghlGet(CONTACTS_PATH, apiKey),
-      ghlGet(OPPORTUNITIES_PATH, apiKey),
-    ]);
-    return {
-      state: "ok",
-      contacts: parseContacts(contactsRaw),
-      opportunities: parseOpportunities(opportunitiesRaw),
-    };
+    const bodies = await Promise.all(paths.map((path) => ghlGet(path, apiKey)));
+    return { state: "ok", data: parse(bodies) };
   } catch (error) {
     // Never surface the key or the body. A short, safe reason only. A raw
     // network failure (TypeError) gets a generic message; a non-2xx keeps its
@@ -172,9 +229,27 @@ export async function fetchLeadTech(): Promise<LeadTechResult> {
   }
 }
 
-function safeReason(error: unknown): string {
-  if (error instanceof UpstreamError) return error.message;
-  return "Could not reach LeadTech.";
+/** Pipeline tab: stage definitions + the opportunities that sit in them. */
+export function fetchPipelineTab(): Promise<LeadTechResult<PipelineTabData>> {
+  return fetchTab([PIPELINES_PATH, OPPORTUNITIES_PATH], ([pipelinesRaw, opportunitiesRaw]) => ({
+    pipelines: parsePipelines(pipelinesRaw),
+    opportunities: parseOpportunities(opportunitiesRaw),
+  }));
+}
+
+/** Contacts tab: the newest contacts with tags, source, and masked reachability. */
+export function fetchContactsTab(): Promise<LeadTechResult<ContactsTabData>> {
+  return fetchTab([CONTACTS_PATH], ([contactsRaw]) => ({
+    contacts: parseContacts(contactsRaw),
+  }));
+}
+
+/** Engagement tab: recent conversations (no bodies) + configured calendars. */
+export function fetchEngagementTab(): Promise<LeadTechResult<EngagementTabData>> {
+  return fetchTab([CONVERSATIONS_PATH, CALENDARS_PATH], ([conversationsRaw, calendarsRaw]) => ({
+    conversations: parseConversations(conversationsRaw),
+    calendars: parseCalendars(calendarsRaw),
+  }));
 }
 
 // ===========================================================================
@@ -202,7 +277,7 @@ function record(value: unknown): Record<string, unknown> {
 function parseContacts(raw: unknown): LeadContact[] {
   const root = record(raw);
   return asArray(root.contacts)
-    .slice(0, 25)
+    .slice(0, 100)
     .map((entry) => {
       const c = record(entry);
       const composed = [str(c.firstName), str(c.lastName)].filter(Boolean).join(" ");
@@ -212,6 +287,12 @@ function parseContacts(raw: unknown): LeadContact[] {
         phoneMasked: maskPhone(c.phone),
         emailMasked: maskEmail(c.email),
         addedAt: str(c.dateAdded) ?? str(c.createdAt),
+        tags: asArray(c.tags)
+          .map((tag) => str(tag))
+          .filter((tag): tag is string => tag !== null)
+          .slice(0, 8),
+        source: str(c.source),
+        dnd: c.dnd === true,
       };
     })
     .filter((c) => c.id);
@@ -220,7 +301,7 @@ function parseContacts(raw: unknown): LeadContact[] {
 function parseOpportunities(raw: unknown): LeadOpportunity[] {
   const root = record(raw);
   return asArray(root.opportunities)
-    .slice(0, 25)
+    .slice(0, 100)
     .map((entry) => {
       const o = record(entry);
       return {
@@ -228,7 +309,66 @@ function parseOpportunities(raw: unknown): LeadOpportunity[] {
         name: str(o.name),
         status: str(o.status),
         monetaryValue: numOrNull(o.monetaryValue),
+        pipelineId: str(o.pipelineId),
+        stageId: str(o.pipelineStageId) ?? str(o.stageId),
+        createdAt: str(o.createdAt) ?? str(o.dateAdded),
       };
     })
     .filter((o) => o.id);
+}
+
+function parsePipelines(raw: unknown): LeadPipeline[] {
+  const root = record(raw);
+  return asArray(root.pipelines)
+    .slice(0, 20)
+    .map((entry) => {
+      const p = record(entry);
+      return {
+        id: str(p.id) ?? "",
+        name: str(p.name),
+        stages: asArray(p.stages)
+          .slice(0, 30)
+          .map((stageEntry) => {
+            const s = record(stageEntry);
+            return { id: str(s.id) ?? "", name: str(s.name) };
+          })
+          .filter((s) => s.id),
+      };
+    })
+    .filter((p) => p.id);
+}
+
+function parseConversations(raw: unknown): LeadConversation[] {
+  const root = record(raw);
+  return asArray(root.conversations)
+    .slice(0, 50)
+    .map((entry) => {
+      const c = record(entry);
+      return {
+        id: str(c.id) ?? "",
+        contactName: str(c.contactName) ?? str(c.fullName),
+        type: str(c.type),
+        lastMessageAt: str(c.lastMessageDate),
+        // Channel of the last message ONLY — the body field is deliberately
+        // never read, so a message text can never reach the rendered page.
+        lastMessageType: str(c.lastMessageType),
+        unreadCount: numOrNull(c.unreadCount),
+      };
+    })
+    .filter((c) => c.id);
+}
+
+function parseCalendars(raw: unknown): LeadCalendar[] {
+  const root = record(raw);
+  return asArray(root.calendars)
+    .slice(0, 30)
+    .map((entry) => {
+      const c = record(entry);
+      return {
+        id: str(c.id) ?? "",
+        name: str(c.name),
+        isActive: typeof c.isActive === "boolean" ? c.isActive : null,
+      };
+    })
+    .filter((c) => c.id);
 }
