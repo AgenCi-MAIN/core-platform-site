@@ -1000,3 +1000,12 @@ checkout at `C:\dev\core-platform-site`.
   service worker was not modified. `app/access/page.tsx` changed in copy and
   chrome only and still performs no membership lookup, so the roster-enumeration
   oracle stays shut; no `"use client"` file imports `app/portal/access.ts`.
+- **Owner-confirmed live, 2026-08-17** ("portal works, looks beautiful"), from a
+  signed-in owner session on the deployed site — not from tests. Visible in the
+  confirming screenshot: the command prompt rendering its Open text console
+  control and the "nothing is sent until you select Ask" line from
+  `command-prompt.tsx`; the navigation drawer open and working, which exercises
+  the popover/checkbox drawer on a real device rather than only in test 54; the
+  theme and BOOST controls; the owner badge and Secure session state; and all
+  thirteen §10a sidebar labels present. This is the stronger claim — the deploy
+  is verified as *working*, not merely as *shipped*.
