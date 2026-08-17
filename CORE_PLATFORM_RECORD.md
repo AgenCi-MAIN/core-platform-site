@@ -1045,3 +1045,17 @@ recorded exactly as given).
 **Correction, same day:** the founder confirmed "Andre" was a typo for
 **Andrew Davidson** — +1 941 210 1411 is Andrew's number, as presumed above.
 His pending draft now greets him as Andrew.
+
+### 19c. Good-mornings delivered by email; text channels still closed
+
+Owner's order ("Send both"), same session. The iMessage sends were retried
+first and both still return `imessage_no_assignment` — neither recipient has
+connected. The two greetings therefore went out by email, content as drafted
+(Andrew's greeting corrected per the 19b correction), each including the
+connect instructions ("connect @out-reach" to the iMessage router) so the
+text channel can open for next time.
+
+| Recipient | Inkbox message id | Status |
+| --- | --- | --- |
+| `ryandavidson.zenith@gmail.com` | `ad0e246e-b5d9-4f64-ba72-0daaca69900d` | `sent` |
+| `andrew.davidson.zenith@gmail.com` | `8a24281c-2830-475d-9c54-d301ebf885a7` | `sent` |
