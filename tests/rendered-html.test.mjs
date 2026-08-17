@@ -92,11 +92,15 @@ test("server-renders the Core operating model", async () => {
  * so guarding it would redirect-loop the people it exists to explain things to.
  */
 const PROTECTED_ROUTES = [
+  "/go/desk",
+  "/go/hq",
+  "/go/routines",
   "/portal",
   "/portal/announcements",
   "/portal/audit",
   "/portal/book",
   "/portal/calls",
+  "/portal/command",
   "/portal/calls/review",
   "/portal/calls/review/1",
   "/portal/investigator",
@@ -159,8 +163,9 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
 
   // Second argument of requireCapability(capability, returnTo) is the route;
   // requireFounder(returnTo) takes the route directly. Both are guards, and a
-  // founder-gated page shipping without an anonymous-refusal test is the same
-  // failure as a capability-gated one — the regex must see them both.
+  // founder-gated page OR redirect handler shipping without an
+  // anonymous-refusal test is the same failure as a capability-gated one —
+  // the regex must see them both.
   const GUARD = /(?:requireCapability\(\s*"[^"]+"\s*,|requireFounder\()\s*"([^"]+)"/g;
 
   const found = new Set();
@@ -168,7 +173,7 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
     for (const entry of readdirSync(dir)) {
       const full = join(dir, entry);
       if (statSync(full).isDirectory()) walk(full);
-      else if (entry === "page.tsx") {
+      else if (entry === "page.tsx" || entry === "route.ts") {
         const src = readFileSync(full, "utf8");
         for (const m of src.matchAll(GUARD)) found.add(m[1]);
       }
@@ -195,7 +200,7 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
     for (const entry of readdirSync(dir)) {
       const full = join(dir, entry);
       if (statSync(full).isDirectory()) check(full);
-      else if (entry === "page.tsx") {
+      else if (entry === "page.tsx" || entry === "route.ts") {
         const src = readFileSync(full, "utf8");
         const calls = (src.match(/requireCapability\(|requireFounder\(/g) ?? []).length;
         const matched = [...src.matchAll(GUARD)].length;
@@ -219,6 +224,69 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
     unparseable,
     [],
     `guard calls the completeness scanner cannot verify: ${unparseable.join(", ")} — use a parseable returnTo or add the route to PROTECTED_ROUTES`,
+  );
+});
+
+test("Founder shortcuts are deliberate anchors, never prefetched redirect handlers", async () => {
+  const source = await readFile(
+    new URL("../app/portal/command/page.tsx", import.meta.url),
+    "utf8",
+  );
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  // Next Link may prefetch a route handler before the founder taps it. These
+  // handlers audit access and, for HQ and Desk, leave the portal, so every
+  // /go/* launch must remain an ordinary anchor with browser-default timing.
+  assert.match(
+    source,
+    /<a\s+className=\{`fcc-launch[\s\S]*?href=\{handoff\.route\}/,
+    "the launcher no longer uses a plain anchor for /go/* handoffs",
+  );
+  for (const route of ["hq", "routines", "desk"]) {
+    assert.match(
+      source,
+      new RegExp(`<a href="/go/${route}">`),
+      `the thumb launcher no longer uses a plain anchor for /go/${route}`,
+    );
+  }
+  assert.doesNotMatch(
+    source,
+    /<Link[^>]*(?:href=\{handoff\.route\}|href="\/go\/)/,
+    "a /go/* redirect handler can be prefetched again",
+  );
+  assert.match(
+    css,
+    /\.fcc-hero \.fcc-source \{ color: #f4ead7; \}/,
+    "the hero provenance text lost its high-contrast foreground",
+  );
+  assert.match(
+    css,
+    /\.portal:has\(\.fcc-thumb-dock\) > \.presence \{\s*bottom: calc\(148px \+ env\(safe-area-inset-bottom\)\);\s*\}/,
+    "the shipped Presence overlaps the Command Center's mobile thumb dock",
+  );
+});
+
+test("the supervised preview remains a Vite-native, allowlisted server", async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL("../package.json", import.meta.url), "utf8"),
+  );
+  const viteConfig = await readFile(
+    new URL("../vite.config.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.equal(packageJson.scripts.dev, "vite");
+  assert.doesNotMatch(
+    viteConfig,
+    /host:\s*["']0\.0\.0\.0["']/,
+    "ordinary local dev must not persist an all-interface listener",
+  );
+  assert.match(viteConfig, /allowedHosts:\s*\["terminal\.local"\]/);
+  assert.match(viteConfig, /vinext\(\)/, "the Vinext Vite plugin was removed");
+  assert.match(
+    viteConfig,
+    /isCodexSeatbeltSandbox[\s\S]*?useFsEvents:\s*false[\s\S]*?usePolling:\s*true/,
+    "the Seatbelt polling fallback was removed",
   );
 });
 
@@ -427,6 +495,25 @@ test("the service worker never caches an authenticated response", async () => {
     "non-GET requests are no longer passed straight through",
   );
 
+  // /go/* contains founder-gated redirect decisions. It must remain outside
+  // both cacheable allowlists: a cached redirect could outlive founder access
+  // or a later destination correction without re-running requireFounder.
+  const precacheStart = source.indexOf("const PRECACHE = [");
+  const precacheEnd = source.indexOf("];", precacheStart);
+  assert.ok(precacheStart > 0 && precacheEnd > precacheStart, "could not locate PRECACHE");
+  const precache = source.slice(precacheStart, precacheEnd + 2);
+  assert.doesNotMatch(precache, /["'`]\/go(?:\/|["'`])/, "/go/* entered PRECACHE");
+  assert.match(
+    source,
+    /function isImmutableAsset\(url\) \{\s*return url\.pathname\.startsWith\("\/assets\/"\);\s*\}/,
+    "the immutable-asset rule widened beyond content-hashed /assets files",
+  );
+  assert.match(
+    source,
+    /function isStaticFile\(url\) \{\s*return PRECACHE\.includes\(url\.pathname\);\s*\}/,
+    "the static-file cache rule no longer delegates exclusively to PRECACHE",
+  );
+
   // Only these two caches may exist, and only these two rules may write to one.
   const writes = source.match(/cache\.put\(/g) ?? [];
   assert.equal(writes.length, 2, "a new cache write appeared — check what it stores");
@@ -455,7 +542,16 @@ test("restricted data never reaches a public client chunk", async () => {
   assert.ok(files.length > 0, "no client chunks were built — this test would pass vacuously");
 
   // Rank names and the shape the economics compile to.
-  const FORBIDDEN = ["Obsidian", "Zenith", "contract:140", "apiPerAgent:47"];
+  const FORBIDDEN = [
+    "Obsidian",
+    "Zenith",
+    "contract:140",
+    "apiPerAgent:47",
+    // Founder-only Command Center markers. These belong only in server output;
+    // their presence in immutable assets would bypass every route guard.
+    "session_01W4UZQ4izQyBNT2HEd9D9PK",
+    "T3-S02-D01",
+  ];
 
   for (const name of files) {
     const source = await readFile(new URL(name, dir), "utf8");
