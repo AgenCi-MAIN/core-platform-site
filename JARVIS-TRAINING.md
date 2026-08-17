@@ -6,7 +6,8 @@ nothing. Written for a new operator, a partner's engineer, or a future Mr. T
 picking this up cold. Everything here traces to the record; nothing is
 invented.
 
-Owner: Yuxiang Mao (Shawn), `bankerrunners@gmail.com`.
+Owner: Yuxiang Mao (Shawn), `btcmao518@gmail.com` (since 2026-08-17;
+previously `bankerrunners@gmail.com`, retired — Google locked that account).
 
 ---
 

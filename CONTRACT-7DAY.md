@@ -131,3 +131,7 @@ memory or assumption.
 **Owner:** Yuxiang Mao (Shawn) — `bankerrunners@gmail.com`
 **Operation:** J.A.R.V.I.S. / CORE — MAIN, standing staff, and the eight
 permanent seats.
+
+**Amendment, 2026-08-17 (per § 8):** the owner's sign-in identity migrated to
+`btcmao518@gmail.com` after Google locked the original address. The parties,
+term, and every clause are unchanged — only the owner's address of record.

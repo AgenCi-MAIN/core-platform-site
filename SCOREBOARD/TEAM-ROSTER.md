@@ -1,6 +1,7 @@
 # CORE / J.A.R.V.I.S. — Complete Team Roster (2026-08-15)
 
-Funded and owned by Yuxiang Mao (Shawn), `bankerrunners@gmail.com`.
+Funded and owned by Yuxiang Mao (Shawn), `btcmao518@gmail.com` (since
+2026-08-17; previously `bankerrunners@gmail.com`).
 
 ## Command
 
