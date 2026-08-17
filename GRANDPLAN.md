@@ -4,6 +4,13 @@
 > change. Read before committing anything that touches auth, membership, or
 > the capability matrix.
 
+> **Business plan of record:** the owner-ratified 12-month operating plan
+> (Aug 2026 → Aug 2027, $5M/mo AP target, founder role map, Yuxiang's
+> intelligence build order) lives at
+> [`strategy/2026-08-17-founder-operating-plan-12mo-5m.md`](strategy/2026-08-17-founder-operating-plan-12mo-5m.md)
+> — ingested from the owner's email 2026-08-17. This file stays the
+> *architectural* contract; that one is the *business* contract.
+
 ---
 
 ## System identity
