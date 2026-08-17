@@ -145,3 +145,10 @@ Secrets survive deploys; they only need setting again if they change.
   see strategy/2026-08-17-identity-recovery-docket.md. The `bankerrunners`
   workers.dev SUBDOMAIN is load-bearing (OAuth redirect URI, Access app,
   installed PWAs) and must NOT be renamed.
+
+- 2026-08-17 (later): version `5c9ed9eb-c9a3-4152-bfc9-67279c1ccce6` —
+  deployed by the owner from C:\dev after PR #36. Ships the founder's own
+  J.A.R.V.I.S. command prompt, theme + performance controls, Presence
+  expansion, and every merge since the founder-gate deploy. **Version id
+  captured at deploy time — the A9/§18 standing follow-up is closed.**
+  Suite ran green inside the deploy chain.
