@@ -112,6 +112,7 @@ const PROTECTED_ROUTES = [
   "/portal/scripts",
   "/portal/shop",
   "/portal/team",
+  "/portal/training",
 ].map((pathname) => [pathname, encodeURIComponent(pathname)]);
 
 test("protected portal routes refuse anonymous visitors and render nothing", async () => {

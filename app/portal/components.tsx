@@ -14,6 +14,7 @@ type PortalIconName =
   | "radio"
   | "shop"
   | "payrates"
+  | "training"
   | "book"
   | "calls"
   | "scripts"
@@ -81,6 +82,16 @@ const NAV: readonly NavItem[] = [
     icon: "library",
     group: "Workspace",
     description: "Who THRIVE is, what we believe, training, and the incentive plan.",
+    state: "live",
+    stateLabel: "Available",
+  },
+  {
+    href: "/portal/training",
+    label: "Training",
+    capability: "dashboard.view.self",
+    icon: "training",
+    group: "Operations",
+    description: "Approved introductions, call angles, and training modules — verbatim.",
     state: "live",
     stateLabel: "Available",
   },
@@ -752,6 +763,14 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <path d="M9.2 17.5V6.5l9.6-2v11" />
       <circle cx="7" cy="17.5" r="2.2" />
       <circle cx="16.6" cy="15.5" r="2.2" />
+    </>
+  ),
+  // Mortarboard — training.
+  training: (
+    <>
+      <path d="M12 4.5 21 9l-9 4.5L3 9l9-4.5z" />
+      <path d="M6.5 11.5v4.2c0 1.1 2.5 2.3 5.5 2.3s5.5-1.2 5.5-2.3v-4.2" />
+      <path d="M21 9v4.5" />
     </>
   ),
   // Briefcase — the book of business.
