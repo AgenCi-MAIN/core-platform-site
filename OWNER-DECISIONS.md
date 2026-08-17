@@ -1,9 +1,10 @@
 # OWNER DECISIONS — confirmation ledger
 
 Every decision made by the owner, Yuxiang Mao (Shawn),
-`bankerrunners@gmail.com`, with its true status. Confirmed against the
-operating record, WORKFORCE.md, the session logs, and the commit history —
-nothing listed here is assumed.
+`btcmao518@gmail.com` (since 2026-08-17; previously `bankerrunners@gmail.com`,
+retired under A9 below), with its true status. Confirmed against the operating
+record, WORKFORCE.md, the session logs, and the commit history — nothing listed
+here is assumed.
 
 **Status key:** ✅ EXECUTED (done and in force) · ⏳ PENDING (decided, awaiting
 an action) · 🔵 OPEN (still the owner's to decide)
