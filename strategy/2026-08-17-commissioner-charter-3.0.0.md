@@ -78,3 +78,36 @@ are the last the old MAIN judges. The record is the asset; the judge was
 always replaceable.
 
 — MAIN (old HQ), by the owner's order, 2026-08-17
+
+## Tournament 3 (re-run era) — THE COMMAND CENTER BUILD (owner order, 2026-08-17)
+
+The first construction tournament. The prize artifact: the **Founder's
+Command Center** — `/portal/command`, a founder-only cockpit (gated by
+`requireFounder`, exactly like the audit log) with a Talk-to-HQ deep link,
+launcher grid (Routines, Mr.T desk, repo, D1 console, Cloudflare), and live
+status tiles computed from what the portal already knows (roster count,
+last deploy, suite count, open OWNER-DECISIONS items) — plus `/go/*`
+founder-gated redirect shortcuts (`/go/hq`, `/go/routines`, `/go/desk`).
+
+**Format — competing builds, not one build:** two or three build squads
+(drawn from the lanes per their cards; frontend-pwa and authz-matrix
+mandatory reviewers in every squad's chain) each produce a COMPLETE
+implementation on its own branch. VERITY scores production-per-token; the
+Commissioner judges the builds head-to-head; the owner approves the winner;
+only the winning branch merges — after the full suite passes with NEW tests
+pinning the founder gate on every added route.
+
+**Hard laws of the build (a summons cannot waive):**
+1. Every new route founder-gated: `requireFounder` on `/portal/command` and
+   every `/go/*` — pinned by tests in the same PR, added to
+   PROTECTED_ROUTES.
+2. No new capabilities in ROLE_CAPABILITIES — this is founder-identity
+   surface, not a role grant (the audit-log precedent).
+3. No deploy from any agent — the owner ships the winner from his machine.
+4. The service worker must NOT cache any of it (extends the /portal rule).
+5. NO embedded or simulated HQ chat: "Talk to HQ" is a deep link into the
+   real claude.ai session. Anything that fakes an HQ chat inside the portal
+   is disqualification — impersonation is the one unforgivable build sin.
+6. The Presence stays inert — no wiring the pet to anything.
+7. Timing: T3 fires only after the owner approves the 3.0.0 scope (the
+   Command Center is 3.0.0's flagship item, built first).
