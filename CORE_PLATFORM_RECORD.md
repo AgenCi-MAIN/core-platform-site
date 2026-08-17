@@ -481,6 +481,12 @@ identity it is impersonating on every start. The role still comes from the
       **Portal → Members**. ~~Nate Nguyen~~ — granted by Shawn from the portal
       as `epiclife.nguyen@gmail.com`, confirmed on the live roster 2026-08-15.
       Section 5 keeps the SQL for the case where nobody can sign in at all.
+- [ ] **Record the Worker version id on the next deploy.** The 2026-08-17
+      founder-gate deploy (the one that shipped PR #24's `FOUNDER_EMAILS` lock)
+      is owner-confirmed but its version id was never written down — it existed
+      only in the terminal. Owner's instruction, 2026-08-17: capture the id from
+      the next `npm run deploy` and record it here, so the live-version trail
+      picks back up.
 - [ ] **Consider a custom domain** in place of the workers.dev URL. Add the new
       `/auth/callback` URI to the Google OAuth client *before* cutting over, or
       sign-in breaks at the moment the domain changes.
