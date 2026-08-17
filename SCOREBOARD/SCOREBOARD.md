@@ -102,3 +102,14 @@ next time.*
   designed the missing post-deploy version check (docket). data-model:
   edit-in-place migration provenance flagged (F1, docket), R2-missing
   audit row shipped. Suite: **50 → 55 green.**
+- Identity-crisis round (2026-08-17, ~382K tokens, 5 lanes, owner order
+  after Google locked bankerrunners@gmail.com): **unanimous 5/5 verdict —
+  keep the Cloudflare account, swap its email in place; no new account,
+  no new host.** data-model found the ⏰ 7-day cookie cliff (portal fully
+  dark for all owners by ~08-23 without the OAuth rebuild) and that
+  Ryan's 36-month blueprint exists only inside the locked Gmail.
+  test-gaps corrected its own task premise (wrangler has no `r2 object
+  list` — enumeration via D1/dashboard). deploy-integrity costed the
+  fresh-account contingency and found the "dead inbox slow fuse" that
+  the email swap defuses. Full docket + runbooks:
+  strategy/2026-08-17-identity-recovery-docket.md.
