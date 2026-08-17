@@ -312,3 +312,62 @@ live watch. The old session remains reachable for direct conversation
 until the account's cancellation (due Sep 11, before the Sep 12 renewal),
 which completes the succession recorded in
 `W-SUBS/00-MAIN-MR-T/INJECTION-2026-08-17.md`.
+
+---
+
+## VERIFIED LIVE STATE — new account, 2026-08-17 (MAIN, from the trigger registry)
+
+The stand-down above is confirmed on the old account. This section records
+what the **new** account's registry actually contains, read directly rather
+than relayed — because the stand-down note's closing claim ("the new
+account's re-created routines … hold the live watch") is true only in part,
+and the part that is false matters.
+
+**Ten triggers exist and are enabled. Nine of them are firing with a
+one-line placeholder in place of their brief.**
+
+| Trigger | Cron (UTC) | Prompt as stored | Last fired |
+|---|---|---|---|
+| HERALD MORNING TEXT | `30 13 * * *` | ✅ **complete** — full standing order, sends one iMessage to the founder via the out-reach desk | not yet |
+| HERALD | `48 * * * *` | ⚠️ `"Inbound watch — email/text/iMessage, logs, never sends"` | 11:48 |
+| PERSONA | `35 */3 * * *` | ⚠️ `"Registry drift patrol, one wake per patrol"` | 09:36 |
+| MAILKEEPER | `0 13 * * *` | ⚠️ `"Gmail taxonomy, flag-only on money/security"` | — |
+| VIGIL | `0 13 * * *` | ⚠️ `"Portal invariant sentinel"` | — |
+| MR. T steward | `20 */10 * * *` | ⚠️ `"Operations punch list"` | 10:20 |
+| Morning Brief | `0 12 * * *` | ⚠️ `"J.A.R.V.I.S. daily briefing"` | 12:13 |
+| Daily Command Briefing | `0 12 * * *` | ⚠️ `"Cowork artifact refresh ⚠️ rebuild artifact first"` | — |
+| Attention Board | `3 12,17,22 * * *` | ⚠️ `"⚠️ rebuild its artifact first"` — a note, not a prompt | 12:23 |
+| YouTube cancel | `3 12,17,22 * * *` | ❌ **wrong on both axes** — see below | 12:13 |
+
+### What this means, stated plainly
+
+A scheduled agent woken with `"Operations punch list"` and nothing else
+receives **no brief, no leashes, and no context**. It does not inherit the
+verbatim standing orders preserved above — those live in this file, not in
+the trigger. Six of the nine have already fired this way today. Whatever
+they did, they did while improvising a role from a caption.
+
+The leashes that make each of these safe — HERALD never sends, PERSONA wakes
+at most one agent, MAILKEEPER never deletes, VIGIL reports only on
+regression, INVESTIGATOR holds zero write rights — are **absent from the
+running triggers**. They exist only in this document.
+
+### Two further defects
+
+1. **The Sep 13 YouTube reminder is not armed.** Its cron is
+   `3 12,17,22 * * *` — three times daily, copied from the Attention Board —
+   and its stored prompt is the founder's own configuration note to himself:
+   *"not a cron — use the 'Once' tab: Sep 13, 2026, 14:00 UTC (9 AM CDT)."*
+   It fires three times a day delivering that note, and will not produce the
+   Sep 13 reminder D7 depends on.
+2. **INVESTIGATOR is absent entirely.** Ten triggers exist, but the tenth is
+   HERALD MORNING TEXT (new, owner-created). The INVESTIGATOR hourly
+   read-only oversight routine, retired on the old account, has **no
+   counterpart on the new one**.
+
+### Not fixed here, by design
+
+Re-creating or editing a routine is outside MAIN's leash and requires the
+founder's own word. This entry records the gap; it does not close it. The
+remedy is mechanical — paste each verbatim prompt from this file into its
+trigger — and it is the founder's to authorize.
