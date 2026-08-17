@@ -1079,3 +1079,31 @@ attachment from this session, so until the founder attaches Inkbox to the
 routine in the claude.ai Routines UI, each firing wakes toolless and stops
 by its own instruction. Reply latency once live is up to one hour (cron
 minimum), not instant; instant replies remain a session-order away.
+
+### 19e. Setup-instructions email to all four founders
+
+Owner's order, same session ("email All founders clear instructions to
+activate the app on Safari to the home screen and the instruction to allow
+the text to go through"). One individual send per founder, identical body
+apart from the greeting; no member sees another's address.
+
+| Recipient | Inkbox message id | Status |
+| --- | --- | --- |
+| `btcmao518@gmail.com` (Shawn) | `0f66f3e7-e9fb-4c83-9acd-620efac957e8` | `sent` |
+| `ryandavidson.zenith@gmail.com` (Ryan) | `f2303e4f-e8b8-4b52-9134-dbee8dca2c01` | `sent` |
+| `epiclife.nguyen@gmail.com` (Nate) | `24bb2533-c6ac-436a-9565-f0662bbf319f` | `sent` |
+| `andrew.davidson.zenith@gmail.com` (Andrew) | `2cdd2edb-983d-4ed5-9e75-8d66b2d4e1ba` | `sent` |
+
+Contents: (1) iPhone/Safari home-screen install — the live URL, both gates
+named in order, the §9 trap #9 rule stated as an instruction (copy the
+six-digit Access code, never tap the emailed link), and the §10c warning
+that the installed PWA has its own cookie container so both gates repeat
+once inside the icon; (2) the two text-channel opt-in paths ("connect
+@out-reach" to the iMessage router, or START to the desk's SMS line), with
+the plain statement that the consent wall blocks all desk texts until one
+is done. No secret value or name appears; nothing about founder-only
+surfaces or other members' details is included.
+
+Note: the A11 Google-IdP migration for Access, once the founder executes
+it, retires the code emails — these instructions describe the wall as it
+is today and will need a one-line update after A11 lands.
