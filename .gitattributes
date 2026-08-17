@@ -1,0 +1,24 @@
+# Enforce LF line endings for every text file, on every platform.
+#
+# Why this is load-bearing, not cosmetic: several tests assert byte-for-byte
+# facts about source files — the Training body's sha256 and line count
+# (tests/rendered-html.test.mjs), and structural regexes with literal "\n".
+# On a Windows checkout with core.autocrlf=true, Git rewrites source to CRLF,
+# the "\r" breaks those regexes, and the deploy chain fails at the test gate
+# with no real code defect. Pinning eol=lf keeps the working tree identical to
+# the repo's stored blobs so the guards hold identically for Windows and Unix.
+* text=auto eol=lf
+
+# Binary assets — never apply text/eol normalization (protects the regenerated
+# brand icons and other binaries from corruption).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
