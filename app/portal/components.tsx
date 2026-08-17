@@ -1,4 +1,5 @@
 import { signOutPath } from "../google-auth";
+import { ThriveMark } from "../thrive-mark";
 import Link from "next/link";
 import { ROLE_LABELS, can, isFounder, type Capability, type PortalSession } from "./access";
 import { PortalBackControl } from "./back-control";
@@ -452,7 +453,7 @@ function PortalSidebarContent({
     <>
       <div className="portal-sidebar-head">
         <Link className="portal-brand" href="/portal" aria-label="THRIVE portal dashboard">
-          <span className="portal-brand-mark" aria-hidden="true">T</span>
+          <span className="portal-brand-mark" aria-hidden="true"><ThriveMark size={19} /></span>
           <span className="portal-brand-copy">
             <strong>THRIVE</strong>
             <small>Operating portal</small>
