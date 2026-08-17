@@ -1117,3 +1117,29 @@ checked) or a silent failure; indistinguishable from outside. The routine
 path is therefore **not yet verified**. The founder's 13:50 reply is left
 as the organic test case for the first scheduled pass at 14:41Z; a
 self-check at 14:50Z records the outcome either way.
+
+**A13 scheduled-pass verification FAILED (14:50Z).** The routine fired on
+schedule (`last_fired_at` 2026-08-17T14:41:41Z) and sent nothing. The
+founder's 13:50 message was still the newest message in the thread nine
+minutes later; HQ answered it instead (`9aa558cb-…`). The routine path is
+**not working**, and firing is not the problem — the woken session is.
+
+Probable root cause, and it is not A13-specific: the trigger's stored
+`session_context.allowed_tools` lists only built-in tools
+(`preset:default`, Task, Bash, Read, Edit, …). No `mcp__Inkbox__*` entry
+appears, even though the Inkbox connector IS attached to the trigger. A
+fired session with no human present cannot clear a permission prompt for a
+tool outside its allowlist, so the send never happens and the session ends
+quietly. `update_trigger` exposes only name/cron/enabled/model/prompt — the
+tool allowlist cannot be corrected from a session, so the fix is the
+founder's, in the claude.ai Routines UI.
+
+**Corroboration — a second routine is failing the same way, unnoticed:**
+HERALD MORNING TEXT (`trig_01CRstytgH4Q3X2rEcTxy6zL`, the daily 8:30 AM
+Central founder brief) fired today at 13:37:14Z and no morning-brief text
+exists in the thread. Same environment, same connector, same allowlist
+shape. The founder should assume the daily morning text has never actually
+sent, rather than that a quiet night produced nothing.
+
+Status: A13 remains **granted, armed, and unverified**; the HQ path is the
+only proven way the desk texts anyone.
