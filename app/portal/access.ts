@@ -411,6 +411,15 @@ export function isFounder(session: PortalSession): boolean {
  */
 export async function requireFounder(
   returnTo: string = PORTAL_ROOT,
+  /**
+   * The action recorded on the founder_only denial row. Defaults to
+   * "audit.view" so the audit page's existing rows keep their historical
+   * shape. Every OTHER founder-gated surface must pass its own: the row lands
+   * in an append-only table that is never edited, so a wrong action here is a
+   * false statement nothing can retract later. T3 took this gate from two call
+   * sites to six, which is what made the hardcoded literal worth removing.
+   */
+  action: string = "audit.view",
 ): Promise<PortalSession> {
   const result = await resolvePortalAccess(returnTo);
 
@@ -422,7 +431,7 @@ export async function requireFounder(
   const { session } = result;
   if (!isFounder(session)) {
     await recordAudit({
-      action: "audit.view",
+      action,
       decision: "deny",
       reason: "founder_only",
       actorEmail: session.email,

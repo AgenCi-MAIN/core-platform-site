@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
  * have to change to pipe them in-portal.
  */
 export default async function InvestigatorPage() {
-  const session = await requireFounder("/portal/investigator");
+  const session = await requireFounder("/portal/investigator", "investigator.view");
 
   return (
     <PortalShell session={session} current="/portal/investigator" section="Investigator">

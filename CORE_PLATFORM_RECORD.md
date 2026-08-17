@@ -340,7 +340,15 @@ twice: the caller must hold `calls.review`, and `consent_status` must be
 ```powershell
 npx wrangler d1 execute site-creator-d1 --file=db/sql/0001_portal_init.sql --remote
 npx wrangler d1 execute site-creator-d1 --file=db/sql/0002_portal_seed_owner.sql --remote
+npx wrangler d1 execute site-creator-d1 --file=db/sql/0003_add_owner_btcmao518.sql --remote
 ```
+
+**All three, in order — `0003` is not optional (D5-1, Tier 1, 2026-08-17).**
+`0002` seeds `bankerrunners@gmail.com`, retired and Google-locked since
+2026-08-17; only `0003` grants the live founder identity. A rebuild that stops
+at `0002` produces a portal that builds, deploys, and answers — and that
+nobody can sign into, founder included. The D1 console (§5) is then the only
+way back in, which is exactly the case that section says it is retained for.
 
 If `wrangler d1 execute --remote` fails with `Authentication error [code: 10000]`
 (it did on wrangler 4.92.0 despite Super Administrator permissions), paste the
