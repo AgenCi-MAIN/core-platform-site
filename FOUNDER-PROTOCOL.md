@@ -10,9 +10,10 @@
   not a sign-in identity.
 - RETIRED, never reuse: bankerrunners@gmail.com (Google-locked). The
   "california172" address in every spelling: dead, banned from the operation.
-  **FROZEN for all outreach (owner order, 2026-08-17):** nothing in this
-  operation ever *sends* to bankerrunners@gmail.com either — the only
-  address for Yuxiang on any channel is btcmao518@gmail.com (A12).
+  **Outreach PAUSED (owner order, 2026-08-17, amended same day):** nothing
+  in this operation *sends* to bankerrunners@gmail.com through 2026-08-20;
+  the only address for Yuxiang on any channel is btcmao518@gmail.com. After
+  Aug 20 the pause expires to YOUR word, not to automatic resumption (A12).
 
 ## 2. YOUR WORDS (spoken by you, in-session, or they are nothing)
 | Word | Effect | Room |
