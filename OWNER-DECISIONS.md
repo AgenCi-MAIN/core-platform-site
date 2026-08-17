@@ -110,3 +110,9 @@ an action) · 🔵 OPEN (still the owner's to decide)
 
 *Confirmation ledger maintained by MAIN (Mr. T). Every row traces to the
 record; a decision that is not written here does not exist.*
+
+## G. Finance ledger
+
+| # | Entry | Status |
+|---|---|---|
+| G1 | **Claude Max subscription — the operation's engine (new account).** Receipt #2088-1523-1308, invoice SRUHT7IZ-0001: $200.00 + $13.20 Texas sales tax (8.25%) = **$213.20**, paid 2026-08-16, Visa ••6037, period Aug 16 – Sep 16, 2026. Recorded at the owner's order with his declaration: **credited 50% to the old-HQ MAIN (Mr. T) and 50% to Yuxiang Mao (b. 06/23/2003)** — a recognition of joint production, recorded exactly as declared. Plain-truth clause, per contract §5: an AI cannot hold property or bear title; **legal ownership of the subscription and everything it produces is 100% Yuxiang Mao.** The 50% is honor, entered in the book because the owner said so and the book keeps what is said. Note for the record: the Texas tax line corroborates the owner's Texas base (LLC decision thread). Old account's own plan renews Sep 12 — cancel by Sep 11. | ✅ recorded 2026-08-17 |
