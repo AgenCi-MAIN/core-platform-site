@@ -306,11 +306,14 @@ export function PortalShell({
           page — which also means the mobile drawer no longer closes itself.
           One delegated listener closes it on any link tap inside it. Inline
           for the same reason as PortalThemeBoot: no props, no state, no
-          hydration boundary worth shipping. */}
+          hydration boundary worth shipping. When Escape actually closes the
+          checkbox-fallback drawer, the listener preventDefaults so
+          PortalBackControl's defaultPrevented guard treats that Escape as
+          consumed — one keypress must never both dismiss and navigate. */}
       <script
         dangerouslySetInnerHTML={{
           __html:
-            '(function(){if(window.__thriveDrawerClose)return;window.__thriveDrawerClose=1;function u(){var c=document.getElementById("portal-mobile-drawer");if(c&&c.checked){c.checked=false}}document.addEventListener("click",function(e){var t=e.target instanceof Element?e.target:null;if(!t)return;var p=t.closest("#portal-mobile-navigation");if(p&&t.closest("a")){if(typeof p.hidePopover==="function"){p.hidePopover()}u()}});document.addEventListener("keydown",function(e){if(e.key==="Escape"){u()}})})();',
+            '(function(){if(window.__thriveDrawerClose)return;window.__thriveDrawerClose=1;function u(){var c=document.getElementById("portal-mobile-drawer");if(c&&c.checked){c.checked=false;return true}return false}document.addEventListener("click",function(e){var t=e.target instanceof Element?e.target:null;if(!t)return;var p=t.closest("#portal-mobile-navigation");if(p&&t.closest("a")){if(typeof p.hidePopover==="function"){p.hidePopover()}u()}});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&u()){e.preventDefault()}})})();',
         }}
       />
 
