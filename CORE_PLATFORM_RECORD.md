@@ -1107,3 +1107,13 @@ surfaces or other members' details is included.
 Note: the A11 Google-IdP migration for Access, once the founder executes
 it, retires the code emails — these instructions describe the wall as it
 is today and will need a one-line update after A11 lands.
+
+**A13 verification status (13:55Z):** the founder's live test ("Talk back
+this is a test" + four more) was answered by the HQ session in real time
+(message `1faa7803-…`, delivered and read; the founder confirmed receipt and
+went for coffee). The manually-fired routine session sent nothing — either
+correct stand-down (HQ's reply was already the latest outbound when it
+checked) or a silent failure; indistinguishable from outside. The routine
+path is therefore **not yet verified**. The founder's 13:50 reply is left
+as the organic test case for the first scheduled pass at 14:41Z; a
+self-check at 14:50Z records the outcome either way.
