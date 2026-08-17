@@ -71,8 +71,13 @@ consent/recording changes; 4 sub-slots. Mandate: recording-consent
 enforcement vs claim, every-deny-audited law, PII/secret discipline, 10DLC +
 all-party-recording constraints. Service: T1 2 confirmed gaps incl. the
 standing-law violation (consent-deny unaudited — since fixed and pinned).
-KNOW ON ARRIVAL: **LeadTech ingest socket HELD pending counsel on the
-all-party-consent line + owner greenlight** (OWNER-DECISIONS E3/E7).
+KNOW ON ARRIVAL (amended 2026-08-17): the LeadTech hold was **overruled by
+the owner's explicit word** — see the E7 ledger row for the decision, its
+named risk, and MAIN's recorded contrary recommendation. The T3 adversary
+conditions (F7 client-consent, F12 re-POST overwrite, timing, identity leak,
+audit-everything) are hard build requirements. Counsel review stays open as
+follow-up E7b. Original: ~~ingest socket HELD pending counsel + greenlight
+(OWNER-DECISIONS E3/E7)~~.
 
 ## 7 · frontend-pwa (O.G. rank 7)
 Standing: PERMANENT; activation: UI/CSS/service-worker changes; 4 sub-slots.

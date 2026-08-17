@@ -1,5 +1,9 @@
 -- CORE portal — add second owner identity (owner order, 2026-08-17)
 --
+-- Seeded by: Yuxiang Mao (Shawn), founder — btcmao518@gmail.com. Founder
+-- attribution preserved by owner order F6, 2026-08-17. Comment-only provenance
+-- line; the applied SQL is unchanged (loader and fresh provision strip `--`).
+--
 -- Additive grant. Does NOT remove or alter the seeded owner
 -- (bankerrunners@gmail.com stays an active owner as the fallback identity).
 -- This is an identity allowlist entry only — no passwords, keys, or tokens.
