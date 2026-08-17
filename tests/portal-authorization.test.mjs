@@ -549,7 +549,7 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
   }
 });
 
-test("the Founder Command Center and every /go handoff answer only the migrated founder", async (t) => {
+test("the Command Center answers its named allowlist; every /go handoff answers only the founder", async (t) => {
   const portal = await startPortal();
   t.after(portal.dispose);
 
@@ -586,19 +586,29 @@ test("the Founder Command Center and every /go handoff answer only the migrated 
     assert.equal(await retired.text(), "", `${pathname} must emit no body to the retired identity`);
   }
 
-  const founderOnlyDenials = (await portal.audit())
-    .filter((row) => row.decision === "deny" && row.reason === "founder_only")
-    .map((row) => `${row.actor_email}|${row.request_path}`)
+  // /portal/command now sits behind COMMAND_CENTER_EMAILS (founder order
+  // 2026-08-17) and its denial rows honestly say "command_only"; the three
+  // /go/* handoffs remain founder-gated and keep saying "founder_only".
+  const gateDenials = (await portal.audit())
+    .filter(
+      (row) =>
+        row.decision === "deny" &&
+        (row.reason === "founder_only" || row.reason === "command_only"),
+    )
+    .map((row) => `${row.actor_email}|${row.request_path}|${row.reason}`)
     .sort();
   assert.deepEqual(
-    founderOnlyDenials,
+    gateDenials,
     guarded
-      .flatMap((pathname) => [
-        `${otherOwner.email}|${pathname}`,
-        `${retiredFounder.email}|${pathname}`,
-      ])
+      .flatMap((pathname) => {
+        const reason = pathname === "/portal/command" ? "command_only" : "founder_only";
+        return [
+          `${otherOwner.email}|${pathname}|${reason}`,
+          `${retiredFounder.email}|${pathname}|${reason}`,
+        ];
+      })
       .sort(),
-    "each guarded path must audit both non-founder identities as founder_only denials",
+    "each guarded path must audit both refused identities under its own gate's honest reason",
   );
 
   await portal.addMember("btcmao518@gmail.com", "owner");
@@ -662,6 +672,46 @@ test("the Founder Command Center and every /go handoff answer only the migrated 
     "the desk shortcut must stay a fixed compose-to handoff with no caller input",
   );
   assert.equal(deskLocation.hash, "");
+
+  // Andrew Davidson — the named helper added by founder order 2026-08-17.
+  // Command Center answers him; every /go/* handoff still refuses him,
+  // because the grant's scope is THE COMMAND CENTER PAGE ONLY. (Probed after
+  // the audit deepEqual above so his denial rows don't disturb it.)
+  await portal.addMember("andrew.davidson.zenith@gmail.com", "manager");
+  const helper = {
+    subject: "sub-command-helper-andrew",
+    email: "andrew.davidson.zenith@gmail.com",
+  };
+
+  const helperCommand = await portal.get("/portal/command", helper);
+  assert.equal(
+    helperCommand.status,
+    200,
+    "the named helper opens the Command Center",
+  );
+  assert.match(await helperCommand.text(), /Your field console\./);
+
+  for (const pathname of ["/go/hq", "/go/routines", "/go/desk"]) {
+    const heldShut = await portal.get(pathname, helper);
+    assert.equal(
+      heldShut.status,
+      307,
+      `${pathname} must still refuse the Command Center helper — the grant is command-only`,
+    );
+    assert.match(heldShut.headers.get("location") ?? "", /\/portal\/no-access$/);
+    assert.equal(await heldShut.text(), "", `${pathname} must emit no body to the helper`);
+  }
+
+  // The helper's grant must not have leaked toward the founder-only pages.
+  for (const pathname of ["/portal/audit", "/portal/investigator"]) {
+    const sealed = await portal.get(pathname, helper);
+    assert.equal(
+      sealed.status,
+      307,
+      `${pathname} must refuse the Command Center helper — it stays founder-only`,
+    );
+    assert.match(sealed.headers.get("location") ?? "", /\/portal\/no-access$/);
+  }
 });
 
 test("Dialer Beta lists transferred calls and gates protected recording playback", async () => {

@@ -265,7 +265,9 @@ test("every portal page calls a guard — no page ships unguarded", async () => 
         const rel = full.slice(full.indexOf("app")).split("\\").join("/");
         if (UNGUARDED_BY_DESIGN.has(rel)) continue;
         const src = readFileSync(full, "utf8");
-        if (!/requireCapability\(|requireFounder\(/.test(src)) unguarded.push(rel);
+        if (!/requireCapability\(|requireFounder\(|requireCommandCenter\(/.test(src)) {
+          unguarded.push(rel);
+        }
       }
     }
   };
@@ -280,10 +282,12 @@ test("every portal page calls a guard — no page ships unguarded", async () => 
 
 /**
  * A8-1. FOUNDER_EMAILS is the sole gate on /portal/audit, /portal/investigator,
- * /portal/command and every /go/* handoff — identity, not capability, so no
- * role grant can widen it and no test of roles can narrow it. The runtime
- * suite proves specific addresses are refused; this pins the SET ITSELF, so
- * that quietly adding a second founder fails here rather than shipping.
+ * and every /go/* handoff — identity, not capability, so no role grant can
+ * widen it and no test of roles can narrow it. (/portal/command moved to the
+ * COMMAND_CENTER_EMAILS gate by founder order 2026-08-17 — pinned in the next
+ * test.) The runtime suite proves specific addresses are refused; this pins
+ * the SET ITSELF, so that quietly adding a second founder fails here rather
+ * than shipping.
  */
 test("FOUNDER_EMAILS holds exactly one identity", async () => {
   const source = await readFile(
@@ -305,6 +309,41 @@ test("FOUNDER_EMAILS holds exactly one identity", async () => {
   );
 });
 
+/**
+ * COMMAND_CENTER_EMAILS is the founder plus individually NAMED helpers, each
+ * added by an explicit founder order. Pinning the exact contents means a
+ * quiet addition fails here rather than shipping — widening this set is a
+ * governance decision, not a code change. Andrew Davidson was added by
+ * founder order 2026-08-17 ("unlock COMMAND CENTER for ANDREW DAVIDSON"),
+ * scope: the Command Center page only.
+ */
+test("COMMAND_CENTER_EMAILS holds exactly the founder and Andrew Davidson", async () => {
+  const source = await readFile(
+    new URL("../app/portal/access.ts", import.meta.url),
+    "utf8",
+  );
+
+  const declaration = source.match(
+    /COMMAND_CENTER_EMAILS[^=]*=\s*new Set\(\[([^\]]*)\]\)/,
+  );
+  assert.ok(
+    declaration,
+    "COMMAND_CENTER_EMAILS must be a literal Set spreading FOUNDER_EMAILS — keep it greppable",
+  );
+  assert.match(
+    declaration[1],
+    /\.\.\.FOUNDER_EMAILS/,
+    "COMMAND_CENTER_EMAILS must include the founder by construction, not by copy",
+  );
+
+  const addresses = [...declaration[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(
+    addresses,
+    ["andrew.davidson.zenith@gmail.com"],
+    "COMMAND_CENTER_EMAILS changed — a named helper is added only by founder order, recorded in OWNER-DECISIONS.md",
+  );
+});
+
 test("every portal page except no-access declares exactly one server guard", async () => {
   const { readdirSync, readFileSync, statSync } = await import("node:fs");
   const { join, relative } = await import("node:path");
@@ -321,7 +360,8 @@ test("every portal page except no-access declares exactly one server guard", asy
         const routeFile = relative(portalDir, full).replaceAll("\\", "/");
         if (routeFile === "no-access/page.tsx") continue;
         const source = readFileSync(full, "utf8");
-        const guards = source.match(/requireCapability\(|requireFounder\(/g) ?? [];
+        const guards =
+          source.match(/requireCapability\(|requireFounder\(|requireCommandCenter\(/g) ?? [];
         if (guards.length !== 1) failures.push(`${routeFile} (${guards.length} guards)`);
       }
     }

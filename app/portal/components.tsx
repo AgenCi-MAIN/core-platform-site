@@ -1,7 +1,14 @@
 import { signOutPath } from "../google-auth";
 import { ThriveMark } from "../thrive-mark";
 import Link from "next/link";
-import { ROLE_LABELS, can, isFounder, type Capability, type PortalSession } from "./access";
+import {
+  ROLE_LABELS,
+  can,
+  isCommandCenter,
+  isFounder,
+  type Capability,
+  type PortalSession,
+} from "./access";
 import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
 import { PortalThemeControl } from "../theme-control";
@@ -44,6 +51,12 @@ type NavItem = {
    * server-side with requireFounder — this flag only controls the sidebar.
    */
   founderOnly?: boolean;
+  /**
+   * Visible to COMMAND_CENTER_EMAILS (the founder plus named helpers),
+   * regardless of role. The page behind it enforces the same set server-side
+   * with requireCommandCenter — this flag only controls the sidebar.
+   */
+  commandOnly?: boolean;
   stateLabel: string;
 };
 
@@ -64,10 +77,10 @@ const NAV: readonly NavItem[] = [
     capability: "audit.view",
     icon: "command",
     group: "Workspace",
-    description: "Founder-only workforce, decisions, signals, and field handoffs.",
+    description: "Workforce, decisions, signals, and field handoffs. Founder + named helpers.",
     state: "live",
-    founderOnly: true,
-    stateLabel: "Founder only",
+    commandOnly: true,
+    stateLabel: "Command access",
   },
   {
     href: "/portal/announcements",
@@ -321,7 +334,11 @@ export function PortalShell({
   children: React.ReactNode;
 }) {
   const visible = NAV.filter((item) =>
-    item.founderOnly ? isFounder(session) : can(session, item.capability),
+    item.founderOnly
+      ? isFounder(session)
+      : item.commandOnly
+        ? isCommandCenter(session)
+        : can(session, item.capability),
   );
 
   return (
@@ -666,7 +683,11 @@ export function PortalPlaceholderPage({
 
 export function PortalWorkspaceDirectory({ session }: { session: PortalSession }) {
   const visible = NAV.filter((item) =>
-    item.founderOnly ? isFounder(session) : can(session, item.capability),
+    item.founderOnly
+      ? isFounder(session)
+      : item.commandOnly
+        ? isCommandCenter(session)
+        : can(session, item.capability),
   );
 
   return (
