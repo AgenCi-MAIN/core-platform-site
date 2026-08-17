@@ -4199,18 +4199,33 @@ html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
   color: #241b10;
 }
 .portal-nav { gap: 3px; }
-.portal-nav-group { position: relative; }
-.portal-nav-group::before {
+/* Section separation. The old connector rail (a fixed-offset ::before at
+   top:31px) is gone — it could not align across groups that have a subtitle
+   and those that don't, so it rendered as a broken, fading stub. Each nav
+   group now reads as its own block: a wider gap, a stronger divider, and a
+   gold-marked section label. */
+.portal-nav-group + .portal-nav-group {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--portal-line-strong);
+}
+.portal-nav-group-label {
+  position: relative;
+  padding-left: 13px;
+  color: var(--portal-accent-strong);
+}
+.portal-nav-group-label::before {
   content: "";
   position: absolute;
-  top: 31px;
-  bottom: 8px;
-  left: 23px;
-  width: 1px;
-  background: linear-gradient(180deg, var(--portal-line-strong), transparent);
-  pointer-events: none;
+  left: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 2px;
+  background: var(--portal-accent);
 }
-.portal-nav-group + .portal-nav-group { border-top-color: var(--portal-line-strong); }
+.portal-nav-group-sub { padding-left: 13px; }
 .portal-nav a,
 .portal-signout { position: relative; min-height: 44px; border-radius: 10px; }
 .portal-nav-icon {
