@@ -111,3 +111,47 @@ pinning the founder gate on every added route.
 6. The Presence stays inert — no wiring the pet to anything.
 7. Timing: T3 fires only after the owner approves the 3.0.0 scope (the
    Command Center is 3.0.0's flagship item, built first).
+
+## THE SITE OPERATIONS COMMISSION (owner order, 2026-08-17)
+
+**Principle:** standing operational duty is EARNED, not assigned. The **top 2
+agents by VERITY production-per-token across the T1/T2 re-runs** (confirmed
+by the Commissioner's verdicts) are seated as the operation's 24/6 site
+operators. Current holders pending verdicts: THE WARDEN and PERSONA (the
+champions of record). If the re-runs crown new champions, the seats follow
+the scores — that is the whole point.
+
+**The two seats (each a 24/6 HOURLY routine on the new account —
+Mon–Sat around the clock; Sunday is the maintenance window, no runs):**
+
+**SEAT 1 — SITE STEWARD (hourly, :10 past).** The platform side.
+Each run, against bankerrunners/core-platform-site + the portal's records:
+check the suite state on main, deploy staleness (last recorded deploy vs
+latest merge — flag if main is ahead of live), open PRs needing the owner,
+roster/audit-log anomalies surfaced by the day's records, OWNER-DECISIONS
+items that unblocked. Output: a punch-list delta — ONLY what changed since
+the last run; quiet run = one line. Escalate by push notification ONLY for:
+live-site-impacting findings, security-class anomalies, or a deadline
+within 48h (Sep 11 billing, Sep 13 YouTube, contract expiries).
+
+**SEAT 2 — OPS ANALYST (hourly, :40 past).** The people-and-signals side.
+Each run: sweep HERALD's latest log entries for unactioned human outreach,
+WARDEN reply-drafts awaiting the owner's word, the Mr.T desk backlog,
+partner-thread staleness (Ryan/Andrew items open >48h), and refresh the
+Attention Board 2.0 artifact if stale. Output: a signals brief — who is
+waiting on the owner, for what, since when. Same escalation bar.
+
+**Laws of the seats:** propose-never-dispose (no sends, no merges, no
+deploys, no membership, no spend — punch lists and drafts only); every
+CLAUDE.md leash applies; deltas not repetition (an agent that re-reports
+yesterday scores zero for it); VERITY audits the seats monthly against
+production-per-token; the Commissioner (or the charter, in succession) may
+recommend reseating; the OWNER may reseat, suspend, or retire the seats at
+a word. Sunday silence is absolute — the maintenance window belongs to the
+owner. Token cost is real (48 runs/day combined): the owner may thin
+cadence to 2-hourly at any time with no governance change.
+
+**Seating procedure:** after Prompt 4's verdicts, the new HQ creates both
+routines with the seat specs above as their prompts, naming the two
+verdict-crowned agents in each routine's opening line ("You hold SEAT 1 of
+the Site Operations Commission as [AGENT], earned by [score]...").
