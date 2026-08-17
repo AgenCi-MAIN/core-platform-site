@@ -468,6 +468,30 @@ identity it is impersonating on every start. The role still comes from the
    itself was turned off or deleted in Google Cloud console — the stored
    secrets may be perfectly correct. Do not rebuild credentials for it; check
    the client's enabled state first. Hit live on 2026-08-16.
+9. **"This One-Time Pin has already been used!" on a phone, while the same
+   account signs in fine on the desktop.** This is the Cloudflare Access wall
+   (§16), not the portal's Google sign-in — Access is configured with One-Time
+   PIN, so it mails a code. The Access email carries both a six-digit code and
+   a single-use login link, and the link is spent by the first GET that touches
+   it. On iOS, Gmail pre-fetches links before the user taps, so the fetch spends
+   the code and the tap arrives second. The desktop escapes it because the code
+   is typed into the tab already waiting.
+   **Workaround:** never tap the link. Leave the tab on the "enter code" prompt,
+   copy the six digits, and paste them back into *that same tab* — requesting a
+   fresh code from a new tab invalidates the one the old tab awaits.
+   **On an installed PWA (§10c) it is worse:** an iOS home-screen web app has
+   its own cookie container, so an Access session completed in Safari does not
+   carry into the installed icon, and leaving the app to fetch the code tends to
+   lose the waiting context. PWA plus One-Time PIN fights itself on iOS.
+   **The real fix is decided (A11, owner order 2026-08-17):** point Access at
+   Google as the identity provider and retire the codes. It removes the email
+   round-trip; it does not remove the second sign-in, since Access and the
+   portal remain independent OAuth flows. That is Zero Trust dashboard work on
+   the outer wall protecting everything, and the Access config is not in this
+   repo (recovery docket §6: screenshot it) — steps, ordering, and the
+   lockout-safe cutover are in
+   `strategy/2026-08-17-access-google-idp-runbook.md`.
+   Hit live on 2026-08-17, on the phone, from the welcome email's own link.
 
 ---
 
@@ -903,3 +927,28 @@ not exist.
 - **No change** to source, authentication, membership, capabilities, roles, D1,
   R2, or the Cloudflare Access policy. Nothing was deployed. No secret value
   appears in the message.
+
+### 18a. Correction and resend, same day
+
+The founder reported not receiving the message. Two separate facts came out of
+checking, and only one of them was a delivery problem.
+
+- **It was delivered.** Inkbox status on `41a4a7bd-…` moved `sent` →
+  `delivered` one second after the send; the sending domain `inkboxmail.com`
+  is platform-verified and no bounce or domain warning was recorded. Gmail
+  accepted it. `out-reach@inkboxmail.com` is a cold sender to that inbox, so
+  Spam or the Promotions tab is the expected landing place — the address is
+  worth allow-listing before any further sends to it are judged missing.
+- **The HTML body was malformed, and it was the sender's error.** The first
+  send wrapped the HTML in a `<![CDATA[ … ]]>` marker, which is XML syntax with
+  no meaning in an email body; it was transmitted as literal body text, so the
+  stored body began with `<![CDATA[`. The plain-text alternative was unaffected.
+- **Resent clean:** Inkbox message id `f47be1f7-32fd-4e05-baae-296b95097b43`,
+  thread `73b631a6-691e-4b88-bf53-ce02dd519e04`, status `delivered`, with
+  `reply_to` set to `out-reach@inkboxmail.com`. Same recipient, same subject,
+  same content; the body now begins at the opening `<div>`. Both sends went to
+  `btcmao518@gmail.com` — the address was correct in both.
+
+The rule this leaves behind: an email body is HTML, not XML. Never wrap it in a
+CDATA section, and check a send's stored `body_html` rather than trusting that
+a `sent` status means the message rendered.
