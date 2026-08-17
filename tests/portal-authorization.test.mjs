@@ -118,7 +118,9 @@ async function startPortal({ migrate = true, seed = true } = {}) {
   const audit = async () =>
     (
       await db
-        .prepare("SELECT actor_email, actor_role, action, decision, reason FROM audit_events ORDER BY id")
+        .prepare(
+          "SELECT actor_email, actor_role, action, decision, reason, request_path FROM audit_events ORDER BY id",
+        )
         .all()
     ).results;
 
@@ -412,6 +414,121 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
   } finally {
     await portal.dispose();
   }
+});
+
+test("the Founder Command Center and every /go handoff answer only the migrated founder", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("second-command-owner@example.com", "owner");
+  const otherOwner = {
+    subject: "sub-second-command-owner",
+    email: "second-command-owner@example.com",
+  };
+  const guarded = ["/portal/command", "/go/hq", "/go/routines", "/go/desk"];
+
+  for (const pathname of guarded) {
+    const denied = await portal.get(pathname, otherOwner);
+    assert.equal(denied.status, 307, `${pathname} must refuse a non-founder owner`);
+    assert.match(
+      denied.headers.get("location") ?? "",
+      /\/portal\/no-access$/,
+      `${pathname} must fail closed at the founder gate`,
+    );
+    assert.equal(await denied.text(), "", `${pathname} must emit no body when refused`);
+  }
+
+  // The original seeded identity remains an owner row for history, but Google
+  // locked that account and the migration removed it from FOUNDER_EMAILS.
+  // Pin all four additions against that exact retired identity too: generic
+  // role refusal is not enough to prove the migration boundary stayed shut.
+  const retiredFounder = {
+    subject: "sub-command-retired-founder",
+    email: SEEDED_OWNER_EMAIL,
+  };
+  for (const pathname of guarded) {
+    const retired = await portal.get(pathname, retiredFounder);
+    assert.equal(retired.status, 307, `${pathname} must refuse the retired founder identity`);
+    assert.match(retired.headers.get("location") ?? "", /\/portal\/no-access$/);
+    assert.equal(await retired.text(), "", `${pathname} must emit no body to the retired identity`);
+  }
+
+  const founderOnlyDenials = (await portal.audit())
+    .filter((row) => row.decision === "deny" && row.reason === "founder_only")
+    .map((row) => `${row.actor_email}|${row.request_path}`)
+    .sort();
+  assert.deepEqual(
+    founderOnlyDenials,
+    guarded
+      .flatMap((pathname) => [
+        `${otherOwner.email}|${pathname}`,
+        `${retiredFounder.email}|${pathname}`,
+      ])
+      .sort(),
+    "each guarded path must audit both non-founder identities as founder_only denials",
+  );
+
+  await portal.addMember("btcmao518@gmail.com", "owner");
+  const founder = {
+    subject: "sub-command-founder",
+    email: "btcmao518@gmail.com",
+  };
+
+  const command = await portal.get("/portal/command", founder);
+  assert.equal(command.status, 200, "the migrated founder opens the Command Center");
+  const html = await command.text();
+  assert.match(html, /Your field console\./);
+  assert.match(html, /T3-S02-D01/);
+  assert.match(html, /T3-S02-D09/);
+  assert.match(html, /T3-S02-D10/);
+  assert.match(html, /Carrier statements \+ LeadTech CPL data/);
+  assert.match(html, /T3-S02-D11/);
+  assert.match(html, /Counsel answer → socket greenlight/);
+  assert.match(html, /T3-S02-H03/);
+  assert.match(html, /Current account last runs/);
+  assert.match(html, /Unavailable to this portal/);
+  assert.match(html, /Not activated in record/g);
+  assert.match(html, /No simulated HQ/);
+  assert.match(html, /5c9ed9eb/);
+  assert.match(html, /no independent live comparison/i);
+  assert.doesNotMatch(html, /Build phase|>NOW</, "T3 state must stay a dated package snapshot");
+
+  const hq = await portal.get("/go/hq?session=caller-controlled", founder);
+  assert.equal(hq.status, 307);
+  const hqLocation = new URL(hq.headers.get("location") ?? "http://invalid");
+  assert.equal(hqLocation.origin, "https://claude.ai");
+  assert.equal(hqLocation.pathname, "/code/session_01W4UZQ4izQyBNT2HEd9D9PK");
+  assert.equal(hqLocation.search, "", "the fixed HQ handoff carries no invented query data");
+
+  const routines = await portal.get(
+    "/go/routines?next=https%3A%2F%2Fcaller.example",
+    founder,
+  );
+  assert.equal(routines.status, 307);
+  const routinesLocation = new URL(routines.headers.get("location") ?? "http://invalid");
+  assert.equal(routinesLocation.origin, "http://localhost");
+  assert.equal(routinesLocation.pathname, "/portal/command");
+  assert.equal(routinesLocation.search, "");
+  assert.equal(routinesLocation.hash, "#handoff-routines");
+
+  const desk = await portal.get(
+    "/go/desk?to=caller%40example.com&view=inbox&body=caller-controlled",
+    founder,
+  );
+  assert.equal(desk.status, 307);
+  const deskLocation = new URL(desk.headers.get("location") ?? "http://invalid");
+  assert.equal(deskLocation.origin, "https://mail.google.com");
+  assert.equal(deskLocation.pathname, "/mail/");
+  assert.deepEqual(
+    [...deskLocation.searchParams.entries()].sort(),
+    [
+      ["fs", "1"],
+      ["to", "out-reach@inkboxmail.com"],
+      ["view", "cm"],
+    ],
+    "the desk shortcut must stay a fixed compose-to handoff with no caller input",
+  );
+  assert.equal(deskLocation.hash, "");
 });
 
 test("Dialer Beta lists transferred calls and gates protected recording playback", async () => {

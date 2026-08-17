@@ -7,6 +7,7 @@ import { PortalThemeControl } from "../theme-control";
 
 type PortalIconName =
   | "dashboard"
+  | "command"
   | "library"
   | "announcements"
   | "quoter"
@@ -51,6 +52,17 @@ const NAV: readonly NavItem[] = [
     description: "Your authenticated THRIVE command surface.",
     state: "live",
     stateLabel: "Available",
+  },
+  {
+    href: "/portal/command",
+    label: "Command Center",
+    capability: "audit.view",
+    icon: "command",
+    group: "Workspace",
+    description: "Founder-only workforce, decisions, signals, and field handoffs.",
+    state: "live",
+    founderOnly: true,
+    stateLabel: "Founder only",
   },
   {
     href: "/portal/announcements",
@@ -219,12 +231,13 @@ const MISSION_GROUPS = [
     code: "04",
     title: "Governance Layer",
     description: "Inspect membership, founder audit access, and the readiness of approved sources.",
-    routes: ["/portal/members", "/portal/audit"],
+    routes: ["/portal/command", "/portal/members", "/portal/audit"],
     sourceReadiness: true,
   },
 ] as const;
 
 const MISSION_LABELS: Readonly<Record<string, string>> = {
+  "/portal/command": "Command Center",
   "/portal/calls": "Call Lab",
   "/portal/book": "Book",
   "/portal/scripts": "Scripts",
@@ -709,6 +722,14 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
       <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
       <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+    </>
+  ),
+  // Crosshair inside a field console — founder command.
+  command: (
+    <>
+      <circle cx="12" cy="12" r="7.5" />
+      <circle cx="12" cy="12" r="2.3" />
+      <path d="M12 2.5V6M12 18v3.5M2.5 12H6M18 12h3.5" />
     </>
   ),
   // Speaker with sound waves.
