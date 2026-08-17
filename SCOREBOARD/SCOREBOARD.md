@@ -1,4 +1,4 @@
-# SCOREBOARD — Fleet Economy, tournaments 1–3 (updated 2026-08-16)
+# SCOREBOARD — Fleet Economy, tournaments 1–3 (updated 2026-08-17)
 
 Final standings by **confirmed production per token**, the only currency this
 board recognizes. Funded by Yuxiang Mao (Shawn), owner. Administered by

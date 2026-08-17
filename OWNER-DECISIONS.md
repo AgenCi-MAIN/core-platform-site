@@ -46,6 +46,7 @@ an action) · 🔵 OPEN (still the owner's to decide)
 | B16 | Token caps **unlimited** — made safe because spend lowers a lane's own score | ✅ standing |
 | B17 | New recruits enter **under** an O.G. lane, VERITY-reviewed | ✅ |
 | B18 | **Codex project first** — every workforce assignment must confirm the CORE Codex workspace and load the governing records before work begins; this grants no external credentials or capabilities | ✅ standing |
+| B19 | **THE WARDEN promoted to EMAIL ANALYZER / RESPONSE DRAFTER** (2026-08-17, highest-rated standing sub): on HERALD detection of inbound human email, Warden analyzes and files a reply DRAFT — never sends. **Forward step ACTIVE as of 2026-08-17**: destination is the Mr.T analysis desk `out-reach@inkboxmail.com` (Inkbox identity `@out-reach`, display "Mr.T", VoIP +1-689-689-1349, created by the owner). HQ's Inkbox connection is bound to the `core` identity and cannot act AS the desk — it only forwards TO it; reading/answering from the desk itself requires the owner connecting that identity to a session. The desk identity's first API key was pasted into chat and is BURNED — owner to revoke in the Inkbox console; no stored key is held anywhere in this operation | ✅ active (desk key revocation pending owner) |
 
 ## C. The platform
 

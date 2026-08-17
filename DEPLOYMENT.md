@@ -130,3 +130,18 @@ Secrets survive deploys; they only need setting again if they change.
       cutting over.
 - [x] **Merge PR #1.** Done — merged; the deployment has since moved through
       releases up to 2.0.0 (see RELEASE-2.0.0.md).
+
+## Deploy log addendum (2026-08-17)
+
+- 2026-08-16: version `877e0c99` — open-redirect fix + call-review surface
+  (first attempt hit transient Cloudflare 10013 at asset upload; retry
+  succeeded).
+- 2026-08-17: post-PR#24 deploy by the owner — ships the single-identity
+  founder gate (FOUNDER_EMAILS = btcmao518@gmail.com). Version id was not
+  captured into the record (owner's terminal only) — record it on the next
+  deploy.
+- Account note: the Cloudflare ACCOUNT email is being swapped to
+  btcmao518@gmail.com via support ticket (password lost, old inbox dead) —
+  see strategy/2026-08-17-identity-recovery-docket.md. The `bankerrunners`
+  workers.dev SUBDOMAIN is load-bearing (OAuth redirect URI, Access app,
+  installed PWAs) and must NOT be renamed.
