@@ -19,6 +19,8 @@ type PortalIconName =
   | "book"
   | "calls"
   | "leadtech"
+  | "retreaver"
+  | "twilio"
   | "scripts"
   | "team"
   | "leadership"
@@ -124,6 +126,26 @@ const NAV: readonly NavItem[] = [
     icon: "leadtech",
     group: "API",
     description: "LeadTech contacts and pipeline, rendered natively inside CORE.",
+    state: "live",
+    stateLabel: "Leadership",
+  },
+  {
+    href: "/portal/retreaver",
+    label: "Retreaver",
+    capability: "leadership.view.all",
+    icon: "retreaver",
+    group: "API",
+    description: "Ad campaign to central number to agent — inbound call routing, read-only.",
+    state: "live",
+    stateLabel: "Leadership",
+  },
+  {
+    href: "/portal/twilio",
+    label: "Twilio",
+    capability: "leadership.view.all",
+    icon: "twilio",
+    group: "API",
+    description: "Central numbers and the inbound call log, read-only.",
     state: "live",
     stateLabel: "Leadership",
   },
@@ -817,6 +839,24 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
   // Funnel — the pipeline.
   leadtech: (
     <path d="M4 5h16l-6.2 7.2v6.3l-3.6 1.8v-8.1L4 5z" />
+  ),
+  // One inbound line splitting to many — the call router.
+  retreaver: (
+    <>
+      <circle cx="5.5" cy="12" r="2.2" />
+      <circle cx="18.5" cy="5.5" r="2.2" />
+      <circle cx="18.5" cy="12" r="2.2" />
+      <circle cx="18.5" cy="18.5" r="2.2" />
+      <path d="M7.7 11.2 16.3 6.3M7.7 12h8.6M7.7 12.8l8.6 4.9" />
+    </>
+  ),
+  // Antenna mast with waves — the phone line.
+  twilio: (
+    <>
+      <path d="M12 10.5V20.5M9 20.5h6" />
+      <circle cx="12" cy="8.5" r="2" />
+      <path d="M7.5 4a7 7 0 0 0 0 9M16.5 4a7 7 0 0 1 0 9" />
+    </>
   ),
   // Document with lines.
   scripts: (

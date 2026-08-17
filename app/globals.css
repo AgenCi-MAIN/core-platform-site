@@ -941,6 +941,8 @@ button, .button, .nav-cta, .text-link {
 .portal-nav-item-team { --nav-hue: #7b7fd9; }
 .portal-nav-item-leadership { --nav-hue: #c0983f; }
 .portal-nav-item-shop { --nav-hue: var(--portal-accent); }
+.portal-nav-item-retreaver { --nav-hue: #b4653a; }
+.portal-nav-item-twilio { --nav-hue: #a05252; }
 .portal-nav-item-quoter { --nav-hue: #5aa2cf; }
 .portal-nav-item-payrates { --nav-hue: #4f9e6f; }
 .portal-nav-item-members { --nav-hue: #6f88cf; }

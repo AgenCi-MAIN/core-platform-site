@@ -63,5 +63,25 @@ declare namespace Cloudflare {
      * in any file — only this name.
      */
     LEADTECH_API_KEY?: string;
+
+    /**
+     * Retreaver (inbound call tracking) read API key for the
+     * /portal/retreaver surface (app/portal/retreaver/client.ts). Optional
+     * for the same reason as the rest — absent means the surface renders an
+     * honest "not connected" card. Set with `wrangler secret put`, or
+     * `.dev.vars` locally. Never store the value in any file — only this name.
+     */
+    RETREAVER_API_KEY?: string;
+
+    /**
+     * Twilio read credentials for the /portal/twilio surface
+     * (app/portal/twilio/client.ts) — inbound call log and number inventory,
+     * read-only. Both optional for the same reason as the rest — either
+     * absent means the surface renders an honest "not connected" card. Set
+     * with `wrangler secret put`, or `.dev.vars` locally. Never store the
+     * values in any file — only these names.
+     */
+    TWILIO_ACCOUNT_SID?: string;
+    TWILIO_AUTH_TOKEN?: string;
   }
 }

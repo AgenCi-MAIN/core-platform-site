@@ -108,6 +108,8 @@ const PROTECTED_ROUTES = [
   "/portal/leadership",
   "/portal/leadtech",
   "/portal/library",
+  "/portal/retreaver",
+  "/portal/twilio",
   "/portal/members",
   "/portal/pay-rates",
   "/portal/music",
