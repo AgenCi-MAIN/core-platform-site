@@ -22,6 +22,7 @@ type PortalIconName =
   | "radio"
   | "shop"
   | "payrates"
+  | "commission"
   | "training"
   | "book"
   | "calls"
@@ -101,6 +102,18 @@ const NAV: readonly NavItem[] = [
     description: "Who THRIVE is, what we believe, training, and the incentive plan.",
     state: "live",
     stateLabel: "Available",
+  },
+  {
+    href: "/portal/commission",
+    label: "Commission Schedule",
+    capability: "dashboard.view.self",
+    icon: "commission",
+    group: "Workspace",
+    description:
+      "Every carrier's comp grid by contract level, with ladders and promotion rules. Opens in a new tab.",
+    state: "live",
+    stateLabel: "All members",
+    external: true,
   },
   {
     href: "/portal/training",
@@ -916,6 +929,14 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <rect x="5.5" y="3.5" width="13" height="17" rx="2" />
       <path d="M9 7.5h6" />
       <path d="M9 12h.01M12 12h.01M15 12h.01M9 15.7h.01M12 15.7h.01M15 15.7h.01" />
+    </>
+  ),
+  // Percent mark — the comp grid.
+  commission: (
+    <>
+      <circle cx="7.5" cy="7.5" r="2.6" />
+      <circle cx="16.5" cy="16.5" r="2.6" />
+      <path d="M17.5 5.5 6.5 18.5" />
     </>
   ),
   // Dollar in a coin.

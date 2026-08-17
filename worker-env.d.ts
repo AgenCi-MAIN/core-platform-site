@@ -35,6 +35,13 @@ declare namespace Cloudflare {
     DB?: D1Database;
 
     /**
+     * Static asset binding (public/ directory). Optional like DB: the app
+     * fails closed (503) where an asset genuinely isn't served rather than
+     * assuming the binding exists — see app/portal/commission/route.ts.
+     */
+    ASSETS?: Fetcher;
+
+    /**
      * Sign in with Google. All three are optional for the same reason `DB`
      * is: a deployment where they are not yet set genuinely lacks them at
      * runtime, and app/google-auth.ts refuses sign-in rather than crashing.
