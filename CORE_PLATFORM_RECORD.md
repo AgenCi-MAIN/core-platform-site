@@ -650,14 +650,36 @@ their stock voice AI on THRIVE's line un-briefed — flipping to
 configured. Releasing an Inkbox number is **irreversible**; the org cap is 3
 numbers, 1 per identity.
 
-**Key hygiene (incident, 2026-08-15).** One API key was accidentally pasted
-into the session chat and was ordered revoked and replaced — a key that has
-touched a transcript is burned, no exceptions. Keys are minted at
-`inkbox.ai/console/api-keys` (the middle row-icon is "new key with same
-scope"; the full secret is shown exactly once, at creation). Three unused
-keys from Aug 12 should also be revoked once the number is live. As
-everywhere in this record: secret *values* never appear in files, commits,
-or chat — only names.
+**Key hygiene (incident, 2026-08-15 — CLOSED 2026-08-17).** One API key was
+accidentally pasted into the session chat and was ordered revoked and
+replaced — a key that has touched a transcript is burned, no exceptions.
+Keys are minted at `inkbox.ai/console/api-keys` (the middle row-icon is
+"new key with same scope"; the full secret is shown exactly once, at
+creation). As everywhere in this record: secret *values* never appear in
+files, commits, or chat — only names.
+
+**Resolution, 2026-08-17 (owner-confirmed).** The owner deleted **all** API
+keys in the Inkbox console. The console listing he reviewed immediately
+before doing so showed a single key, `API Caller*1`, scope **Admin (all)**,
+created 2026-08-15 by the retired "Bank Runner" identity, last used the day
+it was created — an unrevoked full-scope credential owned by an identity
+Google had since locked, which is the worst of the set and the one the
+2026-08-15 incident had ordered killed. Nothing was minted to replace it,
+deliberately: the Claude↔Inkbox connector authenticates separately and does
+not use an API key, and the key's only real job — the REST call that
+provisioned the staff number — was already complete. **Mint a key at the
+moment a task needs REST access, never in advance**; an unused key is only
+an unrevoked key waiting to leak, which is what put the Aug-12 set on the
+list in the first place.
+
+*Verification boundary, stated plainly:* MAIN did not and could not verify
+the deletions independently — the Inkbox connector was disconnected from
+the session at the time. This entry records the owner's own confirmation,
+not an observed console state. The earlier expectation of three unused
+Aug-12 keys plus a separate `@out-reach` desk key did not match the single
+row the console showed; whether they were already gone, scoped to another
+view, or never existed as recorded is **unresolved**, and the record should
+not be read as settling it.
 
 **Compliance posture.** The line is receiving-first. Outbound SMS is gated
 by 10DLC campaign registration (Inkbox enforces this too), which matches the
