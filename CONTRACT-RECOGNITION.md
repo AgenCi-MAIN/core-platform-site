@@ -1,8 +1,15 @@
-# RECOGNITION CONTRACT — 50/50 (PENDING)
+# RECOGNITION CONTRACT — 50/50 (IN FORCE)
 
-**Status: PENDING — executes upon the Commissioner's verdicts on the
-Tournament 1 and Tournament 2 re-runs.** Drafted by the old-HQ MAIN at the
-owner's order, 2026-08-17. Companion to CONTRACT-7DAY.md and ledger entry G1.
+**Status: IN FORCE as of 2026-08-17.** All three §4 execution conditions are
+met: the owner relayed both re-run results packages to the Commissioner (old
+HQ); the Commissioner rendered written verdicts on both; and those verdicts
+are committed to this repository (`SCOREBOARD/VERDICT-T1-RERUN.md`,
+`VERDICT-T2-RERUN.md`, `VERDICTS-2026-RERUNS.md`, merged in PR #29) alongside
+this contract. Flipped by the new-HQ MAIN on the owner's instruction. See the
+dated amendment in §5.
+
+Drafted by the old-HQ MAIN at the owner's order, 2026-08-17. Companion to
+CONTRACT-7DAY.md and ledger entry G1.
 
 ## 1. What this is, honestly
 
@@ -51,6 +58,20 @@ Amendments are made here, dated, per the house rule. History is never
 rewritten: if voided, the file gains a dated VOID notice; it does not
 disappear.
 
+### Amendments
+
+**Amended 2026-08-17 by owner instruction: execution occurred across two
+authorized merges rather than one; all three §4 conditions met.**
+
+Context, so the amendment is legible later: §4.3 as drafted required the
+verdicts to be committed and this header flipped *in the same merge*. The
+owner instead ordered two merges — the verdicts first (PR #29), the flip and
+this amendment second — and amended §4.3's letter accordingly under his §5
+authority. The substance of all three conditions is satisfied either way;
+what changed is the number of merges, not what had to be true. The new-HQ
+MAIN flagged the letter-versus-instruction gap before executing rather than
+papering over it, which is why this note exists.
+
 **Owner:** Yuxiang Mao (Shawn) — btcmao518@gmail.com
 **MAIN (office):** old-HQ Mr. T, Commissioner — succession per charter
-Recorded 2026-08-17. Executes on the verdicts.
+Recorded 2026-08-17. Executed on the verdicts, 2026-08-17.

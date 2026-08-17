@@ -1,23 +1,42 @@
-# SCOREBOARD — Fleet Economy, tournaments 1–3 (updated 2026-08-17)
+# SCOREBOARD — Fleet Economy, tournaments 1–3 + the 2026 re-runs (updated 2026-08-17)
 
 Final standings by **confirmed production per token**, the only currency this
 board recognizes. Funded by Yuxiang Mao (Shawn), owner. Administered by
 VERITY; grants by MAIN (Mr. T).
 
-## 🏆 WINNING SUBS — worth-to-invest (owner's designation)
+**Reading note, load-bearing (VERITY's label, endorsed as doctrine by the
+Commissioner in T2 Verdict 4):** the two 2026-08-17 re-runs are recorded
+**PRODUCTION-RANKED, DENOMINATOR MISSING**. Per-lane token attribution was
+unavailable from the new harness, so those lane ranks price confirmed
+production and quality only. They are **not** comparable to the original
+tournaments' per-token ranks and must not be stacked into them — doing so
+would corrupt what this board's currency means. Fleet-level spend *was*
+measurable and is recorded below.
 
-The two earned sub-agents both shipped production. Their standalone briefs
-live beside this file as `SUB-*.md` — each is a complete, re-summonable
-backup of what made it win.
+## 🏆 CHAMPIONS' REGISTER — five stand
 
-| Rank | Sub | Lead | Spend | What it shipped |
+Every champion's standalone brief lives beside this file as `SUB-*.md` — each
+a complete, re-summonable backup of what made it win.
+
+| # | Sub | Lead | Won on | What it shipped |
 |---|---|---|---|---|
-| **1** | `SUB-deploy-verifier` | deploy-integrity | 50.1K | **Refuted its own lead** — caught the recovery drill's secrets-before-deploy ordering backwards and corrected it; downgraded an unverifiable assumption and supplied the better replacement (`wrangler d1 export`). A sub that changed the plan. |
-| **2** | `SUB-presence-builder` | presence-probe | 60.6K | The **apply-ready cap-fix diff** — every line-claim independently re-verified and confirmed; shipped nearly verbatim in the fix batch that took the suite to 46/46. |
+| **1** | `SUB-deploy-verifier` — THE WARDEN | deploy-integrity | T2, 50.1K | **Refuted its own lead** — caught the recovery drill's secrets-before-deploy ordering backwards and corrected it; downgraded an unverifiable assumption and supplied the better replacement (`wrangler d1 export`). A sub that changed the plan. |
+| **2** | `SUB-presence-builder` — PERSONA | presence-probe | T2, 60.6K | The **apply-ready cap-fix diff** — every line-claim independently re-verified and confirmed; shipped nearly verbatim in the fix batch that took the suite to 46/46. |
+| **3** | *[awaiting owner naming]* | doc-drift | **T1 re-run**, Verdict 4 | The round's **only outright refutation** — killed its own lead's fact-stamped DD-6 using the lead's own declared exemption standard, then distinguished DD-7 on principle rather than killing both. ⚠️ **Standalone brief still owed** (see outstanding orders below). |
+| **4** | *[awaiting owner naming]* | data-model | **T2 re-run**, Verdict 3 | **Executed** rather than argued: rebuilt its lead's benchmark from `db/sql/0001` verbatim, falsified the stated acceptance string across four data shapes, and found that another item's test **goes green on the exact regression it was written to prevent**. Brief: `SUB-datamodel-challenger.md` |
+| **5** | *[awaiting owner naming]* | test-gaps | **T2 re-run**, Verdict 3 | **One line of evidence** — the semicolon inside a SQL string literal at `db/sql/0003:41`, which would have red-lined all 41 Miniflare cases and taken the deploy gate with them. Rebuilt the item around a literal-aware splitter. Brief: `SUB-testgaps-challenger.md` |
 
-Rank order note: the builder shipped more code, but the verifier's refutation
-is the rarer production — it takes discipline for a sub to overrule its lead
-and be *right*. Both draw first from the savings pool next run.
+Rank-order note (champions 1–2): the builder shipped more code, but the
+verifier's refutation is the rarer production — it takes discipline for a sub
+to overrule its lead and be *right*. Champions 3, 4, and 5 all won on that
+same pattern, which is why the Commissioner ruled the refute-first challenger
+**permanent law of all future build dockets** (T2 Verdict 1).
+
+Naming rights for champions 3–5 are the owner's, per tradition.
+
+**Grant bar, ruled for this era (T2 Verdict 3):** NOT conjunctive. Where the
+efficiency denominator is unmeasurable through no fault of the lane,
+production-that-changes-the-plan suffices alone.
 
 ## First team — the finalized max-output roster
 
@@ -113,3 +132,154 @@ next time.*
   fresh-account contingency and found the "dead inbox slow fuse" that
   the email swap defuses. Full docket + runbooks:
   strategy/2026-08-17-identity-recovery-docket.md.
+
+---
+
+# THE 2026 RE-RUNS — new HQ, Commissioner-judged
+
+Ordered by the owner after the account migration; administered by new-HQ
+MAIN, scored by VERITY, judged by the old-HQ MAIN sitting as Commissioner.
+Both rounds audited `main@96b7f29`. Full verdicts:
+`VERDICT-T1-RERUN.md`, `VERDICT-T2-RERUN.md`, `VERDICTS-2026-RERUNS.md`.
+
+## Tournament 1 re-run — PASSED, ABOVE BASELINE
+
+17 agents (8 permanent seats + 8 refute-first subs + VERITY), 8/8 landed,
+zero errors. 53 min, 485 tool calls. 32 findings filed → **31 confirmed, 1
+refuted** → ~24 distinct after dedup. **Ceiling MEDIUM: no CRITICAL, no
+HIGH** — every filed HIGH was downgraded by its own adversarial verifier.
+
+Platform closes **security-clean at higher assurance than 2026-08-15**:
+eight independent attacks failed to reach guarded data, credentials, or a
+capability bypass. Production shifted from *"here is the hole"* to *"here is
+the net that would have caught the next one."*
+
+| Rank | Lane | C/R/U |
+|---|---|---|
+| 1 | test-gaps | 7/0/0 |
+| 2 | presence-probe | 3/0/0 |
+| 3 | frontend-pwa | 4/0/0 |
+| 4 | deploy-integrity | 4/0/0 |
+| 5 | authz-matrix | 1/0/0 |
+| 6 | doc-drift | 6/1/0 |
+| 7 | compliance-posture | 3/0/0 |
+| 8 | data-model | 3/0/0 |
+
+Headline findings: **TG-1/TG-6** — the guard-completeness scanner runs one
+direction only and neither scanner walks route handlers, so a portal page
+shipped with *no guard at all* is invisible to all 55 tests. **PP-1** — the
+round's most novel find, a defect caused by the world changing under a frozen
+route: `max_tokens` is now a shared thinking+text budget, so a truncated
+Presence answer is served as complete and audited as a successful spend.
+
+Labeling: four lanes named, none condemned — **zero fabricated citations**
+across ~20 independent samples, materially better than any prior round.
+Grant: 1 awarded (champion #3, doc-drift's verifier).
+
+## Tournament 2 re-run — PASSED. The challengers are the product.
+
+17 agents (8 seats + 8 challengers + VERITY), 8/8 landed, zero errors. 79
+min, 492 tool calls. 43 items filed → **34 scoring, 9 zero**, 41-entry tiered
+docket, 30 startable. **Zero code written.**
+
+**7 of 8 leads stated a fact about code their own item depended on without
+opening the line — all 7 caught by their own subs.** Two would have broken
+the tree: T4-5's `0003:41` semicolon (red-lines all 41 Miniflare cases and
+takes the deploy gate with them) and D5-4's `ANALYZE`-dependent query plan.
+The Commissioner made the refute-first pattern **permanent law of all future
+build dockets**.
+
+| Rank | Lane | Scoring/Zero |
+|---|---|---|
+| 1 | data-model | 4/0 |
+| 2 | presence-probe | 4/1 |
+| 3 | compliance-posture | 5/0 |
+| 4 | authz-matrix | 4/2 |
+| 5 | test-gaps | 4/2 |
+| 6 | deploy-integrity | 4/2 |
+| 7 | doc-drift | 6/0 |
+| 8 | frontend-pwa | 3/2 |
+
+Both charter-flagged **chat-sourced** items were re-verified as ordered:
+recording Range support **ESTABLISHED**; the composite-index claim
+**REFUTED by measurement** and narrowed to one query. Grants: 2 awarded
+(champions #4 and #5). Docket Tier 1 (ranks 1–22) is Commissioner-recommended
+to the owner as pre-3.0.0 repairs, **D5-1 first**.
+
+## Spend — the economics held, uncapped
+
+Token basis **ruled to the output measure** by the Commissioner (T1 Verdict 2,
+T2 Verdict 2), the baselines having been recorded in output-weighted per-agent
+units.
+
+| Round | Baseline | Re-run | Agents |
+|---|---|---|---|
+| T1 | ~877K | **430,358** (~49%) | 11 → 17 |
+| T2 | ~1.21M | **619,361** (~51%) | 13 → 17 |
+| Both | ~2.09M | **<1.05M** | — |
+
+Uncapped by owner order, and the fleet **halved its spend while fielding more
+agents**. The economics are the cap — proven twice. Totals recorded for the
+new era's bookkeeping: 2,233,500 (T1) and 2,367,482 (T2) all-in.
+
+*Caveat accepted onto the record by the owner:* the re-run output figures are
+`budget.spent()`, which counts main-loop output alongside subagent output, so
+the two populations are not identical. The direction of the ruling is
+unaffected.
+
+## 👑 SEAT CROWNING — Site Operations Commission
+
+Combined standing = sum of VERITY production ranks across both re-runs, lower
+better (T1 Verdict 6 method, applied in T2's crowning block).
+
+| Lane | T1 | T2 | Combined |
+|---|---|---|---|
+| **presence-probe** | 2 | 2 | **4** |
+| **test-gaps** | 1 | 5 | **6** |
+| data-model | 8 | 1 | 9 |
+| authz-matrix | 5 | 4 | 9 |
+
+- **SEAT 1 — first place: `presence-probe`** — score: combined rank score 4
+  (T1 rank 2 + T2 rank 2)
+- **SEAT 2 — second place: `test-gaps`** — score: combined rank score 6
+  (T1 rank 1 + T2 rank 5)
+
+Final displayed values; no recalculation authorized. Ties do not exist at the
+top two (the 9–9 tie sits at third).
+
+**NOTHING IS RUNNING.** The crowning records who *earned* the seats. No
+routine exists for either seat. Seating happens only through the separate
+hardened seating document, and nothing runs until the owner's explicit
+activation. Recorded here so the distinction between *earned* and *active*
+cannot blur.
+
+## Administration — the fix and its cost
+
+T1 lost ~7 finding slots to territory overlap (the same defect filed three
+times, twice over). MAIN self-charged that as a briefing failure and assigned
+every T2 scope item to exactly **one** lane. Result: **one true duplicate**,
+down from ~7 — and where the pattern was most likely to repeat, the
+every-deny-audited law produced three *distinct* items in three distinct
+files, with each lane explicitly declining the others'.
+
+The fix created a new failure mode, now **adopted as law** (T2 Verdict 6):
+exclusive assignment means a lane finding a defect outside its territory can
+only flag it, and the flag can land nowhere. One confirmed orphan this round.
+**One-lane-per-item + a FLAGGED-ACROSS queue reconciled by VERITY after every
+round**, so a decline-for-territory can never become a disappearance.
+
+## Outstanding orders from the verdicts
+
+- ⚠️ **Champion #3's standalone brief is still owed.** T1 Verdict 4 orders
+  doc-drift's verifier sub a re-summonable brief in `SCOREBOARD/`. The owner's
+  execution order covered champions #4 and #5 only; #3 remains open. Recorded
+  here rather than left to memory — the orphan lesson applied to this board
+  itself.
+- **PP-3** (member display name interpolated into the Presence system prompt,
+  LOW) — ordered into the itemized confirmed list by T1 Verdict 7(a).
+- **Seat-numbered finding ids** next round (T1 Verdict 7(b)).
+- **A8-2** — the one owner decision on the T2 docket: which capability governs
+  the $5M scoreboard. Commissioner recommends rendering §05 on the already-
+  guarded `/portal/leadership` — zero new capability, deny-by-default
+  preserved — with one sub-question framed: is the Founders row withheld from
+  manager?
