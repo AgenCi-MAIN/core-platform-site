@@ -283,3 +283,14 @@ round**, so a decline-for-territory can never become a disappearance.
   guarded `/portal/leadership` — zero new capability, deny-by-default
   preserved — with one sub-question framed: is the Founders row withheld from
   manager?
+- **T3-S07-F01 — post-merge graft: service-worker `/go/*` exemption.** Sole
+  owner: `frontend-pwa`. Adopt S01's early native-navigation return in
+  `public/sw.js` plus its regression pin so a future non-HTTP shortcut cannot
+  be swallowed by the worker's navigation fallback or enter a cache. **OPEN
+  follow-up; explicitly not a condition of the S02 merge.**
+- **T3-S08-F01 — post-merge graft: central handoff destination registry.**
+  Sole owner: `authz-matrix`. Adapt S01's documented
+  `app/go/destinations.ts` pattern so fixed HQ, Routines, and Mr.T handoffs
+  share one evidence-bearing source while preserving S02's query-stripping
+  and no-connector boundaries. **OPEN follow-up; explicitly not a condition
+  of the S02 merge.**
