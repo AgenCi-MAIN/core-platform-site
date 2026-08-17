@@ -4390,3 +4390,241 @@ html[data-portal-performance="boost"] .portal-mission-lane,
 html[data-portal-performance="boost"] .portal-sidebar {
   background-image: none;
 }
+
+/* ============================================================
+   Founder Command Center — S01 Command Deck
+   Mobile-first: the base layout is the phone layout; wider arrangements are
+   introduced only in min-width queries below. All facts are server-rendered
+   behind requireFounder, and no selector changes the Presence capability.
+   ============================================================ */
+.portal-nav-item-command { --nav-hue: #d86c45; }
+
+.founder-command {
+  display: grid;
+  gap: 14px;
+  width: min(100% - 20px, 1320px);
+  padding-top: 10px;
+}
+
+.founder-command-hero {
+  position: relative;
+  padding: 20px 16px 16px;
+  overflow: hidden;
+  border: 1px solid var(--portal-line-strong);
+  border-radius: 18px;
+  background:
+    radial-gradient(34rem 18rem at 100% 0%, color-mix(in srgb, var(--portal-accent) 18%, transparent), transparent 68%),
+    linear-gradient(148deg, var(--portal-panel), color-mix(in srgb, var(--portal-raised) 86%, var(--portal-bg)));
+  box-shadow: var(--portal-shadow);
+}
+.founder-command-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--portal-accent) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--portal-accent) 5%, transparent) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: linear-gradient(145deg, transparent 20%, #000 100%);
+}
+.founder-command-hero-head,
+.founder-command-console { position: relative; z-index: 1; }
+.founder-command-hero-head { display: grid; gap: 14px; }
+.founder-command-hero h1 {
+  max-width: 13ch;
+  margin: 0;
+  font-size: clamp(38px, 12vw, 66px);
+  font-weight: 830;
+  line-height: .93;
+  letter-spacing: -.06em;
+}
+.founder-command-hero h1 em { color: var(--portal-accent-strong); font-style: normal; }
+.founder-command-lede { max-width: 52ch; margin: 13px 0 0; color: var(--portal-muted); font-size: 13px; line-height: 1.6; }
+.founder-command-proof { display: flex; flex-wrap: wrap; align-content: start; gap: 7px; }
+
+.founder-command-console {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--portal-accent) 28%, var(--portal-line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--portal-panel) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+.founder-command-console-copy { min-width: 0; }
+.founder-command-console-copy > p:first-of-type { margin: 6px 0 0; color: var(--portal-accent-strong); font-size: 9px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.founder-command-console-copy h2 { margin: 5px 0 0; font-size: clamp(18px, 5.5vw, 25px); line-height: 1.1; letter-spacing: -.025em; }
+.founder-command-console-copy > p:last-child { margin: 7px 0 0; color: var(--portal-muted); font-size: 11px; line-height: 1.5; }
+.founder-command-console .portal-command-prompt { grid-template-columns: 1fr; width: 100%; margin-top: 0; }
+.founder-command-console .portal-command-prompt input,
+.founder-command-console .portal-command-prompt button { min-height: 52px; }
+.founder-command-console .portal-command-prompt button { width: 100%; }
+.founder-command-console .portal-command-prompt small { grid-column: 1; }
+.founder-command-hq {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  padding: 9px 12px;
+  border: 1px solid var(--portal-text);
+  border-radius: 11px;
+  background: var(--portal-text);
+  color: var(--portal-bg);
+}
+.founder-command-hq > span:first-child { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid currentColor; border-radius: 9px; font-size: 18px; }
+.founder-command-hq > span:last-child { min-width: 0; display: grid; gap: 2px; }
+.founder-command-hq small { opacity: .68; font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.founder-command-hq strong { font-size: 12px; }
+
+.founder-command-index { color: var(--portal-subtle); font-size: 9px; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; white-space: nowrap; }
+
+.founder-command-launchers { display: grid; gap: 8px; }
+.founder-command-launcher {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 24px;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 11px;
+  border: 1px solid var(--portal-line);
+  border-radius: 13px;
+  background: var(--portal-panel);
+  box-shadow: var(--portal-shadow);
+}
+.founder-command-launcher:hover { border-color: var(--portal-accent); background: var(--portal-raised); }
+.founder-command-launcher-mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 11px; background: var(--portal-accent-soft); color: var(--portal-accent-strong); font-size: 9px; font-weight: 900; letter-spacing: .03em; }
+.founder-command-launcher-copy { min-width: 0; display: grid; gap: 2px; }
+.founder-command-launcher-copy small { color: var(--portal-subtle); font-size: 8px; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
+.founder-command-launcher-copy strong { font-size: 13px; }
+.founder-command-launcher-copy > span { color: var(--portal-muted); font-size: 10px; line-height: 1.4; }
+.founder-command-launcher-arrow { color: var(--portal-accent-strong); font-size: 18px; }
+
+.founder-command-priority,
+.founder-command-workforce,
+.founder-command-signals,
+.founder-command-surfaces {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--portal-line);
+  border-radius: 16px;
+  background: var(--portal-panel);
+  box-shadow: var(--portal-shadow);
+}
+.founder-command-section-head { display: grid; gap: 9px; margin-bottom: 13px; }
+.founder-command-section-head h2 { margin: 0; font-size: 18px; line-height: 1.2; letter-spacing: -.025em; }
+.founder-command-section-head > span { width: fit-content; padding: 5px 8px; border: 1px solid var(--portal-line); border-radius: 999px; background: var(--portal-soft); color: var(--portal-muted); font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+
+.founder-command-deadlines { display: grid; gap: 8px; }
+.founder-command-deadlines article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 10px;
+  padding: 13px;
+  border: 1px solid color-mix(in srgb, #d88c2d 45%, var(--portal-line));
+  border-radius: 12px;
+  background: color-mix(in srgb, #d88c2d 8%, var(--portal-raised));
+}
+.founder-command-deadlines time { grid-column: 1; font-size: clamp(28px, 9vw, 42px); font-weight: 850; line-height: 1; letter-spacing: -.05em; }
+.founder-command-deadlines article > div { grid-column: 1 / -1; }
+.founder-command-deadlines strong { font-size: 13px; }
+.founder-command-deadlines p,
+.founder-command-queue p { margin: 4px 0 0; color: var(--portal-muted); font-size: 11px; line-height: 1.45; }
+.founder-command-deadlines small,
+.founder-command-queue small { display: block; margin-top: 7px; color: var(--portal-subtle); font-size: 9px; line-height: 1.4; }
+.founder-command-flag { width: fit-content; display: inline-flex; align-items: center; align-self: start; padding: 4px 7px; border: 1px solid currentColor; border-radius: 999px; font-size: 8px; font-weight: 900; letter-spacing: .08em; line-height: 1; text-transform: uppercase; white-space: nowrap; }
+.founder-command-flag-deadline { color: #97600d; background: #fff7df; }
+.founder-command-flag-open { color: var(--portal-muted); background: var(--portal-soft); }
+.founder-command-flag-watch { color: #a4332d; background: #fff0ed; }
+
+.founder-command-queue { display: grid; margin-top: 10px; border: 1px solid var(--portal-line); border-radius: 12px; overflow: hidden; }
+.founder-command-queue article { min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; padding: 12px; border-bottom: 1px solid var(--portal-line); background: var(--portal-panel); }
+.founder-command-queue article:last-child { border-bottom: 0; }
+.founder-command-queue article > .founder-command-index { grid-column: 1 / -1; }
+.founder-command-queue strong { font-size: 12px; }
+
+.founder-command-workforce-grid { display: grid; gap: 8px; }
+.founder-command-workforce-grid article { min-width: 0; display: grid; align-content: start; gap: 6px; min-height: 148px; padding: 13px; border: 1px solid var(--portal-line); border-radius: 12px; background: var(--portal-raised); }
+.founder-command-workforce-grid article > small { color: var(--portal-subtle); font-size: 9px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; }
+.founder-command-workforce-grid article > strong { overflow-wrap: anywhere; font-size: clamp(18px, 6vw, 24px); line-height: 1.05; letter-spacing: -.035em; }
+.founder-command-workforce-grid article > p { margin: auto 0 0; color: var(--portal-muted); font-size: 10px; line-height: 1.45; }
+.founder-command-status { width: fit-content; padding: 4px 6px; border-radius: 5px; font-size: 8px; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+.founder-command-status-recorded { color: #745716; background: #fff4d4; }
+.founder-command-status-unavailable { color: #696f78; background: #eceff2; }
+.founder-command-status-active { color: #176b45; background: #e5f5ec; }
+
+.founder-command-boundary { margin: 0 0 10px; padding: 11px 12px; border-left: 3px solid #a4332d; background: color-mix(in srgb, #a4332d 7%, var(--portal-raised)); color: var(--portal-muted); font-size: 10px; line-height: 1.5; }
+.founder-command-signal-list { display: grid; border: 1px solid var(--portal-line); border-radius: 12px; overflow: hidden; }
+.founder-command-signal-list article { min-width: 0; display: grid; gap: 7px; padding: 12px; border-bottom: 1px solid var(--portal-line); }
+.founder-command-signal-list article:last-child { border-bottom: 0; }
+.founder-command-signal-list article > div { display: grid; gap: 2px; }
+.founder-command-signal-list strong { font-size: 13px; }
+.founder-command-signal-list small { color: var(--portal-subtle); font-size: 9px; }
+.founder-command-signal-list p { margin: 0; color: var(--portal-muted); font-size: 10px; line-height: 1.45; }
+.founder-command-signal-list .founder-command-unavailable { padding: 8px; border-radius: 7px; background: var(--portal-soft); color: var(--portal-subtle); }
+
+.founder-command-surfaces > div { display: grid; gap: 7px; }
+.founder-command-surfaces a { min-height: 64px; display: grid; grid-template-columns: 52px minmax(0, 1fr) 24px; gap: 4px 10px; align-items: center; padding: 9px 11px; border: 1px solid var(--portal-line); border-radius: 10px; background: var(--portal-raised); }
+.founder-command-surfaces a:hover { border-color: var(--portal-accent); }
+.founder-command-surfaces a > span { grid-row: 1 / 3; color: var(--portal-subtle); font-size: 9px; font-weight: 850; letter-spacing: .08em; }
+.founder-command-surfaces a > strong { align-self: end; font-size: 12px; }
+.founder-command-surfaces a > small { align-self: start; color: var(--portal-muted); font-size: 9px; }
+.founder-command-surfaces a > b { grid-column: 3; grid-row: 1 / 3; color: var(--portal-accent-strong); font-size: 17px; font-weight: 500; }
+.founder-command-footnote { margin: 0; padding: 2px 4px; color: var(--portal-subtle); font-size: 9px; line-height: 1.55; }
+
+html[data-portal-theme="dark"] .founder-command-flag-deadline { color: #f0bd62; background: #382d1d; }
+html[data-portal-theme="dark"] .founder-command-flag-watch { color: #f29b94; background: #3a2323; }
+html[data-portal-theme="dark"] .founder-command-status-recorded { color: #f0c86d; background: #3a311f; }
+html[data-portal-theme="dark"] .founder-command-status-unavailable { color: #c2cad2; background: #30343a; }
+html[data-portal-theme="dark"] .founder-command-status-active { color: #7ed5a8; background: #21372c; }
+
+@media (min-width: 700px) {
+  .founder-command { width: min(100% - 36px, 1320px); gap: 16px; padding-top: 20px; }
+  .founder-command-hero { padding: 28px; }
+  .founder-command-hero-head { grid-template-columns: minmax(0, 1fr) auto; }
+  .founder-command-proof { justify-content: flex-end; }
+  .founder-command-console { grid-template-columns: minmax(200px, .75fr) minmax(320px, 1.25fr); align-items: end; padding: 18px; }
+  .founder-command-hq { grid-column: 1 / -1; }
+  .founder-command-launchers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .founder-command-section-head { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+  .founder-command-section-head > span { justify-self: end; }
+  .founder-command-deadlines { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .founder-command-workforce-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .founder-command-signal-list article { grid-template-columns: 90px minmax(150px, .7fr) minmax(180px, 1fr); align-items: start; }
+  .founder-command-signal-list .founder-command-unavailable { grid-column: 2 / -1; }
+  .founder-command-surfaces > div { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1040px) {
+  .founder-command-hero { padding: 34px; }
+  .founder-command-console { grid-template-columns: minmax(220px, .75fr) minmax(380px, 1.35fr) minmax(190px, .55fr); align-items: end; }
+  .founder-command-hq { grid-column: auto; }
+  .founder-command-launchers { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .founder-command-priority,
+  .founder-command-workforce,
+  .founder-command-signals,
+  .founder-command-surfaces { padding: 20px; }
+  .founder-command-workforce-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .founder-command-signal-list article { grid-template-columns: 80px minmax(150px, .55fr) minmax(200px, .9fr) minmax(260px, 1.25fr); align-items: center; }
+  .founder-command-signal-list .founder-command-unavailable { grid-column: auto; }
+  .founder-command-surfaces > div { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .founder-command-launcher,
+  .founder-command-surfaces a { transition: none; }
+}
+
+html[data-portal-performance="boost"] .founder-command-hero,
+html[data-portal-performance="boost"] .founder-command-console,
+html[data-portal-performance="boost"] .founder-command-launcher,
+html[data-portal-performance="boost"] .founder-command-priority,
+html[data-portal-performance="boost"] .founder-command-workforce,
+html[data-portal-performance="boost"] .founder-command-signals,
+html[data-portal-performance="boost"] .founder-command-surfaces {
+  background-image: none;
+  box-shadow: none;
+  backdrop-filter: none;
+}

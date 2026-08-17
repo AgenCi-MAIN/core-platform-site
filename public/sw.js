@@ -129,6 +129,13 @@ self.addEventListener("fetch", (event) => {
 
   if (url.origin !== self.location.origin) return;
 
+  // Founder shortcuts must stay native navigations. In particular, following
+  // the desk route's 307 to mailto: inside fetch() rejects because mailto is
+  // not an HTTP(S) scheme; returning here lets the browser hand it to the OS.
+  // No respondWith also means no shortcut response can enter a worker cache.
+  const isFounderShortcut = url.pathname === "/go" || url.pathname.startsWith("/go/");
+  if (isFounderShortcut) return;
+
   // The access boundary. Nothing under here is ever read from a cache or
   // written to one — every request goes to the server, which re-resolves the
   // session and the member's row before answering.

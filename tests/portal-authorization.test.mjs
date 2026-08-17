@@ -414,6 +414,115 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
   }
 });
 
+test("the Founder Command Center and every shortcut answer the founder only", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("command-owner@example.com", "owner");
+  const otherOwner = {
+    subject: "sub-command-owner",
+    email: "command-owner@example.com",
+  };
+
+  const newFounderRoutes = [
+    "/portal/command",
+    "/go/hq",
+    "/go/routines",
+    "/go/desk",
+  ];
+
+  for (const pathname of newFounderRoutes) {
+    const denied = await portal.get(pathname, otherOwner);
+    assert.equal(denied.status, 307, `a non-founder owner must be refused ${pathname}`);
+    assert.match(
+      denied.headers.get("location") ?? "",
+      /\/portal\/no-access$/,
+      `${pathname} must fail closed to the explanation page`,
+    );
+    assert.equal(await denied.text(), "", `${pathname} must emit no body when refused`);
+  }
+
+  // The retired founder keeps a historical owner row, but the locked Google
+  // identity was removed from FOUNDER_EMAILS. New founder surfaces must not
+  // accidentally restore its former authority.
+  const retiredFounder = {
+    subject: "sub-retired-command-founder",
+    email: SEEDED_OWNER_EMAIL,
+  };
+  for (const pathname of newFounderRoutes) {
+    const denied = await portal.get(pathname, retiredFounder);
+    assert.equal(denied.status, 307, `the retired founder must be refused ${pathname}`);
+    assert.match(
+      denied.headers.get("location") ?? "",
+      /\/portal\/no-access$/,
+      `${pathname} must not restore the retired founder identity`,
+    );
+    assert.equal(await denied.text(), "", `${pathname} must emit no body to the retired identity`);
+  }
+
+  await portal.addMember("btcmao518@gmail.com", "owner");
+  const founder = {
+    subject: "sub-command-founder",
+    email: "btcmao518@gmail.com",
+  };
+
+  const command = await portal.get("/portal/command", founder);
+  assert.equal(command.status, 200, "the founder is admitted to the command deck");
+  const html = await command.text();
+  assert.match(html, /Command what matters/);
+  assert.match(html, /Protected Presence prompt/);
+  assert.match(html, /Talk to the real HQ/);
+  assert.match(html, /Last-run feed unavailable/);
+  assert.match(html, /0 verified reply waits/);
+  assert.match(html, /Nothing sends automatically/);
+  assert.match(html, /S01-D06/);
+  assert.match(html, /Carrier statements \+ LeadTech CPL data/);
+  assert.match(html, /E3 · short list item 4/);
+  assert.match(html, />not created<\/span>/);
+  assert.match(html, />not activated<\/span>/);
+  assert.doesNotMatch(html, /founder-command-status-paused|>paused<\/span>/);
+  assert.match(html, /Tournament package snapshot/);
+  assert.doesNotMatch(
+    html,
+    /founder-command-status-active|T3 build round/,
+    "the dated package snapshot must not masquerade as live tournament state",
+  );
+
+  const hq = await portal.get("/go/hq", founder);
+  assert.equal(hq.status, 307);
+  const hqLocation = new URL(hq.headers.get("location") ?? "http://invalid");
+  assert.equal(hqLocation.origin, "https://claude.ai");
+  assert.equal(hqLocation.pathname, "/code/session_01W4UZQ4izQyBNT2HEd9D9PK");
+
+  const routines = await portal.get("/go/routines", founder);
+  assert.equal(routines.status, 307);
+  assert.equal(routines.headers.get("location"), "https://claude.ai/");
+
+  const desk = await portal.get("/go/desk", founder);
+  assert.equal(desk.status, 307);
+  assert.equal(desk.headers.get("location"), "mailto:out-reach@inkboxmail.com");
+
+  const founderOnlyDenies = (await portal.audit()).filter(
+    (row) =>
+      row.actor_email === "command-owner@example.com" &&
+      row.reason === "founder_only" &&
+      row.decision === "deny",
+  );
+  assert.equal(founderOnlyDenies.length, 4, "each refused founder route is audited");
+
+  const retiredFounderDenies = (await portal.audit()).filter(
+    (row) =>
+      row.actor_email === SEEDED_OWNER_EMAIL &&
+      row.reason === "founder_only" &&
+      row.decision === "deny",
+  );
+  assert.equal(
+    retiredFounderDenies.length,
+    4,
+    "each retired-founder refusal is audited",
+  );
+});
+
 test("Dialer Beta lists transferred calls and gates protected recording playback", async () => {
   const portal = await startPortal();
   try {

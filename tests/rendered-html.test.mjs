@@ -83,15 +83,18 @@ test("server-renders the Core operating model", async () => {
  * deployment is in before provisioning. That is the case that must not leak.
  */
 /**
- * Every route that calls requireCapability. Derived by hand from the
- * requireCapability call sites and asserted to be complete below, so adding a
- * guarded page without covering it here fails the suite rather than shipping
+ * Every route that calls requireCapability or requireFounder. Derived from the
+ * guard call sites and asserted to be complete below, so adding a guarded page
+ * or route handler without coverage fails the suite rather than shipping
  * unproven.
  *
  * /portal/no-access is deliberately absent: refused visitors are sent there,
  * so guarding it would redirect-loop the people it exists to explain things to.
  */
 const PROTECTED_ROUTES = [
+  "/go/desk",
+  "/go/hq",
+  "/go/routines",
   "/portal",
   "/portal/announcements",
   "/portal/audit",
@@ -99,6 +102,7 @@ const PROTECTED_ROUTES = [
   "/portal/calls",
   "/portal/calls/review",
   "/portal/calls/review/1",
+  "/portal/command",
   "/portal/investigator",
   "/portal/leadership",
   "/portal/library",
@@ -146,9 +150,9 @@ test("the no-access page renders without authentication", async () => {
 });
 
 /**
- * Guards the guard list. If someone adds a page that calls requireCapability
+ * Guards the guard list. If someone adds a page or handler that calls a guard
  * and forgets PROTECTED_ROUTES, this fails — which is the only thing standing
- * between a new guarded page and shipping with no anonymous-refusal proof.
+ * between a new guarded route and shipping with no anonymous-refusal proof.
  */
 test("every guarded route is covered by the anonymous-refusal list", async () => {
   const { readdirSync, readFileSync, statSync } = await import("node:fs");
@@ -159,7 +163,7 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
 
   // Second argument of requireCapability(capability, returnTo) is the route;
   // requireFounder(returnTo) takes the route directly. Both are guards, and a
-  // founder-gated page shipping without an anonymous-refusal test is the same
+  // founder-gated route shipping without an anonymous-refusal test is the same
   // failure as a capability-gated one — the regex must see them both.
   const GUARD = /(?:requireCapability\(\s*"[^"]+"\s*,|requireFounder\()\s*"([^"]+)"/g;
 
@@ -168,7 +172,7 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
     for (const entry of readdirSync(dir)) {
       const full = join(dir, entry);
       if (statSync(full).isDirectory()) walk(full);
-      else if (entry === "page.tsx") {
+      else if (entry === "page.tsx" || entry === "route.ts") {
         const src = readFileSync(full, "utf8");
         for (const m of src.matchAll(GUARD)) found.add(m[1]);
       }
@@ -188,14 +192,14 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
 
   // The regex above only understands double-quoted route literals. A guard
   // call it cannot parse (e.g. a template-literal returnTo on a dynamic [id]
-  // page) would silently fall out of the completeness net — so any page that
-  // *calls* a guard but yielded no match must fail loudly here instead.
+  // page) would silently fall out of the completeness net — so any page or
+  // handler that *calls* a guard but yielded no match must fail loudly here.
   const unparseable = [];
   const check = (dir) => {
     for (const entry of readdirSync(dir)) {
       const full = join(dir, entry);
       if (statSync(full).isDirectory()) check(full);
-      else if (entry === "page.tsx") {
+      else if (entry === "page.tsx" || entry === "route.ts") {
         const src = readFileSync(full, "utf8");
         const calls = (src.match(/requireCapability\(|requireFounder\(/g) ?? []).length;
         const matched = [...src.matchAll(GUARD)].length;
@@ -220,6 +224,92 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
     [],
     `guard calls the completeness scanner cannot verify: ${unparseable.join(", ")} — use a parseable returnTo or add the route to PROTECTED_ROUTES`,
   );
+});
+
+test("every founder shortcut calls requireFounder with its own literal path", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+
+  for (const name of ["hq", "routines", "desk"]) {
+    const pathname = `/go/${name}`;
+    const source = readFileSync(
+      fileURLToPath(new URL(`../app/go/${name}/route.ts`, import.meta.url)),
+      "utf8",
+    );
+    assert.match(
+      source,
+      new RegExp(`requireFounder\\(\\s*["']${pathname}["']\\s*\\)`),
+      `${pathname} must resolve the founder identity before redirecting`,
+    );
+  }
+});
+
+test("founder handoffs pin real destinations and name unavailable precision", async () => {
+  const destinations = await readFile(
+    new URL("../app/go/destinations.ts", import.meta.url),
+    "utf8",
+  );
+  const command = await readFile(
+    new URL("../app/portal/command/page.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(
+    destinations,
+    /https:\/\/claude\.ai\/code\/session_01W4UZQ4izQyBNT2HEd9D9PK/,
+    "Talk to HQ must retain the repository-recorded session path",
+  );
+  assert.match(
+    destinations,
+    /mailto:out-reach@inkboxmail\.com/,
+    "the desk handoff must target the charter-recorded address",
+  );
+  assert.match(
+    command,
+    /No account-specific URL is asserted/,
+    "the Routines launcher must not claim a deep URL the repository does not know",
+  );
+  assert.match(
+    command,
+    /Nothing sends automatically/,
+    "the desk launcher must state that compose is not send",
+  );
+  assert.match(
+    command,
+    /id: "S01-D06",\s*record: "E3 · short list item 4",\s*title: "Carrier statements \+ LeadTech CPL data",[\s\S]{0,240}owner: "Founder"/,
+    "the E3 action must retain its seat id, single owner, and source record",
+  );
+
+  const launcherStart = command.indexOf('<nav className="founder-command-launchers"');
+  const launcherEnd = command.indexOf("</nav>", launcherStart);
+  assert.ok(launcherStart > 0 && launcherEnd > launcherStart, "launcher row not found");
+  const launcherRow = command.slice(launcherStart, launcherEnd);
+  assert.match(launcherRow, /<a\s/, "shortcut handoffs must use native anchors");
+  assert.doesNotMatch(
+    launcherRow,
+    /<Link\s/,
+    "framework link prefetch must not execute a founder redirect before a tap",
+  );
+});
+
+test("agent preview keeps Vinext while invoking Vite directly", async () => {
+  const packageJson = JSON.parse(
+    await readFile(new URL("../package.json", import.meta.url), "utf8"),
+  );
+  const viteConfig = await readFile(
+    new URL("../vite.config.ts", import.meta.url),
+    "utf8",
+  );
+
+  assert.equal(packageJson.scripts.dev, "vite");
+  assert.match(viteConfig, /vinext\(\)/, "the Vinext application plugin must remain");
+  assert.doesNotMatch(
+    viteConfig,
+    /host:\s*["']0\.0\.0\.0["']/,
+    "ordinary npm run dev must retain Vite's localhost default",
+  );
+  assert.match(viteConfig, /allowedHosts:\s*\[["']terminal\.local["']\]/);
+  assert.match(viteConfig, /isCodexSeatbeltSandbox[\s\S]*usePolling:\s*true/);
 });
 
 test("the portal error boundary stays sanitized and client-safe", async () => {
@@ -432,6 +522,55 @@ test("the service worker never caches an authenticated response", async () => {
   assert.equal(writes.length, 2, "a new cache write appeared — check what it stores");
 });
 
+test("the service worker has no cacheable rule for founder shortcuts", async () => {
+  const source = (
+    await readFile(new URL("../public/sw.js", import.meta.url), "utf8")
+  ).replace(/\r\n/g, "\n");
+
+  const precacheStart = source.indexOf("const PRECACHE = [");
+  const precacheEnd = source.indexOf("];", precacheStart);
+  assert.ok(precacheStart > 0 && precacheEnd > precacheStart, "could not locate PRECACHE");
+  const precache = source.slice(precacheStart, precacheEnd + 2);
+
+  assert.doesNotMatch(
+    precache,
+    /["'`]\/go(?:\/|["'`])/,
+    "a founder shortcut entered PRECACHE and can outlive its founder check",
+  );
+
+  const shortcutStart = source.indexOf("const isFounderShortcut =");
+  const shortcutEnd = source.indexOf("if (isFounderShortcut) return;", shortcutStart);
+  const navigationStart = source.indexOf('if (request.mode === "navigate")');
+  assert.ok(shortcutStart > 0 && shortcutEnd > shortcutStart, "missing /go pass-through");
+  assert.ok(
+    shortcutEnd < navigationStart,
+    "/go must return before the generic navigation fetch follows mailto redirects",
+  );
+
+  const shortcutBranch = source
+    .slice(shortcutStart, shortcutEnd + "if (isFounderShortcut) return;".length)
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/[^\n]*/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  assert.equal(
+    shortcutBranch,
+    'const isFounderShortcut = url.pathname === "/go" || url.pathname.startsWith("/go/"); ' +
+      "if (isFounderShortcut) return;",
+    "/go must be a native, zero-interception pass-through",
+  );
+  assert.doesNotMatch(
+    shortcutBranch,
+    /respondWith|cache|fetch\(/,
+    "/go pass-through must not fetch, respond, or touch a cache",
+  );
+
+  // Keep the same global backstop as the authenticated-content test. A third
+  // write is a new persistence path even if the /go spelling is obscured.
+  const writes = source.match(/cache\.put\(/g) ?? [];
+  assert.equal(writes.length, 2, "a new cache write appeared — check what it stores");
+});
+
 test("restricted data never reaches a public client chunk", async () => {
   /**
    * Static assets under /assets are served by the ASSETS binding without ever
@@ -454,8 +593,19 @@ test("restricted data never reaches a public client chunk", async () => {
   const files = (await readdir(dir)).filter((name) => name.endsWith(".js"));
   assert.ok(files.length > 0, "no client chunks were built — this test would pass vacuously");
 
-  // Rank names and the shape the economics compile to.
-  const FORBIDDEN = ["Obsidian", "Zenith", "contract:140", "apiPerAgent:47"];
+  // Rank names and the shape the economics compile to, plus founder-only
+  // Command Center markers. The fixed HQ session is safe only behind the
+  // founder gate; placing destinations or owner decisions in a client module
+  // would publish them through an unguarded immutable asset.
+  const FORBIDDEN = [
+    "Obsidian",
+    "Zenith",
+    "contract:140",
+    "apiPerAgent:47",
+    "S01-D01",
+    "Retire the old HQ plan",
+    "session_01W4UZQ4izQyBNT2HEd9D9PK",
+  ];
 
   for (const name of files) {
     const source = await readFile(new URL(name, dir), "utf8");

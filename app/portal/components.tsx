@@ -7,6 +7,7 @@ import { PortalThemeControl } from "../theme-control";
 
 type PortalIconName =
   | "dashboard"
+  | "command"
   | "library"
   | "announcements"
   | "quoter"
@@ -51,6 +52,17 @@ const NAV: readonly NavItem[] = [
     description: "Your authenticated THRIVE command surface.",
     state: "live",
     stateLabel: "Available",
+  },
+  {
+    href: "/portal/command",
+    label: "Command Center",
+    capability: "audit.view",
+    icon: "command",
+    group: "Workspace",
+    description: "Founder-only workforce, decisions, signals, and launch controls.",
+    state: "live",
+    founderOnly: true,
+    stateLabel: "Founder only",
   },
   {
     href: "/portal/announcements",
@@ -709,6 +721,14 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
       <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
       <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+    </>
+  ),
+  // Founder command deck — a protected center with four operating rails.
+  command: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3" />
+      <path d="m6 6 2.1 2.1M15.9 15.9 18 18M18 6l-2.1 2.1M8.1 15.9 6 18" />
     </>
   ),
   // Speaker with sound waves.
