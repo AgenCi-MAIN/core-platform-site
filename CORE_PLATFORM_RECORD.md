@@ -1004,3 +1004,15 @@ outbound send that is not in the record does not exist.
   secret names and values.
 - **No change** to source, authentication, membership, capabilities, roles,
   D1, R2, or the Cloudflare Access policy. Nothing was deployed.
+
+### 19a. Outbound send — coffee reminder text to the founder, same day
+
+Owner's order from the HQ session ("Reach out to Shawn on text msg to remind
+him to make a coffee"). Sent over the Founder Channel iMessage conversation
+(the owner's verified +1 409 549 2092, conversation `3cb144a0-…`), message id
+`c80b6841-14b2-4fc0-8a94-2a77c518d4f3`, from the desk's own line. Plain SMS
+was preflighted first and is blocked `recipient_not_opted_in` — the owner's
+number has inbound consent as a recognized sender but no outbound SMS opt-in;
+iMessage on the active assignment is the working outbound text channel to the
+founder until that changes. The message also pointed him at the §19 morning
+brief email and the Spam/Promotions caveat.
