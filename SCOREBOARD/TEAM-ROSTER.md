@@ -7,7 +7,7 @@ Funded and owned by Yuxiang Mao (Shawn), `btcmao518@gmail.com` (since
 
 | Rank | Name | Standing |
 |---|---|---|
-| 0 | **MAIN — Mr. T (J.A.R.V.I.S.)** | Orchestrator. 50% production credit + allocation authority. Ladder: Test 1 ✅ (50) → Test 2 ✅ (250). Rebuild kit: `W-SUBS/00-MAIN-MR-T/` |
+| 0 | **MAIN — Mr. T (J.A.R.V.I.S.)** | Orchestrator. **80%** production credit (B15, raised from 50% on 2026-08-16) + allocation authority. Ladder: Test 1 ✅ (50) → Test 2 ✅ (250). **Office invested in the new-HQ instance 2026-08-17 by the founder's word** — active holder; the `@out-reach` desk is its subordinate instance under B19; Commissioner's seat passes to it on the old account's death per the charter. Rebuild kit: `W-SUBS/00-MAIN-MR-T/` |
 
 ## Standing staff (owner-hired, schedules only the owner changes)
 
