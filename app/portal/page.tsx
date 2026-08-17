@@ -5,9 +5,8 @@ import { portalMembers } from "../../db/schema";
 import { CAPABILITIES, ROLE_LABELS, requireCapability } from "./access";
 import { ANNOUNCEMENTS } from "./announcements/content";
 import { METAL_FOR_ROLE, RankMedallion } from "../rank-medallion";
+import { JarvisCommandPrompt } from "./command-prompt";
 import {
-  PortalCardHeader,
-  PortalPageIntro,
   PortalShell,
   PortalWorkspaceDirectory,
   PrototypeNotice,
@@ -64,7 +63,7 @@ export default async function PortalDashboard() {
   const numeral = ROLE_NUMERAL[session.role] ?? "I";
 
   const granted = session.capabilities.length;
-  const grantTone = granted >= TOTAL_CAPABILITIES ? "good" : granted < 5 ? "bad" : "warn";
+  const grantTone = granted >= TOTAL_CAPABILITIES ? "good" : "warn";
 
   /**
    * Seats actually granted. A failure here must not take the dashboard down —
@@ -89,28 +88,53 @@ export default async function PortalDashboard() {
         ? "good"
         : seatsFilled >= TOTAL_SEATS - 1
           ? "warn"
-          : "bad";
+          : "warn";
 
   return (
-    <PortalShell session={session} current="/portal" section="Dashboard">
+    <PortalShell session={session} current="/portal" section="Command">
       <main className="portal-main portal-dashboard">
-        <div className="portal-dashboard-header">
-          <PortalPageIntro
-            eyebrow="Authenticated command surface"
-            title={<>Welcome, {session.displayName}</>}
-            subtitle={
-              <>
-                Your <strong>{roleLabel}</strong> workspace is ready. Access below reflects your
-                current membership and server-enforced capability set.
-              </>
-            }
-            compact
-          />
-          <div className="portal-dashboard-meta" aria-label="Workspace state">
-            <span className="portal-state portal-state-live">Access controls active</span>
-            <span className="portal-state portal-state-pending">Business sources pending</span>
+        <section className="portal-command-arrival" aria-labelledby="command-arrival-title">
+          <div className="portal-command-copy">
+            <div className="portal-dashboard-meta" aria-label="Workspace state">
+              <span className="portal-state portal-state-live">Access controls active</span>
+              <span className="portal-state portal-state-pending">Business sources pending</span>
+            </div>
+            <p className="portal-eyebrow">J.A.R.V.I.S. / Command arrival</p>
+            <h1 id="command-arrival-title">
+              Welcome back, <span>{session.displayName}</span>.
+            </h1>
+            <p className="portal-command-question">What are you here to move?</p>
+            <p className="portal-command-lede">
+              Your <strong>{roleLabel}</strong> mission map shows only the routes your
+              server-enforced capabilities allow. Source states remain visible so a
+              prototype never masquerades as an operating feed.
+            </p>
+            <JarvisCommandPrompt />
           </div>
-        </div>
+
+          <div className="portal-command-orbit" aria-hidden="true">
+            <span className="portal-command-core">J</span>
+            <span className="portal-command-node portal-command-node-one">Operate</span>
+            <span className="portal-command-node portal-command-node-two">Learn</span>
+            <span className="portal-command-node portal-command-node-three">Model</span>
+            <span className="portal-command-node portal-command-node-four">Govern</span>
+          </div>
+        </section>
+
+        <section className="portal-card portal-mission-map" id="mission-map" aria-labelledby="mission-map-title">
+          <header className="portal-section-heading portal-mission-map-head">
+            <div>
+              <p className="portal-section-kicker">Capability-safe mission map</p>
+              <h2 id="mission-map-title">Four lanes. One accountable workspace.</h2>
+              <p className="portal-lede">
+                Every destination below is an existing route, filtered for this account.
+                Restricted, pending, and external states stay explicit.
+              </p>
+            </div>
+            <span className="portal-state portal-state-live">Session verified</span>
+          </header>
+          <PortalWorkspaceDirectory session={session} />
+        </section>
 
         {PINNED_ANNOUNCEMENT ? (
           <Link
@@ -177,90 +201,79 @@ export default async function PortalDashboard() {
             </span>
           </article>
 
-          <article className="portal-metric portal-metric-bad">
+          <article className="portal-metric portal-metric-warn">
             <span className="portal-metric-label">Business sources</span>
             <strong className="portal-metric-value">Not connected</strong>
             <span className="portal-metric-detail">CRM, carrier, dialer feeds, and financial data stay absent</span>
           </article>
         </section>
 
-        <section className="portal-dashboard-grid" aria-label="Dashboard details">
-          <article className="portal-card portal-dashboard-primary">
-            <PortalCardHeader
-              icon="C"
-              title="Your operating surface"
-              description="Capability-filtered routes available to this account, with honest connection states."
-            />
-            <PortalWorkspaceDirectory session={session} />
+        <section className="portal-dashboard-support" aria-label="Dashboard details">
+          <article className="portal-card" id="source-readiness">
+            <header className="portal-section-heading">
+              <div>
+                <p className="portal-section-kicker">System readiness</p>
+                <h2>What is operational</h2>
+              </div>
+            </header>
+            <div className="portal-readiness-list">
+              <div className="portal-readiness-item">
+                <span className="portal-system-dot" aria-hidden="true" />
+                <span className="portal-readiness-copy">
+                  <strong>Identity and access</strong>
+                  <small>Authentication, membership, and route authorization are active.</small>
+                </span>
+                <span className="portal-readiness-status portal-state portal-state-live">Operational</span>
+              </div>
+              <div className="portal-readiness-item">
+                <span className="portal-system-dot portal-system-dot-pending" aria-hidden="true" />
+                <span className="portal-readiness-copy">
+                  <strong>Operating intelligence</strong>
+                  <small>Dialer Beta storage is ready; external business sources await connection.</small>
+                </span>
+                <span className="portal-readiness-status portal-state portal-state-pending">Pending</span>
+              </div>
+              <div className="portal-readiness-item">
+                <span className="portal-system-dot portal-system-dot-neutral" aria-hidden="true" />
+                <span className="portal-readiness-copy">
+                  <strong>Human authority</strong>
+                  <small>Licensed, compliance, financial, and executive decisions remain human-controlled.</small>
+                </span>
+                <span className="portal-readiness-status portal-state portal-state-restricted">Required</span>
+              </div>
+            </div>
           </article>
 
-          <div className="portal-dashboard-side">
-            <article className="portal-card">
-              <header className="portal-section-heading">
-                <div>
-                  <p className="portal-section-kicker">System readiness</p>
-                  <h2>What is operational</h2>
-                </div>
-              </header>
-              <div className="portal-readiness-list">
-                <div className="portal-readiness-item">
-                  <span className="portal-system-dot" aria-hidden="true" />
-                  <span className="portal-readiness-copy">
-                    <strong>Identity and access</strong>
-                    <small>Authentication, membership, and route authorization are active.</small>
-                  </span>
-                  <span className="portal-readiness-status portal-state portal-state-live">Operational</span>
-                </div>
-                <div className="portal-readiness-item">
-                  <span className="portal-system-dot portal-system-dot-pending" aria-hidden="true" />
-                  <span className="portal-readiness-copy">
-                    <strong>Operating intelligence</strong>
-                    <small>Dialer Beta storage is ready; external business sources await connection.</small>
-                  </span>
-                  <span className="portal-readiness-status portal-state portal-state-pending">Pending</span>
-                </div>
-                <div className="portal-readiness-item">
-                  <span className="portal-system-dot portal-system-dot-neutral" aria-hidden="true" />
-                  <span className="portal-readiness-copy">
-                    <strong>Human authority</strong>
-                    <small>Licensed, compliance, financial, and executive decisions remain human-controlled.</small>
-                  </span>
-                  <span className="portal-readiness-status portal-state portal-state-restricted">Required</span>
-                </div>
+          <article className="portal-card">
+            <header className="portal-section-heading">
+              <div>
+                <p className="portal-section-kicker">Account scope</p>
+                <h2>Your access record</h2>
               </div>
-            </article>
-
-            <article className="portal-card">
-              <header className="portal-section-heading">
-                <div>
-                  <p className="portal-section-kicker">Account scope</p>
-                  <h2>Your access record</h2>
-                </div>
-              </header>
-              <dl className="portal-identity-list">
-                <div className="portal-identity-row">
-                  <dt className="portal-identity-key">Account</dt>
-                  <dd className="portal-identity-value">{session.email}</dd>
-                </div>
-                <div className="portal-identity-row">
-                  <dt className="portal-identity-key">Role</dt>
-                  <dd className="portal-identity-value">{roleLabel}</dd>
-                </div>
-                <div className="portal-identity-row">
-                  <dt className="portal-identity-key">Member ID</dt>
-                  <dd className="portal-identity-value">#{session.memberId}</dd>
-                </div>
-              </dl>
-              <details className="portal-capability-summary">
-                <summary>Capabilities held · {session.capabilities.length} grants</summary>
-                <ul className="portal-caps">
-                  {session.capabilities.map((capability) => (
-                    <li key={capability}><code>{capability}</code></li>
-                  ))}
-                </ul>
-              </details>
-            </article>
-          </div>
+            </header>
+            <dl className="portal-identity-list">
+              <div className="portal-identity-row">
+                <dt className="portal-identity-key">Account</dt>
+                <dd className="portal-identity-value">{session.email}</dd>
+              </div>
+              <div className="portal-identity-row">
+                <dt className="portal-identity-key">Role</dt>
+                <dd className="portal-identity-value">{roleLabel}</dd>
+              </div>
+              <div className="portal-identity-row">
+                <dt className="portal-identity-key">Member ID</dt>
+                <dd className="portal-identity-value">#{session.memberId}</dd>
+              </div>
+            </dl>
+            <details className="portal-capability-summary">
+              <summary>Capabilities held · {session.capabilities.length} grants</summary>
+              <ul className="portal-caps">
+                {session.capabilities.map((capability) => (
+                  <li key={capability}><code>{capability}</code></li>
+                ))}
+              </ul>
+            </details>
+          </article>
         </section>
 
         <PrototypeNotice>
