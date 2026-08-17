@@ -57,9 +57,11 @@ scope before build):
    scoreboard (the weekly founder metrics from
    strategy/2026-08-17-founder-operating-plan-12mo-5m.md §05).
 3. T2 docket ready-to-builds + the standing engineering debt: post-deploy
-   version verification (deploy-integrity's design), recording Range
-   support, composite indexes (data-model F7), db/sql/0004 discipline
-   (never edit applied migrations again).
+   version verification (deploy-integrity's design, docketed 08-16),
+   recording Range support and composite indexes (both surfaced in the
+   08-16 call-review audits but CHAT-SOURCED — the T2 re-run must
+   re-verify and itemize them before they count as established scope),
+   db/sql/0004 discipline (never edit applied migrations again).
 4. Routine roster 2.0: the ten routines live on the new account, the two
    Cowork artifact-refreshers rebuilt, MAILKEEPER's label map remade.
 5. Version bump 2.0.0 → 3.0.0 (package.json, PWA manifest, portal title),
