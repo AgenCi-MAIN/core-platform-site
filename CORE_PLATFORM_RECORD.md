@@ -1016,3 +1016,28 @@ number has inbound consent as a recognized sender but no outbound SMS opt-in;
 iMessage on the active assignment is the working outbound text channel to the
 founder until that changes. The message also pointed him at the §19 morning
 brief email and the Spam/Promotions caveat.
+
+### 19b. Attempted good-morning texts to Ryan and Andre — blocked; email copy to the founder
+
+Owner's order, same session ("Send a good morning text to these two as well
+(friendly_playful), send Shawn copy of these 2 on email"), giving the numbers
+Ryan Davidson **+1 941 210 1410** and Andre **+1 941 210 1411** (the owner
+wrote "Andre"; presumed Andrew Davidson but not confirmed — the numbers are
+recorded exactly as given).
+
+- **Neither text was delivered.** Both channels are platform-blocked for
+  both numbers: SMS preflight returns `recipient_not_opted_in`, and iMessage
+  returns `imessage_no_assignment` — Inkbox requires each recipient to text
+  "connect @out-reach" to the iMessage router (+1 650 484 9720) before the
+  desk can message them, which is how the Founder Channel itself was opened.
+  No workaround was attempted; the block is the consent model working.
+- **The two drafts** (friendly/playful register, desk identified as AI,
+  sent-on-Shawn's-order stated, pointer to the §19 brief email) were emailed
+  verbatim to the founder with delivery status marked NOT DELIVERED and both
+  unblock paths spelled out: Inkbox message id
+  `d7595ad5-a6b7-40e6-82de-6a301dfee87a`, to `btcmao518@gmail.com`, status
+  `sent`.
+- **Standing state:** the texts go out as written the moment a recipient's
+  channel opens and the founder says the word. Until an opt-in exists, the
+  desk has no outbound text path to any member except the founder's own
+  iMessage thread.
