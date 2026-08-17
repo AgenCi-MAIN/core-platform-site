@@ -514,10 +514,16 @@ identity it is impersonating on every start. The role still comes from the
       as `epiclife.nguyen@gmail.com`, confirmed on the live roster 2026-08-15.
       Section 5 keeps the SQL for the case where nobody can sign in at all.
 - [x] ~~**Record the Worker version id on the next deploy.**~~ **Done
-      2026-08-17.** Live version is
-      **`7427f4f4-8026-4edb-9fa9-23ad403c7307`**, deployed by the owner from
-      `C:\dev\core-platform-site` at `main@3141e99`. The version trail is
-      restored. The gap it closes: the earlier 08-17 founder-gate deploy is
+      2026-08-17.** **Correction, same day:** this entry first credited
+      `7427f4f4` with closing the follow-up and called it the first post-gate
+      code deploy. Both were wrong — **`5c9ed9eb-c9a3-4152-bfc9-67279c1ccce6`
+      (post-PR#36) came first and is what closed it.** The error was honest
+      but real: `5c9ed9eb` was recorded only on the old session's branch and
+      had not reached `main` when this was written, so the record was
+      corrected from the branch rather than the other way round. See
+      DEPLOYMENT.md for the reconciled timeline. **Live version is now
+      `95741dc5-8d09-4400-8a00-71d806912195`** (`main@4375633`), the third id
+      preserved in a row. The version trail is restored. The gap it closes: the earlier 08-17 founder-gate deploy is
       owner-confirmed but its id existed only in the terminal and was lost, so
       between 08-16 and now the record could say *what* was live but not
       *which build*. **Standing practice that fixed it, keep using it:** pipe
