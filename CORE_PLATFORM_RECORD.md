@@ -355,6 +355,15 @@ If `wrangler d1 execute --remote` fails with `Authentication error [code: 10000]
 file contents into the D1 console instead. That is how the live database was
 provisioned.
 
+**Founder-attribution exception (owner order F6, 2026-08-17).** The seed
+migrations `0002`/`0003` carry a `-- Seeded by: Yuxiang Mao (Shawn)` provenance
+comment. This is the one sanctioned edit to an applied migration: it is
+comment-only, the loader and a fresh provision strip `--` lines before running,
+so the applied SQL is unchanged and re-provisioning is byte-identical in effect.
+Do NOT read it as a licence to edit applied-migration SQL — that discipline
+holds; only the founder-attribution comment is exempt, and only because the
+owner ordered his name on the seeds.
+
 `drizzle/` holds the same history as generated migrations, kept in sync by
 `npm run db:generate` after any change to `db/schema.ts`. **Do not apply both
 paths to one database** — `0001` uses `CREATE TABLE IF NOT EXISTS`, the drizzle

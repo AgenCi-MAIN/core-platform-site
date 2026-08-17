@@ -1,5 +1,11 @@
 -- CORE portal — first owner seed
 --
+-- Seeded by: Yuxiang Mao (Shawn), founder — btcmao518@gmail.com (current
+-- identity; this row seeded his then-current bankerrunners@gmail.com, since
+-- retired per A9). Founder attribution preserved by owner order F6, 2026-08-17.
+-- Comment-only provenance line; the applied SQL is unchanged (the test loader
+-- and a fresh provision both strip `--` lines before executing).
+--
 -- The portal fails closed. Until at least one active row exists in
 -- portal_members, every visitor is refused, including the people who built it.
 -- This file bootstraps the first owner so the roster can then be managed from
