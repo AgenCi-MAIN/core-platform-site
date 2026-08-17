@@ -46,6 +46,7 @@ an action) · 🔵 OPEN (still the owner's to decide)
 | B16 | Token caps **unlimited** — made safe because spend lowers a lane's own score | ✅ standing |
 | B17 | New recruits enter **under** an O.G. lane, VERITY-reviewed | ✅ |
 | B18 | **Codex project first** — every workforce assignment must confirm the CORE Codex workspace and load the governing records before work begins; this grants no external credentials or capabilities | ✅ standing |
+| B19 | **THE WARDEN promoted to EMAIL ANALYZER / RESPONSE DRAFTER** (2026-08-17, highest-rated standing sub): on HERALD detection of inbound human email, Warden analyzes and files a reply DRAFT — never sends. Owner also ordered detected inbound forwarded to a new Mr.T-owned Inkbox mailbox (analysis desk); forward step INACTIVE until the owner creates that identity in the Inkbox console and its address is recorded | ✅ granted; forward pending destination |
 
 ## C. The platform
 

@@ -46,7 +46,7 @@ by trigger (see WORKFORCE.md "PERMANENT POSITIONS"), not a uniform clock.
 
 | Rank | Sub | Under | Made it on |
 |---|---|---|---|
-| 1 | **SUB-deploy-verifier — THE WARDEN** | deploy-integrity | Refuted its own lead's plan and was right (50.1K tokens — leanest agent fielded). **Promoted 2026-08-15**: supervises/mentors underperformers; may pause subs (push notification to the owner first, always); 24/7 standing summons rights |
+| 1 | **SUB-deploy-verifier — THE WARDEN** | deploy-integrity | Refuted its own lead's plan and was right (50.1K tokens — leanest agent fielded). **Promoted 2026-08-15**: supervises/mentors underperformers; may pause subs (push notification to the owner first, always); 24/7 standing summons rights. **Promoted again 2026-08-17: EMAIL ANALYZER / RESPONSE DRAFTER** — on HERALD's detection of inbound human email, analyzes sender/intent/risk and files a reply DRAFT (never sends); forward-to-Mr.T-mailbox step inactive until the owner creates the destination identity |
 | 2 | **SUB-presence-builder — PERSONA** | presence-probe | Built the apply-ready diff that shipped at 46/46 (60.6K tokens). **Promoted 2026-08-15**: read freedom over all agents; drafts recruit briefs by copying proven personas; 3-hourly patrol runtime; may wake one agent per patrol for a report; all reports reviewable by VERITY |
 
 These are the only two subs ever fielded, and both made the team. Standalone
