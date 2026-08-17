@@ -44,7 +44,7 @@ Every allow and every deny is written to an append-only `audit_events` table.
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | GitHub repo | `bankerrunners/core-platform-site` |
 | Working branch | `claude/new-session-9a8g4o` (PR #1) |
-| Local checkout | `C:\Users\k2547\OneDrive\Desktop\core-platform-site` — moved out of "Core Folder 1" on 2026-08-15; three frozen backup copies also exist under ARCHIVE, MAINBACK, and RE SUMMON — never work in those |
+| Local checkout | `C:\dev\core-platform-site` — **moved out of OneDrive 2026-08-17** and deployed from live the same day (trap #10). The former path `C:\Users\k2547\OneDrive\Desktop\core-platform-site` is superseded: do not work in it, and delete it once nothing is missed. Three frozen backup copies also exist under ARCHIVE, MAINBACK, and RE SUMMON — never work in those either |
 
 The D1 id lives in `.openai/hosting.json`; `build/sites-vite-plugin.ts` carries
 it into `dist/server/wrangler.json` at build time, which is the config
@@ -359,7 +359,7 @@ migration does not, and they collide. The live database used the `db/sql/` path.
 From the project directory:
 
 ```powershell
-cd "C:\Users\k2547\OneDrive\Desktop\core-platform-site"
+cd C:\dev\core-platform-site
 git pull
 npm install
 npm run deploy
@@ -492,6 +492,22 @@ identity it is impersonating on every start. The role still comes from the
    lockout-safe cutover are in
    `strategy/2026-08-17-access-google-idp-runbook.md`.
    Hit live on 2026-08-17, on the phone, from the welcome email's own link.
+10. **Never keep the checkout inside OneDrive.** `git checkout` and `git gc`
+    both die on Windows with `Deletion of directory '<path>' failed. Should I
+    try again? (y/n)`, looping forever because OneDrive holds handles open on
+    files git is trying to remove — `.git/objects/*` during gc, working-tree
+    directories during a branch switch. Answering `y` can never succeed;
+    answer `n`. A gc failure is cosmetic, but **an interrupted checkout leaves
+    the tree half-switched**, and a `git add -A && git commit` over that state
+    captures the partial deletions as a real commit. That is exactly how
+    `cf4dc60` was born on 2026-08-17 — a 46-file deletion of `CLAUDE.md`, the
+    operating record, `app/auth/*`, and every `W-SUBS` brief, committed and
+    pushed in good faith. It was stripped and must never be resurrected.
+    Concurrent OneDrive sync of `.git` can also corrupt a repository outright.
+    **The checkout was moved to `C:\dev\core-platform-site` on 2026-08-17** and
+    deployed from clean; that is the working copy now. Quitting OneDrive is a
+    workaround, not the fix — the fix is that the repository lives outside it.
+    Hit three times in one session before the move.
 
 ---
 
@@ -505,12 +521,12 @@ identity it is impersonating on every start. The role still comes from the
       **Portal → Members**. ~~Nate Nguyen~~ — granted by Shawn from the portal
       as `epiclife.nguyen@gmail.com`, confirmed on the live roster 2026-08-15.
       Section 5 keeps the SQL for the case where nobody can sign in at all.
-- [ ] **Record the Worker version id on the next deploy.** The 2026-08-17
-      founder-gate deploy (the one that shipped PR #24's `FOUNDER_EMAILS` lock)
-      is owner-confirmed but its version id was never written down — it existed
-      only in the terminal. Owner's instruction, 2026-08-17: capture the id from
-      the next `npm run deploy` and record it here, so the live-version trail
-      picks back up.
+- [x] ~~**Record the Worker version id on the next deploy.**~~ Done — the next
+      deploy was the command-prompt port (PR #36), shipped 2026-08-17 as version
+      `5c9ed9eb-c9a3-4152-bfc9-67279c1ccce6`; see §19. The live-version trail
+      picks back up there. The 2026-08-17 founder-gate deploy (PR #24's
+      `FOUNDER_EMAILS` lock) remains owner-confirmed with **no recorded id** —
+      it existed only in a terminal that is gone, and that gap is permanent.
 - [ ] **Consider a custom domain** in place of the workers.dev URL. Add the new
       `/auth/callback` URI to the Google OAuth client *before* cutting over, or
       sign-in breaks at the moment the domain changes.
@@ -952,3 +968,35 @@ checking, and only one of them was a delivery problem.
 The rule this leaves behind: an email body is HTML, not XML. Never wrap it in a
 CDATA section, and check a send's stored `body_html` rather than trusting that
 a `sent` status means the message rendered.
+
+## 19. Deployment — the J.A.R.V.I.S. command prompt and portal chrome (PR #36)
+
+Deployed 2026-08-17 by the owner from the Windows machine, from the **new**
+checkout at `C:\dev\core-platform-site`.
+
+- **Worker version id:** `5c9ed9eb-c9a3-4152-bfc9-67279c1ccce6`, live at
+  `https://site-creator-vinext-starter.bankerrunners.workers.dev`. This is the
+  first id recorded since the trail lapsed; §10's follow-up is closed by it.
+- **What shipped:** the ported command-prompt work merged as `93edcfd` — a new
+  `app/portal/command-prompt.tsx`, the Presence text-console additions, theme
+  and performance control changes, 596 lines of `globals.css`, and PWA touches
+  to the manifest, layout and offline page. Twelve files, 1,099 insertions.
+- **Provenance:** the work was written on the 2026-08-16 base as `aa2ff55`, 17
+  commits behind, and was cherry-picked onto current `main` rather than merged
+  from its stale branch. The interrupted-checkout deletion commit `cf4dc60`
+  (trap #10) was stripped and never entered this history.
+- **Verification:** `npm run deploy` chains build → tests → preflight → deploy,
+  so the run is its own proof: 55/55 tests and `verify-build` passed on the
+  owner's machine before wrangler was reached. Independently on the port branch
+  beforehand: `tsc --noEmit` clean, `eslint` clean, 55/55, preflight verified.
+- **Not a stale deploy.** The upload listed `command-prompt-*.js`,
+  `presence-*.js`, `theme-control-*.js`, `performance-control-*.js` and
+  `offline.html` among ten new assets — the shipped bundle demonstrably contains
+  the merged work, which is the check trap #2 exists to force.
+- **Bindings confirmed at deploy:** `env.DB` → `site-creator-d1`,
+  `env.CALL_RECORDINGS` → `site-creator-r2`.
+- **Access model untouched.** No change to authentication, membership,
+  capabilities, roles, the D1 schema, R2, or the Cloudflare Access policy. The
+  service worker was not modified. `app/access/page.tsx` changed in copy and
+  chrome only and still performs no membership lookup, so the roster-enumeration
+  oracle stays shut; no `"use client"` file imports `app/portal/access.ts`.
