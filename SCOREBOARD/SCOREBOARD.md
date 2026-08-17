@@ -291,6 +291,8 @@ round**, so a decline-for-territory can never become a disappearance.
 - **T3-S08-F01 — post-merge graft: central handoff destination registry.**
   Sole owner: `authz-matrix`. Adapt S01's documented
   `app/go/destinations.ts` pattern so fixed HQ, Routines, and Mr.T handoffs
-  share one evidence-bearing source while preserving S02's query-stripping
-  and no-connector boundaries. **OPEN follow-up; explicitly not a condition
-  of the S02 merge.**
+  share one evidence-bearing source while preserving S02's chosen
+  same-origin Routines fallback, HTTPS Gmail compose handoff, query-stripping,
+  and no-connector boundaries. Any Gmail-versus-`mailto:` change remains a
+  separate founder decision. **OPEN follow-up; explicitly not a condition of
+  the S02 merge.**
