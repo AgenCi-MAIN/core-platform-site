@@ -1,9 +1,10 @@
 # OWNER DECISIONS — confirmation ledger
 
 Every decision made by the owner, Yuxiang Mao (Shawn),
-`bankerrunners@gmail.com`, with its true status. Confirmed against the
-operating record, WORKFORCE.md, the session logs, and the commit history —
-nothing listed here is assumed.
+`btcmao518@gmail.com` (since 2026-08-17; previously `bankerrunners@gmail.com`,
+retired under A9 below), with its true status. Confirmed against the operating
+record, WORKFORCE.md, the session logs, and the commit history — nothing listed
+here is assumed.
 
 **Status key:** ✅ EXECUTED (done and in force) · ⏳ PENDING (decided, awaiting
 an action) · 🔵 OPEN (still the owner's to decide)
@@ -22,7 +23,8 @@ an action) · 🔵 OPEN (still the owner's to decide)
 | A6 | Ryan Davidson + Nate Nguyen seated as owners | ✅ |
 | A7 | **Andrew Davidson** (`andrew.davidson.zenith@gmail.com`) approved as owner | ✅ granted from the portal 2026-08-15; signed in and bound 2026-08-16 (roster verified by the owner) |
 | A8 | Oscar Valencia — named as owner, no grant until his exact sign-in address is confirmed | 🔵 |
-| A9 | **Owner identity migration to `btcmao518@gmail.com`** (owner order 2026-08-17, confirmed final). Root cause: Google locked `bankerrunners@gmail.com`. Executed same day: new OAuth client under the new identity (`core-portal` project), secrets rotated, owner row applied via the D1 console, sign-in + subject binding verified, founder-only audit log read live by the new identity. Cleanup staged: `FOUNDER_EMAILS` now answers btcmao518 alone; live-instruction docs swept (history untouched). Retired address keeps its owner row for the record; it can never sign in. | ✅ verified live 2026-08-17; cleanup awaiting merge + deploy |
+| A9 | **Owner identity migration to `btcmao518@gmail.com`** (owner order 2026-08-17, confirmed final). Root cause: Google locked `bankerrunners@gmail.com`. Executed same day: new OAuth client under the new identity (`core-portal` project), secrets rotated, owner row applied via the D1 console, sign-in + subject binding verified, founder-only audit log read live by the new identity. Cleanup shipped: `FOUNDER_EMAILS` now answers btcmao518 alone; live-instruction docs swept (history untouched). Retired address keeps its owner row for the record; it can never sign in. | ✅ **CLOSED** — verified live 2026-08-17; cleanup merged (PR #24) and deployed the same day by the owner from his machine, owner-confirmed. Worker version id went unrecorded (terminal only) — to be recorded on the next deploy |
+| A10 | **"mi" = merge authorization** (owner shorthand, recorded 2026-08-17). From the founder, "mi" means: open the PR for the current working branch and squash-merge it to `main`. **Per-instance** — it authorizes that one merge and nothing further; it is never a standing grant and carries no deploy, membership, spend, or governance authority. Only the founder can say it. Carried in CLAUDE.md too, so a fresh session reads it before acting | ✅ standing |
 
 ## B. The AI staff
 
