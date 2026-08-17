@@ -1059,3 +1059,23 @@ text channel can open for next time.
 | --- | --- | --- |
 | `ryandavidson.zenith@gmail.com` | `ad0e246e-b5d9-4f64-ba72-0daaca69900d` | `sent` |
 | `andrew.davidson.zenith@gmail.com` | `8a24281c-2830-475d-9c54-d301ebf885a7` | `sent` |
+
+### 19d. A13 — text auto-reply granted for three verified numbers
+
+The founder asked how he gets a text back, was told auto-reply is a leash
+change only he can make, and granted it: "the desk may auto-reply to my
+verified number only: Ryan Shawn Andrew." Scope as recorded in
+OWNER-DECISIONS.md A13: reply content only, three numbers only (Shawn
++1 409 549 2092, Ryan +1 941 210 1410, Andrew +1 941 210 1411), every other
+sender stays log-and-draft, all content leashes unchanged. Implemented as
+the hourly routine `DESK TEXT AUTO-REPLY (A13)`
+(`trig_019FZZts1LhN9KayiwG9Q7rE`, fires at :41) carrying the complete
+standing order as its prompt — deliberately not caption-only, so a woken
+session has its brief and its leashes. HERALD itself is untouched and still
+never sends.
+
+**Honest limit at creation:** the trigger API refused the Inkbox connector
+attachment from this session, so until the founder attaches Inkbox to the
+routine in the claude.ai Routines UI, each firing wakes toolless and stops
+by its own instruction. Reply latency once live is up to one hour (cron
+minimum), not instant; instant replies remain a session-order away.
