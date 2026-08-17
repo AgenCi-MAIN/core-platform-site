@@ -188,6 +188,57 @@ const NAV: readonly NavItem[] = [
 
 const NAV_GROUPS = ["Workspace", "Operations", "Administration"] as const;
 
+const MISSION_GROUPS = [
+  {
+    id: "operating-floor",
+    code: "01",
+    title: "Operating Floor",
+    description: "Move conversations, policy work, governed language, and team execution.",
+    routes: ["/portal/calls", "/portal/book", "/portal/scripts", "/portal/team"],
+  },
+  {
+    id: "signal-intelligence",
+    code: "02",
+    title: "Signal & Intelligence",
+    description: "Read the source material, operating notes, and leadership-level exceptions.",
+    routes: ["/portal/library", "/portal/announcements", "/portal/leadership"],
+  },
+  {
+    id: "economics-lab",
+    code: "03",
+    title: "Economics Lab",
+    description: "Model capacity and compensation while keeping external tools visibly outside CORE.",
+    routes: [
+      "/portal/shop",
+      "/portal/pay-rates",
+      "https://app.insurancetoolkits.com/fex/quoter",
+    ],
+  },
+  {
+    id: "governance-layer",
+    code: "04",
+    title: "Governance Layer",
+    description: "Inspect membership, founder audit access, and the readiness of approved sources.",
+    routes: ["/portal/members", "/portal/audit"],
+    sourceReadiness: true,
+  },
+] as const;
+
+const MISSION_LABELS: Readonly<Record<string, string>> = {
+  "/portal/calls": "Call Lab",
+  "/portal/book": "Book",
+  "/portal/scripts": "Scripts",
+  "/portal/team": "Team",
+  "/portal/library": "Library",
+  "/portal/announcements": "Announcements",
+  "/portal/leadership": "Leadership",
+  "/portal/shop": "Exchange",
+  "/portal/pay-rates": "Pay Rates",
+  "https://app.insurancetoolkits.com/fex/quoter": "Quoter",
+  "/portal/members": "Membership",
+  "/portal/audit": "Audit",
+};
+
 export function PortalShell({
   session,
   current,
@@ -264,8 +315,8 @@ export function PortalShell({
             </button>
             <PortalBackControl />
             <span className="portal-topbar-copy">
-              <strong className="portal-section-name">{section}</strong>
-              <small className="portal-section-context">THRIVE operating portal</small>
+              <strong className="portal-section-name">J.A.R.V.I.S. / {section}</strong>
+              <small className="portal-section-context">Private operations · THRIVE</small>
             </span>
           </div>
 
@@ -499,39 +550,74 @@ export function PortalWorkspaceDirectory({ session }: { session: PortalSession }
   );
 
   return (
-    <div className="portal-workspace-list">
-      {visible.map((item) => {
-        const body = (
-          <>
-            <span className="portal-workspace-symbol" aria-hidden="true">
-              <PortalNavMark name={item.icon} />
-            </span>
-            <span className="portal-workspace-copy">
-              <strong>{item.label}</strong>
-              <small>{item.description}</small>
-            </span>
-            <span className="portal-workspace-meta">
-              <span className={`portal-state portal-state-${item.state}`}>{item.stateLabel}</span>
-              <span className="portal-workspace-action" aria-hidden="true">→</span>
-            </span>
-          </>
-        );
-        // Same client-side rule as the sidebar, for the same reason: the
-        // radio must survive the navigation.
-        return item.external ? (
-          <a
-            className="portal-workspace-item"
-            href={item.href}
-            key={item.href}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {body}
-          </a>
-        ) : (
-          <Link className="portal-workspace-item" href={item.href} key={item.href}>
-            {body}
-          </Link>
+    <div className="portal-mission-grid">
+      {MISSION_GROUPS.map((group) => {
+        const items = group.routes
+          .map((href) => visible.find((item) => item.href === href))
+          .filter((item): item is NavItem => Boolean(item));
+        const sourceReadiness = "sourceReadiness" in group && group.sourceReadiness;
+        if (items.length === 0 && !sourceReadiness) return null;
+
+        return (
+          <article className="portal-mission-lane" key={group.id}>
+            <header className="portal-mission-lane-head">
+              <span className="portal-mission-code" aria-hidden="true">{group.code}</span>
+              <span>
+                <strong>{group.title}</strong>
+                <small>{group.description}</small>
+              </span>
+            </header>
+
+            <div className="portal-mission-routes">
+              {items.map((item) => {
+                const body = (
+                  <>
+                    <span className="portal-workspace-symbol" aria-hidden="true">
+                      <PortalNavMark name={item.icon} />
+                    </span>
+                    <span className="portal-workspace-copy">
+                      <strong>{MISSION_LABELS[item.href] ?? item.label}</strong>
+                      <small>{item.description}</small>
+                    </span>
+                    <span className="portal-workspace-meta">
+                      <span className={`portal-state portal-state-${item.state}`}>{item.stateLabel}</span>
+                      <span className="portal-workspace-action" aria-hidden="true">→</span>
+                    </span>
+                  </>
+                );
+
+                return item.external ? (
+                  <a
+                    className="portal-workspace-item"
+                    href={item.href}
+                    key={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {body}
+                  </a>
+                ) : (
+                  <Link className="portal-workspace-item" href={item.href} key={item.href}>
+                    {body}
+                  </Link>
+                );
+              })}
+
+              {sourceReadiness ? (
+                <a className="portal-workspace-item" href="#source-readiness">
+                  <span className="portal-workspace-symbol portal-workspace-symbol-readiness" aria-hidden="true">◎</span>
+                  <span className="portal-workspace-copy">
+                    <strong>Source readiness</strong>
+                    <small>See which protected systems are operational and which remain disconnected.</small>
+                  </span>
+                  <span className="portal-workspace-meta">
+                    <span className="portal-state portal-state-pending">Mixed state</span>
+                    <span className="portal-workspace-action" aria-hidden="true">↓</span>
+                  </span>
+                </a>
+              ) : null}
+            </div>
+          </article>
         );
       })}
     </div>

@@ -20,7 +20,7 @@ export const PORTAL_PERFORMANCE_STORAGE_KEY = "thrive-portal-performance";
 // theme-color meta so the phone's status bar and the installed app's chrome
 // match the page instead of guessing from the OS preference, which is not
 // what chooses the portal's theme.
-const THEME_BOOT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("${PORTAL_THEME_STORAGE_KEY}");var v=t==="bright"?"bright":"dark";d.dataset.portalTheme=v;d.style.colorScheme=v==="dark"?"dark":"light";var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",v==="dark"?"#0e1116":"#f6f7f9")}var p=localStorage.getItem("${PORTAL_PERFORMANCE_STORAGE_KEY}");d.dataset.portalPerformance=p==="boost"?"boost":"full"}catch(e){}})();`;
+const THEME_BOOT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("${PORTAL_THEME_STORAGE_KEY}");var v=t==="bright"?"bright":"dark";d.dataset.portalTheme=v;d.style.colorScheme=v==="dark"?"dark":"light";var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",v==="dark"?"#0c0a07":"#f3ecdf")}var p=localStorage.getItem("${PORTAL_PERFORMANCE_STORAGE_KEY}");d.dataset.portalPerformance=p==="boost"?"boost":"full"}catch(e){}})();`;
 
 /** Applies the saved theme and performance mode before first paint. */
 export function PortalThemeBoot() {

@@ -35,8 +35,8 @@ export default function manifest(): MetadataRoute.Manifest {
      * into Bright gets it from the theme-color meta, which the boot script
      * rewrites per stored preference; the manifest cannot read localStorage.
      */
-    background_color: "#0e1116",
-    theme_color: "#0e1116",
+    background_color: "#0c0a07",
+    theme_color: "#0c0a07",
     categories: ["business", "productivity"],
     icons: [
       {
