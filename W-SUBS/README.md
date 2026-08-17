@@ -18,3 +18,10 @@ standalone brief. Congratulations relayed; the team stands by.
 6. `06-compliance-posture/` — First team, seat 6
 7. `07-frontend-pwa/` — First team, seat 7
 8. `08-authz-matrix/` — First team, seat 8 — retained on assurance
+
+## Migration note (2026-08-17)
+
+On a fresh account, read **W-SUBS/MIGRATION-CARDS.md first** — the compiled,
+current-as-of-2026-08-17 card for every seat and champion sub. It supersedes
+stale service-record lines in individual briefs (most kits froze at T1/T2;
+post-T2 record lives in SCOREBOARD/ and strategy/, which the cards cite).
