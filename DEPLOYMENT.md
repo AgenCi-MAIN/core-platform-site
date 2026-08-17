@@ -138,8 +138,19 @@ Secrets survive deploys; they only need setting again if they change.
   succeeded).
 - 2026-08-17: post-PR#24 deploy by the owner — ships the single-identity
   founder gate (FOUNDER_EMAILS = btcmao518@gmail.com). Version id was not
-  captured into the record (owner's terminal only) — record it on the next
-  deploy.
+  captured into the record (owner's terminal only); it is permanently lost.
+- 2026-08-17: **version `7427f4f4-8026-4edb-9fa9-23ad403c7307`** — deployed by
+  the owner from `C:\dev\core-platform-site` at `main@3141e99`. Ships PRs
+  #34-#37: the J.A.R.V.I.S. command prompt and portal chrome, the cosmos-overlay
+  fix on the public pages, access-page rebranding, PWA/manifest edits, and the
+  welcome-email + A11 records. One new client asset (`index-xSrqyJO7.css`, the
+  596-line globals.css change); everything else rode in the worker bundle.
+  Suite ran green inside the chain (55/55) and the preflight passed. **This is
+  the first code deploy since 08-17's founder gate** — every merge in between
+  was records only.
+  *Practice that made the id survivable, keep using it:* pipe the deploy through
+  `Tee-Object -FilePath "$env:USERPROFILE\Desktop\deploy-<date>.log"`. Two
+  version ids have now been lost to terminal scrollback; none since.
 - Account note: the Cloudflare ACCOUNT email is being swapped to
   btcmao518@gmail.com via support ticket (password lost, old inbox dead) —
   see strategy/2026-08-17-identity-recovery-docket.md. The `bankerrunners`
