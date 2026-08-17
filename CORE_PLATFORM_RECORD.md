@@ -104,13 +104,20 @@ The consent screen is **External** and unpublished, so first-time users see an
 "unverified app" interstitial. That is expected for a private app; continue via
 **Advanced → Go to THRIVE Portal**.
 
-**Status 2026-08-16: the OAuth client is DISABLED.** Sign-in currently fails
-with Google's `Error 401: disabled_client` for every user. This is not a
-credential-value problem — see trap #8. The owner must re-enable the client in
-Google Cloud console (APIs & Services → Credentials → the client → Enable), or
-mint a replacement and rotate `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`. Until
-then no session can be minted and the portal is unreachable to everyone.
-Remove this paragraph when the client is confirmed working again.
+**Status 2026-08-17: the OAuth client is GONE with its account — rebuild, do
+not chase re-enable.** Root cause found: Google LOCKED the owner's
+`bankerrunners@gmail.com` account itself. The `Error 401: disabled_client` is
+downstream of that — the client lives in that account's Cloud project, and it
+cannot be re-enabled without recovering the account. The recovery path chosen:
+mint a NEW OAuth client in a fresh Cloud project under the owner's new
+identity (`btcmao518@gmail.com`), same single redirect URI, then rotate
+`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` via `wrangler secret put` — no code
+change is needed, the client values are runtime secrets. Cloudflare dashboard
+access survives (its password is independent of Gmail), which also allows
+adding btcmao518 to the Access policy so edge login codes reach a live inbox.
+Google recovery of bankerrunners continues in parallel — GitHub, Drive
+backups, and the Cloudflare account email still point at it. Remove this
+paragraph when sign-in is confirmed working on the new client.
 
 ### Secrets (names only)
 
