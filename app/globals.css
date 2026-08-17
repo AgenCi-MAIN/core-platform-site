@@ -2923,9 +2923,10 @@ html[data-portal-performance="boost"] .music-list li,
 html[data-portal-performance="boost"] .portal-workspace-item { transition: none; }
 
 /* ============================================================
-   THRIVE GOLD
-   The mark is a gold square with a reflection that sweeps across
-   it. The key is one simple gold shape that turns on hover.
+   THRIVE MARK
+   The "V" glyph (app/thrive-mark.tsx): a gold mark on a deep
+   navy-obsidian badge, matching the founder's supplied logo. A
+   soft reflection sweeps across it on hover.
    ============================================================ */
 
 @keyframes thrive-gold-sweep {
@@ -2942,22 +2943,23 @@ html[data-portal-performance="boost"] .portal-workspace-item { transition: none;
   overflow: hidden;
   isolation: isolate;
   border-radius: 11px;
+  display: grid;
+  place-items: center;
   background:
     linear-gradient(150deg,
-      #fdf3d2 0%,
-      #f0d783 22%,
-      #d9ae43 48%,
-      #b8860b 74%,
-      #8c6410 100%);
-  color: #2a2010;
+      #263a68 0%,
+      #1b2a52 42%,
+      #131d3a 100%);
+  /* The glyph inherits this — gold V on the navy badge. */
+  color: #ecc65f;
   font-weight: 900;
   letter-spacing: -.02em;
-  text-shadow: 0 1px 0 rgba(255, 250, 230, .55);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .35);
   box-shadow:
-    inset 0 1px 0 rgba(255, 252, 235, .85),
-    inset 0 -1px 0 rgba(90, 62, 8, .5),
-    0 2px 5px rgba(90, 62, 8, .3),
-    0 8px 22px -8px rgba(184, 134, 11, .55);
+    inset 0 1px 0 rgba(150, 180, 240, .35),
+    inset 0 -1px 0 rgba(6, 12, 28, .6),
+    0 2px 5px rgba(8, 14, 30, .35),
+    0 8px 22px -8px rgba(30, 50, 100, .55);
 }
 
 /* The moving reflection. */
