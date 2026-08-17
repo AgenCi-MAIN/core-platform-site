@@ -1031,7 +1031,7 @@ button, .button, .nav-cta, .text-link {
 .portal-menu-button { position: relative; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--portal-line); border-radius: 7px; background: var(--portal-panel); cursor: pointer; }
 .portal-menu-button::before,
 .portal-menu-button::after,
-.portal-menu-button > span:first-child { content: ""; position: absolute; left: 9px; width: 14px; height: 1.5px; border-radius: 2px; background: var(--portal-muted); }
+.portal-menu-button > span:first-child { content: ""; position: absolute; left: 9px; width: 14px; height: 2px; border-radius: 2px; background: var(--portal-muted); }
 .portal-menu-button::before { top: 9px; }
 .portal-menu-button > span:first-child { top: 15px; }
 .portal-menu-button::after { top: 21px; }
@@ -3409,10 +3409,10 @@ html[data-portal-theme="dark"] .member-note-ok {
   .portal-drawer-close { width: 44px; height: 44px; }
   .portal-menu-button::before,
   .portal-menu-button::after,
-  .portal-menu-button > span:first-child { left: 50%; width: 16px; transform: translateX(-50%); }
-  .portal-menu-button::before { top: 14px; }
-  .portal-menu-button > span:first-child { top: 21px; }
-  .portal-menu-button::after { top: 28px; }
+  .portal-menu-button > span:first-child { left: 50%; width: 16px; height: 2px; transform: translateX(-50%); }
+  .portal-menu-button::before { top: 13px; }
+  .portal-menu-button > span:first-child { top: 20px; }
+  .portal-menu-button::after { top: 27px; }
 
   /**
    * A range input with -webkit-appearance:none has a border box the height of
