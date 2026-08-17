@@ -10,11 +10,12 @@ import { env } from "cloudflare:workers";
  *
  * Mirrors app/portal/leadtech/client.ts's fail-closed-and-honest pattern:
  *
- *   - The RETREAVER_API_KEY secret is read from `env` in a server module. It
- *     NEVER crosses to a client bundle, a rendered attribute, a log line, or
- *     an error echoed to the browser.
- *   - No key -> { state: "not_connected" }; the surface renders an honest
- *     empty state, NEVER sample call data.
+ *   - The RETREAVER_API_KEY secret (and the RETREAVER_COMPANY_ID identifier
+ *     Retreaver's v1 API scopes every read by) are read from `env` in a
+ *     server module. Neither crosses to a client bundle, a rendered
+ *     attribute, a log line, or an error echoed to the browser.
+ *   - Either value absent -> { state: "not_connected" }; the surface renders
+ *     an honest empty state, NEVER sample call data.
  *   - Any failure -> { state: "error", reason } carrying a status number at
  *     most. Bodies are never echoed.
  *
@@ -43,9 +44,14 @@ import { env } from "cloudflare:workers";
  */
 const BASE = "https://api.retreaver.com";
 
-/** Read-only resource paths; the key is appended server-side at fetch time. */
-const CAMPAIGNS_PATH = "/campaigns.json";
-const CALLS_PATH = "/calls.json";
+/**
+ * Read-only resource paths under Retreaver's /api/v1 prefix; the key and
+ * company id are appended server-side at fetch time. Retreaver's v1 contract
+ * scopes every read by company_id alongside the key — both must be configured
+ * or the surface stays honestly not_connected.
+ */
+const CAMPAIGNS_PATH = "/api/v1/campaigns.json";
+const CALLS_PATH = "/api/v1/calls.json";
 
 // ===========================================================================
 // Public result types
@@ -91,6 +97,25 @@ function maskPhone(raw: unknown): string | null {
   return `•••• ${digits.slice(-4)}`;
 }
 
+function maskEmail(raw: string): string | null {
+  const at = raw.indexOf("@");
+  if (at <= 0 || at === raw.length - 1) return null;
+  return `${raw[0]}•••@${raw.slice(at + 1)}`;
+}
+
+/**
+ * Free-text labels (target names here) are operator-authored and commonly ARE
+ * a phone number or email — Retreaver targets are created from a number, so a
+ * "name" like "+15551234567" is the agent's own cell. A label that looks like
+ * contact data gets the same mask as contact data; anything else passes.
+ */
+function scrubLabel(value: string | null): string | null {
+  if (value === null) return null;
+  if (value.includes("@")) return maskEmail(value) ?? "•••";
+  if (value.replace(/\D/g, "").length >= 7) return maskPhone(value);
+  return value;
+}
+
 // ===========================================================================
 // Fetch
 // ===========================================================================
@@ -98,12 +123,18 @@ function maskPhone(raw: unknown): string | null {
 /** A non-2xx upstream response. Its message carries ONLY a status number. */
 class UpstreamError extends Error {}
 
-async function retreaverGet(path: string, apiKey: string): Promise<unknown> {
-  // Host and path are module constants; the key is the only appended value,
-  // per Retreaver's query-param auth contract (see module comment). The full
-  // URL exists only inside this call and is never logged or echoed.
+async function retreaverGet(
+  path: string,
+  apiKey: string,
+  companyId: string,
+): Promise<unknown> {
+  // Host and path are module constants; the key and company id are the only
+  // appended values, per Retreaver's query-param auth contract (see module
+  // comment). The full URL exists only inside this call and is never logged
+  // or echoed.
   const url = new URL(`${BASE}${path}`);
   url.searchParams.set("api_key", apiKey);
+  url.searchParams.set("company_id", companyId);
 
   const response = await fetch(url, {
     method: "GET",
@@ -127,14 +158,17 @@ async function retreaverGet(path: string, apiKey: string): Promise<unknown> {
  */
 export async function fetchRetreaver(): Promise<RetreaverResult> {
   const apiKey = env.RETREAVER_API_KEY;
-  if (!apiKey) {
+  const companyId = env.RETREAVER_COMPANY_ID;
+  if (!apiKey || !companyId) {
+    // Retreaver reads are company-scoped; without BOTH values a request
+    // cannot be made correctly, so the surface stays honestly not connected.
     return { state: "not_connected" };
   }
 
   try {
     const [campaignsRaw, callsRaw] = await Promise.all([
-      retreaverGet(CAMPAIGNS_PATH, apiKey),
-      retreaverGet(CALLS_PATH, apiKey),
+      retreaverGet(CAMPAIGNS_PATH, apiKey, companyId),
+      retreaverGet(CALLS_PATH, apiKey, companyId),
     ]);
     return {
       state: "ok",
@@ -186,8 +220,18 @@ function unwrap(entry: unknown, key: string): Record<string, unknown> {
   return key in outer ? record(outer[key]) : outer;
 }
 
+/**
+ * Retreaver list roots: tolerate both a bare array ([{call:{…}}, …]) and an
+ * object envelope ({"calls":[…]}), the same both-shapes stance unwrap() takes
+ * at row level — otherwise an envelope root would silently read as "no rows"
+ * with state ok, the exact silent-empty this module promises not to produce.
+ */
+function rootArray(raw: unknown, key: string): unknown[] {
+  return Array.isArray(raw) ? raw : asArray(record(raw)[key]);
+}
+
 function parseCampaigns(raw: unknown): RetreaverCampaign[] {
-  return asArray(raw)
+  return rootArray(raw, "campaigns")
     .slice(0, 50)
     .map((entry) => {
       const c = unwrap(entry, "campaign");
@@ -197,18 +241,26 @@ function parseCampaigns(raw: unknown): RetreaverCampaign[] {
 }
 
 function parseCalls(raw: unknown): RetreaverCall[] {
-  return asArray(raw)
+  return rootArray(raw, "calls")
     .slice(0, 100)
     .map((entry) => {
       const c = unwrap(entry, "call");
+      // Conversion arrives as a boolean on some shapes and as a
+      // conversion_count integer on others — read both, invent neither.
+      const conversionCount = numOrNull(c.conversion_count);
       return {
         id: str(c.uuid) ?? str(c.id) ?? "",
         callerMasked: maskPhone(c.caller ?? c.caller_number),
         campaignName: str(c.campaign_name) ?? str(c.campaign_id),
-        targetName: str(c.target_name) ?? str(c.dialed_call_target_name),
+        targetName: scrubLabel(str(c.target_name) ?? str(c.dialed_call_target_name)),
         durationSeconds: numOrNull(c.duration_in_seconds ?? c.duration),
-        payout: numOrNull(c.payout_amount ?? c.payout),
-        converted: typeof c.converted === "boolean" ? c.converted : null,
+        payout: numOrNull(c.total_payout ?? c.payout_amount ?? c.payout),
+        converted:
+          typeof c.converted === "boolean"
+            ? c.converted
+            : conversionCount !== null
+              ? conversionCount > 0
+              : null,
         startedAt: str(c.created_at) ?? str(c.start_time),
       };
     })

@@ -17,8 +17,9 @@ import { env } from "cloudflare:workers";
  *     most. Bodies are never echoed.
  *
  * The account SID is an identifier, not the secret, but it is treated with
- * the same discipline: it appears only in the request URL Twilio's API shape
- * requires (their contract) and is never rendered or logged.
+ * the same discipline: it appears only where Twilio's contract requires it —
+ * the request URL and the Basic credential's username half — and is never
+ * rendered or logged.
  *
  * Do NOT import this file from a "use client" file. These functions NEVER
  * throw to the caller and NEVER log credentials or fetched bodies.
@@ -37,7 +38,14 @@ import { env } from "cloudflare:workers";
  */
 const BASE = "https://api.twilio.com";
 
-/** Inbound-only call log — Direction=inbound is the read this surface makes. */
+/**
+ * Inbound-only call log. Direction=inbound is requested, but Twilio's list
+ * resources silently IGNORE unrecognized filters rather than erroring — so
+ * the inbound guarantee is enforced a second time in parseCalls, which drops
+ * any row whose own direction field is not inbound. That second check is the
+ * load-bearing one: without it an outbound row would put a LEAD's number in
+ * the unmasked "to" column.
+ */
 const CALLS_QUERY = "Calls.json?Direction=inbound&PageSize=50";
 const NUMBERS_QUERY = "IncomingPhoneNumbers.json?PageSize=50";
 
@@ -175,20 +183,30 @@ function record(value: unknown): Record<string, unknown> {
 
 function parseCalls(raw: unknown): TwilioInboundCall[] {
   const root = record(raw);
-  return asArray(root.calls)
-    .slice(0, 100)
-    .map((entry) => {
-      const c = record(entry);
-      return {
-        id: str(c.sid) ?? "",
-        fromMasked: maskPhone(c.from),
-        to: str(c.to),
-        durationSeconds: numOrNull(c.duration),
-        status: str(c.status),
-        startedAt: str(c.start_time),
-      };
-    })
-    .filter((c) => c.id);
+  return (
+    asArray(root.calls)
+      // The inbound guarantee, enforced where it can't be ignored: only rows
+      // whose own direction says inbound. On an outbound row `to` is the
+      // LEAD's number, so letting one through would render lead PII unmasked.
+      // A row with no direction field is dropped for the same reason.
+      .filter((entry) => {
+        const direction = str(record(entry).direction);
+        return direction !== null && direction.startsWith("inbound");
+      })
+      .slice(0, 100)
+      .map((entry) => {
+        const c = record(entry);
+        return {
+          id: str(c.sid) ?? "",
+          fromMasked: maskPhone(c.from),
+          to: str(c.to),
+          durationSeconds: numOrNull(c.duration),
+          status: str(c.status),
+          startedAt: str(c.start_time),
+        };
+      })
+      .filter((c) => c.id)
+  );
 }
 
 function parseNumbers(raw: unknown): TwilioNumber[] {

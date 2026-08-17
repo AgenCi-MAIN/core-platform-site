@@ -589,26 +589,35 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
   // /portal/command now sits behind COMMAND_CENTER_EMAILS (founder order
   // 2026-08-17) and its denial rows honestly say "command_only"; the three
   // /go/* handoffs remain founder-gated and keep saying "founder_only".
+  // The action column is pinned too: these rows land in an append-only table,
+  // so a surface recording the wrong action is a false statement nothing can
+  // retract — exactly what access.ts's requireFounder comment warns about.
+  const GATE_ACTIONS = {
+    "/portal/command": ["command_only", "command.view"],
+    "/go/hq": ["founder_only", "go.hq"],
+    "/go/routines": ["founder_only", "go.routines"],
+    "/go/desk": ["founder_only", "go.desk"],
+  };
   const gateDenials = (await portal.audit())
     .filter(
       (row) =>
         row.decision === "deny" &&
         (row.reason === "founder_only" || row.reason === "command_only"),
     )
-    .map((row) => `${row.actor_email}|${row.request_path}|${row.reason}`)
+    .map((row) => `${row.actor_email}|${row.request_path}|${row.reason}|${row.action}`)
     .sort();
   assert.deepEqual(
     gateDenials,
     guarded
       .flatMap((pathname) => {
-        const reason = pathname === "/portal/command" ? "command_only" : "founder_only";
+        const [reason, action] = GATE_ACTIONS[pathname];
         return [
-          `${otherOwner.email}|${pathname}|${reason}`,
-          `${retiredFounder.email}|${pathname}|${reason}`,
+          `${otherOwner.email}|${pathname}|${reason}|${action}`,
+          `${retiredFounder.email}|${pathname}|${reason}|${action}`,
         ];
       })
       .sort(),
-    "each guarded path must audit both refused identities under its own gate's honest reason",
+    "each guarded path must audit both refused identities under its own gate's honest reason and action",
   );
 
   await portal.addMember("btcmao518@gmail.com", "owner");
@@ -673,11 +682,14 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
   );
   assert.equal(deskLocation.hash, "");
 
-  // Andrew Davidson — the named helper added by founder order 2026-08-17.
+  // Andrew Davidson — the named helper added by founder order 2026-08-17
+  // (OWNER-DECISIONS A13). Provisioned as OWNER here because that mirrors the
+  // live roster (A7: owner, bound 2026-08-16) — which also proves the sharper
+  // fact that even an owner seat does not open the founder-only surfaces.
   // Command Center answers him; every /go/* handoff still refuses him,
-  // because the grant's scope is THE COMMAND CENTER PAGE ONLY. (Probed after
-  // the audit deepEqual above so his denial rows don't disturb it.)
-  await portal.addMember("andrew.davidson.zenith@gmail.com", "manager");
+  // because the allowlist's scope is THE COMMAND CENTER PAGE ONLY. (Probed
+  // after the audit deepEqual above so his denial rows don't disturb it.)
+  await portal.addMember("andrew.davidson.zenith@gmail.com", "owner");
   const helper = {
     subject: "sub-command-helper-andrew",
     email: "andrew.davidson.zenith@gmail.com",
@@ -2329,7 +2341,13 @@ test("LeadTech renders the honest not-connected state to leadership and refuses 
   // the surface must render its honest "not connected" state — never fake
   // pipeline data — to a leadership-capable role, and must refuse a role that
   // does not hold leadership.view.all.
-  const portal = await startPortal();
+  //
+  // The outbound seam is armed so this also pins NO EXTERNAL CALLS: an
+  // attempted fetch would 500, flip the page to its error card, and fail the
+  // "Connect LeadTech" match.
+  const portal = await startPortal({
+    anthropic: () => new Response("unexpected anthropic call", { status: 500 }),
+  });
   t.after(portal.dispose);
 
   // manager holds leadership.view.all (owner/admin/manager do; agent does not).
@@ -2370,7 +2388,15 @@ test("Retreaver and Twilio render honest not-connected states to leadership and 
   // surfaces must render their honest "not connected" states — never fake
   // call data — to a leadership-capable role, and must refuse a role that
   // does not hold leadership.view.all.
-  const portal = await startPortal();
+  //
+  // The outbound seam is armed so this pins NO EXTERNAL CALLS, not just the
+  // rendered HTML: any fetch the worker attempted would hit the seam's loud
+  // 500, flip the surface to its error card, and fail the "Connect …" match
+  // below. Without the seam, a refactor that probed upstream before the key
+  // check would pass this test while hitting the real network in production.
+  const portal = await startPortal({
+    anthropic: () => new Response("unexpected anthropic call", { status: 500 }),
+  });
   t.after(portal.dispose);
 
   await portal.addMember("manager-callapis@example.com", "manager");

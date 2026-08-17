@@ -45,8 +45,14 @@ import { env } from "cloudflare:workers";
  */
 const BASE = "https://services.leadconnectorhq.com";
 
-/** Required version header for GHL API v2. VERIFY vs current GHL API docs. */
-const VERSION = "2021-07-28";
+/**
+ * Required Version headers for GHL API v2 — PER ENDPOINT FAMILY, because GHL
+ * rejects a wrong Version with a 400 rather than ignoring it. Contacts,
+ * opportunities, and pipelines take 2021-07-28; calendars and conversations
+ * take 2021-04-15. VERIFY both vs current GHL API docs.
+ */
+const CORE_VERSION = "2021-07-28";
+const SCHEDULING_VERSION = "2021-04-15";
 
 /**
  * The owner's LeadTech location id, taken from the owner's own dashboard URL.
@@ -62,11 +68,28 @@ const LOCATION_ID = "ousHLoknBNJ0uEw8IUGu";
  * opportunity search uses `location_id` in the v2 docs as of this build), and
  * response shape.
  */
-const CONTACTS_PATH = `/contacts/?locationId=${LOCATION_ID}&limit=100`;
-const OPPORTUNITIES_PATH = `/opportunities/search?location_id=${LOCATION_ID}&limit=100`;
-const PIPELINES_PATH = `/opportunities/pipelines?locationId=${LOCATION_ID}`;
-const CONVERSATIONS_PATH = `/conversations/search?locationId=${LOCATION_ID}&limit=50`;
-const CALENDARS_PATH = `/calendars/?locationId=${LOCATION_ID}`;
+type Endpoint = { path: string; version: string };
+
+const CONTACTS: Endpoint = {
+  path: `/contacts/?locationId=${LOCATION_ID}&limit=100`,
+  version: CORE_VERSION,
+};
+const OPPORTUNITIES: Endpoint = {
+  path: `/opportunities/search?location_id=${LOCATION_ID}&limit=100`,
+  version: CORE_VERSION,
+};
+const PIPELINES: Endpoint = {
+  path: `/opportunities/pipelines?locationId=${LOCATION_ID}`,
+  version: CORE_VERSION,
+};
+const CONVERSATIONS: Endpoint = {
+  path: `/conversations/search?locationId=${LOCATION_ID}&limit=50`,
+  version: SCHEDULING_VERSION,
+};
+const CALENDARS: Endpoint = {
+  path: `/calendars/?locationId=${LOCATION_ID}`,
+  version: SCHEDULING_VERSION,
+};
 
 // ===========================================================================
 // Public result types
@@ -146,8 +169,10 @@ export type LeadTechResult<T> =
 // ===========================================================================
 // PII masking — done HERE, server-side, so raw phone/email never even reach
 // the page or the rendered HTML. Mirrors the Call Lab, which stores/shows a
-// masked caller number. Conversation and message BODIES are never fetched into
-// a rendered field at all — only channel, date, and unread count.
+// masked caller number. Message BODIES are never fetched into a rendered
+// field at all — a conversation carries channel, date, unread count, and a
+// contact display name that passes through scrubLabel below (for a nameless
+// inbound lead that "name" is the raw number, so it gets the same mask).
 // ===========================================================================
 
 function maskPhone(raw: unknown): string | null {
@@ -166,6 +191,24 @@ function maskEmail(raw: unknown): string | null {
   return `${raw[0]}•••@${domain}`;
 }
 
+/**
+ * GHL display names, tags, and sources are free text that commonly IS contact
+ * data: an inbound SMS from an unknown number creates a contact whose display
+ * name is the phone number itself, and form-fed `source` values can carry a
+ * prefill URL with the lead's email in its query string. Any such label that
+ * looks like contact data gets the same mask as contact data — otherwise the
+ * masked phone/email columns would sit right next to an unmasked copy.
+ */
+function scrubLabel(value: string | null): string | null {
+  if (value === null) return null;
+  // A URL-ish source keeps only its path — query strings can carry prefill PII.
+  const q = value.indexOf("?");
+  const base = q >= 0 ? value.slice(0, q) : value;
+  if (base.includes("@")) return maskEmail(base) ?? "•••";
+  if (base.replace(/\D/g, "").length >= 7) return maskPhone(base);
+  return base.length > 60 ? `${base.slice(0, 60)}…` : base;
+}
+
 // ===========================================================================
 // Fetch
 // ===========================================================================
@@ -173,15 +216,15 @@ function maskEmail(raw: unknown): string | null {
 /** A non-2xx upstream response. Its message carries ONLY a status number. */
 class UpstreamError extends Error {}
 
-async function ghlGet(path: string, apiKey: string): Promise<unknown> {
-  // The host is the BASE constant; `path` is one of the module constants above.
-  // Nothing external ever contributes to this URL.
-  const response = await fetch(`${BASE}${path}`, {
+async function ghlGet(endpoint: Endpoint, apiKey: string): Promise<unknown> {
+  // The host is the BASE constant; `endpoint` is one of the module constants
+  // above. Nothing external ever contributes to this URL.
+  const response = await fetch(`${BASE}${endpoint.path}`, {
     method: "GET",
     headers: {
       // The secret rides here, in the header — never in the URL, never logged.
       Authorization: `Bearer ${apiKey}`,
-      Version: VERSION,
+      Version: endpoint.version,
       Accept: "application/json",
     },
     // Never follow a redirect to another host. A 3xx (or an opaque manual
@@ -209,7 +252,7 @@ function safeReason(error: unknown): string {
  * with the never-throw / honest-error contract in one place.
  */
 async function fetchTab<T>(
-  paths: string[],
+  endpoints: Endpoint[],
   parse: (bodies: unknown[]) => T,
 ): Promise<LeadTechResult<T>> {
   const apiKey = env.LEADTECH_API_KEY;
@@ -219,7 +262,7 @@ async function fetchTab<T>(
   }
 
   try {
-    const bodies = await Promise.all(paths.map((path) => ghlGet(path, apiKey)));
+    const bodies = await Promise.all(endpoints.map((endpoint) => ghlGet(endpoint, apiKey)));
     return { state: "ok", data: parse(bodies) };
   } catch (error) {
     // Never surface the key or the body. A short, safe reason only. A raw
@@ -231,7 +274,7 @@ async function fetchTab<T>(
 
 /** Pipeline tab: stage definitions + the opportunities that sit in them. */
 export function fetchPipelineTab(): Promise<LeadTechResult<PipelineTabData>> {
-  return fetchTab([PIPELINES_PATH, OPPORTUNITIES_PATH], ([pipelinesRaw, opportunitiesRaw]) => ({
+  return fetchTab([PIPELINES, OPPORTUNITIES], ([pipelinesRaw, opportunitiesRaw]) => ({
     pipelines: parsePipelines(pipelinesRaw),
     opportunities: parseOpportunities(opportunitiesRaw),
   }));
@@ -239,14 +282,14 @@ export function fetchPipelineTab(): Promise<LeadTechResult<PipelineTabData>> {
 
 /** Contacts tab: the newest contacts with tags, source, and masked reachability. */
 export function fetchContactsTab(): Promise<LeadTechResult<ContactsTabData>> {
-  return fetchTab([CONTACTS_PATH], ([contactsRaw]) => ({
+  return fetchTab([CONTACTS], ([contactsRaw]) => ({
     contacts: parseContacts(contactsRaw),
   }));
 }
 
 /** Engagement tab: recent conversations (no bodies) + configured calendars. */
 export function fetchEngagementTab(): Promise<LeadTechResult<EngagementTabData>> {
-  return fetchTab([CONVERSATIONS_PATH, CALENDARS_PATH], ([conversationsRaw, calendarsRaw]) => ({
+  return fetchTab([CONVERSATIONS, CALENDARS], ([conversationsRaw, calendarsRaw]) => ({
     conversations: parseConversations(conversationsRaw),
     calendars: parseCalendars(calendarsRaw),
   }));
@@ -260,6 +303,14 @@ export function fetchEngagementTab(): Promise<LeadTechResult<EngagementTabData>>
 
 function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
+}
+
+/** Timestamp field: an ISO string passes through; unix-millis become ISO. */
+function tsStr(value: unknown): string | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return new Date(value).toISOString();
+  }
+  return str(value);
 }
 
 function str(value: unknown): string | null {
@@ -283,15 +334,17 @@ function parseContacts(raw: unknown): LeadContact[] {
       const composed = [str(c.firstName), str(c.lastName)].filter(Boolean).join(" ");
       return {
         id: str(c.id) ?? "",
-        name: str(c.contactName) ?? str(c.name) ?? (composed || null),
+        // Scrubbed: for a nameless inbound lead GHL's display name IS the
+        // raw phone/email, which would defeat the masked columns beside it.
+        name: scrubLabel(str(c.contactName) ?? str(c.name) ?? (composed || null)),
         phoneMasked: maskPhone(c.phone),
         emailMasked: maskEmail(c.email),
         addedAt: str(c.dateAdded) ?? str(c.createdAt),
         tags: asArray(c.tags)
-          .map((tag) => str(tag))
+          .map((tag) => scrubLabel(str(tag)))
           .filter((tag): tag is string => tag !== null)
           .slice(0, 8),
-        source: str(c.source),
+        source: scrubLabel(str(c.source)),
         dnd: c.dnd === true,
       };
     })
@@ -346,9 +399,13 @@ function parseConversations(raw: unknown): LeadConversation[] {
       const c = record(entry);
       return {
         id: str(c.id) ?? "",
-        contactName: str(c.contactName) ?? str(c.fullName),
+        // Scrubbed for the same reason as contact names: an unknown inbound
+        // number's conversation is titled with the raw number itself.
+        contactName: scrubLabel(str(c.contactName) ?? str(c.fullName)),
         type: str(c.type),
-        lastMessageAt: str(c.lastMessageDate),
+        // GHL timestamps arrive as ISO strings on some shapes and unix-millis
+        // numbers on others — accept both, render neither wrongly.
+        lastMessageAt: tsStr(c.lastMessageDate),
         // Channel of the last message ONLY — the body field is deliberately
         // never read, so a message text can never reach the rendered page.
         lastMessageType: str(c.lastMessageType),

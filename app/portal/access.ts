@@ -408,9 +408,13 @@ export function isFounder(session: PortalSession): boolean {
  *
  * Granted per person by founder order, never per role: Andrew Davidson
  * (helper dev) was added by the founder's explicit instruction on 2026-08-17
- * ("unlock COMMAND CENTER for ANDREW DAVIDSON"), scope confirmed as the
- * COMMAND CENTER PAGE ONLY. The audit log, the investigator, and every /go/*
- * handoff remain founder-only — they answer FOUNDER_EMAILS, not this set.
+ * ("unlock COMMAND CENTER for ANDREW DAVIDSON"). THIS SET governs the Command
+ * Center page only; the audit log, the investigator, and every /go/* handoff
+ * remain founder-only — they answer FOUNDER_EMAILS, not this set. Note
+ * plainly: a listed helper's WIDER portal access comes from their member
+ * role, which this allowlist neither grants nor limits — Andrew is already a
+ * live, bound owner (OWNER-DECISIONS A7; the Command Center grant is A13),
+ * so he holds every role capability by that grant, not by this one.
  *
  * Like FOUNDER_EMAILS this is identity, not a header claim: tested only
  * against the cookie-resolved session email, entries lowercase. A test pins

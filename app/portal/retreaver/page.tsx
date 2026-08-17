@@ -91,16 +91,18 @@ function NotConnected() {
       <PortalCardHeader
         icon="R"
         title="Connect Retreaver"
-        description="CORE is wired to Retreaver but has no API key on this deployment yet."
+        description="CORE is wired to Retreaver but has no credentials on this deployment yet."
       />
       <EmptyState
         title="Connect Retreaver to see inbound call routing"
         body={
           <>
-            One-time setup, owner only: set the Retreaver API key as a secret
-            with <code>wrangler secret put RETREAVER_API_KEY</code> and redeploy.
-            Until then this surface stays honestly empty and shows no sample or
-            placeholder call data.
+            One-time setup, owner only: set both values with{" "}
+            <code>wrangler secret put RETREAVER_API_KEY</code> and{" "}
+            <code>wrangler secret put RETREAVER_COMPANY_ID</code> (the company id
+            from the Retreaver dashboard URL), then redeploy. Until then this
+            surface stays honestly empty and shows no sample or placeholder call
+            data.
           </>
         }
       />

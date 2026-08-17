@@ -167,11 +167,12 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
   const appDir = fileURLToPath(new URL("../app", import.meta.url));
 
   // Second argument of requireCapability(capability, returnTo) is the route;
-  // requireFounder(returnTo) takes the route directly. Both are guards, and a
-  // founder-gated page OR redirect handler shipping without an
-  // anonymous-refusal test is the same failure as a capability-gated one —
-  // the regex must see them both.
-  const GUARD = /(?:requireCapability\(\s*"[^"]+"\s*,|requireFounder\()\s*"([^"]+)"/g;
+  // requireFounder(returnTo) and requireCommandCenter(returnTo) take the
+  // route directly. All three are guards, and a page shipping behind any of
+  // them without an anonymous-refusal test is the same failure — the regex
+  // must see them all.
+  const GUARD =
+    /(?:requireCapability\(\s*"[^"]+"\s*,|requireFounder\(|requireCommandCenter\()\s*"([^"]+)"/g;
 
   const found = new Set();
   const walk = (dir) => {
@@ -207,7 +208,9 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
       if (statSync(full).isDirectory()) check(full);
       else if (entry === "page.tsx" || entry === "route.ts") {
         const src = readFileSync(full, "utf8");
-        const calls = (src.match(/requireCapability\(|requireFounder\(/g) ?? []).length;
+        const calls = (
+          src.match(/requireCapability\(|requireFounder\(|requireCommandCenter\(/g) ?? []
+        ).length;
         const matched = [...src.matchAll(GUARD)].length;
         if (calls > matched) {
           // Allow template-literal returnTo ONLY when the route's static
@@ -330,13 +333,20 @@ test("COMMAND_CENTER_EMAILS holds exactly the founder and Andrew Davidson", asyn
     declaration,
     "COMMAND_CENTER_EMAILS must be a literal Set spreading FOUNDER_EMAILS — keep it greppable",
   );
-  assert.match(
-    declaration[1],
-    /\.\.\.FOUNDER_EMAILS/,
-    "COMMAND_CENTER_EMAILS must include the founder by construction, not by copy",
+
+  // Exactly ONE spread, and it is FOUNDER_EMAILS — a second spread would
+  // widen the set without appearing in the quoted-literal check below.
+  const spreads = [...declaration[1].matchAll(/\.\.\.\s*([A-Za-z_$][\w$]*)/g)].map((m) => m[1]);
+  assert.deepEqual(
+    spreads,
+    ["FOUNDER_EMAILS"],
+    "COMMAND_CENTER_EMAILS must spread FOUNDER_EMAILS and nothing else",
   );
 
-  const addresses = [...declaration[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  // Both quote styles and template literals count as literals here, so a
+  // single-quoted addition cannot dodge the pin; a template literal has no
+  // legitimate reason to exist in this Set and fails the exact-match below.
+  const addresses = [...declaration[1].matchAll(/["'`]([^"'`]+)["'`]/g)].map((m) => m[1]);
   assert.deepEqual(
     addresses,
     ["andrew.davidson.zenith@gmail.com"],
