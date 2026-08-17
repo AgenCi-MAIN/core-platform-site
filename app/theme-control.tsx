@@ -1,10 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 
 type PortalTheme = "bright" | "dark";
 
 const STORAGE_KEY = "core-portal-theme";
+const THEME_CHANGE_EVENT = "core-portal-theme-change";
+
+function subscribe(onStoreChange: () => void) {
+  window.addEventListener(THEME_CHANGE_EVENT, onStoreChange);
+  return () => window.removeEventListener(THEME_CHANGE_EVENT, onStoreChange);
+}
+
+function readTheme(): PortalTheme {
+  return document.documentElement.dataset.portalTheme === "dark" ? "dark" : "bright";
+}
 
 function applyTheme(theme: PortalTheme) {
   document.documentElement.dataset.portalTheme = theme;
@@ -12,24 +22,20 @@ function applyTheme(theme: PortalTheme) {
   // The status-bar/browser chrome colour follows the page. The boot script
   // does the same before first paint; this keeps toggles in step after it.
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", theme === "dark" ? "#0e1116" : "#f6f7f9");
+  if (meta) meta.setAttribute("content", theme === "dark" ? "#0c0a07" : "#f3ecdf");
 }
 
 export function PortalThemeControl() {
-  const [theme, setTheme] = useState<PortalTheme>(() =>
-    typeof document !== "undefined" && document.documentElement.dataset.portalTheme === "dark"
-      ? "dark"
-      : "bright",
-  );
+  const theme = useSyncExternalStore(subscribe, readTheme, () => "bright");
 
   function chooseTheme(nextTheme: PortalTheme) {
-    setTheme(nextTheme);
     applyTheme(nextTheme);
     try {
       window.localStorage.setItem(STORAGE_KEY, nextTheme);
     } catch {
       // The mode still applies for this page when browser storage is unavailable.
     }
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }
 
   return (

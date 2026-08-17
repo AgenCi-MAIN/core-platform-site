@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 
 /**
  * The JARVIS Presence — the portal's talking pet.
@@ -16,6 +23,27 @@ import { useEffect, useRef, useState } from "react";
  */
 
 type Line = { from: "you" | "presence"; text: string };
+type PanelOffset = { x: number; y: number };
+type DragSource = "toggle" | "handle";
+type DragState = PanelOffset & {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  baseLeft: number;
+  baseTop: number;
+  width: number;
+  height: number;
+  source: DragSource;
+  moved: boolean;
+};
+
+const DRAG_THRESHOLD = 5;
+const VIEWPORT_EDGE = 12;
+const JARVIS_PROMPT_EVENT = "thrive:jarvis-prompt";
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), Math.max(min, max));
+}
 
 /**
  * The face. Designed from the owner's badge reference (the VIGIL lineage):
@@ -69,11 +97,153 @@ export function PortalPresence() {
   const [lines, setLines] = useState<Line[]>([]);
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
+  const [offset, setOffset] = useState<PanelOffset>({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const logRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const dragRef = useRef<DragState | null>(null);
+  const suppressToggleClickRef = useRef(false);
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
   }, [lines, open]);
+
+  /** Keep the floating surface reachable after opening it or resizing the viewport. */
+  const containOffset = useCallback((next: PanelOffset): PanelOffset => {
+    const rect = rootRef.current?.getBoundingClientRect();
+    if (!rect) return next;
+
+    const baseLeft = rect.left - next.x;
+    const baseTop = rect.top - next.y;
+    return {
+      x: clamp(
+        next.x,
+        VIEWPORT_EDGE - baseLeft,
+        window.innerWidth - rect.width - VIEWPORT_EDGE - baseLeft,
+      ),
+      y: clamp(
+        next.y,
+        VIEWPORT_EDGE - baseTop,
+        window.innerHeight - rect.height - VIEWPORT_EDGE - baseTop,
+      ),
+    };
+  }, []);
+
+  useEffect(() => {
+    const keepInViewport = () => {
+      setOffset((current) => containOffset(current));
+    };
+
+    keepInViewport();
+    window.addEventListener("resize", keepInViewport);
+    return () => window.removeEventListener("resize", keepInViewport);
+  }, [containOffset, open]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      setOpen(false);
+      window.setTimeout(() => toggleRef.current?.focus(), 0);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
+  useEffect(() => {
+    const openFromCommand = (event: Event) => {
+      const detail = (event as CustomEvent<{ question?: string }>).detail;
+      const prepared = detail?.question?.trim().slice(0, 400) ?? "";
+      setOpen(true);
+      if (prepared) setQuestion(prepared);
+      window.setTimeout(() => inputRef.current?.focus(), 0);
+    };
+
+    window.addEventListener(JARVIS_PROMPT_EVENT, openFromCommand);
+    return () => window.removeEventListener(JARVIS_PROMPT_EVENT, openFromCommand);
+  }, []);
+
+  function beginDrag(event: ReactPointerEvent<HTMLElement>, source: DragSource) {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    const rect = rootRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      x: offset.x,
+      y: offset.y,
+      baseLeft: rect.left - offset.x,
+      baseTop: rect.top - offset.y,
+      width: rect.width,
+      height: rect.height,
+      source,
+      moved: false,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDragging(true);
+  }
+
+  function moveDrag(event: ReactPointerEvent<HTMLElement>) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+    if (!drag.moved && Math.hypot(deltaX, deltaY) < DRAG_THRESHOLD) return;
+    drag.moved = true;
+    event.preventDefault();
+
+    setOffset({
+      x: clamp(
+        drag.x + deltaX,
+        VIEWPORT_EDGE - drag.baseLeft,
+        window.innerWidth - drag.width - VIEWPORT_EDGE - drag.baseLeft,
+      ),
+      y: clamp(
+        drag.y + deltaY,
+        VIEWPORT_EDGE - drag.baseTop,
+        window.innerHeight - drag.height - VIEWPORT_EDGE - drag.baseTop,
+      ),
+    });
+  }
+
+  function endDrag(event: ReactPointerEvent<HTMLElement>) {
+    const drag = dragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    if (drag.source === "toggle" && drag.moved) {
+      suppressToggleClickRef.current = true;
+    }
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    dragRef.current = null;
+    setDragging(false);
+  }
+
+  function nudge(event: ReactKeyboardEvent<HTMLButtonElement>) {
+    const step = event.shiftKey ? 48 : 24;
+    const delta =
+      event.key === "ArrowLeft"
+        ? { x: -step, y: 0 }
+        : event.key === "ArrowRight"
+          ? { x: step, y: 0 }
+          : event.key === "ArrowUp"
+            ? { x: 0, y: -step }
+            : event.key === "ArrowDown"
+              ? { x: 0, y: step }
+              : null;
+    if (!delta) return;
+
+    event.preventDefault();
+    setOffset((current) => containOffset({ x: current.x + delta.x, y: current.y + delta.y }));
+  }
 
   async function ask() {
     const q = question.trim();
@@ -108,13 +278,43 @@ export function PortalPresence() {
   }
 
   return (
-    <div className="presence">
+    <div
+      ref={rootRef}
+      className={`presence${dragging ? " presence-dragging" : ""}`}
+      style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}
+    >
       {open ? (
-        <section className="presence-panel" role="dialog" aria-label="JARVIS Presence">
+        <section
+          className="presence-panel"
+          role="dialog"
+          aria-labelledby="presence-title"
+          aria-describedby="presence-fine"
+        >
           <header className="presence-head">
+            <button
+              type="button"
+              className="presence-drag-handle"
+              aria-label="Move J.A.R.V.I.S. assistant"
+              aria-describedby="presence-drag-help"
+              title="Drag or use arrow keys to move"
+              onPointerDown={(event) => beginDrag(event, "handle")}
+              onPointerMove={moveDrag}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onKeyDown={nudge}
+            >
+              <span className="presence-grip" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+                <i />
+              </span>
+            </button>
             <PresenceFace size={26} />
             <div className="presence-head-copy">
-              <strong>JARVIS Presence</strong>
+              <strong id="presence-title">J.A.R.V.I.S. Presence</strong>
               <small>Ask about THRIVE and this portal</small>
             </div>
             <button
@@ -127,7 +327,7 @@ export function PortalPresence() {
             </button>
           </header>
 
-          <div className="presence-log" ref={logRef}>
+          <div className="presence-log" ref={logRef} aria-live="polite">
             {lines.length === 0 ? (
               <p className="presence-line presence-line-presence">
                 Hi {""}— I answer questions about THRIVE, this portal, and your
@@ -158,6 +358,7 @@ export function PortalPresence() {
             }}
           >
             <input
+              ref={inputRef}
               type="text"
               value={question}
               maxLength={400}
@@ -170,18 +371,38 @@ export function PortalPresence() {
             </button>
           </form>
 
-          <p className="presence-fine">
-            Powered by Claude. A helper, not a person — no legal, tax, or
-            coverage advice, and no quotes. Conversations are logged to the
-            portal audit trail.
+          <div className="presence-status" aria-label="J.A.R.V.I.S. boundaries">
+            <span>Text only</span>
+            <span>No microphone</span>
+            <span>No external actions</span>
+          </div>
+          <p className="presence-fine" id="presence-fine">
+            A helper, not a person — no legal, tax, or coverage advice, and no
+            quotes. When configured, questions use the protected in-portal
+            Presence endpoint; conversations are logged to the portal audit
+            trail.
           </p>
+          <span className="sr-only" id="presence-drag-help">
+            Use the arrow keys to nudge the assistant. Hold Shift for larger steps.
+          </span>
         </section>
       ) : null}
 
       <button
+        ref={toggleRef}
         type="button"
-        className="presence-toggle"
-        onClick={() => setOpen((v) => !v)}
+        className={`presence-toggle${open ? " presence-toggle-open" : ""}`}
+        onPointerDown={(event) => beginDrag(event, "toggle")}
+        onPointerMove={moveDrag}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onClick={() => {
+          if (suppressToggleClickRef.current) {
+            suppressToggleClickRef.current = false;
+            return;
+          }
+          setOpen((v) => !v);
+        }}
         aria-expanded={open}
         aria-label={open ? "Close the JARVIS Presence" : "Open the JARVIS Presence"}
         title="JARVIS Presence"

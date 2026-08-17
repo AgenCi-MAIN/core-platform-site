@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { KeyGlyph } from "../key-glyph";
 import { signInPath } from "../google-auth";
+import { PortalGovernanceFooter } from "../portal-chrome";
 import { SiteTopbar } from "../site-chrome";
 
 export const dynamic = "force-dynamic";
@@ -31,18 +32,18 @@ export default async function AccessPage({
   const typed = normalizeTyped(email);
 
   return (
-    <>
-      <SiteTopbar section="Access" context="Portal access" />
+    <div className="portal site-page access-page">
+      <SiteTopbar section="Private operations" context="J.A.R.V.I.S. access" />
 
       <main className="site-main portal-gate access-gate">
         <section className="portal-card portal-gate-card access-card">
           <header className="access-head">
-            <span className="access-mark" aria-hidden="true">T</span>
-            <p className="portal-eyebrow">THRIVE — Operating portal</p>
-            <h1>Portal access</h1>
+            <span className="access-mark" aria-hidden="true">J</span>
+            <p className="portal-eyebrow">J.A.R.V.I.S. / PRIVATE OPERATIONS</p>
+            <h1>Approved account entry</h1>
             <p className="portal-lede">
-              The THRIVE portal is a permissioned workspace. Access is assigned
-              to you by name before your first sign-in — it is never self-served.
+              This is a permissioned workspace. Continue with your approved
+              account to enter.
             </p>
             <span className="portal-state portal-state-restricted access-phase">
               Alpha access · permission required
@@ -191,7 +192,8 @@ export default async function AccessPage({
           </div>
         </section>
       </main>
-    </>
+      <PortalGovernanceFooter />
+    </div>
   );
 }
 
