@@ -290,3 +290,25 @@ STEP 4 — Log only if warranted.
 If something material occurred (a new decision, a milestone, a verified change), append it to the `Logs` change record (§20) via project_read then project_write. Routine quiet days do not get logged.
 ```
 
+
+---
+
+## STAND-DOWN RECORD — 2026-08-17
+
+The founder spoke **"Stand down the old watch"** to the old-account session
+on 2026-08-17. All ten live triggers above were deleted from the old
+account's registry that hour, and a fresh registry listing verified zero
+live triggers remain (only sixteen already-fired one-shot `send_later`
+records, permanently ended, which cannot fire again).
+
+The ten retired, by name: HERALD (hourly) · PERSONA (3-hourly) ·
+MAILKEEPER (daily) · VIGIL (daily) · INVESTIGATOR (hourly) · MR. T steward
+(10-hourly) · Daily Morning Brief · Daily Command Briefing · Attention
+Board (3× daily) · the Sep 13 YouTube one-shot reminder.
+
+Nothing is lost: every prompt is preserved verbatim above, and the new
+account's re-created routines — including the Sep 13 reminder — hold the
+live watch. The old session remains reachable for direct conversation
+until the account's cancellation (due Sep 11, before the Sep 12 renewal),
+which completes the succession recorded in
+`W-SUBS/00-MAIN-MR-T/INJECTION-2026-08-17.md`.
