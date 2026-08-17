@@ -17,6 +17,7 @@ type PortalIconName =
   | "training"
   | "book"
   | "calls"
+  | "leadtech"
   | "scripts"
   | "team"
   | "leadership"
@@ -29,7 +30,7 @@ type NavItem = {
   label: string;
   capability: Capability;
   icon: PortalIconName;
-  group: "Workspace" | "Operations" | "Administration";
+  group: "Workspace" | "Calls" | "Team" | "API" | "Administration";
   description: string;
   state: "live" | "pending";
   /** Set for third-party tools opened outside the portal. */
@@ -90,7 +91,7 @@ const NAV: readonly NavItem[] = [
     label: "Training",
     capability: "dashboard.view.self",
     icon: "training",
-    group: "Operations",
+    group: "Calls",
     description: "THRIVE-approved introductions, call angles, and training language.",
     state: "live",
     stateLabel: "Approved content",
@@ -100,7 +101,7 @@ const NAV: readonly NavItem[] = [
     label: "Book of Business",
     capability: "book.view.self",
     icon: "book",
-    group: "Operations",
+    group: "Team",
     description: "Personal policy, placement, and retention intelligence.",
     state: "pending",
     stateLabel: "Source pending",
@@ -110,17 +111,27 @@ const NAV: readonly NavItem[] = [
     label: "Call Lab",
     capability: "calls.review",
     icon: "calls",
-    group: "Operations",
+    group: "Calls",
     description: "Transferred call access and permissioned coaching review.",
     state: "live",
     stateLabel: "Beta ready",
+  },
+  {
+    href: "/portal/leadtech",
+    label: "LeadTech",
+    capability: "leadership.view.all",
+    icon: "leadtech",
+    group: "API",
+    description: "LeadTech contacts and pipeline, rendered natively inside CORE.",
+    state: "live",
+    stateLabel: "Leadership",
   },
   {
     href: "/portal/scripts",
     label: "Script Vault",
     capability: "scripts.manage",
     icon: "scripts",
-    group: "Operations",
+    group: "Calls",
     description: "Governed, versioned conversation playbooks.",
     state: "pending",
     stateLabel: "Import pending",
@@ -130,7 +141,7 @@ const NAV: readonly NavItem[] = [
     label: "Team",
     capability: "team.view",
     icon: "team",
-    group: "Operations",
+    group: "Team",
     description: "Assignments, coaching, and progression evidence.",
     state: "pending",
     stateLabel: "Model pending",
@@ -140,7 +151,7 @@ const NAV: readonly NavItem[] = [
     label: "Leadership",
     capability: "leadership.view.all",
     icon: "leadership",
-    group: "Operations",
+    group: "Team",
     description: "Leadership view of company-wide operating evidence and exceptions.",
     state: "pending",
     stateLabel: "Sources pending",
@@ -160,7 +171,7 @@ const NAV: readonly NavItem[] = [
     label: "Exchange",
     capability: "dashboard.view.self",
     icon: "shop",
-    group: "Operations",
+    group: "API",
     description: "Trade contract points for transferred calls and AI capacity.",
     state: "live",
     stateLabel: "Priced menu",
@@ -170,7 +181,7 @@ const NAV: readonly NavItem[] = [
     label: "Quoter",
     capability: "book.view.self",
     icon: "quoter",
-    group: "Operations",
+    group: "API",
     description: "Final expense quoting via InsuranceToolkits. Opens in a new tab; sign in there separately.",
     state: "live",
     stateLabel: "External tool",
@@ -209,7 +220,18 @@ const NAV: readonly NavItem[] = [
   },
 ];
 
-const NAV_GROUPS = ["Workspace", "Operations", "Administration"] as const;
+const NAV_GROUPS = ["Workspace", "Calls", "Team", "API", "Administration"] as const;
+
+/**
+ * Subtitle shown under a section header. Only the three operations sections
+ * carry one (owner order: three main sections with subtitles); Workspace and
+ * Administration render their label alone.
+ */
+const NAV_GROUP_SUBTITLES: Partial<Record<(typeof NAV_GROUPS)[number], string>> = {
+  Calls: "Call review, scripts & coaching",
+  Team: "People, books & leadership",
+  API: "External sources & trades",
+};
 
 const MISSION_GROUPS = [
   {
@@ -447,6 +469,9 @@ function PortalSidebarContent({
           return (
             <div className="portal-nav-group" key={group}>
               <p className="portal-nav-group-label">{group}</p>
+              {NAV_GROUP_SUBTITLES[group] ? (
+                <p className="portal-nav-group-sub">{NAV_GROUP_SUBTITLES[group]}</p>
+              ) : null}
               {/* Internal links navigate client-side ON PURPOSE. A plain
                   <a> is a full page load, which tears down the portal layout
                   — and the audio deck inside it, killing the radio on every
@@ -787,6 +812,10 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
   // Phone handset.
   calls: (
     <path d="M5.5 4h3l1.5 4-2 1.6a12.5 12.5 0 0 0 6.4 6.4L16 14l4 1.5v3A1.5 1.5 0 0 1 18.4 20C10.9 19.4 4.6 13.1 4 5.6A1.5 1.5 0 0 1 5.5 4z" />
+  ),
+  // Funnel — the pipeline.
+  leadtech: (
+    <path d="M4 5h16l-6.2 7.2v6.3l-3.6 1.8v-8.1L4 5z" />
   ),
   // Document with lines.
   scripts: (

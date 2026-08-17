@@ -52,5 +52,16 @@ declare namespace Cloudflare {
      */
     ANTHROPIC_API_KEY?: string;
     PRESENCE_MODEL?: string;
+
+    /**
+     * LeadTech (GoHighLevel) read API key for the /portal/leadtech surface
+     * (app/portal/leadtech/client.ts). Optional for the same reason as the
+     * rest: a deployment without it genuinely lacks the key at runtime, and the
+     * client returns a not_connected state so the surface renders an honest
+     * "not connected" card rather than crashing or faking pipeline data. Set
+     * with `wrangler secret put`, or `.dev.vars` locally. Never store the value
+     * in any file — only this name.
+     */
+    LEADTECH_API_KEY?: string;
   }
 }
