@@ -7,7 +7,9 @@ import {
   type MemberStatus,
   type PortalRole,
 } from "../../db/schema";
-import { getAuthUser, signInPath, type AuthUser } from "../google-auth";
+import { headers } from "next/headers";
+import { getAuthUser, readCookie, signInPath, type AuthUser } from "../google-auth";
+import { COMMAND_PASS_COOKIE, hasLivePass } from "./command-pass";
 
 /**
  * Server-side authorization for the CORE portal.
@@ -432,6 +434,24 @@ export function isCommandCenter(session: PortalSession): boolean {
 }
 
 /**
+ * Command Center is locked to everyone except the founder (owner decision
+ * 2026-08-18: "code-per-session for ALL except Shawn"; "Yuxiang will have it
+ * 24/7 UNLOCKED").
+ *
+ * The founder's address opens it permanently and never touches a pass.
+ * Everyone else — owners included — must redeem a single-use code he issued
+ * for their own address, which dies on first use or after fifteen minutes.
+ *
+ * This deliberately NARROWS the A13 grant: Andrew Davidson keeps his named
+ * place on COMMAND_CENTER_EMAILS, which is what makes him eligible to hold a
+ * pass at all, but the name alone no longer opens the door. Being on the list
+ * is now necessary and not sufficient, which is the whole point of the change.
+ */
+export function isCommandCenterUnlocked(session: PortalSession): boolean {
+  return FOUNDER_EMAILS.has(normalizeEmail(session.email));
+}
+
+/**
  * Guard for the Command Center page. Identical in shape to `requireFounder`
  * but gated on COMMAND_CENTER_EMAILS, and its denial rows say so honestly:
  * reason "command_only", because "founder_only" would be a false statement in
@@ -451,6 +471,28 @@ export async function requireCommandCenter(
   }
 
   const { session } = result;
+
+  // Two independent conditions, in this order. Being on the named list is
+  // necessary; for anyone but the founder it is no longer sufficient.
+  if (isCommandCenter(session) && !isCommandCenterUnlocked(session)) {
+    const requestHeaders = await headers();
+    const passCookie = readCookie(requestHeaders.get("cookie"), COMMAND_PASS_COOKIE);
+    const unlocked = await hasLivePass(passCookie, session.subjectId);
+
+    if (!unlocked) {
+      await recordAudit({
+        action,
+        decision: "deny",
+        reason: "lodge_pass_required",
+        actorEmail: session.email,
+        actorSubjectId: session.subjectId,
+        actorRole: session.role,
+        requestPath: returnTo,
+      });
+      redirect(`${PORTAL_ROOT}/command/lodge?return_to=${encodeURIComponent(returnTo)}`);
+    }
+  }
+
   if (!isCommandCenter(session)) {
     await recordAudit({
       action,
