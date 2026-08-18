@@ -258,3 +258,36 @@ export const commandPasses = sqliteTable(
     index("command_passes_expires_idx").on(table.expiresAt),
   ],
 );
+
+export const MEMBER_REQUEST_STATUSES = [
+  "pending",
+  "approved",
+  "declined",
+  "withdrawn",
+] as const;
+
+export type MemberRequestStatus = (typeof MEMBER_REQUEST_STATUSES)[number];
+
+/**
+ * Requests a member has made that someone above them must decide.
+ *
+ * Separate from `audit_events` on purpose: the trail is append-only and
+ * therefore cannot hold a status, so a pending count read from it would only
+ * ever grow. Both are written — the trail records that a thing happened, this
+ * row is the thing that has a state.
+ */
+export const memberRequests = sqliteTable("member_requests", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  requestedBy: text("requested_by").notNull(),
+  requestedRole: text("requested_role").notNull(),
+  kind: text("kind").notNull(),
+  summary: text("summary").notNull(),
+  quantity: integer("quantity"),
+  detail: text("detail"),
+  status: text("status").$type<MemberRequestStatus>().notNull().default("pending"),
+  decidedBy: text("decided_by"),
+  decidedAt: text("decided_at"),
+  decisionNote: text("decision_note"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});

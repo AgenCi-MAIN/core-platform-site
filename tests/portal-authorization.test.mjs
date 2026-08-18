@@ -2892,3 +2892,83 @@ test("a session cookie cannot be worn as a Command Center pass", async () => {
 
   await portal.dispose();
 });
+
+test("the Presence is sent no tools, and no URL it could fetch", async (t) => {
+  // THE ISOLATION CONTRACT'S FIRST CLAUSE, finally measured.
+  //
+  // app/portal/presence/route.ts opens by promising the model is called with
+  // "NO tools, NO function calling, and NO URLs it can fetch", and that a
+  // fully successful prompt injection therefore "produces words in a chat
+  // bubble, and that is all it produces." That promise is rendered to members
+  // as three chips in the UI — "Text only", "No microphone", "No external
+  // actions" — so it is a security claim shown to users, not an internal note.
+  //
+  // Until now it was held by the comment alone. The suite pinned the guards,
+  // the daily cap arithmetic, the failure copy and every audit reason, and
+  // would have stayed green if someone added a `tools` array tomorrow. The
+  // clause the contract states FIRST was the one clause nothing checked.
+  //
+  // This inspects the actual outbound request body. Adding a tool, a server
+  // tool, or any field that could give the model reach now fails here, which
+  // is the point: growing this route into an agent is a governance decision,
+  // and a governance decision should have to argue with a test.
+  const sent = [];
+  const portal = await startPortal({
+    anthropic: async (request) => {
+      sent.push(JSON.parse(await request.text()));
+      return new Response(
+        JSON.stringify({
+          stop_reason: "end_turn",
+          content: [{ type: "text", text: "THRIVE is an agency." }],
+          usage: { input_tokens: 10, output_tokens: 5 },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    },
+  });
+  t.after(portal.dispose);
+
+  await portal.addMember("no-tools@example.com", "agent");
+  const res = await portal.mf.dispatchFetch("http://localhost/portal/presence", {
+    method: "POST",
+    body: JSON.stringify({ question: "What is THRIVE?" }),
+    redirect: "manual",
+    headers: {
+      "content-type": "application/json",
+      cookie: `core_session=${mintSessionToken({
+        subject: "sub-no-tools",
+        email: "no-tools@example.com",
+      })}`,
+    },
+  });
+  assert.equal(res.status, 200, "the seam must answer, or this test proves nothing");
+  assert.equal(sent.length, 1, "exactly one upstream call per question");
+
+  const body = sent[0];
+  // Every field that could hand the model reach. Named individually rather
+  // than allowlisting the whole body, so the failure message says WHICH one
+  // appeared.
+  for (const field of [
+    "tools",
+    "tool_choice",
+    "mcp_servers",
+    "container",
+    "betas",
+  ]) {
+    assert.equal(
+      body[field],
+      undefined,
+      `the Presence request carries "${field}" — the route's isolation contract says it is called with no tools, ` +
+        "and the portal shows members three chips promising exactly that",
+    );
+  }
+
+  // No URL anywhere in what we send. The model cannot fetch what it is never
+  // given, and the one outbound URL in the route is a hardcoded literal that
+  // no member input reaches.
+  assert.doesNotMatch(
+    JSON.stringify(body),
+    /https?:\/\//,
+    "the Presence prompt carries a URL — the contract promises no URLs the model can fetch",
+  );
+});

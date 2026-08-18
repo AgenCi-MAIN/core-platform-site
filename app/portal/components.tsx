@@ -1,14 +1,20 @@
 import { signOutPath } from "../google-auth";
 import { ThriveMark } from "../thrive-mark";
 import Link from "next/link";
+import { eq } from "drizzle-orm";
+import { getDb } from "../../db";
+import { memberRequests } from "../../db/schema";
 import {
   ROLE_LABELS,
   can,
+  canSeeInRoster,
   isCommandCenter,
   isFounder,
+  normalizeEmail,
   type Capability,
   type PortalSession,
 } from "./access";
+import { readRows } from "./read-guard";
 import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
 import { PortalThemeControl } from "../theme-control";
@@ -474,7 +480,7 @@ const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/twilio": "Phone Logs",
 };
 
-export function PortalShell({
+export async function PortalShell({
   session,
   current,
   section,
@@ -485,6 +491,31 @@ export function PortalShell({
   section: string;
   children: React.ReactNode;
 }) {
+  // How many requests are waiting on THIS person to decide. Read here rather
+  // than per-page so the count cannot disagree with itself between surfaces —
+  // a badge that says 3 next to a page listing 5 is worse than no badge.
+  //
+  // `readRows` rather than a bare query: an unreadable table must not render
+  // as "nothing pending". It returns an empty list on fault, and an empty list
+  // hides the badge, which is the honest failure — a silent zero is a lie only
+  // when it is presented as a fact, and an absent badge asserts nothing.
+  const { rows: pending } = await readRows("member_requests", () =>
+    getDb()
+      .select({ requestedBy: memberRequests.requestedBy, requestedRole: memberRequests.requestedRole })
+      .from(memberRequests)
+      .where(eq(memberRequests.status, "pending")),
+  );
+  // You decide for your downline, never for yourself: a request you raised is
+  // not a request waiting on you.
+  const pendingRequests = pending.filter(
+    (row) =>
+      normalizeEmail(row.requestedBy) !== normalizeEmail(session.email) &&
+      canSeeInRoster(session, {
+        email: row.requestedBy,
+        role: row.requestedRole as PortalSession["role"],
+      }),
+  ).length;
+
   const visible = NAV.filter((item) =>
     item.founderOnly
       ? isFounder(session)
@@ -532,7 +563,12 @@ export function PortalShell({
       />
 
       <aside className="portal-sidebar portal-sidebar-desktop" aria-label="THRIVE portal sidebar">
-        <PortalSidebarContent session={session} current={current} visible={visible} />
+        <PortalSidebarContent
+          session={session}
+          current={current}
+          visible={visible}
+          pendingRequests={pendingRequests}
+        />
       </aside>
 
       <aside
@@ -560,7 +596,12 @@ export function PortalShell({
           <span aria-hidden="true">×</span>
           <span className="sr-only">Close navigation</span>
         </label>
-        <PortalSidebarContent session={session} current={current} visible={visible} />
+        <PortalSidebarContent
+          session={session}
+          current={current}
+          visible={visible}
+          pendingRequests={pendingRequests}
+        />
       </aside>
 
       {/* Backdrop for the checkbox fallback: the popover path gets a native
@@ -635,10 +676,12 @@ function PortalSidebarContent({
   session,
   current,
   visible,
+  pendingRequests,
 }: {
   session: PortalSession;
   current: string;
   visible: readonly NavItem[];
+  pendingRequests: number;
 }) {
   return (
     <>
@@ -695,7 +738,34 @@ function PortalSidebarContent({
                     <span className="portal-nav-icon" aria-hidden="true">
                       <PortalNavMark name={item.icon} />
                     </span>
-                    <span className="portal-nav-label">{item.label}</span>
+                    {/* The dashboard row wears the member's own name and rank
+                        instead of the word "Dashboard" (founder 2026-08-18).
+                        It is the same destination; what changed is that the
+                        first thing in the rail now answers "who am I signed in
+                        as" — which used to require looking at the opposite end
+                        of the sidebar, where the account chip sat. One object,
+                        one place. */}
+                    {item.href === "/portal" ? (
+                      <span className="portal-nav-label portal-nav-identity">
+                        <strong>{session.displayName}</strong>
+                        <small>{ROLE_LABELS[session.role]}</small>
+                      </span>
+                    ) : (
+                      <span className="portal-nav-label">{item.label}</span>
+                    )}
+                    {/* The count of things waiting on THIS person. Rendered
+                        only when there is something to see: a badge that is
+                        permanently present but usually zero teaches people to
+                        stop looking at badges. */}
+                    {item.href === "/portal" && pendingRequests > 0 ? (
+                      <span className="portal-nav-badge">
+                        {pendingRequests > 99 ? "99+" : pendingRequests}
+                        <span className="sr-only">
+                          {" "}
+                          request{pendingRequests === 1 ? "" : "s"} waiting on you
+                        </span>
+                      </span>
+                    ) : null}
                     {item.icon === "shop" ? (
                       <span className="portal-nav-flare" aria-hidden="true">
                         LIVE

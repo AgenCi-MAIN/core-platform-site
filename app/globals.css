@@ -4199,22 +4199,78 @@ html[data-portal-theme="dark"] .portal-workspace {
   justify-items: end;
   gap: 10px;
   will-change: transform;
+
+  /* ELEVATION INSTEAD OF OUTLINE.
+     Owner note, 2026-08-18: "no outline and more smooth animation". Every
+     hard 1px stroke this widget used to draw — launcher ring, panel border,
+     bubble border, input border, chip borders — is gone, replaced by layered
+     shadow plus a color-mix surface, so the thing reads as lifted off the
+     page instead of cut out of it.
+
+     It is all expressed as tokens because the widget must survive three
+     themes. Only the shade triplet and its depth multiplier are re-declared
+     per theme below; every shadow, ring and surface then follows on its own.
+     A literal shadow here would be a bright-theme shadow shipped to dark. */
+  --presence-shade: 74, 48, 12;
+  --presence-depth: 1;
+  --presence-surface: color-mix(in srgb, var(--portal-panel) 96%, var(--presence-accent));
+  --presence-lift:
+    0 1px 2px rgba(var(--presence-shade), calc(.10 * var(--presence-depth))),
+    0 6px 16px -8px rgba(var(--presence-shade), calc(.20 * var(--presence-depth))),
+    0 18px 40px -16px rgba(var(--presence-shade), calc(.24 * var(--presence-depth)));
+  --presence-lift-high:
+    0 2px 4px rgba(var(--presence-shade), calc(.12 * var(--presence-depth))),
+    0 12px 26px -10px rgba(var(--presence-shade), calc(.26 * var(--presence-depth))),
+    0 30px 64px -20px rgba(var(--presence-shade), calc(.32 * var(--presence-depth)));
+  --presence-lift-low:
+    0 1px 2px rgba(var(--presence-shade), calc(.14 * var(--presence-depth))),
+    0 3px 8px -4px rgba(var(--presence-shade), calc(.18 * var(--presence-depth)));
+  /* The one ring that must NOT disappear with the outlines. Dropping the
+     outline without putting this back is an accessibility regression: a
+     keyboard user loses all trace of where they are. */
+  --presence-ring: var(--presence-accent);
+  --presence-focus:
+    0 0 0 2px var(--presence-ring),
+    0 0 0 6px color-mix(in srgb, var(--presence-ring) 26%, transparent);
 }
 .presence-toggle {
   width: 54px; height: 54px;
   display: grid; place-items: center;
   padding: 0;
-  border: 1px solid var(--portal-line-strong);
+  /* No ring. Depth carries the badge now. border-box keeps the 54px touch
+     target exactly where it was when the 1px went away. */
+  border: 0;
   border-radius: 50%;
-  background: var(--portal-panel);
+  background:
+    radial-gradient(76% 76% at 30% 22%, color-mix(in srgb, var(--presence-accent) 15%, transparent), transparent 72%),
+    var(--presence-surface);
   cursor: pointer;
-  box-shadow: 0 4px 18px -6px rgba(16, 24, 40, .35);
-  transition: transform .14s ease, border-color .14s ease;
+  box-shadow: var(--presence-lift);
+  /* The portal's own curve, not a new one — see the SMOOTHNESS PASS. */
+  transition:
+    transform .34s var(--ease),
+    box-shadow .34s var(--ease),
+    background-color .24s var(--ease-fast);
   touch-action: none;
 }
-.presence-toggle:hover { transform: scale(1.06); border-color: var(--portal-accent); }
-.presence-toggle:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
-.presence-toggle-open { border-color: var(--portal-accent); }
+.presence-toggle:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: var(--presence-lift-high), 0 0 22px -6px color-mix(in srgb, var(--presence-accent) 55%, transparent);
+}
+/* Press states are scoped through .presence so they outrank the global
+   `.portal button:active` rule, which is one class heavier than a bare
+   `.presence-toggle:active` and would otherwise swallow them. */
+.presence .presence-toggle:active { transform: translateY(0) scale(.955); box-shadow: var(--presence-lift-low); }
+.presence-toggle:focus-visible {
+  /* Transparent, not none: forced-colors mode discards box-shadow entirely,
+     and an outline of `none` there leaves the keyboard user with nothing. */
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: var(--presence-focus), var(--presence-lift-high);
+}
+.presence-toggle-open {
+  box-shadow: var(--presence-lift-high), 0 0 22px -6px color-mix(in srgb, var(--presence-accent) 45%, transparent);
+}
 .presence-dragging .presence-toggle:hover { transform: none; }
 
 @keyframes presence-blink {
@@ -4230,23 +4286,36 @@ html[data-portal-theme="dark"] .portal-workspace {
   width: min(340px, calc(100vw - 28px));
   display: grid;
   gap: 0;
-  border: 1px solid var(--portal-line-strong);
-  border-radius: 16px;
-  background: var(--portal-panel);
-  box-shadow: 0 12px 40px -12px rgba(16, 24, 40, .4);
+  border: 0;
+  border-radius: 18px;
+  background: var(--presence-surface);
+  box-shadow: var(--presence-lift-high);
   overflow: hidden;
+  transform-origin: bottom right;
+  /* OPEN ONLY. presence.tsx renders the panel conditionally, so on close
+     React removes the node and there is nothing left to animate out. An exit
+     transition needs a mounted element for its duration, which means a TSX
+     change; this pass is presentation-only, so the close stays instant. */
+  animation: presence-panel-in .34s var(--ease) both;
+}
+@keyframes presence-panel-in {
+  from { opacity: 0; transform: translateY(10px) scale(.965); }
+  to { opacity: 1; transform: none; }
 }
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .presence-panel {
-    background: color-mix(in srgb, var(--portal-panel) 88%, transparent);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
+    background: color-mix(in srgb, var(--presence-surface) 88%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
   }
 }
 .presence-head {
   display: flex; align-items: center; gap: 9px;
   padding: 11px 12px;
-  border-bottom: 1px solid var(--portal-line);
+  /* The divider hairline is gone with the rest of the strokes. The header
+     still reads as its own band because it is tinted, not fenced. */
+  border-bottom: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--presence-accent) 11%, transparent), transparent);
 }
 .presence-drag-handle {
   flex: none;
@@ -4255,17 +4324,25 @@ html[data-portal-theme="dark"] .portal-workspace {
   display: grid;
   place-items: center;
   padding: 0;
-  border: 1px solid transparent;
-  border-radius: 7px;
+  border: 0;
+  border-radius: 9px;
   background: transparent;
   color: var(--portal-subtle);
   cursor: grab;
   touch-action: none;
+  transition:
+    color .2s var(--ease-fast),
+    background-color .2s var(--ease-fast),
+    box-shadow .24s var(--ease);
 }
 .presence-drag-handle:hover { color: var(--portal-text); background: var(--portal-hover); }
 .presence-drag-handle:active,
 .presence-dragging .presence-drag-handle { cursor: grabbing; }
-.presence-drag-handle:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 1px; }
+.presence-drag-handle:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  box-shadow: var(--presence-focus);
+}
 .presence-grip {
   width: 12px;
   display: grid;
@@ -4280,38 +4357,61 @@ html[data-portal-theme="dark"] .portal-workspace {
 .presence-close {
   margin-left: auto;
   width: 28px; height: 28px;
-  border: 0; border-radius: 8px;
+  border: 0; border-radius: 9px;
   background: transparent; color: var(--portal-muted);
   font-size: 18px; line-height: 1; cursor: pointer;
+  transition:
+    color .2s var(--ease-fast),
+    background-color .2s var(--ease-fast),
+    transform .24s var(--ease),
+    box-shadow .24s var(--ease);
 }
 .presence-close:hover { background: var(--portal-hover); color: var(--portal-text); }
+.presence .presence-close:active { transform: scale(.9); }
+.presence-close:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  box-shadow: var(--presence-focus);
+}
 
 .presence-log {
   max-height: min(300px, 45vh);
   overflow-y: auto;
   display: grid; gap: 8px;
   padding: 12px;
+  /* presence.tsx calls scrollTo({ top }) with no behavior, so the follow-the-
+     answer jump inherits this. Reset under reduced motion, below. */
+  scroll-behavior: smooth;
 }
 .presence-line {
   margin: 0;
   max-width: 86%;
   padding: 8px 11px;
-  border-radius: 12px;
+  border-radius: 13px;
   font-size: 13px; line-height: 1.5;
   color: var(--portal-text);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  /* A message arrives instead of appearing. Transform and opacity only —
+     the compositor-friendly pair the SMOOTHNESS PASS restricts us to. */
+  animation: presence-line-in .3s var(--ease) both;
+}
+@keyframes presence-line-in {
+  from { opacity: 0; transform: translateY(6px) scale(.985); }
+  to { opacity: 1; transform: none; }
 }
 .presence-line-you {
   justify-self: end;
   background: var(--portal-accent);
   color: #fff;
   border-bottom-right-radius: 4px;
+  box-shadow: 0 2px 10px -4px color-mix(in srgb, var(--presence-accent) 62%, transparent);
 }
 .presence-line-presence {
   justify-self: start;
-  background: var(--portal-soft);
-  border: 1px solid var(--portal-line);
+  border: 0;
+  background: color-mix(in srgb, var(--presence-accent) 9%, var(--portal-soft));
+  box-shadow: 0 1px 2px rgba(var(--presence-shade), calc(.07 * var(--presence-depth)));
   border-bottom-left-radius: 4px;
 }
 .presence-thinking { color: var(--portal-muted); font-style: italic; }
@@ -4319,26 +4419,50 @@ html[data-portal-theme="dark"] .portal-workspace {
 .presence-ask {
   display: flex; gap: 8px;
   padding: 10px 12px;
-  border-top: 1px solid var(--portal-line);
+  /* Same trade as the header: tint, not hairline. */
+  border-top: 0;
+  background: color-mix(in srgb, var(--portal-soft) 45%, transparent);
 }
 .presence-ask input {
   flex: 1; min-width: 0;
   padding: 9px 11px;
-  border: 1px solid var(--portal-line-strong);
-  border-radius: 10px;
-  background: var(--portal-panel);
+  border: 0;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--portal-panel) 82%, var(--portal-soft));
   color: var(--portal-text);
   font-size: 13px;
+  /* Recessed rather than outlined: the field reads as a well in the surface. */
+  box-shadow: inset 0 1px 2px rgba(var(--presence-shade), calc(.08 * var(--presence-depth)));
+  transition: box-shadow .26s var(--ease), background-color .22s var(--ease-fast);
 }
-.presence-ask input:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 1px; }
+.presence-ask input:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  box-shadow: var(--presence-focus);
+}
 .presence-ask button {
   padding: 9px 15px;
-  border: 0; border-radius: 10px;
+  border: 0; border-radius: 12px;
   background: var(--portal-accent); color: #fff;
   font-size: 12px; font-weight: 800; letter-spacing: .04em;
   cursor: pointer;
+  box-shadow: 0 2px 10px -4px color-mix(in srgb, var(--presence-accent) 70%, transparent);
+  transition:
+    transform .24s var(--ease),
+    box-shadow .28s var(--ease),
+    opacity .2s var(--ease-fast);
 }
-.presence-ask button:disabled { opacity: .45; cursor: default; }
+.presence .presence-ask button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px -7px color-mix(in srgb, var(--presence-accent) 78%, transparent);
+}
+.presence .presence-ask button:active:not(:disabled) { transform: translateY(0) scale(.97); }
+.presence-ask button:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: var(--presence-focus);
+}
+.presence-ask button:disabled { opacity: .45; cursor: default; box-shadow: none; }
 
 .presence-status {
   display: flex;
@@ -4347,9 +4471,10 @@ html[data-portal-theme="dark"] .portal-workspace {
   padding: 0 12px 3px;
 }
 .presence-status span {
-  padding: 3px 6px;
-  border: 1px solid var(--portal-line);
+  padding: 3px 7px;
+  border: 0;
   border-radius: 999px;
+  background: color-mix(in srgb, var(--presence-accent) 12%, transparent);
   color: var(--portal-muted);
   font-size: 8px;
   font-weight: 800;
@@ -4377,49 +4502,71 @@ html[data-portal-performance="boost"] .presence-panel {
 }
 html[data-portal-performance="boost"] .presence-eye { animation: none; }
 html[data-portal-performance="boost"] .presence-toggle { transition: none; }
+html[data-portal-performance="boost"] .presence-panel,
+html[data-portal-performance="boost"] .presence-line { animation: none; }
 html[data-portal-performance="boost"] .portal::after { animation: none; }
 
-/* The assistant owns the only blue/violet accents in the dark portal. */
-html[data-portal-theme="dark"] .presence-toggle {
-  border-color: rgba(108, 137, 197, .58);
-  background: radial-gradient(circle at 32% 18%, rgba(92, 112, 178, .2), transparent 58%), var(--portal-panel);
-  box-shadow: 0 0 0 1px rgba(86, 106, 172, .12), 0 8px 28px -8px rgba(20, 26, 52, .9);
+/* The assistant owns the only blue/violet accents in the dark portal.
+   Dark re-declares the two shade tokens and the focus hue; the shadows,
+   surface and rings above are written against those, so nothing else here
+   needs a per-theme copy. */
+html[data-portal-theme="dark"] .presence {
+  --presence-shade: 0, 0, 0;
+  --presence-depth: 2.4;
+  --presence-ring: var(--presence-accent-strong);
+  --presence-surface: color-mix(in srgb, var(--portal-panel) 88%, #6a7ab8);
 }
-html[data-portal-theme="dark"] .presence-toggle:hover,
-html[data-portal-theme="dark"] .presence-toggle-open {
-  border-color: #8faeff;
-  box-shadow: 0 0 0 3px rgba(99, 112, 197, .14), 0 10px 30px -8px rgba(71, 61, 142, .75);
+html[data-portal-theme="dark"] .presence-toggle {
+  background:
+    radial-gradient(76% 76% at 32% 18%, rgba(92, 112, 178, .3), transparent 66%),
+    var(--presence-surface);
 }
 html[data-portal-theme="dark"] .presence-panel {
-  border-color: rgba(112, 132, 190, .48);
   background:
-    radial-gradient(28rem 12rem at 82% -18%, rgba(105, 76, 177, .2), transparent 70%),
-    linear-gradient(160deg, rgba(27, 30, 51, .98), rgba(14, 17, 25, .98) 64%);
-  box-shadow: 0 20px 56px -18px rgba(0, 0, 0, .82), 0 0 0 1px rgba(83, 102, 172, .12);
+    radial-gradient(28rem 12rem at 82% -18%, rgba(105, 76, 177, .22), transparent 70%),
+    linear-gradient(160deg, rgba(31, 34, 57, .97), rgba(15, 18, 27, .97) 64%);
 }
 html[data-portal-theme="dark"] .presence-head {
-  border-bottom-color: rgba(112, 132, 190, .28);
-  background: linear-gradient(90deg, rgba(67, 83, 147, .16), transparent 72%);
+  background: linear-gradient(180deg, rgba(87, 104, 178, .2), transparent);
 }
 html[data-portal-theme="dark"] .presence-drag-handle:hover {
   color: #b8caff;
   background: rgba(87, 102, 174, .18);
 }
-html[data-portal-theme="dark"] .presence-drag-handle:focus-visible { outline-color: #9aaaff; }
+html[data-portal-theme="dark"] .presence-ask {
+  background: rgba(72, 86, 143, .12);
+}
+html[data-portal-theme="dark"] .presence-ask input {
+  background: rgba(10, 13, 21, .55);
+}
 html[data-portal-theme="dark"] .presence-line-presence {
-  border-color: rgba(111, 126, 190, .32);
-  background: rgba(83, 72, 146, .16);
+  background: rgba(83, 72, 146, .24);
 }
 html[data-portal-theme="dark"] .presence-status span {
-  border-color: rgba(111, 126, 190, .3);
   color: #aabaff;
-  background: rgba(74, 69, 142, .12);
+  background: rgba(74, 69, 142, .18);
 }
 html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
 
 @media (prefers-reduced-motion: reduce) {
   .presence-eye { animation: none; }
-  .presence-toggle { transition: none; }
+  .presence-toggle,
+  .presence-close,
+  .presence-drag-handle,
+  .presence-ask input,
+  .presence-ask button { transition: none; }
+  .presence-panel,
+  .presence-line { animation: none; }
+  .presence-log { scroll-behavior: auto; }
+  /* Scoped through .presence for the same reason the press states are: these
+     have to outrank the widget's own hover and press rules, or a smoother
+     Presence becomes a Presence that keeps moving for someone who asked it
+     not to. */
+  .presence .presence-toggle:hover,
+  .presence .presence-toggle:active,
+  .presence .presence-close:active,
+  .presence .presence-ask button:hover:not(:disabled),
+  .presence .presence-ask button:active:not(:disabled) { transform: none; }
   html[data-portal-theme="dark"] .portal::after { animation: none; }
 }
 
@@ -4741,23 +4888,26 @@ html[data-portal-theme="dark"] .portal-card {
 .portal-dashboard-support { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 16px; align-items: start; }
 #source-readiness { scroll-margin-top: 86px; }
 
-/* J.A.R.V.I.S. alone owns cool blue/violet interaction accents. */
+/* J.A.R.V.I.S. alone owns cool blue/violet interaction accents.
+   The border-colour rules that used to live here went with the outlines;
+   the launcher, panel and chips are now separated by shadow and tint, and
+   focus is carried by --presence-focus rather than an outline hue. */
 .presence {
   --presence-accent: #5064c8;
   --presence-accent-strong: #8faeff;
   --presence-soft: rgba(80, 100, 200, .13);
 }
-.presence-toggle:hover,
-.presence-toggle-open { border-color: var(--presence-accent-strong); }
-.presence-toggle:focus-visible,
-.presence-drag-handle:focus-visible,
-.presence-ask input:focus-visible { outline-color: var(--presence-accent-strong); }
 .presence-line-you,
 .presence-ask button { background: var(--presence-accent); color: #fff; }
-.presence-status span { border-color: color-mix(in srgb, var(--presence-accent) 34%, var(--portal-line)); color: var(--presence-accent); background: var(--presence-soft); }
-.presence-panel { border-color: color-mix(in srgb, var(--presence-accent) 40%, var(--portal-line-strong)); }
+.presence-status span { color: var(--presence-accent); background: var(--presence-soft); }
 html[data-portal-theme="dark"] .presence-line-you,
 html[data-portal-theme="dark"] .presence-ask button { background: #5064c8; color: #fff; }
+/* Thrive's chrome is navy on daylight, so its shadows have to be navy too —
+   the bright theme's warm brown reads as dirt over #eef2f9. */
+html[data-portal-theme="thrive"] .presence {
+  --presence-shade: 16, 32, 56;
+  --presence-depth: 1.25;
+}
 
 @media (max-width: 1100px) {
   .portal-command-arrival { grid-template-columns: minmax(0, 1fr) 280px; }
@@ -5849,3 +5999,63 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 }
 .playbook-seat p { margin: 0 0 8px; font-size: .9rem; }
 .playbook-seat p:last-child { margin-bottom: 0; }
+
+/* The dashboard row carries the member's own name and rank (founder
+   2026-08-18), so it needs two lines where every other nav row needs one.
+   `min-width: 0` is what lets the ellipsis work — without it a long display
+   name pushes the badge out of the rail rather than truncating. */
+.portal-nav-identity {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  line-height: 1.15;
+}
+.portal-nav-identity strong {
+  overflow: hidden;
+  font-size: var(--portal-type-body);
+  font-weight: 750;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.portal-nav-identity small {
+  color: var(--portal-subtle);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+/* Rendered only when the count is non-zero, so it never sits at 0 teaching
+   people to stop looking. `margin-left: auto` rather than a flex spacer keeps
+   it right-aligned whatever the label does. */
+.portal-nav-badge {
+  flex: 0 0 auto;
+  min-width: 18px;
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--portal-danger, #c0392b);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.35;
+  text-align: center;
+}
+/* Collapsed rail: the name and rank have nowhere to go, so the badge becomes
+   a dot pinned to the icon — the same treatment the LIVE markers get, and for
+   the same reason. It must never widen the row. */
+.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-identity {
+  display: none;
+}
+.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-badge {
+  position: absolute;
+  top: 5px;
+  right: 13px;
+  min-width: 7px;
+  width: 7px;
+  height: 7px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+}
