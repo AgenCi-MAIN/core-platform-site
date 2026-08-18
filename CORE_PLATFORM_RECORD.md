@@ -568,8 +568,10 @@ identity it is impersonating on every start. The role still comes from the
       but real: `5c9ed9eb` was recorded only on the old session's branch and
       had not reached `main` when this was written, so the record was
       corrected from the branch rather than the other way round. See
-      DEPLOYMENT.md for the reconciled timeline. **Live version is now
-      `95741dc5-8d09-4400-8a00-71d806912195`** (`main@4375633`), the third id
+      DEPLOYMENT.md for the reconciled timeline. **Live version at the time of
+      writing was `95741dc5-8d09-4400-8a00-71d806912195`** (`main@4375633`) —
+      superseded twice since, and this line is a dated entry, not a status;
+      DEPLOYMENT.md's log is the live answer. It was the third id
       preserved in a row. The version trail is restored. The gap it closes: the earlier 08-17 founder-gate deploy is
       owner-confirmed but its id existed only in the terminal and was lost, so
       between 08-16 and now the record could say *what* was live but not
@@ -625,9 +627,18 @@ identity it is impersonating on every start. The role still comes from the
 
 ## 10a. Sidebar labels are not route names
 
-The deployed portal and this repository **are** in sync. The sidebar deliberately
+This section is about NAMING, not about deploy state. The sidebar deliberately
 uses operator-facing names that differ from the directory names, which makes the
-running site look like it carries surfaces the code does not have. It does not.
+running site look like it carries surfaces the code does not have. It does not —
+every label below resolves to a route that exists in this repository.
+
+**It does not claim the deployed worker matches this tree.** It said that once,
+flatly, and the claim went false the moment merges outran deploys: on
+2026-08-18 the serving version was `fd0926a3` (`main@9be299d`) while `main` had
+moved 20-plus commits past it. Naming and freshness are separate questions and
+the answer to one is not evidence about the other. For what is actually
+running, DEPLOYMENT.md's deploy log is the only source; the table below is a
+map, not a manifest.
 
 | Sidebar label | Route | Source |
 | --- | --- | --- |

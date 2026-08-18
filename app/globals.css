@@ -4401,7 +4401,17 @@ html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
 .portal-shell { grid-template-columns: 252px minmax(0, 1fr); }
 .portal-shell:has(.portal-sidebar-toggle:checked) { grid-template-columns: 74px minmax(0, 1fr); }
 .portal-sidebar {
-  padding: 16px 13px 14px;
+  /* LONGHAND ON PURPOSE. The `padding` shorthand here used to read
+     `16px 13px 14px`, and because this block sits ~740 lines below the
+     safe-area rules at the top-level `.portal-sidebar` — same specificity,
+     later wins — it silently deleted BOTH insets. The notch handling added
+     for iOS was dead from the day this block landed, and nothing said so:
+     shorthands reset the longhands they cover whether or not you mention
+     them. Keep these three separate so the insets survive the next visual
+     retune. */
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-inline: 13px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom));
   background:
     radial-gradient(circle at 18px 124px, color-mix(in srgb, var(--portal-accent) 22%, transparent) 0 1px, transparent 2px),
     radial-gradient(circle at 42px 274px, color-mix(in srgb, var(--portal-accent) 14%, transparent) 0 1px, transparent 2px),
