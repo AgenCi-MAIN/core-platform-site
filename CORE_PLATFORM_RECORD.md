@@ -509,7 +509,16 @@ identity it is impersonating on every start. The role still comes from the
    its own cookie container, so an Access session completed in Safari does not
    carry into the installed icon, and leaving the app to fetch the code tends to
    lose the waiting context. PWA plus One-Time PIN fights itself on iOS.
-   **The real fix is decided (A11, owner order 2026-08-17):** point Access at
+   **HISTORICAL AS OF 2026-08-18 — this trap no longer exists on the live
+   gate.** A11 was executed: Access was rebuilt on the new account with login
+   method Google ONLY and the email PIN excluded, verified by the owner. No
+   code is emailed by the current gate, so there is nothing to copy and
+   nothing to tap. The trap survives only on the retired `bankerrunners` site.
+   Kept here because the failure mode is worth knowing if a code gate is ever
+   reintroduced — and because this entry sat stale for a day, found by a
+   fact-check rather than by anyone noticing.
+
+   **The fix as decided (A11, owner order 2026-08-17):** point Access at
    Google as the identity provider and retire the codes. It removes the email
    round-trip; it does not remove the second sign-in, since Access and the
    portal remain independent OAuth flows. That is Zero Trust dashboard work on
