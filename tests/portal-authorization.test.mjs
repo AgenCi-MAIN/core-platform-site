@@ -327,19 +327,46 @@ test("active members open Training with one verbatim intro and labelled empty sl
     assert.match(visibleHtml, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
 
+  // TABBED 2026-08-18. Each section now shows ONE slot at a time behind a tab
+  // strip, so the page no longer renders sixteen panels at once. Two things
+  // still have to hold, and they are what this asserts:
+  //
+  //   Nothing may be lost by tabbing. Every supplied label still appears in
+  //   the strip — the loop above checks all sixteen by name — so a slot cannot
+  //   quietly disappear because nobody selected it.
+  //
+  //   The panel that IS rendered must still declare its state honestly. A tab
+  //   that hid the "awaiting approved language" notice would turn an empty
+  //   slot into an apparently-fine one, which is the exact failure the empty
+  //   states exist to prevent.
+  const tabs = html.match(/class="training-tab(?: is-active)?"/g) ?? [];
   assert.equal(
-    (html.match(/data-content-state="not-loaded"/g) ?? []).length,
+    tabs.length,
     16,
-    "the standalone Training section and every unloaded supplied label stay explicitly empty",
+    "every supplied label keeps a tab — tabbing must not drop a slot",
+  );
+  assert.equal(
+    (html.match(/aria-current="page"/g) ?? []).filter(Boolean).length >= 2,
+    true,
+    "each section marks exactly which tab is open, for assistive tech as well as sighted users",
+  );
+
+  const panelStates =
+    (html.match(/data-content-state="(?:not-loaded|loaded)"/g) ?? []).length;
+  assert.equal(
+    panelStates,
+    3,
+    "the standalone Training slot plus one intro panel and one angle panel render, each declaring its state",
   );
   assert.equal(
     (html.match(/data-content-state="loaded"/g) ?? []).length,
     1,
     "only the owner-supplied Word script may be loaded",
   );
-  assert.equal(
-    (html.match(/<small class="training-title-pending">/g) ?? []).length,
-    2,
+  // Both truncated labels still disclose themselves in the tab strip.
+  assert.ok(
+    (html.match(/Client States Problem First/g) ?? []).length >= 1 &&
+      (html.match(/Quote Shopper Intro for CS/g) ?? []).length >= 1,
     "truncated screenshot labels are disclosed instead of completed",
   );
   assert.doesNotMatch(visibleHtml, /AI-generated script|Suggested script|Draft script/i);
