@@ -891,12 +891,17 @@ button, .button, .nav-cta, .text-link {
   border-right: 1px solid var(--portal-line);
 }
 
-/* The only part of the rail that may move. */
+/* The only part of the rail that may move — and it must never trap the wheel.
+   `overscroll-behavior: contain` was here and it is exactly what the founder
+   hit: with the pointer over the nav links, the wheel scrolled the list and,
+   once the list ended, stopped rather than continuing on to the page. That is
+   the correct behaviour for a modal drawer and the wrong behaviour for a rail
+   you scroll past on the way down a page. Chaining is restored: the list
+   scrolls while it has somewhere to go, then hands the wheel to the page. */
 .portal-sidebar .portal-nav {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  overscroll-behavior: contain;
   scrollbar-width: thin;
 }
 .portal-sidebar .portal-brand,
@@ -3022,7 +3027,9 @@ html { scroll-behavior: smooth; }
 .portal-sidebar,
 .site-nav,
 .tour-table-wrap,
-.music-list { overscroll-behavior: contain; }
+/* Chaining left ON: this list sits in the page flow, and a wheel that
+   stops dead at the end of it reads as a broken page. */
+.music-list { }
 
 /* Inputs inherit the interface font rather than the browser default. */
 .portal input,
@@ -5541,9 +5548,9 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 }
 
 @media (display-mode: standalone) {
-  /* No browser chrome means no browser scroll rubber-band either — the page
-     should feel anchored, the way a native list does. */
-  body { overscroll-behavior-y: none; }
+  /* Deliberately NOT overscroll-behavior-y: none. It reads well in a mockup
+     and in practice it removes the rubber-band people use to confirm they
+     have reached the end of a page, which makes a short page feel frozen. */
 
   /* The audio deck already clears the home indicator; the page content behind
      it needs the same clearance or the last row hides under the deck. */

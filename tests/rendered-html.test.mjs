@@ -1172,3 +1172,38 @@ test("touch controls meet the 44px floor and answer a tap without delay", async 
   assert.match(css, /input,\s*select,\s*textarea\s*\{\s*font-size:\s*max\(16px/,
     "inputs must be 16px or larger on touch or iOS zooms the page and stays there");
 });
+
+test("nothing traps the vertical wheel", async () => {
+  // Three separate founder reports came from this one property, applied three
+  // different ways:
+  //
+  //   "cant scroll while hover over some these tabs" — contain on
+  //   .portal-main, which is not a scroll container at all.
+  //
+  //   "CLEARLY still CANNOT SCROLL ON BUTTONS" — contain on the sidebar nav.
+  //   With the pointer over the rail's links the wheel scrolled the list and
+  //   then stopped, instead of handing off to the page behind it.
+  //
+  //   A page that stops scrolling under the cursor reads as broken, and the
+  //   person reporting it has no way to know which element caused it. That is
+  //   what makes this worth a test rather than a comment.
+  //
+  // BLOCK-AXIS containment is therefore banned outright. INLINE-axis
+  // containment stays allowed and is not matched here: a horizontally
+  // scrolling table or tab strip should not drag the page sideways, and
+  // stopping that has nothing to do with the vertical wheel.
+  // Comments are stripped first. The explanations of WHY this property is
+  // banned necessarily name it, and a guard that fails on its own rationale
+  // teaches people to delete the rationale.
+  const css = (await readFile(new URL("../app/globals.css", import.meta.url), "utf8"))
+    .replace(/\/\*[\s\S]*?\*\//g, "");
+
+  const offenders = (css.match(/overscroll-behavior(?:-y|-block)?\s*:\s*(?:contain|none)/g) ?? [])
+    .filter((declaration) => !/-inline/.test(declaration));
+
+  assert.deepEqual(
+    offenders,
+    [],
+    `vertical overscroll containment traps the wheel over that element: ${offenders.join(", ")}`,
+  );
+});
