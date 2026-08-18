@@ -321,8 +321,19 @@ Secrets survive deploys; they only need setting again if they change.
   static assets are served before the app's checks run, so a suspended member
   still on the Access allowlist could pull the comp grid.
 
-- 2026-08-18 (current serving version): **version id NOT YET RECORDED —
-  fill this in.** Deployed by the owner immediately after applying
+- 2026-08-18: **version `cde4601e-c354-4217-bed8-cfad831e2512`** — deployed
+  by the owner at 17:30:00 UTC. **Recovered 2026-08-18 from
+  `wrangler deployments list`; it was never recorded at the time and nothing
+  else in this file or the record mentions it.** No deploy output survives,
+  so its contents can only be bounded: it falls between `fd0926a3`
+  (`main@9be299d`) and `607b3001` at 17:59, i.e. somewhere in the block of
+  merges that had been sitting undeployed. It served for 29 minutes.
+  It is listed here rather than left out because a gap in a version trail is
+  worse than an entry that admits what it does not know.
+
+- 2026-08-18 (current serving version): **version
+  `d3bc401f-2da5-49bb-832a-9973054efea7`** — created 19:58:42 UTC, deployed
+  by the owner immediately after applying
   `db/sql/0006_command_passes.sql` to the live D1 (4 queries, 9 rows
   written). Worker startup 21 ms, down from 30 ms on `fd0926a3`. Total
   upload 2791.05 KiB (gzip 944.55 KiB); 23 worker modules totalling
@@ -330,13 +341,17 @@ Secrets survive deploys; they only need setting again if they change.
   (`/assets/index-B5t2wzej.css`), 35 unchanged. Bindings confirmed: `env.DB`
   → `site-creator-d1`, `env.CALL_RECORDINGS` → `site-creator-r2`.
 
-  **The id is missing because the deploy output was read from scrollback
-  rather than from a log file.** `Current Version ID` is the last line
-  `wrangler deploy` prints and it scrolled past. This is the third time the
-  record has had to reconstruct or abandon a version id, which is what the
-  `Tee-Object` practice in §7 exists to prevent. Recover it with
-  `npx wrangler deployments list -c dist/server/wrangler.json` — the newest
-  entry at 100% is this one — and paste it here.
+  **The id was missing at first and had to be recovered**, because the deploy
+  output was read from scrollback rather than a log file — `Current Version
+  ID` is the last line `wrangler deploy` prints and it scrolled past.
+  `npx wrangler deployments list -c dist/server/wrangler.json` recovered both
+  this id and `cde4601e` above.
+  **Four deploys happened on 2026-08-18 and two of them went unrecorded until
+  a list command went looking.** That is the failure the `Tee-Object`
+  practice in §7 exists to prevent, and it has now cost the record three
+  times. The list command is the reliable backstop and should be run after
+  every deploy regardless: `wrangler deployments list` needs no foresight,
+  whereas piping to a log file needs someone to remember before the fact.
 
   **What this version carries over `607b3001`:** PR #92 — the Command Center
   pass-bypass fix (`hasLivePass` now requires the `pass` claim, so a copied

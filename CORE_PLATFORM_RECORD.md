@@ -636,9 +636,17 @@ identity it is impersonating on every start. The role still comes from the
       preserved in a row. The version trail is restored. The gap it closes: the earlier 08-17 founder-gate deploy is
       owner-confirmed but its id existed only in the terminal and was lost, so
       between 08-16 and now the record could say *what* was live but not
-      *which build*. **Standing practice that fixed it, keep using it:** pipe
+      *which build*. **Standing practice, keep using it:** pipe
       the deploy through `Tee-Object` to a dated log file — the id survives the
       scrollback. See §7.
+      **It did not hold — amended 2026-08-18.** Four deploys went out that
+      day and two of them (`cde4601e`, `d3bc401f`) were never written down;
+      both were found later only because someone went looking. `Tee-Object`
+      has to be remembered *before* the deploy, which is precisely when
+      nobody is thinking about the record. **`npx wrangler deployments list
+      -c dist/server/wrangler.json` needs no foresight and recovers ids after
+      the fact** — run it after every deploy. Treat the pipe as the nicety
+      and the list as the backstop, not the other way round.
 - [ ] **Consider a custom domain** in place of the workers.dev URL. Add the new
       `/auth/callback` URI to the Google OAuth client *before* cutting over, or
       sign-in breaks at the moment the domain changes.
