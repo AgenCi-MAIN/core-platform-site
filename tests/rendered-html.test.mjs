@@ -1122,3 +1122,50 @@ test("no page-scoped style ships a hardcoded colour instead of a theme token", a
     );
   }
 });
+
+test("touch controls meet the 44px floor and answer a tap without delay", async () => {
+  // The portal installs to the home screen and is used one-handed, so it is
+  // judged against native apps. Three properties carry most of that feeling,
+  // and each has failed here before:
+  //
+  //   The audio transport shipped at 33px with a 13px slider thumb — a desktop
+  //   control handed to a thumb. Apple's floor is 44x44pt.
+  //
+  //   Without touch-action: manipulation the browser waits 300ms for a
+  //   possible double-tap before acting. That wait is most of what "feels
+  //   like a website" means.
+  //
+  //   -webkit-tap-highlight-color: transparent removes the grey flash. Doing
+  //   that WITHOUT providing a press state leaves a control that gives no
+  //   feedback at all, which is worse than the flash.
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  assert.match(css, /touch-action:\s*manipulation/,
+    "interactive elements must not wait 300ms for a possible double-tap");
+
+  assert.match(css, /-webkit-tap-highlight-color:\s*transparent/,
+    "the grey tap flash is replaced by a real press state, not left as-is");
+
+  assert.match(css, /:active[^{]*\{[^}]*transform:\s*scale\(/,
+    "removing the tap flash requires giving a press state back");
+
+  assert.match(css, /width:\s*max\(100%,\s*44px\)/,
+    "small controls expand their hit area to the 44px floor on touch");
+
+  assert.match(css, /-webkit-text-size-adjust:\s*100%/,
+    "text sizing stays the user's decision");
+
+  // A press state that ignores prefers-reduced-motion is a press state that
+  // moves the screen for someone who asked it not to.
+  const reducedBlocks = css.match(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\n\}/g) ?? [];
+  assert.ok(
+    reducedBlocks.some((block) => /:active/.test(block) && /transform:\s*none/.test(block)),
+    "the press state must be dropped under prefers-reduced-motion",
+  );
+
+  // iOS Safari zooms the viewport on focusing any input under 16px and never
+  // zooms back. The lodge code field is the first thing a locked-out person
+  // meets; throwing the page at them is not an option.
+  assert.match(css, /input,\s*select,\s*textarea\s*\{\s*font-size:\s*max\(16px/,
+    "inputs must be 16px or larger on touch or iOS zooms the page and stays there");
+});
