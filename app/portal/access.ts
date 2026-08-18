@@ -35,6 +35,22 @@ export const CAPABILITIES = [
   "dashboard.view.self",
   "book.view.self",
   "calls.review",
+  // Deleting a recording or a transcript is a SEPARATE power from reading one,
+  // and it is deliberately held by roles that cannot read (admin) as well as
+  // one that can (owner). Retention is a records duty, not a review activity:
+  // the person who runs the two-year purge does not need to hear the calls to
+  // do it, and a reader must not be able to destroy the evidence they just
+  // read. Founder order 2026-08-18: "Retention-2-yrs-delete-only-ADMIN or
+  // OWNER".
+  "calls.recording.delete",
+  // An agent's own call, and only their own. Founder order 2026-08-18:
+  // "agents should def see their own call's transcript! It's the whole
+  // coaching value." This is NOT a weaker calls.review — it is a different
+  // shape. calls.review answers "any call"; this answers "this call, if it is
+  // mine", and the ownership test is a SECOND check the route must make
+  // against the row, never something the capability alone decides. A
+  // capability cannot know whose call it is.
+  "calls.review.self",
   "scripts.manage",
   "team.view",
   "leadership.view.all",
@@ -57,6 +73,8 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "dashboard.view.self",
     "book.view.self",
     "calls.review",
+    "calls.review.self",
+    "calls.recording.delete",
     "scripts.manage",
     "team.view",
     "leadership.view.all",
@@ -69,7 +87,8 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "portal.access",
     "dashboard.view.self",
     "book.view.self",
-    "calls.review",
+    "calls.review.self",
+    "calls.recording.delete",
     "scripts.manage",
     "team.view",
     "leadership.view.all",
@@ -82,7 +101,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "portal.access",
     "dashboard.view.self",
     "book.view.self",
-    "calls.review",
+    "calls.review.self",
     "team.view",
     "leadership.view.all",
     "members.view",
@@ -92,12 +111,17 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
   reviewer: [
     "portal.access",
     "dashboard.view.self",
-    "calls.review",
     "scripts.manage",
     "team.view",
     "pet.chat",
   ],
-  agent: ["portal.access", "dashboard.view.self", "book.view.self", "pet.chat"],
+  agent: [
+    "portal.access",
+    "dashboard.view.self",
+    "book.view.self",
+    "calls.review.self",
+    "pet.chat",
+  ],
   support: ["portal.access", "dashboard.view.self", "team.view", "pet.chat"],
 };
 

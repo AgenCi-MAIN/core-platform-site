@@ -792,7 +792,7 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
 test("Dialer Beta lists transferred calls and gates protected recording playback", async () => {
   const portal = await startPortal();
   try {
-    await portal.addMember("reviewer@example.com", "reviewer");
+    await portal.addMember("reviewer@example.com", "owner");
     await portal.addMember("agent-calls@example.com", "agent");
     await portal.db
       .prepare(
@@ -1938,7 +1938,7 @@ test("a recording without verified consent is refused, byteless, and the refusal
   const portal = await startPortal();
   t.after(portal.dispose);
 
-  await portal.addMember("reviewer2@example.com", "reviewer");
+  await portal.addMember("reviewer2@example.com", "owner");
   const reviewer = { subject: "sub-reviewer2", email: "reviewer2@example.com" };
 
   const insertTransfer = (transferId, status, consent, objectKey) =>
@@ -1984,7 +1984,7 @@ test("an entitled reviewer cannot use a transfer row to read another R2 namespac
   const portal = await startPortal();
   t.after(portal.dispose);
 
-  await portal.addMember("reviewer-key@example.com", "reviewer");
+  await portal.addMember("reviewer-key@example.com", "owner");
   await portal.db
     .prepare(
       `INSERT INTO dialer_transfers
@@ -2017,7 +2017,7 @@ test("the recording route is closed to anonymous, forged, and suspended callers"
   const portal = await startPortal();
   t.after(portal.dispose);
 
-  await portal.addMember("reviewer-gate@example.com", "reviewer");
+  await portal.addMember("reviewer-gate@example.com", "owner");
   const reviewer = { subject: "sub-reviewer-gate", email: "reviewer-gate@example.com" };
   await portal.db
     .prepare(
@@ -2065,7 +2065,7 @@ test("a stored non-audio mime type cannot turn the recording stream into markup"
   const portal = await startPortal();
   t.after(portal.dispose);
 
-  await portal.addMember("reviewer-mime@example.com", "reviewer");
+  await portal.addMember("reviewer-mime@example.com", "owner");
   await portal.db
     .prepare(
       `INSERT INTO dialer_transfers
@@ -2146,7 +2146,7 @@ test("recording route edge branches: bad ids 400, misses audited 404, dropped ta
   const portal = await startPortal();
   t.after(portal.dispose);
 
-  await portal.addMember("reviewer-edge@example.com", "reviewer");
+  await portal.addMember("reviewer-edge@example.com", "owner");
   const reviewer = { subject: "sub-reviewer-edge", email: "reviewer-edge@example.com" };
 
   for (const bad of ["abc", "0", "-1", "1e3", "999999999999999999999", ""]) {
