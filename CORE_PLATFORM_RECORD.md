@@ -39,7 +39,7 @@ Every allow and every deny is written to an append-only `audit_events` table.
 
 | Thing | Value |
 | --- | --- |
-| Public URL | `https://site-creator-vinext-starter.bankerrunners.workers.dev` |
+| Public URL | `https://site-creator-vinext-starter.thrive18.workers.dev` — **this is the one to give a member.** Corrected 2026-08-18: this row named the retired `bankerrunners` address for a day after the account migration, contradicting the `workers.dev subdomain` row directly below it. That contradiction was not theoretical — it was read off this table and mailed to all four founders as their setup link (see §10), pointing them at the frozen copy and its abandoned database. A stale row in a summary table is how a stale fact reaches a human. |
 | Worker name | `site-creator-vinext-starter` |
 | Cloudflare account | `Btcmao518@gmail.com's Account` — `f39f3a77e56b28e4dfae29489a997014` (GitHub SSO; MIGRATED 2026-08-18 from the old `Bankerrunners@gmail.com` account `e6f9d0a344a0a7b317601ffbe23f871e`, whose recovery email was lost — old account left running until cutover, then abandoned) |
 | workers.dev subdomain | `thrive18` — live at `https://site-creator-vinext-starter.thrive18.workers.dev` since 2026-08-18, owner sign-in verified (was `bankerrunners` on the old account, whose worker still runs unadministered behind its Access gate — do not send members there) |
@@ -103,6 +103,15 @@ Exactly one authorized redirect URI:
 ```
 https://site-creator-vinext-starter.bankerrunners.workers.dev/auth/callback
 ```
+
+⚠️ **UNVERIFIED AFTER THE 2026-08-18 MIGRATION — confirm before trusting.** The
+URI above is the pre-migration one. The portal is now served from `thrive18`,
+and a Google OAuth client only accepts a callback it has registered, so either
+this client already lists the `thrive18` callback (and this block is stale) or
+portal sign-in is broken at the new address. Those cannot both be true. Nobody
+has checked which, because the Google Cloud Console is not in this repo. Read
+the live value in the console and correct this block — do **not** "fix" the
+console to match this page, which would break whatever currently works.
 
 Authorized JavaScript origins: none — the flow is entirely server-side.
 
@@ -559,6 +568,25 @@ identity it is impersonating on every start. The role still comes from the
 - [ ] **Consider a custom domain** in place of the workers.dev URL. Add the new
       `/auth/callback` URI to the Google OAuth client *before* cutting over, or
       sign-in breaks at the moment the domain changes.
+- [ ] **Verify the Google OAuth callback against the live console.** §3 and
+      DEPLOYMENT.md both still print the pre-migration `bankerrunners`
+      redirect URI. Since the worker now answers on `thrive18`, either that
+      client already registers the `thrive18` callback (docs stale) or portal
+      sign-in is broken at the live address. Read the console, correct the
+      docs from it, never the reverse. Both blocks now carry a warning until
+      someone does.
+- [x] **Setup email sent to all four founders with the wrong link and a dead
+      step — corrected 2026-08-18.** The 08-17 "CORE on your home screen"
+      email pointed Shawn, Ryan, Nate, and Andrew at the retired
+      `bankerrunners` address, and told them to wait for a 6-digit Access code
+      that **A11 had already retired** — a warning about a step that cannot
+      happen, sent alongside a link to a frozen copy on an abandoned database.
+      Both errors were read straight off the "Public URL" row in §2, which
+      contradicted the `workers.dev subdomain` row four lines under it. A
+      correction naming both errors went to all four on 2026-08-18; the §2 row
+      is fixed and now says why. **The lesson is the cheap one:** a summary
+      table that disagrees with its own detail rows is not a cosmetic defect —
+      it is the row a human copies out and mails to other humans.
 - [x] **Wire member management into the portal UI.** Done — `/portal/members`
       now grants, changes roles, and changes status through
       `/portal/members/manage`, which re-resolves the session and asserts

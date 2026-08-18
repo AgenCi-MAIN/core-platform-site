@@ -11,7 +11,7 @@ the owner keeps.
 
 | Thing | Value |
 | --- | --- |
-| Public URL | `https://site-creator-vinext-starter.bankerrunners.workers.dev` |
+| Public URL | `https://site-creator-vinext-starter.thrive18.workers.dev` — **the address to give a member.** Corrected 2026-08-18; this row named the retired `bankerrunners` address, which is frozen, unadministered, and backed by the abandoned database. |
 | Worker name | `site-creator-vinext-starter` |
 | Cloudflare account | `Btcmao518@gmail.com's Account` (`f39f3a77e56b28e4dfae29489a997014`) — GitHub SSO; migrated 2026-08-18, old account abandoned after cutover |
 | workers.dev subdomain | `thrive18` — `https://site-creator-vinext-starter.thrive18.workers.dev` (was `bankerrunners`) |
@@ -41,6 +41,12 @@ redirect URI:
 ```
 https://site-creator-vinext-starter.bankerrunners.workers.dev/auth/callback
 ```
+
+⚠️ **UNVERIFIED AFTER THE 2026-08-18 MIGRATION.** This is the pre-migration
+callback. The worker now answers on `thrive18`, so either the client already
+registers the `thrive18` callback and this block is stale, or portal sign-in is
+broken at the live address. Check the Google Cloud Console and correct this
+block from it — never the reverse. See CORE_PLATFORM_RECORD.md §3.
 
 Authorized JavaScript origins: none (the flow is server-side only).
 
