@@ -584,6 +584,26 @@ identity it is impersonating on every start. The role still comes from the
     checking the code. Subscriptions, quotas and billing are account-scoped
     and are exactly the class of thing an export/import does not carry.
 
+12. **A row's timestamp FORMAT says whether the application or a human wrote
+    it — and a fix overwrites that evidence.** D1 rows touched by the portal
+    carry JavaScript's `toISOString()`: `2026-08-17T03:34:03.018Z`, with a
+    `T`, milliseconds, and a trailing `Z`. Rows touched by a SQL statement
+    carry `CURRENT_TIMESTAMP`: `2026-08-18 06:20:27`, a space, no
+    milliseconds, no zone. Two writers, two shapes, visible in any `SELECT`.
+    **This is the only forensic signal available when a console statement
+    changes a row**, because the console writes no `audit_events` row — the
+    trail is written by the application and the console sits underneath it.
+    **Discovered on 2026-08-18, one query too late.** A member's role had been
+    escalated to owner by something outside the portal (A26). The fix ran
+    first and the roster query second, so the corrected row's timestamp is the
+    fix's own and the escalation's shape is gone — the single clue that would
+    have distinguished a portal write from a console write, destroyed by the
+    repair. The wrong order cost nothing but the answer.
+    **The rule: on any unexplained row, SELECT before you UPDATE.** Capture
+    `updated_at`, `granted_by` and `status_note` verbatim into the incident
+    record first. A correction is not urgent enough to justify losing the only
+    evidence of what it is correcting, and it never will be.
+
 11. **A CSS grid that is told to grow will hand the surplus to its rows.**
     `.portal-nav` is `display: grid`, and `.portal-sidebar .portal-nav` is
     `flex: 1 1 auto` so the nav box fills the rail. A grid's default
