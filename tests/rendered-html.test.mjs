@@ -1105,7 +1105,16 @@ test("no page-scoped style ships a hardcoded colour instead of a theme token", a
 
   for (const page of pages) {
     const source = await readFile(new URL(page, import.meta.url), "utf8");
-    const literals = source.match(/(?:color|background|background-color|border-color)\s*:\s*(?:#[0-9a-fA-F]{3,8}|rgba?\([^)]*\))/g) ?? [];
+    // Match a literal ANYWHERE in the declaration's value, not only as its
+    // first token. The first version of this guard checked the head of the
+    // value and therefore passed
+    //   background:linear-gradient(145deg,rgba(56,35,10,.18),rgba(12,17,29,.9))
+    // which is the Routing bridge card: a translucent gradient with no opaque
+    // ground under it. Authored over a dark page it looked solid; over a light
+    // one its first stop is 18% opaque, the page shows straight through, and
+    // the light ink on top is unreadable. A literal buried in a gradient is
+    // the same defect as a literal on its own, and hid for exactly one round.
+    const literals = source.match(/(?:color|background|background-color|border-color)\s*:[^;}]*(?:#[0-9a-fA-F]{3,8}|rgba?\([^)]*\))[^;}]*/g) ?? [];
     assert.deepEqual(
       literals,
       [],

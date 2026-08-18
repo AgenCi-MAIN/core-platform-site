@@ -5285,6 +5285,7 @@ html[data-portal-performance="boost"] .fcc-thumb-dock { backdrop-filter: none; b
   --invert-subtle:  #7D8FA4;
   --invert-accent:  #5EEAD4;
   --invert-warning: #F5B54B;
+  --invert-deep:    #070C13;
   --invert-shadow:  0 1px 2px rgba(6,10,16,.34), 0 18px 40px -22px rgba(6,10,16,.68);
   --invert-lift:    0 2px 6px rgba(6,10,16,.30), 0 28px 60px -26px rgba(6,10,16,.80);
 }
