@@ -39,14 +39,19 @@ account, killing the old client with it (see CORE_PLATFORM_RECORD.md §3 and
 redirect URI:
 
 ```
-https://site-creator-vinext-starter.bankerrunners.workers.dev/auth/callback
+https://site-creator-vinext-starter.thrive18.workers.dev/auth/callback
 ```
 
-⚠️ **UNVERIFIED AFTER THE 2026-08-18 MIGRATION.** This is the pre-migration
-callback. The worker now answers on `thrive18`, so either the client already
-registers the `thrive18` callback and this block is stale, or portal sign-in is
-broken at the live address. Check the Google Cloud Console and correct this
-block from it — never the reverse. See CORE_PLATFORM_RECORD.md §3.
+**Corrected 2026-08-18** — this block printed the pre-migration `bankerrunners`
+callback. Both route handlers build the redirect from
+`` `${url.origin}/auth/callback` ``, so the URI follows whatever host serves the
+request; Google rejects any it has not registered. Owner-confirmed sign-in at
+`thrive18` therefore proves the console lists that callback. Full reasoning in
+CORE_PLATFORM_RECORD.md §3.
+
+⚠️ On a **custom-domain cutover** the app immediately starts sending a callback
+Google has never seen. Register the new URI *before* the switch or sign-in
+breaks at that moment, with no warning from the code.
 
 Authorized JavaScript origins: none (the flow is server-side only).
 

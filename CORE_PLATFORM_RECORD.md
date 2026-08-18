@@ -101,17 +101,28 @@ Type **Web application**, in the Google Cloud project on the owner's account.
 Exactly one authorized redirect URI:
 
 ```
-https://site-creator-vinext-starter.bankerrunners.workers.dev/auth/callback
+https://site-creator-vinext-starter.thrive18.workers.dev/auth/callback
 ```
 
-⚠️ **UNVERIFIED AFTER THE 2026-08-18 MIGRATION — confirm before trusting.** The
-URI above is the pre-migration one. The portal is now served from `thrive18`,
-and a Google OAuth client only accepts a callback it has registered, so either
-this client already lists the `thrive18` callback (and this block is stale) or
-portal sign-in is broken at the new address. Those cannot both be true. Nobody
-has checked which, because the Google Cloud Console is not in this repo. Read
-the live value in the console and correct this block — do **not** "fix" the
-console to match this page, which would break whatever currently works.
+**Corrected 2026-08-18.** This block printed the pre-migration `bankerrunners`
+callback for a day after the account move. It is now known to be the `thrive18`
+one, and that is not an assumption — it follows from the code:
+`app/auth/signin/route.ts` and `app/auth/callback/route.ts` both build the
+redirect as `` `${url.origin}/auth/callback` ``, derived from the **request's own
+host** rather than a constant. So a request served at `thrive18` sends Google
+the `thrive18` callback, and Google refuses any `redirect_uri` its client has
+not registered (`redirect_uri_mismatch`). A portal sign-in that succeeds at
+`thrive18` therefore proves the console already lists that callback. The owner
+confirmed the successful sign-in was his, 2026-08-18.
+
+Whether the retired `bankerrunners` callback is *also* still listed on the
+client is unknown and harmless — it points at a worker nobody administers.
+Pruning it is tidy, not urgent.
+
+The `${url.origin}` derivation is also why the custom-domain follow-up in §10
+matters: on a domain cutover the app starts sending a callback Google has never
+seen, and sign-in breaks at that instant unless the new URI is registered
+first. Nothing in the code will warn you.
 
 Authorized JavaScript origins: none — the flow is entirely server-side.
 
@@ -568,13 +579,16 @@ identity it is impersonating on every start. The role still comes from the
 - [ ] **Consider a custom domain** in place of the workers.dev URL. Add the new
       `/auth/callback` URI to the Google OAuth client *before* cutting over, or
       sign-in breaks at the moment the domain changes.
-- [ ] **Verify the Google OAuth callback against the live console.** §3 and
-      DEPLOYMENT.md both still print the pre-migration `bankerrunners`
-      redirect URI. Since the worker now answers on `thrive18`, either that
-      client already registers the `thrive18` callback (docs stale) or portal
-      sign-in is broken at the live address. Read the console, correct the
-      docs from it, never the reverse. Both blocks now carry a warning until
-      someone does.
+- [x] ~~**Verify the Google OAuth callback against the live console.**~~
+      **Settled 2026-08-18 without needing the console.** The docs were stale,
+      not the config. Both route handlers build the redirect from
+      `` `${url.origin}/auth/callback` `` — the request's own host — and Google
+      rejects any unregistered `redirect_uri`, so a portal sign-in succeeding
+      at `thrive18` is itself proof the callback is registered there. The owner
+      confirmed that sign-in was his. §3 and DEPLOYMENT.md now print the
+      `thrive18` URI. Worth keeping in mind as a method: a config question you
+      cannot see the answer to is sometimes decided by reading how the code
+      builds the value.
 - [x] **Setup email sent to all four founders with the wrong link and a dead
       step — corrected 2026-08-18.** The 08-17 "CORE on your home screen"
       email pointed Shawn, Ryan, Nate, and Andrew at the retired
