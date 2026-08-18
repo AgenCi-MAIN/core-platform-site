@@ -2382,6 +2382,33 @@ test("LeadTech renders the honest not-connected state to leadership and refuses 
   assert.equal(await agentRes.text(), "", "a refused agent receives no body");
 });
 
+test("the commission schedule serves every active member from inside the bundle", async (t) => {
+  // The schedule ships inside the worker via a ?raw import (an ASSETS-binding
+  // proxy 503'd on the first live deploy — this pins that it can never
+  // regress to an empty response). dashboard.view.self means EVERY member
+  // role gets it, agents included; anonymous refusal is pinned separately in
+  // the PROTECTED_ROUTES suite.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("agent-commission@example.com", "agent");
+  const res = await portal.get("/portal/commission", {
+    subject: "subject-agent-commission",
+    email: "agent-commission@example.com",
+  });
+  assert.equal(res.status, 200, "an active agent receives the schedule");
+  assert.match(res.headers.get("content-type") ?? "", /text\/html/);
+  assert.match(res.headers.get("cache-control") ?? "", /no-store/);
+
+  const html = await res.text();
+  assert.match(html, /Commission Schedule/i, "the schedule document must render");
+  assert.match(html, /LEVEL_KEYS/, "the interactive grid data must be present");
+  assert.ok(
+    !html.includes("unavailable on this deployment"),
+    "the fail-closed fallback must not fire when the bundle carries the document",
+  );
+});
+
 test("Retreaver and Twilio render honest not-connected states to leadership and refuse an agent", async (t) => {
   // Deploy-time reality: none of RETREAVER_API_KEY / TWILIO_ACCOUNT_SID /
   // TWILIO_AUTH_TOKEN are set as Miniflare bindings, so both read-only call
