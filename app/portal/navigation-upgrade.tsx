@@ -15,14 +15,18 @@ const REAGAN_HREF = "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2F
  */
 export function PortalNavigationUpgrade() {
   useEffect(() => {
+    function setLabel(node: HTMLElement, label: string) {
+      if (node.textContent !== label) node.textContent = label;
+    }
+
     function upgrade() {
       document.querySelectorAll<HTMLElement>(".portal-nav-item-surelc").forEach((node) => node.remove());
 
       document.querySelectorAll<HTMLElement>(".portal-nav-exchange .portal-nav-label").forEach((node) => {
-        node.textContent = "Marketplace";
+        setLabel(node, "Marketplace");
       });
       document.querySelectorAll<HTMLElement>(".portal-nav-item-reagan .portal-nav-label").forEach((node) => {
-        node.textContent = "Reagan AI — Heartland";
+        setLabel(node, "Reagan AI — Heartland");
       });
 
       document.querySelectorAll<HTMLElement>(".portal-nav").forEach((nav) => {
@@ -63,10 +67,10 @@ export function PortalNavigationUpgrade() {
       });
 
       document.querySelectorAll<HTMLElement>('a[href="/portal/shop"] .portal-workspace-copy strong').forEach((node) => {
-        node.textContent = "Marketplace";
+        setLabel(node, "Marketplace");
       });
       document.querySelectorAll<HTMLElement>(`a[href="${REAGAN_HREF}"] .portal-workspace-copy strong`).forEach((node) => {
-        node.textContent = "Reagan AI — Heartland";
+        setLabel(node, "Reagan AI — Heartland");
       });
       document.querySelectorAll<HTMLElement>('a[href*="surancebay.com"] .portal-workspace-copy').forEach((node) => {
         node.closest("a")?.remove();
