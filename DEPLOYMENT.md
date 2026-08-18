@@ -257,6 +257,9 @@ Secrets survive deploys; they only need setting again if they change.
   `git.deploymentEnabled: false`. Vercel was connected to this repository and
   building on every push, so every commit — including documentation-only ones
   — produced a red "Build Failed" that meant nothing. The flag stops Vercel
-  building at all while leaving the project connected; deleting the Vercel
-  project in its dashboard is the alternative and is equally fine. Nothing
-  about the Cloudflare deploy path changes.
+  building at all while leaving the project connected. **The owner then
+  deleted the Vercel project outright (2026-08-18), which is the clean end
+  state.** `vercel.json` is deliberately kept even though the project is
+  gone: it costs nothing, and it means a future accidental reconnection of
+  this repository to Vercel produces no builds rather than a fresh run of
+  red failures. Nothing about the Cloudflare deploy path changes.
