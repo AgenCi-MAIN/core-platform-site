@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PortalGovernanceFooter } from "../portal-chrome";
 import { PortalAudioDeck } from "./audio-deck";
+import { PortalNavigationUpgrade } from "./navigation-upgrade";
 import { PortalPresence } from "./presence";
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function PortalLayout({
     <>
       <div className="portal">
         {children}
+        <PortalNavigationUpgrade />
         <PortalAudioDeck />
         {/* The widget renders for everyone in the tree; the server route it
             posts to enforces pet.chat on every request — the button is a
