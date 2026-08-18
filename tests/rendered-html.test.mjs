@@ -629,17 +629,27 @@ test("the theme boot script and the theme control agree on the three themes", as
     "the boot script must whitelist exactly bright|thrive and fall back to dark",
   );
 
-  // Control: the THEMES table carries exactly the same ids, dark fallback.
+  // Control: the THEMES table carries exactly the same ids. Its readTheme
+  // fallback is BRIGHT on purpose — it describes what the DOM shows, and a
+  // missing attribute means the boot never ran, so the unguarded base
+  // (Bright) palette is on screen. The boot's own fallback stays dark.
   const ids = [...control.matchAll(/id: "([a-z]+)"/g)].map((m) => m[1]);
   assert.deepEqual(ids, ["bright", "dark", "thrive"], "THEMES table ids changed");
   assert.match(
     control,
-    /return known \? known\.id : "dark";/,
-    "readTheme's fallback must stay dark — the same default as the boot script",
+    /return known \? known\.id : "bright";/,
+    "readTheme's missing-attribute fallback must describe the DOM's Bright base",
+  );
+  assert.match(
+    control,
+    /useSyncExternalStore\(subscribe, readTheme, \(\) => "dark"\)/,
+    "the server snapshot must match the boot script's dark default",
   );
 
-  // Chrome hexes: the same three values in both files.
-  for (const chrome of ["#f3ecdf", "#0c0a07", "#16202e"]) {
+  // Chrome hexes: the same three values in both files. Thrive's chrome is
+  // its LIGHT workspace hex — on phones the status bar sits above the white
+  // topbar, not the navy rail.
+  for (const chrome of ["#f3ecdf", "#0c0a07", "#eef2f9"]) {
     assert.ok(boot.includes(chrome), `boot script lost the ${chrome} chrome hex`);
     assert.ok(control.includes(chrome), `THEMES table lost the ${chrome} chrome hex`);
   }
@@ -655,10 +665,25 @@ test("the theme boot script and the theme control agree on the three themes", as
     assert.ok(start >= 0, `missing block ${marker}`);
     return css.slice(start, css.indexOf("}", start));
   };
-  const darkTokens = [...blockOf('html[data-portal-theme="dark"] .portal {').matchAll(/--portal-[\w-]+/g)].map((m) => m[0]);
+  // Colon-anchored on purpose: --portal-accent is a substring of
+  // --portal-accent-strong, so a bare includes() would let a block that only
+  // defines the -strong variant pass.
+  const darkTokens = [...blockOf('html[data-portal-theme="dark"] .portal {').matchAll(/--portal-[\w-]+(?=:)/g)].map((m) => m[0]);
   const thriveBlock = blockOf('html[data-portal-theme="thrive"] .portal {');
-  const missing = [...new Set(darkTokens)].filter((token) => !thriveBlock.includes(token));
+  const missing = [...new Set(darkTokens)].filter((token) => !thriveBlock.includes(`${token}:`));
   assert.deepEqual(missing, [], `thrive theme lacks tokens the dark theme defines: ${missing.join(", ")}`);
+
+  // The boot mirrors ids and chrome hexes from the THEMES table but derives
+  // color-scheme from a hardcoded ternary — pin that ternary AND the table's
+  // scheme column, so a future dark-scheme theme cannot silently boot light.
+  assert.match(boot, /colorScheme=v==="dark"\?"dark":"light"/, "boot color-scheme mapping changed");
+  const schemes = [...control.matchAll(/scheme: "([a-z]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(schemes, ["light", "dark", "light"], "THEMES scheme column changed — update the boot's colorScheme mapping with it");
+
+  // The storage key is duplicated by hand in both files (the boot cannot
+  // import). A mismatch is total theme amnesia, worse than any drift above.
+  assert.match(boot, /PORTAL_THEME_STORAGE_KEY = "core-portal-theme"/);
+  assert.match(control, /const STORAGE_KEY = "core-portal-theme"/);
 });
 
 test("public surfaces offer all three theme choices", async () => {

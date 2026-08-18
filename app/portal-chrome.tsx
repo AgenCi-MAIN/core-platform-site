@@ -26,7 +26,7 @@ export const PORTAL_PERFORMANCE_STORAGE_KEY = "thrive-portal-performance";
 // page instead of guessing from the OS preference, which is not what chooses
 // the portal's theme. "thrive" keeps colorScheme light: its workspace is
 // light; the navy sidebar scopes its own dark color-scheme in globals.css.
-const THEME_BOOT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("${PORTAL_THEME_STORAGE_KEY}");var v=(t==="bright"||t==="thrive")?t:"dark";d.dataset.portalTheme=v;d.style.colorScheme=v==="dark"?"dark":"light";var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",v==="dark"?"#0c0a07":v==="thrive"?"#16202e":"#f3ecdf")}var p=localStorage.getItem("${PORTAL_PERFORMANCE_STORAGE_KEY}");d.dataset.portalPerformance=p==="boost"?"boost":"full"}catch(e){}})();`;
+const THEME_BOOT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("${PORTAL_THEME_STORAGE_KEY}");var v=(t==="bright"||t==="thrive")?t:"dark";d.dataset.portalTheme=v;d.style.colorScheme=v==="dark"?"dark":"light";var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",v==="dark"?"#0c0a07":v==="thrive"?"#eef2f9":"#f3ecdf")}var p=localStorage.getItem("${PORTAL_PERFORMANCE_STORAGE_KEY}");d.dataset.portalPerformance=p==="boost"?"boost":"full"}catch(e){}})();`;
 
 /** Applies the saved theme and performance mode before first paint. */
 export function PortalThemeBoot() {
