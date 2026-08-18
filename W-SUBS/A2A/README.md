@@ -1,6 +1,6 @@
 # ELITE_8 — the A2A standing bench
 
-Eight seats, promoted to standing agents on 2026-08-18 by the founder's word
+Ten seats. Eight promoted to standing agents on 2026-08-18 by the founder's word
 ("Promote all 8 to STANDING AGENTS for A2A persona x 8"; named **ELITE_8** the
 same day). Owner decision A17.
 
@@ -18,6 +18,26 @@ overlaps another is a seat that can blame it.
 | A6 | **CAVEAT** | Confused deputy, injection | Whose instruction is this really? |
 | A7 | **DEADMAN** | Failure and silence | Did anything actually happen? |
 | A8 | **LEDGER** | Observability and audit | Can we prove what happened afterwards? |
+
+## Promoted on production — A9 and A10 (A19)
+
+Two seats were added on 2026-08-18 by promotion rather than by design. Both
+were earned by work already done in a single session, and both cover a class
+of defect the existing test suite provably cannot catch.
+
+| Seat | Name | Earned by |
+| --- | --- | --- |
+| A9 | **SPECTRUM** | Found text at 1.01:1 across four files, the single root cause behind every reported symptom, the translucent-ground defect that survived two rounds of fixes, and thirty-three controls under the 44px touch floor. All of it shipped past a green suite. |
+| A10 | **PLAINSPEAK** | Found a green `LIVE` chip on a route that states its own control plane is not connected, `AWAITING DATA` rendered in success green, and the leaderboard's honesty sentence measuring as the least visible text on its page. |
+
+The distinction between them matters and is why they are two seats rather than
+one. SPECTRUM asks *can this be seen*. PLAINSPEAK asks *is this true*. A page
+can pass the first and fail the second — a perfectly legible false claim is
+the more dangerous of the two, because nobody squints at it.
+
+**Promotion here means a recorded standing seat with a complete brief. It does
+not mean armed.** Arming remains the founder's, seat by seat, and every brief
+says so.
 
 ## The three gaps these seats exist to close
 
