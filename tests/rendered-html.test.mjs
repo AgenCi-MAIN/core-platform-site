@@ -1207,3 +1207,137 @@ test("nothing traps the vertical wheel", async () => {
     `vertical overscroll containment traps the wheel over that element: ${offenders.join(", ")}`,
   );
 });
+
+test("the sidebar rail stays where the founder put it", async () => {
+  // Founder, 2026-08-18, with a screenshot of the rail attached: "MAKE SITE
+  // STAY HERE". That is a decision about a specific rendered state, and a
+  // decision about pixels survives exactly as long as something measures it.
+  //
+  // This rail has now been retuned four times — #79, #81, #87, and the
+  // shrink after "buttons still way too huge". Four rounds of the same
+  // report is not four mistakes, it is one missing test. Nothing in the
+  // suite has ever asserted the size of a nav row: the touch-floor test one
+  // block up matches `width: max(100%, 44px)` anywhere in the file, which
+  // other controls also declare, so deleting the rail's rules outright would
+  // not have failed it.
+  //
+  // Two independent things are pinned, because he approved both:
+  //
+  //   HEIGHT. With `box-sizing: border-box` global, the drawn row is
+  //   max(min-height, padding-block + icon box) — today max(38, 6+6+26) =
+  //   38px. Pinning only `min-height` would pin nothing: before the shrink
+  //   the icon was 30px and co-bound the row at exactly 44, so a 30px icon
+  //   alone re-inflates a rail whose min-height never changed.
+  //
+  //   STRUCTURE. Five groups, in this order. His reference screenshot from
+  //   an older build showed three (WORKSPACE / OPERATIONS / ADMINISTRATION)
+  //   and I had asked whether he wanted them collapsed back. "Stay here",
+  //   sent with a picture of the five, answers it: they stay. The five also
+  //   carry PLATFORM-MAP.md's categories, so regrouping the nav silently
+  //   invalidates that document.
+  //
+  // The 44px touch target is NOT weakened by any of this. On coarse pointers
+  // it is carried by a ::before hit area that grows the region a finger can
+  // land in and leaves the drawn box alone. A touch target is somewhere you
+  // can land, not something you have to look at.
+  //
+  // If a redesign genuinely wants taller rows or different groups, change
+  // these constants in the same commit and say so in the message. That is
+  // the point: the number stops being drift nobody measured and becomes a
+  // decision someone made.
+
+  // Comments are stripped first, for the reason the wheel guard strips them:
+  // a guard that trips on its own explanation teaches people to delete the
+  // explanation.
+  const css = (await readFile(new URL("../app/globals.css", import.meta.url), "utf8"))
+    .replace(/\/\*[\s\S]*?\*\//g, "");
+
+  const ROW_CEILING = 40; // drawn at 38; two pixels of drift is not the regression
+  const TOUCH_FLOOR = 44;
+
+  // Largest absolute length in a value, so `max(100%, 44px)` reads 44 and a
+  // bare percentage — unresolvable from text — reads nothing.
+  const maxPx = (value) => {
+    let largest = 0;
+    for (const [, amount, unit] of (value ?? "").matchAll(/(-?[\d.]+)\s*(px|rem)\b/g)) {
+      const px = unit === "px" ? Number(amount) : Number(amount) * 16;
+      if (px > largest) largest = px;
+    }
+    return largest;
+  };
+
+  // Last declaration wins among equal-specificity rules, so scan forward and
+  // keep the final hit. The lookbehind is what stops `height` matching inside
+  // `min-height` and `line-height`.
+  const winning = (selector, property) => {
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter((m) =>
+      m[1]
+        .split(",")
+        .map((s) => s.trim().replace(/\s+/g, " "))
+        .includes(selector),
+    );
+    let value = null;
+    for (const rule of rules) {
+      const declared = [...rule[2].matchAll(new RegExp(`(?<![-\\w])${property}\\s*:\\s*([^;}]+)`, "g"))];
+      if (declared.length) value = declared.at(-1)[1].trim();
+    }
+    return value;
+  };
+
+  const rowFloor = maxPx(winning(".portal-nav a", "min-height"));
+  const shorthand = (winning(".portal-nav a", "padding") ?? "").split(/\s+/).filter(Boolean);
+  const padTop = maxPx(shorthand[0] ?? "0");
+  const padBottom = maxPx(shorthand[2] ?? shorthand[0] ?? "0");
+  // border-box means the icon's declared width already contains its 1px ring.
+  // 16px floors the sum at the label's own line box if the icon ever goes.
+  const iconBox = Math.max(maxPx(winning(".portal-nav-icon", "width")), 16);
+  const drawnRow = Math.max(rowFloor, padTop + padBottom + iconBox);
+
+  assert.ok(
+    drawnRow > 0,
+    "the rail's metrics could not be read at all — the selectors this test measures have been renamed",
+  );
+  assert.ok(
+    drawnRow <= ROW_CEILING,
+    `the sidebar nav row draws at ${drawnRow}px, over the ${ROW_CEILING}px the founder approved ` +
+      `(min-height ${rowFloor}px, padding ${padTop}+${padBottom}px, icon ${iconBox}px). ` +
+      "This is the fifth inflation of the same rail.",
+  );
+
+  // No unconditional touch-sized floor on a nav row, at any specificity. This
+  // is the exact mechanism that came back three times, and it covers the
+  // higher-specificity rules the height budget above deliberately skips.
+  const offenders = [];
+  for (const [, prelude, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    // A rule nested inside @media (pointer: coarse) is the hit area, which is
+    // the design being protected, not a violation of it.
+    if (/pointer\s*:\s*coarse/.test(prelude)) continue;
+    for (const selector of prelude.split(",").map((s) => s.trim().replace(/\s+/g, " "))) {
+      if (selector.includes("::")) continue;
+      if (!/(?:\.portal-nav\s+a|\.portal-signout)$/.test(selector)) continue;
+      // The mobile drawer is a touch surface reached by viewport width rather
+      // than pointer type. Different control, different screen, always 48px.
+      if (selector.includes(".portal-sidebar-mobile")) continue;
+      for (const [, value] of body.matchAll(/(?<![-\w])min-height\s*:\s*([^;}]+)/g)) {
+        if (maxPx(value) >= TOUCH_FLOOR) offenders.push(`${selector} { min-height: ${value.trim()} }`);
+      }
+    }
+  }
+  assert.deepEqual(
+    offenders,
+    [],
+    "a touch-sized height floor is being applied to the rail on every pointer, which is what " +
+      `made it "way too huge": ${offenders.join("; ")}. On coarse pointers that belongs on the ::before.`,
+  );
+
+  // Structure: five groups, this order. Read from the source of truth rather
+  // than from rendered HTML, so it holds for every role's filtered view.
+  const components = await readFile(new URL("../app/portal/components.tsx", import.meta.url), "utf8");
+  const declared = components.match(/const NAV_GROUPS = \[([^\]]+)\]/);
+  assert.ok(declared, "NAV_GROUPS has been renamed or restructured — the rail's section list is no longer readable");
+  assert.deepEqual(
+    declared[1].match(/"([^"]+)"/g)?.map((s) => s.slice(1, -1)),
+    ["Workspace", "Calls", "Team", "API", "Administration"],
+    "the rail's five sections are the ones the founder approved and the ones PLATFORM-MAP.md documents",
+  );
+});
