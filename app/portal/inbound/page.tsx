@@ -30,9 +30,9 @@ const STYLES = `
 `;
 
 export default async function InboundPage() {
-  // Direct anonymous visits return to the main portal after sign-in; normal
-  // use reaches this page from the authenticated portal navigation.
-  const session = await requireCapability("dashboard.view.self", "/portal");
+  // The returnTo stays an inline literal (not PATH) so the route-coverage
+  // scanner in tests/rendered-html.test.mjs can verify this guard.
+  const session = await requireCapability("dashboard.view.self", "/portal/inbound");
   const email = session.email.toLowerCase();
 
   const { rows: availabilityRows, fault: availabilityFault } = await readRows("audit_events", () =>
