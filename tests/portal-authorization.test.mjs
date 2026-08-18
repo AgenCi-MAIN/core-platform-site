@@ -789,6 +789,78 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
   }
 });
 
+test("a session cookie is not a Command Center pass", async (t) => {
+  // REGRESSION. This was live, not hypothetical.
+  //
+  // Pass tokens and session tokens are signed with the SAME SESSION_SECRET and
+  // both carry `sub` and `exp`. `hasLivePass` used to check only the signature,
+  // `exp`, and `sub` — every one of which a member's own session satisfies. So
+  // copying `core_session` into `core_command_pass` opened the Command Center:
+  // for SEVEN DAYS (the session TTL) instead of two hours, renewable by signing
+  // in again, and with no `command_passes` row ever written, so the append-only
+  // log showed an ordinary page view.
+  //
+  // The fix is a `typ` claim that sessions do not carry, plus a re-read of the
+  // pass row. This test pins both. If it ever fails, the lock is open again.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("andrew.davidson.zenith@gmail.com", "owner");
+  const helper = {
+    subject: "sub-command-pass-forgery",
+    email: "andrew.davidson.zenith@gmail.com",
+  };
+
+  // Bind the identity first, exactly as a real sign-in would.
+  await portal.get("/portal", helper);
+
+  const ownSession = mintSessionToken(helper);
+
+  const replayed = await portal.mf.dispatchFetch("http://localhost/portal/command", {
+    redirect: "manual",
+    headers: {
+      accept: "text/html",
+      // Both cookies, which is precisely what a member's own browser can send.
+      cookie: `core_session=${ownSession}; core_command_pass=${ownSession}`,
+    },
+  });
+
+  assert.equal(
+    replayed.status,
+    307,
+    "a session replayed as a pass must NOT open the Command Center",
+  );
+  assert.match(
+    replayed.headers.get("location") ?? "",
+    /\/portal\/command\/lodge/,
+    "the replay must land at the lodge — the member is still eligible, just not unlocked",
+  );
+  assert.equal(await replayed.text(), "", "a refused Command Center must emit no body");
+
+  // A pass-shaped token that was never redeemed must also fail: the `typ`
+  // claim alone is not the whole control, the row re-read is the other half.
+  const now = Math.floor(Date.now() / 1000);
+  const unredeemed = `v1.${Buffer.from(
+    JSON.stringify({ typ: "command_pass", sub: helper.subject, pass: 999, exp: now + 3600 }),
+  ).toString("base64url")}`;
+  const forgedPass = `${unredeemed}.${createHmac("sha256", SESSION_SECRET)
+    .update(unredeemed)
+    .digest("base64url")}`;
+
+  const noRow = await portal.mf.dispatchFetch("http://localhost/portal/command", {
+    redirect: "manual",
+    headers: {
+      accept: "text/html",
+      cookie: `core_session=${ownSession}; core_command_pass=${forgedPass}`,
+    },
+  });
+  assert.equal(
+    noRow.status,
+    307,
+    "a correctly-shaped pass with no redeemed row must still be refused — fail closed",
+  );
+});
+
 test("Dialer Beta lists transferred calls and gates protected recording playback", async () => {
   const portal = await startPortal();
   try {
