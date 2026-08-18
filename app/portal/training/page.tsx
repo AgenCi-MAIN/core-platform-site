@@ -8,6 +8,142 @@ import {
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Presentation-only script formatting (owner order 2026-08-18: "highlight
+ * the talking part of the script", same format for every future approved
+ * script). THE BYTE-VERBATIM CONTRACT HOLDS: this component's rendered TEXT
+ * CONTENT is exactly `body` — it only wraps substrings in styling elements
+ * (<mark>, <span>), never adds, removes, reorders, or rewords a character.
+ * A runtime test extracts the rendered <pre>'s text and compares it
+ * byte-for-byte against the approved constant, which is a STRONGER pin than
+ * the source-regex it replaced: it proves the reader sees the approved
+ * language, not merely that the source looked innocent.
+ *
+ * The format is structural, not script-specific, so future approved slots
+ * using the same STEP / SCRIPT: / PURPOSE: convention format themselves:
+ *   - "STEP …" lines render bold;
+ *   - lines inside a SCRIPT: region highlight their quoted (“…”) spans —
+ *     the words an agent actually says — or the whole line when it is a
+ *     bare stage direction like "Holding";
+ *   - the PURPOSE: label and its paragraph render italic and muted.
+ */
+type ScriptLineKind = "plain" | "step" | "purpose" | "spoken";
+
+/**
+ * Pure classification pass — no rendering, no mutation of component scope.
+ * Walks the body's lines with a tiny region state machine (SCRIPT: opens the
+ * spoken region, PURPOSE: opens the purpose region; STEP headings and the
+ * labels close regions, and a blank line closes purpose — the spoken region
+ * deliberately survives blank lines, since approved scripts separate spoken
+ * beats with them) and tags each ORIGINAL line untouched.
+ */
+function classifyScriptLines(body: string): { line: string; kind: ScriptLineKind }[] {
+  const out: { line: string; kind: ScriptLineKind }[] = [];
+  let region: "none" | "script" | "purpose" = "none";
+  for (const line of body.split("\n")) {
+    const bare = line.trim();
+    if (bare === "") {
+      if (region === "purpose") region = "none";
+      out.push({ line, kind: "plain" });
+    } else if (bare.startsWith("STEP ")) {
+      region = "none";
+      out.push({ line, kind: "step" });
+    } else if (bare === "SCRIPT:") {
+      region = "script";
+      out.push({ line, kind: "plain" });
+    } else if (bare === "PURPOSE:") {
+      region = "purpose";
+      out.push({ line, kind: "purpose" });
+    } else if (region === "purpose") {
+      out.push({ line, kind: "purpose" });
+    } else if (region === "script") {
+      // Inside a SCRIPT region, an unquoted line ending in ":" is a stage
+      // direction introducing what follows ("After they explain:"), not
+      // words an agent says — leave it plain. Bare directions like
+      // "Holding" stay highlighted, matching the owner's mockup.
+      out.push({
+        line,
+        kind: !line.includes("“") && bare.endsWith(":") ? "plain" : "spoken",
+      });
+    } else if (bare.startsWith("“")) {
+      // Some steps carry spoken lines without a SCRIPT: label (STEP 4 in the
+      // approved body). A line that OPENS with a quote is speech; narrative
+      // lines that merely contain a quote ("If the caller asks: “…”") stay
+      // plain, matching the mockup.
+      out.push({ line, kind: "spoken" });
+    } else {
+      out.push({ line, kind: "plain" });
+    }
+  }
+  return out;
+}
+
+function ScriptBody({ body }: { body: string }) {
+  const lines = classifyScriptLines(body);
+
+  return (
+    <pre className="script-body training-script-body">
+      {lines.map(({ line, kind }, index) => {
+        const newline = index < lines.length - 1 ? "\n" : "";
+        if (kind === "step") {
+          return (
+            <span key={index} className="training-line-step">
+              {line}
+              {newline}
+            </span>
+          );
+        }
+        if (kind === "purpose") {
+          return (
+            <span key={index} className="training-line-purpose">
+              {line}
+              {newline}
+            </span>
+          );
+        }
+        if (kind === "spoken") {
+          const parts = line.split(/(“[^”]*”)/);
+          const hasQuote = parts.length > 1;
+          return (
+            <span key={index}>
+              {hasQuote
+                ? parts.map((part, partIndex) =>
+                    part.startsWith("“") && part.endsWith("”") ? (
+                      <mark key={partIndex} className="training-mark">{part}</mark>
+                    ) : (
+                      <span key={partIndex}>{part}</span>
+                    ),
+                  )
+                : (() => {
+                    // Whole-line stage direction ("Holding"): mark only the
+                    // visible text — painting 26 leading spaces draws a long
+                    // empty highlight bar, and a screen reader would open a
+                    // "highlighted" region on whitespace.
+                    const lead = line.length - line.trimStart().length;
+                    const end = line.trimEnd().length;
+                    return (
+                      <>
+                        {line.slice(0, lead)}
+                        <mark className="training-mark">{line.slice(lead, end)}</mark>
+                        {line.slice(end)}
+                      </>
+                    );
+                  })()}
+              {newline}
+            </span>
+          );
+        }
+        return (
+          <span key={index}>
+            {line}
+            {newline}
+          </span>
+        );
+      })}
+    </pre>
+  );
+}
+
 function ContentSlot({ slot }: { slot: TrainingSlot }) {
   const loaded = slot.state === "approved";
 
@@ -47,8 +183,10 @@ function ContentSlot({ slot }: { slot: TrainingSlot }) {
             </div>
           </dl>
 
-          {/* Verbatim. Whitespace preserved. Never transformed. */}
-          <pre className="script-body training-script-body">{slot.body}</pre>
+          {/* Verbatim. Whitespace preserved. Never transformed — ScriptBody
+              styles substrings but its text content is byte-identical to
+              slot.body, and a runtime test proves it on the rendered page. */}
+          <ScriptBody body={slot.body} />
         </>
       ) : (
         <div className="training-empty-slot" role="note">
