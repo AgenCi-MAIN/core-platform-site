@@ -1487,9 +1487,9 @@ test("no client module reaches the server-only training library", async () => {
    * does it without any single file looking wrong in review. That is the
    * failure this walks the whole graph to catch.
    *
-   * There are four approved bodies in the library today and more coming, so
-   * the value of the mistake grows while the chance of noticing it by reading
-   * one diff shrinks.
+   * Approved bodies keep being loaded into the library, so the value of the
+   * mistake grows with every one of them while the chance of catching it by
+   * reading a single diff shrinks.
    */
   const { existsSync } = await import("node:fs");
   const { fileURLToPath } = await import("node:url");
