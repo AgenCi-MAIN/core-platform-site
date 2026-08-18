@@ -37,6 +37,35 @@ currently broken in this operation, stated plainly in the strategy paper:
    reported an error. — **DEADMAN**, with **LEDGER** making the record
    provable afterwards.
 
+## The sub bench — 40 under the 8 (A18)
+
+Each seat holds five subs, one per slice of its domain, in `W-SUBS/A2A/SUBS/`.
+Forty in total, none overlapping another — a sub that overlaps its sibling is
+a sub that can blame it.
+
+| Seat | Subs |
+| --- | --- |
+| CARDWRIGHT | CARD-SMITH · DRIFT-EYE · REFUSAL-CLERK · VERSION-KEEP · BUDGET-ASSAY |
+| SEAL | KEYLESS · REPLAY-WATCH · SPOOF-PROBE · TTL-WARDEN · SPLIT-CHECK |
+| LEASH | ALLOWLIST-AUDITOR · ATTENUATOR · CAPTION-HUNTER · ESCALATION-TRACE · BOUNDARY-TEST |
+| COURIER | ENVELOPE · IDEMPOTENCE · LIFECYCLE · SCHEMA-GATE · DEADLETTER |
+| LATTICE | MAPWRIGHT · EDGE-REVIEW · BOTTLENECK · FANOUT-GUARD · PATH-TRACE |
+| CAVEAT | QUARANTINE · LAUNDER-WATCH · DEPUTY-PROBE · PROVENANCE · REDTEAM |
+| DEADMAN | HEARTBEAT · SILENCE-ALARM · STALL-FINDER · DUPLICATE-EYE · CONFIDENCE-AUDIT |
+| LEDGER | ROWWRIGHT · DENY-KEEPER · CORRELATE · COST-METER · GAP-FINDER |
+
+**On "training".** There is no separate training step in this architecture, and
+it would be dishonest to imply one. A sub is trained by its brief: the text it
+is woken with is the whole of what it knows about its job. That is precisely
+why a caption is not a brief, and why forty subs with real briefs is a
+different thing from forty names on a list.
+
+Three of these are pointed at defects that exist right now, which is the
+fastest way to find out whether the bench is real: **ALLOWLIST-AUDITOR** would
+have caught the two routines firing into the void, **CAPTION-HUNTER** finds the
+nine caption-only routines, and **GAP-FINDER** finds the three roster decisions
+that are live in the database and absent from the log.
+
 ## Status, stated honestly
 
 These eight are **declared**, not armed. Each has a written brief that is
