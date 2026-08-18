@@ -1220,3 +1220,38 @@ Two channel facts learned here, worth keeping:
 Andrew is now the second number on the A14 allowlist with a live channel
 (Shawn's iMessage being the first). Ryan +1 941 210 1410 remains blocked on
 both channels — no opt-in of any kind yet.
+
+### 19g. Roster corrections executed — 2026-08-18
+
+Owner decisions A15, run by the founder against the remote D1 and verified by
+query the same minute.
+
+| Email | Name | Role | Status |
+| --- | --- | --- | --- |
+| `btcmao518@gmail.com` | Yuxiang Mao (Shawn) | owner | active |
+| `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | active |
+| `andrew.davidson.zenith@gmail.com` | Andrew Davidson | owner | active |
+| `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) — retired identity | owner | **revoked** |
+| `epiclife.nguyen@gmail.com` | Nate Nguyen — declined to invest | owner | **revoked** |
+
+The roster is now three people, not five rows pretending to be five people.
+Two things worth keeping from how this went:
+
+- **The duplicate founder was a data defect, not a rendering one.** Both of
+  his identities were stored `active` although Google locked the retired one
+  on 2026-08-17, so every surface filtering on `status = 'active'` correctly
+  showed him twice. Marking it revoked is not cosmetic — it makes the stored
+  state match the fact that the address can never sign in again.
+- **No row was deleted.** `access.ts` refuses any non-active row, so a revoked
+  row grants nothing while remaining readable. Section 5 keeps the rule: the
+  roster is the account of who held access and when, and a deleted row erases
+  that account.
+
+**Still open after this entry:** the `audit_events` inserts from
+`db/sql/0004_roster_2026_08_18.sql` (the founder used two `--command` UPDATEs
+rather than the file, so the status changes are live but unlogged — running
+the file closes it, and the UPDATEs no-op), and Nate's removal from the
+Cloudflare Access allow policy. Until that policy edit, his address still
+clears the edge gate and is stopped only by the membership check: correct
+behaviour, but he should not be reaching the gate at all. Outreach to him
+ends here.
