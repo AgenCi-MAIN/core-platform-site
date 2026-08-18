@@ -548,6 +548,67 @@ identity it is impersonating on every start. The role still comes from the
    `strategy/2026-08-17-access-google-idp-runbook.md`.
    Hit live on 2026-08-17, on the phone, from the welcome email's own link.
 
+10. **A migrated Cloudflare account starts on the Workers FREE plan, and the
+    free plan allows 10 ms of CPU per request.** The 2026-08-18 migration
+    moved the D1 data, the R2 bucket, the secrets, the bindings and the
+    Access gate. It did not move the *subscription*, because a subscription
+    belongs to the old account. The portal server-renders React on every
+    page and does not fit in 10 ms, so it was over budget from the moment it
+    landed on `thrive18` — and it kept working anyway, until enough real use
+    went through it. On 2026-08-18 at 19:27 UTC the site began returning
+    **Cloudflare Error 1102, "Worker exceeded resource limits"**.
+    **Fix:** upgrade to Workers Paid. The ceiling goes from 10 ms to 30 s and
+    takes effect on the next request — no redeploy.
+    **The warning was already in the record and nobody read it:** `fd0926a3`
+    reported "worker startup 30 ms" in its own deploy output. That is startup
+    alone, before any page code runs, and it is three times the entire free
+    per-request allowance. A number in a deploy log is only a warning if
+    somebody compares it to a limit.
+    **1102 is a *limit*, not an outage.** Cloudflare is fine, and the error
+    says nothing about which code is at fault, so the instinct to go hunting
+    in the app is wrong.
+    **A correction worth keeping, because the wrong answer was persuasive.**
+    A second symptom appeared alongside this one — the sidebar rendering at
+    two different sizes on what looked like the same page — and it was
+    attributed to the same exhaustion, on the reasoning that one complete
+    stylesheet cannot produce two layouts and therefore the stylesheet must
+    be arriving incomplete. **That was wrong**, and it survived because it
+    was self-consistent and arrived while a real outage was in progress. The
+    founder disproved it in one screenshot: two pages, side by side, same
+    load, one rail correct and one enlarged. It was trap #11 below, a plain
+    CSS defect, and it was fixed by editing CSS. **The lesson is not
+    "suspect delivery" — it is that a tidy explanation which happens to
+    arrive during an unrelated incident deserves a test that separates the
+    two, not a second symptom folded into the first.**
+    **Generalise it:** after any account migration, check the plan before
+    checking the code. Subscriptions, quotas and billing are account-scoped
+    and are exactly the class of thing an export/import does not carry.
+
+11. **A CSS grid that is told to grow will hand the surplus to its rows.**
+    `.portal-nav` is `display: grid`, and `.portal-sidebar .portal-nav` is
+    `flex: 1 1 auto` so the nav box fills the rail. A grid's default
+    `align-content` is `stretch`, so every pixel of leftover height went into
+    the implicit rows. The rail therefore looked correct on any page whose
+    nav overflowed and enormous on any page where it fit — same build, same
+    stylesheet, two layouts (founder, 2026-08-18: "tabs become enlarged on
+    dash board"). It also dropped each section's marker dot below its label,
+    because the dot is a `top: 50%` pseudo-element and a stretched label box
+    centres it far under the words.
+    **Fix:** `align-content: start` on `.portal-nav` and `.portal-nav-group`.
+    One property. The file already used the idiom deliberately elsewhere —
+    `.portal-metric`, `.training-slot-card`, `.site-pillar`, `.shop-card` —
+    so this was an omission, not a new technique.
+    **Why it cost time:** a defect that only appears when the content happens
+    to be short does not look like a defect. It looks like caching, or the
+    network, or a bad deploy — and here it appeared during a genuine outage,
+    which made the wrong explanation fit. **Content-dependent layout bugs
+    should be suspected whenever a visual fault correlates with which page
+    you are on rather than with what the CSS says.**
+    **It is now pinned**, in the same test that pins the rail's height: the
+    height budget reads declared sizes and is blind to a row that grew
+    without any declaration changing, so the guard asserts the property
+    directly.
+
 ---
 
 ## 10. Open follow-ups
