@@ -29,6 +29,10 @@ type PortalIconName =
   | "leadtech"
   | "retreaver"
   | "twilio"
+  | "leaderboard"
+  | "stats"
+  | "surelc"
+  | "underwriter"
   | "scripts"
   | "team"
   | "leadership"
@@ -194,6 +198,26 @@ const NAV: readonly NavItem[] = [
     stateLabel: "Model pending",
   },
   {
+    href: "/portal/leaderboard",
+    label: "Leaderboard",
+    capability: "dashboard.view.self",
+    icon: "leaderboard",
+    group: "Team",
+    description: "Team standings from real call production — no hand-entered numbers.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  {
+    href: "/portal/stats",
+    label: "My Stats",
+    capability: "dashboard.view.self",
+    icon: "stats",
+    group: "Team",
+    description: "Your own production numbers, computed from the platform's records.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  {
     href: "/portal/leadership",
     label: "Leadership",
     capability: "leadership.view.all",
@@ -230,6 +254,30 @@ const NAV: readonly NavItem[] = [
     icon: "quoter",
     group: "API",
     description: "Final expense quoting via InsuranceToolkits. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "https://app.insurancetoolkits.com",
+    label: "AI Underwriter",
+    capability: "book.view.self",
+    icon: "underwriter",
+    group: "API",
+    description:
+      "InsuranceToolkits' underwriting helper — advisory only, never a quote or a decision. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "https://surelc.surancebay.com/sbweb/login",
+    label: "SureLC (Heartland)",
+    capability: "dashboard.view.self",
+    icon: "surelc",
+    group: "API",
+    description:
+      "Carrier contracting and licensing via SuranceBay. Opens in a new tab; sign in there separately.",
     state: "live",
     stateLabel: "External tool",
     external: true,
@@ -889,6 +937,37 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <path d="M12 10.5V20.5M9 20.5h6" />
       <circle cx="12" cy="8.5" r="2" />
       <path d="M8.5 5a4.6 4.6 0 0 0 0 7M15.5 5a4.6 4.6 0 0 1 0 7" />
+    </>
+  ),
+  // Podium — the leaderboard.
+  leaderboard: (
+    <>
+      <path d="M9 20.5V9.5h6v11" />
+      <path d="M3.5 20.5V13.5H9M15 20.5h5.5v-4.5H15" />
+      <path d="M3.5 20.5h17" />
+    </>
+  ),
+  // Rising bars — personal statistics.
+  stats: (
+    <>
+      <path d="M5 20V14M10.5 20V9M16 20V11.5M21 20V5.5" transform="translate(-1 0)" />
+      <path d="M3.5 20.5h17" />
+    </>
+  ),
+  // Signature line under a document — contracting.
+  surelc: (
+    <>
+      <path d="M6.5 3.5H14L17.5 7v9.5" />
+      <path d="M13.5 3.5V7h4" />
+      <path d="M4 19.5c1.6-2.6 3-2.6 3.6-.6.5 1.7 1.6 1.7 2.6-.6.8-1.8 1.8-1.8 2.6 0" />
+      <path d="M15.5 19.5h5" />
+    </>
+  ),
+  // Umbrella — the underwriter.
+  underwriter: (
+    <>
+      <path d="M3.5 12a8.5 8.5 0 0 1 17 0z" />
+      <path d="M12 3.5V12M12 12v6a2 2 0 0 0 4 0" />
     </>
   ),
   // Document with lines.
