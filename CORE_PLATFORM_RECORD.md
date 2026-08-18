@@ -1390,7 +1390,56 @@ allowlist held, the content leashes held, and the agent reported its own
 limitation while unattended. A leash that holds when nobody is watching is
 the only kind that counts.
 
-**Still unverified:** HERALD MORNING TEXT. It last fired 2026-08-17T13:37Z and
-sent nothing; its next scheduled pass is 2026-08-18T13:32Z. Until an outbound
-brief appears in the thread, the daily 8:30 text remains a routine that has
-never delivered.
+**HERALD MORNING TEXT — FAILED AGAIN, and the connector theory is now dead
+(checked 2026-08-18T13:52Z).** The 13:32Z pass ran: `last_fired_at
+2026-08-18T13:32:59Z`. It sent nothing. The newest outbound in conversation
+`3cb144a0-e7b6-40d8-b1a7-e810a6fcfb6c` is still 2026-08-18T07:34:58Z — the
+A14 auto-reply. **Two firings, zero sends. The daily brief has never been
+delivered.**
+
+DEADMAN framed today's pass as the deciding experiment for the
+connector/allowlist theory, and it decided against it. Compared field by
+field against `DESK TEXT AUTO-REPLY (A14)`, which is proven working by that
+07:34:58Z outbound:
+
+| Field | HERALD MORNING TEXT | A14 (works) |
+| --- | --- | --- |
+| `environment_id` | `env_01HoFDuq3hkEzU25K9RCetK6` | **identical** |
+| `session_context.allowed_tools` | 20 entries | **identical, same order** |
+| `mcp_connections` | Inkbox, Gmail, Google-Drive | Inkbox, Gmail — HERALD has *more* |
+| `created_via` | `meta_mcp` | `meta_mcp` |
+| `notifications` | all channels off | all channels off |
+
+Nothing in the configuration distinguishes them. The Inkbox send tool's
+schema also accepts every parameter HERALD's prompt names (`recipient`,
+`conversation_id`, `agent_identity_id`, `text`), so the send call as written
+is well-formed. **Do not spend more on connectors or allowlists for this
+routine.**
+
+**The difference is in the prompt, not the configuration.** A14's first
+action is an Inkbox call — it has no preconditions and can send within
+seconds. HERALD MORNING TEXT cannot send until it has read the repository:
+`git log --oneline -15 main`, `git log --since=24.hours`, OWNER-DECISIONS.md,
+and §10 of this file. *Every input to the message is behind a repository
+read.* And repository access is a **per-session source, not a property of the
+environment** — this session and `Mr. T(2.0)` each carry
+`sources: [git_repository: bankerrunners/core-platform-site]` in their own
+`session_context` because they were created from the web with it attached,
+while `create_trigger` has no source parameter at all. A fired session
+plausibly starts with no repository, at which point HERALD's own hard rules
+("if a source cannot be read, say which one"; "never imply a check passed
+when it did not") push it toward sending nothing rather than sending a hollow
+brief. It would be failing *correctly*, at a precondition nobody specified.
+
+**This is a hypothesis, not a proven cause, and it must not be recorded as
+one.** A trigger-fired session's transcript cannot be read from here —
+`list_sessions` excludes scheduled runs. What would settle it: fire the
+routine with `fire_trigger` and read what the session reports, or remove the
+dependency by giving the brief a repo-free fallback so it always sends
+something true.
+
+**And the reason two days of silence looked like health:** HERALD MORNING
+TEXT and A14 are the only two routines in the account with **every
+notification channel off**, while all nine caption routines push. The two
+whose entire product is a message to a human are the two that cannot report
+their own failure.
