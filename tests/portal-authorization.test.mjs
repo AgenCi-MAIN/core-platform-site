@@ -517,8 +517,23 @@ test("a manager reads the roster and the audit log, but not the founder console"
     const roster = await portal.get("/portal/members", identity);
     assert.equal(roster.status, 200, "manager holds members.view");
     const html = await roster.text();
-    assert.match(html, new RegExp(SEEDED_OWNER_EMAIL.replace(".", "\\.")), "roster lists members");
-    assert.match(html, /cannot change it/, "manager is told they lack members.manage");
+    // Downline and self only (founder 2026-08-18). The seeded OWNER outranks a
+    // manager, so the manager must NOT see that row — the assertion is
+    // inverted from what it used to be, on purpose. An agent seeded below is
+    // what a manager may see, and the manager always sees themselves.
+    await portal.addMember("agent-below@example.com", "agent");
+    // Reuse the bound identity: a second subject for the same address is an
+    // identity conflict and is refused, which is the binding rule working.
+    const roster2 = await portal.get("/portal/members", identity);
+    const html2 = await roster2.text();
+    assert.doesNotMatch(
+      html2,
+      new RegExp(SEEDED_OWNER_EMAIL.replace(".", "\\.")),
+      "a manager must never see an owner — that is their upline",
+    );
+    assert.match(html2, /agent-below@example\.com/, "a manager sees their downline");
+    assert.match(html2, /manager@example\.com/, "a manager always sees their own row");
+    assert.match(html2, /cannot change it/, "manager is told they lack members.manage");
 
     // The audit log is founder-only (owner's order, 2026-08-15): a manager —
     // and every other role — is refused regardless of capabilities.

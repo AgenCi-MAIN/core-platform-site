@@ -1,7 +1,7 @@
 import { asc } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { portalMembers } from "../../../db/schema";
-import { ROLE_LABELS, can, requireCapability } from "../access";
+import { ROLE_LABELS, can, canSeeInRoster, requireCapability } from "../access";
 import { EmptyState, PortalCardHeader, PortalPageIntro, PortalShell } from "../components";
 import { readFaultCopy, readRows } from "../read-guard";
 import { MemberControls } from "./manager";
@@ -17,11 +17,26 @@ export default async function MembersPage() {
   const session = await requireCapability("members.view", "/portal/members");
   const manages = can(session, "members.manage");
 
-  const { rows: members, fault } = await readRows("portal_members", () =>
+  const { rows: allMembers, fault } = await readRows("portal_members", () =>
     getDb()
       .select()
       .from(portalMembers)
       .orderBy(asc(portalMembers.role), asc(portalMembers.email)),
+  );
+
+  /**
+   * Downline and self only. Founder order 2026-08-18: "you can see only RANKS
+   * below you, you can't see yOUR UPLINE."
+   *
+   * Filtered here rather than in SQL on purpose. `readRows` distinguishes an
+   * empty table from a failed read, and that distinction is what lets the page
+   * say "nothing to show" instead of inventing a confident zero over data
+   * nobody managed to read. A WHERE clause would fold the two together again.
+   * The cost is that rows the viewer may not see are briefly in memory on the
+   * server — never in the response, which is what matters.
+   */
+  const members = allMembers.filter((member) =>
+    canSeeInRoster(session, { email: member.email, role: member.role }),
   );
 
   /**
