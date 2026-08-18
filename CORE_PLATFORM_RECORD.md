@@ -39,7 +39,7 @@ Every allow and every deny is written to an append-only `audit_events` table.
 | Public URL | `https://site-creator-vinext-starter.bankerrunners.workers.dev` |
 | Worker name | `site-creator-vinext-starter` |
 | Cloudflare account | `Btcmao518@gmail.com's Account` — `f39f3a77e56b28e4dfae29489a997014` (GitHub SSO; MIGRATED 2026-08-18 from the old `Bankerrunners@gmail.com` account `e6f9d0a344a0a7b317601ffbe23f871e`, whose recovery email was lost — old account left running until cutover, then abandoned) |
-| workers.dev subdomain | set on first deploy to the new account (was `bankerrunners` on the old) |
+| workers.dev subdomain | `thrive18` — live at `https://site-creator-vinext-starter.thrive18.workers.dev` since 2026-08-18, owner sign-in verified (was `bankerrunners` on the old account, whose worker still runs unadministered behind its Access gate — do not send members there) |
 | D1 database | `site-creator-d1` — `e19d74e0-1913-41a5-b695-cd1acc94d5ed` (new account; old-account db was `e00c30f0-7017-49d8-9f81-446cef9e32c3`, exported to the owner's machine 2026-08-17/18 before migration) |
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | GitHub repo | `bankerrunners/core-platform-site` |
