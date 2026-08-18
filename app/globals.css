@@ -1150,6 +1150,10 @@ button, .button, .nav-cta, .text-link {
 .portal-table td { height: 44px; padding: 11px 13px; border-top: 1px solid var(--portal-line); vertical-align: middle; }
 .portal-table tbody tr:hover td { background: var(--portal-raised); }
 .portal-cell-sub { display: block; margin-top: 4px; color: var(--portal-muted); font-size: var(--portal-type-label); overflow-wrap: anywhere; }
+/* A retired identity folded into the person who holds it. Dimmer than the
+   live address and marked with a rule, so one glance separates "this is how
+   they sign in" from "this is who they used to be". */
+.portal-cell-retired { margin-top: 3px; padding-left: 8px; border-left: 2px solid var(--portal-line); color: var(--portal-subtle, var(--portal-muted)); font-style: italic; }
 .portal-cell-mono { font-family: inherit; font-size: var(--portal-type-label); white-space: nowrap; }
 .portal-cell-detail { max-width: 340px; color: var(--portal-muted); font-size: var(--portal-type-label); overflow-wrap: anywhere; }
 
