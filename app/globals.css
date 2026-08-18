@@ -941,7 +941,7 @@ button, .button, .nav-cta, .text-link {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 9px;
+  padding: 6px 9px;
   border-radius: 7px;
   color: var(--portal-muted);
   font-size: var(--portal-type-body);
@@ -1073,7 +1073,7 @@ button, .button, .nav-cta, .text-link {
 /* The symbol is an svg now — the font declarations from the letter-chip era
    are gone; CSS is the only size authority (the element carries no
    width/height attributes). */
-.portal-nav-symbol { width: 17px; height: 17px; display: block; margin: auto; color: inherit; }
+.portal-nav-symbol { width: 15px; height: 15px; display: block; margin: auto; color: inherit; }
 .portal-sidebar-system { display: flex; align-items: center; gap: 7px; margin: auto 8px 10px; padding-top: 12px; border-top: 1px solid var(--portal-line); color: var(--portal-muted); font-size: 10px; font-weight: 700; line-height: 1.3; }
 .portal-system-dot { flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%; background: var(--portal-success); box-shadow: 0 0 0 3px var(--portal-success-ring); }
 /* The founder's audit entrance wears the status light's exact look — it is a
@@ -3718,8 +3718,9 @@ html[data-portal-theme="dark"] .member-note-ok {
   .portal-recording-link,
   .member-grant button { min-height: 44px; min-width: 44px; }
 
-  .portal-nav a,
-  .portal-signout { min-height: 44px; }
+  /* Nav rows deliberately absent: #87 gives them a pseudo-element hit area
+     instead, so the drawn row stays the size the design calls for. Adding a
+     visual floor back here is what re-inflates the rail. */
 
   /* The hamburger's three bars are absolutely positioned inside this box, so
      the box cannot simply grow — the bars are re-centred with it. */
@@ -4422,8 +4423,8 @@ html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
    group now reads as its own block: a wider gap, a stronger divider, and a
    gold-marked section label. */
 .portal-nav-group + .portal-nav-group {
-  margin-top: 22px;
-  padding-top: 18px;
+  margin-top: 14px;
+  padding-top: 11px;
   border-top: 1px solid var(--portal-line-strong);
 }
 .portal-nav-group-label {
@@ -4443,14 +4444,19 @@ html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
   background: var(--portal-accent);
 }
 .portal-nav-group-sub { padding-left: 13px; }
+/* No visual height floor here. A 44px floor applied to every pointer made the
+   desktop rail enormous ("buttons still way too huge", founder 2026-08-18);
+   the touch floor belongs to the coarse-pointer layer, where it is carried by
+   a pseudo-element that grows the HIT area and leaves the drawn size alone.
+   The base rule's 38px min-height governs what the eye sees. */
 .portal-nav a,
-.portal-signout { position: relative; min-height: 44px; border-radius: 10px; }
+.portal-signout { position: relative; border-radius: 10px; }
 .portal-nav-icon {
   position: relative;
   z-index: 1;
-  flex-basis: 30px;
-  width: 30px;
-  height: 30px;
+  flex-basis: 26px;
+  width: 26px;
+  height: 26px;
   display: grid;
   place-items: center;
   border: 1px solid var(--portal-line);
