@@ -5258,3 +5258,102 @@ html[data-portal-performance="boost"] .fcc-thumb-dock { backdrop-filter: none; b
 .radio-frequency-dial{color:var(--portal-accent-strong);font-size:.85rem}
 .radio-frequency strong{display:block;font-size:.82rem;letter-spacing:.02em}
 .radio-frequency small{display:block;margin-top:1px;color:var(--portal-muted);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
+
+
+/* ============================================================
+   INVERTED SURFACE — a dark card that stays dark in every theme.
+
+   The founder's call (2026-08-18, on seeing the inbound page in Bright):
+   "I see the vision with the color." The dark operational cards sitting on a
+   light page are DELIBERATE, not the light/dark accident the audit flagged
+   elsewhere. So they get their own token set rather than the page's.
+
+   The distinction that matters: these values are intentionally the SAME in
+   all three themes, because the surface is a design decision rather than a
+   theme response. Everything painted on it takes its colour from this set —
+   never from --portal-text, which flips with the theme and would leave dark
+   ink on a dark card in Bright. That mismatch is exactly the bug that made
+   product names invisible; an inverted surface is only safe when its whole
+   palette travels with it.
+   ============================================================ */
+:root{
+  --invert-bg:      #131A24;
+  --invert-raised:  #1B2532;
+  --invert-line:    #2B3949;
+  --invert-text:    #F2F6FA;
+  --invert-muted:   #A4B4C6;
+  --invert-subtle:  #7D8FA4;
+  --invert-accent:  #5EEAD4;
+  --invert-warning: #F5B54B;
+  --invert-shadow:  0 1px 2px rgba(6,10,16,.34), 0 18px 40px -22px rgba(6,10,16,.68);
+  --invert-lift:    0 2px 6px rgba(6,10,16,.30), 0 28px 60px -26px rgba(6,10,16,.80);
+}
+
+.surface-invert,
+.inbound-availability-card,
+.inbound-stat,
+.inbound-bridge{
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--invert-line);
+  border-radius: var(--portal-radius-lg, 14px);
+  background: var(--invert-bg);
+  color: var(--invert-text);
+  box-shadow: var(--invert-shadow);
+  transition: transform .22s cubic-bezier(.2,.7,.3,1), box-shadow .22s ease, border-color .22s ease;
+}
+
+/* The light. A soft bloom sits under the content and lifts on hover, so the
+   card reads as a physical thing catching a lamp rather than a div changing
+   colour. Pointer-events none so it never eats a click. */
+.surface-invert::after,
+.inbound-availability-card::after,
+.inbound-stat::after,
+.inbound-bridge::after{
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 90% at 82% -10%, color-mix(in srgb, var(--invert-accent) 22%, transparent), transparent 62%),
+    radial-gradient(90% 70% at 8% 108%, color-mix(in srgb, var(--invert-accent) 12%, transparent), transparent 60%);
+  opacity: .35;
+  transition: opacity .22s ease;
+  pointer-events: none;
+}
+
+.surface-invert:hover,
+.surface-invert:focus-within,
+.inbound-availability-card:hover,
+.inbound-availability-card:focus-within,
+.inbound-stat:hover,
+.inbound-stat:focus-within,
+.inbound-bridge:hover,
+.inbound-bridge:focus-within{
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--invert-accent) 42%, var(--invert-line));
+  box-shadow: var(--invert-lift);
+}
+.surface-invert:hover::after,
+.surface-invert:focus-within::after,
+.inbound-availability-card:hover::after,
+.inbound-availability-card:focus-within::after,
+.inbound-stat:hover::after,
+.inbound-stat:focus-within::after,
+.inbound-bridge:hover::after,
+.inbound-bridge:focus-within::after{ opacity: .9; }
+
+/* Text on an inverted surface takes the inverted palette, always. */
+.surface-invert h1,.surface-invert h2,.surface-invert h3,.surface-invert strong{ color: var(--invert-text); }
+.surface-invert p,.surface-invert li,.surface-invert dd{ color: var(--invert-muted); }
+.surface-invert small,.surface-invert .muted{ color: var(--invert-subtle); }
+
+/* Motion is decoration here; the lighting still reads without it. */
+@media (prefers-reduced-motion: reduce){
+  .surface-invert,.inbound-availability-card,.inbound-stat,.inbound-bridge{ transition: none; }
+  .surface-invert:hover,.surface-invert:focus-within,
+  .inbound-availability-card:hover,.inbound-stat:hover,.inbound-bridge:hover{ transform: none; }
+  .surface-invert::after,.inbound-availability-card::after,
+  .inbound-stat::after,.inbound-bridge::after{ transition: none; }
+}
