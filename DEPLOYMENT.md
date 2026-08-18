@@ -233,7 +233,7 @@ Secrets survive deploys; they only need setting again if they change.
   the Google Auth Platform "Data Access" page. Remaining member-facing step:
   the cutover announcement. When a new member is seated they must be added
   in TWO places — the portal roster AND this Access policy.
-- 2026-08-18 (current serving version): **version
+- 2026-08-18: **version
   `fd0926a3-a01d-400a-8cda-b26095e8c7b2`** — deployed by the owner from
   `C:\dev\core-platform-site` at `main@9be299d`, on the new Cloudflare
   account, serving `https://site-creator-vinext-starter.thrive18.workers.dev`.
@@ -274,3 +274,87 @@ Secrets survive deploys; they only need setting again if they change.
   gone: it costs nothing, and it means a future accidental reconnection of
   this repository to Vercel produces no builds rather than a fresh run of
   red failures. Nothing about the Cloudflare deploy path changes.
+
+- 2026-08-18: **version `607b3001-86e0-4dfb-aca5-ad809f6787e8`** — deployed by the owner at
+  17:59:23 UTC, at 100% of traffic. **Recorded retroactively**, from
+  `wrangler deployments list` rather than from the deploy output: this
+  version served for over an hour before anything wrote it down, and the
+  record still named `fd0926a3` as current while the owner was looking at
+  this build in his browser. The `Tee-Object` practice in §7 exists exactly
+  to prevent that and was not used here.
+
+  **The outage this version ran into, and what actually caused it.** At
+  19:27:44 UTC the site began returning **Cloudflare Error 1102, "Worker
+  exceeded resource limits"** (Ray `a2d3514d3ff24757`). The cause was not the
+  code: **the migrated Cloudflare account was on the Workers FREE plan**,
+  which allows **10 ms of CPU per request**. This portal server-renders React
+  on every page and does not fit in 10 ms. The owner upgraded to **Workers
+  Paid** and the ceiling went to 30 s; no redeploy was needed, because a plan
+  change applies to new requests immediately.
+
+  **This is a migration trap, not a capacity problem — see §9.** The
+  2026-08-18 account migration moved the data, the secrets, the bindings and
+  the Access gate. It did not move the *subscription*. A new Cloudflare
+  account starts on Workers Free, so the portal was running on a 10 ms budget
+  from the moment it landed on `thrive18` and only failed once real use put
+  enough pages through it. `fd0926a3` recorded "worker startup 30 ms" in its
+  own deploy output — above the free per-request CPU allowance before a
+  single line of page code runs — and nobody read it as the warning it was.
+
+  **Second symptom, same cause, worth naming because it looked unrelated:**
+  the sidebar rendered at two different sizes on consecutive loads of the
+  same page — tight rows one moment, hugely spaced with the section dot
+  dropped below its label the next. That is not a CSS bug and could not be
+  fixed by editing CSS. One complete stylesheet cannot produce two layouts;
+  a worker cut off mid-response delivers an incomplete one. If a visual
+  defect is *inconsistent between reloads*, suspect delivery before design.
+
+  **Still outstanding on this version, and unrelated to the plan:** the
+  commission schedule document is baked into the worker bundle as a single
+  698,296-character string literal — **33% of the entire 2 MB worker** — of
+  which 641 KB is thirty base64-encoded PNGs. Base64 inflates them by a
+  third over their 480 KB decoded size, they are re-materialized on every
+  request to `/portal/commission/document` (served `no-store`, so nothing
+  caches), and they are parsed at every isolate cold start. Moving them to R2
+  behind the existing guard is the fix. It is now an efficiency item rather
+  than an outage, and it must NOT be solved by moving them to `public/`:
+  static assets are served before the app's checks run, so a suspended member
+  still on the Access allowlist could pull the comp grid.
+
+- 2026-08-18 (current serving version): **version id NOT YET RECORDED —
+  fill this in.** Deployed by the owner immediately after applying
+  `db/sql/0006_command_passes.sql` to the live D1 (4 queries, 9 rows
+  written). Worker startup 21 ms, down from 30 ms on `fd0926a3`. Total
+  upload 2791.05 KiB (gzip 944.55 KiB); 23 worker modules totalling
+  743.99 KiB; one changed client asset uploaded
+  (`/assets/index-B5t2wzej.css`), 35 unchanged. Bindings confirmed: `env.DB`
+  → `site-creator-d1`, `env.CALL_RECORDINGS` → `site-creator-r2`.
+
+  **The id is missing because the deploy output was read from scrollback
+  rather than from a log file.** `Current Version ID` is the last line
+  `wrangler deploy` prints and it scrolled past. This is the third time the
+  record has had to reconstruct or abandon a version id, which is what the
+  `Tee-Object` practice in §7 exists to prevent. Recover it with
+  `npx wrangler deployments list -c dist/server/wrangler.json` — the newest
+  entry at 100% is this one — and paste it here.
+
+  **What this version carries over `607b3001`:** PR #92 — the Command Center
+  pass-bypass fix (`hasLivePass` now requires the `pass` claim, so a copied
+  `core_session` cookie is no longer a valid pass), the sidebar rail pin, the
+  restored iOS safe-area insets on the sidebar, and the record corrections to
+  §10a, A18 and A21.
+
+  **This is the first deploy on which the lodge lock is real.** The migration
+  ran first and the code second, which is the required order: the reverse
+  gives 500s at the lodge instead of a door. A21's narrowing of A13 is now in
+  force — a named `COMMAND_CENTER_EMAILS` address no longer opens the
+  Command Center on its own. **It is still not usable**, because no UI exists
+  to issue a code: `command/page.tsx` has no form and never renders the
+  `issued` param. The lock is on the door and nobody can be given a key.
+
+  **Also live for the first time on this deploy:** everything merged between
+  `9be299d` and here that had only ever run locally — the THRIVE theme
+  rounds, the Training tabs, the Leadership Playbook, and the rail density
+  work (#79, #81, #87, #91).
+
+

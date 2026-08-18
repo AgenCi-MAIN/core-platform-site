@@ -934,7 +934,21 @@ button, .button, .nav-cta, .text-link {
 .portal-brand-copy strong { font-size: 14px; letter-spacing: .09em; }
 .portal-brand-copy small { margin-top: 3px; color: var(--portal-muted); font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
 
-.portal-nav { display: grid; gap: 2px; margin-top: 15px; }
+/* align-content: start is LOAD-BEARING, not tidiness. This is a grid, and
+   `.portal-sidebar .portal-nav` is `flex: 1 1 auto`, so the nav box grows to
+   the full height of the rail. A grid's default `align-content: stretch`
+   then hands every surplus pixel to the implicit ROWS. The result is a rail
+   that looks correct on any page whose nav overflows and enormous on any
+   page where it fits — the same build, the same stylesheet, two completely
+   different layouts, which is what made this read like a caching or
+   delivery fault rather than a CSS one (founder, 2026-08-18: "tabs become
+   enlarged on dash board", with the dashboard and announcements side by
+   side). It also explains the group label's dot appearing BELOW its text:
+   the dot is a `top: 50%` pseudo-element, so a stretched label box centres
+   it far under the words. Surplus height belongs at the bottom of the rail.
+   The file already uses this idiom deliberately — see .portal-metric,
+   .training-slot-card, .site-pillar, .shop-card. The nav simply missed it. */
+.portal-nav { display: grid; align-content: start; gap: 2px; margin-top: 15px; }
 .portal-nav a,
 .portal-signout {
   min-height: 38px;
@@ -1037,7 +1051,7 @@ button, .button, .nav-cta, .text-link {
 /* Product-shell extensions: concise labels and operational system state. */
 .portal-sidebar-head { padding: 0 2px; }
 .portal-brand-kicker { color: var(--portal-subtle); font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
-.portal-nav-group { display: grid; gap: 2px; }
+.portal-nav-group { display: grid; align-content: start; gap: 2px; }
 .portal-nav-group + .portal-nav-group { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--portal-line); }
 .portal-nav-group-label { margin: 0 9px 1px; color: var(--portal-subtle); font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .portal-nav-group-sub { margin: 0 9px 6px; color: var(--portal-muted); font-size: 9.5px; font-weight: 600; letter-spacing: .01em; line-height: 1.25; }

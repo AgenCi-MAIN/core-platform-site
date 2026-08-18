@@ -1340,4 +1340,21 @@ test("the sidebar rail stays where the founder put it", async () => {
     ["Workspace", "Calls", "Team", "API", "Administration"],
     "the rail's five sections are the ones the founder approved and the ones PLATFORM-MAP.md documents",
   );
+
+  // A grid that grows must be told where to put the surplus. `.portal-nav`
+  // is `display: grid` and `.portal-sidebar .portal-nav` is `flex: 1 1 auto`,
+  // so the nav box fills the rail; a grid's default `align-content: stretch`
+  // then pushes every leftover pixel into the ROWS. That produced the exact
+  // report this test exists for — "tabs become enlarged on dash board" — and
+  // it is invisible to the height budget above, which reads declarations and
+  // cannot see a row that grew without any declaration changing. A layout
+  // that only misbehaves when the content happens to be short is worse than
+  // one that is always wrong: it looks like caching, or like the network.
+  for (const selector of [".portal-nav", ".portal-nav-group"]) {
+    assert.ok(
+      new RegExp(`\\${selector} \\{[^}]*align-content:\\s*start`).test(css),
+      `${selector} is a grid that stretches to fill the rail, so it must declare ` +
+        "align-content: start or its rows absorb the surplus height",
+    );
+  }
 });
