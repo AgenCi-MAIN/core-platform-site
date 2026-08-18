@@ -49,7 +49,7 @@ export function PortalNavigationUpgrade() {
             </svg>
           </span>
           <span class="portal-nav-label">Inbound Calls</span>
-          <span class="thrive-inbound-live">LIVE</span>`;
+          <span class="portal-nav-flare">LIVE</span>`;
 
         const training = calls.querySelector<HTMLElement>(".portal-nav-item-training");
         if (training?.nextSibling) calls.insertBefore(link, training.nextSibling);
@@ -85,10 +85,10 @@ export function PortalNavigationUpgrade() {
 
   return (
     <style>{`
-      .thrive-inbound-live{margin-left:auto;border:1px solid rgba(52,211,153,.26);border-radius:999px;padding:2px 5px;color:#6ee7b7;background:rgba(16,185,129,.08);font-size:.52rem;font-weight:900;letter-spacing:.08em}
-      .thrive-balance-pill{display:grid;gap:1px;min-width:112px;border:1px solid rgba(45,212,191,.16);border-radius:10px;padding:6px 9px;text-decoration:none;background:rgba(15,23,42,.5);transition:border-color .18s ease,background .18s ease}
-      .thrive-balance-pill:hover{border-color:rgba(45,212,191,.34);background:rgba(20,184,166,.08)}
-      .thrive-balance-pill span{color:#7f91aa;font-size:.58rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.thrive-balance-pill strong{color:#e6edf6;font-size:.72rem;white-space:nowrap}
+      
+      .thrive-balance-pill{display:grid;gap:1px;min-width:112px;border:1px solid var(--portal-line-strong);border-radius:var(--portal-radius,10px);padding:6px 9px;text-decoration:none;background:var(--portal-soft);transition:border-color .18s ease,background-color .18s ease}
+      .thrive-balance-pill:hover{border-color:var(--portal-accent);background:var(--portal-accent-soft)}
+      .thrive-balance-pill span{color:var(--portal-muted);font-size:.58rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.thrive-balance-pill strong{display:inline-flex;align-items:center;gap:5px;color:var(--portal-text);font-size:.72rem;white-space:nowrap}
       @media(max-width:860px){.thrive-balance-pill{display:none}}
     `}</style>
   );
