@@ -5249,3 +5249,12 @@ html[data-portal-performance="boost"] .fcc-thumb-dock { backdrop-filter: none; b
 .lodge-submit:focus-visible{outline:2px solid var(--portal-accent);outline-offset:3px}
 .lodge-help{margin:0;color:var(--portal-muted);font-size:.82rem;line-height:1.55}
 .lodge-error{margin:0;color:var(--portal-danger);font-size:.85rem;font-weight:600;line-height:1.5}
+/* The Command Center's door, sitting inside Radio. Styled as a station preset
+   rather than a nav item — quiet, and belonging to the page it hides in. */
+.radio-frequency{margin:22px 0 0}
+.radio-frequency a{display:inline-flex;align-items:center;gap:12px;padding:11px 16px 11px 13px;border:1px solid var(--portal-line);border-radius:999px;background:var(--portal-soft);color:var(--portal-text);text-decoration:none;transition:border-color .18s ease,background-color .18s ease}
+.radio-frequency a:hover{border-color:var(--portal-accent);background:var(--portal-accent-soft)}
+.radio-frequency a:focus-visible{outline:2px solid var(--portal-accent);outline-offset:3px}
+.radio-frequency-dial{color:var(--portal-accent-strong);font-size:.85rem}
+.radio-frequency strong{display:block;font-size:.82rem;letter-spacing:.02em}
+.radio-frequency small{display:block;margin-top:1px;color:var(--portal-muted);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}
