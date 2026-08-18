@@ -252,3 +252,11 @@ Secrets survive deploys; they only need setting again if they change.
   D1 binding, neither of which Vercel provides, so a Vercel deployment could
   only ever serve assetless static output at a second, unadministered
   address. Deploy only via `npm run deploy`.
+
+  **Closed 2026-08-18:** the repository now carries a `vercel.json` setting
+  `git.deploymentEnabled: false`. Vercel was connected to this repository and
+  building on every push, so every commit — including documentation-only ones
+  — produced a red "Build Failed" that meant nothing. The flag stops Vercel
+  building at all while leaving the project connected; deleting the Vercel
+  project in its dashboard is the alternative and is equally fine. Nothing
+  about the Cloudflare deploy path changes.
