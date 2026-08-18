@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThriveMark } from "./thrive-mark";
 import { PortalThemeControl } from "./theme-control";
 
 /**
@@ -21,7 +22,7 @@ export function SiteTopbar({
   return (
     <header className="site-topbar">
       <Link className="site-brand" href="/" aria-label="THRIVE home">
-        <span className="site-brand-mark" aria-hidden="true">T</span>
+        <span className="site-brand-mark" aria-hidden="true"><ThriveMark size={20} /></span>
         <span className="site-brand-copy">
           <strong>THRIVE</strong>
           <small>{context}</small>

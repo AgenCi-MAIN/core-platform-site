@@ -117,7 +117,25 @@ export async function GET(request: Request) {
   }
 
   const bucket = getCallRecordingsBucket();
-  if (!bucket) return Response.json({ error: "Recording storage is unavailable." }, { status: 503 });
+  if (!bucket) {
+    // The reviewer cleared identity, capability, consent, and readiness, and
+    // was still refused because the CALL_RECORDINGS binding is absent. Audited
+    // like the sibling denies: without this row, a misconfigured deploy is
+    // indistinguishable in the log from the reviewer never asking. The row
+    // carries no detail and never the object key — only the same
+    // dialer_transfer resource its sibling deny rows already carry.
+    await recordAudit({
+      action: "calls.recording.open",
+      decision: "deny",
+      reason: "recording_storage_unavailable",
+      actorEmail: session.email,
+      actorSubjectId: session.subjectId,
+      actorRole: session.role,
+      resource: `dialer_transfer:${call.id}`,
+      requestPath: new URL(request.url).pathname,
+    });
+    return Response.json({ error: "Recording storage is unavailable." }, { status: 503 });
+  }
 
   let object: RecordingObject | null;
   try {

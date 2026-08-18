@@ -16,11 +16,17 @@ export const PORTAL_PERFORMANCE_STORAGE_KEY = "thrive-portal-performance";
  * wrong theme, and stops a boosted machine rendering one animated frame before
  * the effects are switched off.
  */
-// DARK IS THE DEFAULT: only a stored "bright" opts out. It also rewrites the
-// theme-color meta so the phone's status bar and the installed app's chrome
-// match the page instead of guessing from the OS preference, which is not
-// what chooses the portal's theme.
-const THEME_BOOT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("${PORTAL_THEME_STORAGE_KEY}");var v=t==="bright"?"bright":"dark";d.dataset.portalTheme=v;d.style.colorScheme=v==="dark"?"dark":"light";var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",v==="dark"?"#0c0a07":"#f3ecdf")}var p=localStorage.getItem("${PORTAL_PERFORMANCE_STORAGE_KEY}");d.dataset.portalPerformance=p==="boost"?"boost":"full"}catch(e){}})();`;
+// DARK IS THE DEFAULT: only a stored "bright" or "thrive" opts out — any
+// other stored value (junk, or a theme removed in a future revision) falls
+// back to dark, the SAME fallback theme-control.tsx's readTheme uses; a test
+// pins the two against each other. The three names and their chrome hexes
+// mirror the THEMES table in app/theme-control.tsx — this copy exists only
+// because the boot must run before React. It also rewrites the theme-color
+// meta so the phone's status bar and the installed app's chrome match the
+// page instead of guessing from the OS preference, which is not what chooses
+// the portal's theme. "thrive" keeps colorScheme light: its workspace is
+// light; the navy sidebar scopes its own dark color-scheme in globals.css.
+const THEME_BOOT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("${PORTAL_THEME_STORAGE_KEY}");var v=(t==="bright"||t==="thrive")?t:"dark";d.dataset.portalTheme=v;d.style.colorScheme=v==="dark"?"dark":"light";var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",v==="dark"?"#0c0a07":v==="thrive"?"#eef2f9":"#f3ecdf")}var p=localStorage.getItem("${PORTAL_PERFORMANCE_STORAGE_KEY}");d.dataset.portalPerformance=p==="boost"?"boost":"full"}catch(e){}})();`;
 
 /** Applies the saved theme and performance mode before first paint. */
 export function PortalThemeBoot() {

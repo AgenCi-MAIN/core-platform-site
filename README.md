@@ -24,7 +24,8 @@ This starter does not use `wrangler.jsonc`.
 - `.openai/hosting.json` declares the D1 and R2 bindings (and, for self-hosted
   deploys, the real D1 `database_id`)
 - `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
+- `db/schema.ts` defines the three portal tables: `portal_members`,
+  `audit_events`, and `dialer_transfers`
 - `examples/d1/` contains an optional D1 example surface
 - `drizzle.config.ts` supports local migration generation when needed
 
@@ -124,7 +125,8 @@ One-time setup:
 
 - `npm run dev`: start local development
 - `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
+- `npm test`: build, then run the access-model test suites in Miniflare
+  (real workerd and D1)
 - `npm run db:generate`: generate Drizzle migrations after schema changes
 
 ## Learn More

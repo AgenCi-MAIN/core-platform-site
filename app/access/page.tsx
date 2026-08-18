@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ThriveMark } from "../thrive-mark";
 import { KeyGlyph } from "../key-glyph";
 import { signInPath } from "../google-auth";
 import { PortalGovernanceFooter } from "../portal-chrome";
@@ -38,7 +39,7 @@ export default async function AccessPage({
       <main className="site-main portal-gate access-gate">
         <section className="portal-card portal-gate-card access-card">
           <header className="access-head">
-            <span className="access-mark" aria-hidden="true">J</span>
+            <span className="access-mark" aria-hidden="true"><ThriveMark size={26} /></span>
             <p className="portal-eyebrow">J.A.R.V.I.S. / PRIVATE OPERATIONS</p>
             <h1>Approved account entry</h1>
             <p className="portal-lede">

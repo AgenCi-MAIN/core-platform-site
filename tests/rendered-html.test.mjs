@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { registerHooks } from "node:module";
 import test from "node:test";
@@ -103,15 +104,24 @@ const PROTECTED_ROUTES = [
   "/portal/command",
   "/portal/calls/review",
   "/portal/calls/review/1",
+  "/portal/commission",
+  "/portal/commission/document",
   "/portal/investigator",
   "/portal/leadership",
+  "/portal/leaderboard",
+  "/portal/leadtech",
   "/portal/library",
+  "/portal/retreaver",
+  "/portal/stats",
+  "/portal/tools",
+  "/portal/twilio",
   "/portal/members",
   "/portal/pay-rates",
   "/portal/music",
   "/portal/scripts",
   "/portal/shop",
   "/portal/team",
+  "/portal/training",
 ].map((pathname) => [pathname, encodeURIComponent(pathname)]);
 
 test("protected portal routes refuse anonymous visitors and render nothing", async () => {
@@ -162,11 +172,12 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
   const appDir = fileURLToPath(new URL("../app", import.meta.url));
 
   // Second argument of requireCapability(capability, returnTo) is the route;
-  // requireFounder(returnTo) takes the route directly. Both are guards, and a
-  // founder-gated page OR redirect handler shipping without an
-  // anonymous-refusal test is the same failure as a capability-gated one —
-  // the regex must see them both.
-  const GUARD = /(?:requireCapability\(\s*"[^"]+"\s*,|requireFounder\()\s*"([^"]+)"/g;
+  // requireFounder(returnTo) and requireCommandCenter(returnTo) take the
+  // route directly. All three are guards, and a page shipping behind any of
+  // them without an anonymous-refusal test is the same failure — the regex
+  // must see them all.
+  const GUARD =
+    /(?:requireCapability\(\s*"[^"]+"\s*,|requireFounder\(|requireCommandCenter\()\s*"([^"]+)"/g;
 
   const found = new Set();
   const walk = (dir) => {
@@ -202,7 +213,9 @@ test("every guarded route is covered by the anonymous-refusal list", async () =>
       if (statSync(full).isDirectory()) check(full);
       else if (entry === "page.tsx" || entry === "route.ts") {
         const src = readFileSync(full, "utf8");
-        const calls = (src.match(/requireCapability\(|requireFounder\(/g) ?? []).length;
+        const calls = (
+          src.match(/requireCapability\(|requireFounder\(|requireCommandCenter\(/g) ?? []
+        ).length;
         const matched = [...src.matchAll(GUARD)].length;
         if (calls > matched) {
           // Allow template-literal returnTo ONLY when the route's static
@@ -260,7 +273,9 @@ test("every portal page calls a guard — no page ships unguarded", async () => 
         const rel = full.slice(full.indexOf("app")).split("\\").join("/");
         if (UNGUARDED_BY_DESIGN.has(rel)) continue;
         const src = readFileSync(full, "utf8");
-        if (!/requireCapability\(|requireFounder\(/.test(src)) unguarded.push(rel);
+        if (!/requireCapability\(|requireFounder\(|requireCommandCenter\(/.test(src)) {
+          unguarded.push(rel);
+        }
       }
     }
   };
@@ -275,10 +290,12 @@ test("every portal page calls a guard — no page ships unguarded", async () => 
 
 /**
  * A8-1. FOUNDER_EMAILS is the sole gate on /portal/audit, /portal/investigator,
- * /portal/command and every /go/* handoff — identity, not capability, so no
- * role grant can widen it and no test of roles can narrow it. The runtime
- * suite proves specific addresses are refused; this pins the SET ITSELF, so
- * that quietly adding a second founder fails here rather than shipping.
+ * and every /go/* handoff — identity, not capability, so no role grant can
+ * widen it and no test of roles can narrow it. (/portal/command moved to the
+ * COMMAND_CENTER_EMAILS gate by founder order 2026-08-17 — pinned in the next
+ * test.) The runtime suite proves specific addresses are refused; this pins
+ * the SET ITSELF, so that quietly adding a second founder fails here rather
+ * than shipping.
  */
 test("FOUNDER_EMAILS holds exactly one identity", async () => {
   const source = await readFile(
@@ -297,6 +314,79 @@ test("FOUNDER_EMAILS holds exactly one identity", async () => {
     addresses,
     ["btcmao518@gmail.com"],
     "FOUNDER_EMAILS changed — adding a founder is a governance decision (A2/A9), not a code change",
+  );
+});
+
+/**
+ * COMMAND_CENTER_EMAILS is the founder plus individually NAMED helpers, each
+ * added by an explicit founder order. Pinning the exact contents means a
+ * quiet addition fails here rather than shipping — widening this set is a
+ * governance decision, not a code change. Andrew Davidson was added by
+ * founder order 2026-08-17 ("unlock COMMAND CENTER for ANDREW DAVIDSON"),
+ * scope: the Command Center page only.
+ */
+test("COMMAND_CENTER_EMAILS holds exactly the founder and Andrew Davidson", async () => {
+  const source = await readFile(
+    new URL("../app/portal/access.ts", import.meta.url),
+    "utf8",
+  );
+
+  const declaration = source.match(
+    /COMMAND_CENTER_EMAILS[^=]*=\s*new Set\(\[([^\]]*)\]\)/,
+  );
+  assert.ok(
+    declaration,
+    "COMMAND_CENTER_EMAILS must be a literal Set spreading FOUNDER_EMAILS — keep it greppable",
+  );
+
+  // Exactly ONE spread, and it is FOUNDER_EMAILS — a second spread would
+  // widen the set without appearing in the quoted-literal check below.
+  const spreads = [...declaration[1].matchAll(/\.\.\.\s*([A-Za-z_$][\w$]*)/g)].map((m) => m[1]);
+  assert.deepEqual(
+    spreads,
+    ["FOUNDER_EMAILS"],
+    "COMMAND_CENTER_EMAILS must spread FOUNDER_EMAILS and nothing else",
+  );
+
+  // Both quote styles and template literals count as literals here, so a
+  // single-quoted addition cannot dodge the pin; a template literal has no
+  // legitimate reason to exist in this Set and fails the exact-match below.
+  const addresses = [...declaration[1].matchAll(/["'`]([^"'`]+)["'`]/g)].map((m) => m[1]);
+  assert.deepEqual(
+    addresses,
+    ["andrew.davidson.zenith@gmail.com"],
+    "COMMAND_CENTER_EMAILS changed — a named helper is added only by founder order, recorded in OWNER-DECISIONS.md",
+  );
+});
+
+test("every portal page except no-access declares exactly one server guard", async () => {
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join, relative } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const portalDir = fileURLToPath(new URL("../app/portal", import.meta.url));
+  const failures = [];
+
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir)) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        walk(full);
+      } else if (entry === "page.tsx") {
+        const routeFile = relative(portalDir, full).replaceAll("\\", "/");
+        if (routeFile === "no-access/page.tsx") continue;
+        const source = readFileSync(full, "utf8");
+        const guards =
+          source.match(/requireCapability\(|requireFounder\(|requireCommandCenter\(/g) ?? [];
+        if (guards.length !== 1) failures.push(`${routeFile} (${guards.length} guards)`);
+      }
+    }
+  };
+  walk(portalDir);
+
+  assert.deepEqual(
+    failures,
+    [],
+    `portal pages missing one unambiguous guard: ${failures.join(", ")}`,
   );
 });
 
@@ -336,6 +426,78 @@ test("Founder shortcuts are deliberate anchors, never prefetched redirect handle
     css,
     /\.portal:has\(\.fcc-thumb-dock\) > \.presence \{\s*bottom: calc\(148px \+ env\(safe-area-inset-bottom\)\);\s*\}/,
     "the shipped Presence overlaps the Command Center's mobile thumb dock",
+  );
+});
+
+test("Training is guarded, ordered above Book of Business, and stays server-only", async () => {
+  const navigation = await readFile(
+    new URL("../app/portal/components.tsx", import.meta.url),
+    "utf8",
+  );
+  const page = await readFile(
+    new URL("../app/portal/training/page.tsx", import.meta.url),
+    "utf8",
+  );
+  const library = await readFile(
+    new URL("../app/portal/training/library.ts", import.meta.url),
+    "utf8",
+  );
+
+  const trainingNav = navigation.indexOf('href: "/portal/training"');
+  const bookNav = navigation.indexOf('href: "/portal/book"');
+  assert.ok(trainingNav >= 0, "Training is missing from portal navigation");
+  assert.ok(bookNav >= 0, "Book of Business is missing from portal navigation");
+  assert.ok(trainingNav < bookNav, "Training must stay above Book of Business");
+  assert.match(
+    page,
+    /requireCapability\("dashboard\.view\.self", "\/portal\/training"\)/,
+    "Training lost its literal server-side guard",
+  );
+  assert.doesNotMatch(
+    `${page}\n${library}`,
+    /^["']use client["'];/m,
+    "approved training language moved into a public client module",
+  );
+  // The body flows VERBATIM into the presentation-only ScriptBody component
+  // (owner order 2026-08-18: highlight the spoken lines). The component may
+  // wrap substrings in styling elements but must never alter the text — a
+  // runtime test in portal-authorization extracts the rendered <pre>'s text
+  // content and compares it byte-for-byte against the approved constant,
+  // which is the stronger, output-level form of the direct-render pin that
+  // used to live here.
+  assert.match(
+    page,
+    /<ScriptBody body=\{slot\.body\} \/>/,
+    "approved training text no longer flows verbatim into the script renderer",
+  );
+  assert.doesNotMatch(
+    page,
+    /slot\.body\.(?:trim|replace|slice|substring)|marked\(|dangerouslySetInnerHTML/,
+    "approved training text is transformed before rendering",
+  );
+});
+
+test("the approved Training body remains byte-verbatim", async () => {
+  const library = await readFile(
+    new URL("../app/portal/training/library.ts", import.meta.url),
+    "utf8",
+  );
+  const literal = library.match(
+    /^export const DIRECT_CARRIER_QUESTION_INTRO_BODY = (".*");$/m,
+  )?.[1];
+  assert.ok(literal, "approved Training body must remain a JSON-compatible string literal");
+  const body = JSON.parse(literal);
+
+  assert.equal(Buffer.byteLength(body, "utf8"), 3765);
+  assert.equal((body.match(/\n/g) ?? []).length, 130);
+  assert.equal(
+    createHash("sha256").update(body, "utf8").digest("hex"),
+    "04740e30b911a5da2c1435eae4f5f0eb11e085d73b4db8448810bde3c92b89d8",
+  );
+  assert.equal(
+    (library.match(/\n    state: "approved",\n    body:/g) ?? []).length,
+    1,
+    "exactly one human-approved script body is loaded",
   );
 });
 
@@ -454,6 +616,98 @@ test("public surfaces carry no member or audit data", async () => {
 /* ============================================================
    Installable app (PWA)
    ============================================================ */
+
+/**
+ * The theme system: three named themes (bright / dark / thrive), declared in
+ * TWO places that must not drift — the THEMES table in theme-control.tsx and
+ * the pre-paint boot script in portal-chrome.tsx (inlined because it runs
+ * before React). Both must validate stored values against the same set and
+ * fall back to the same default (dark): if their fallbacks disagree, a junk
+ * stored value makes aria-pressed lie about the active theme. The chrome
+ * (theme-color) hexes must also match, or the phone status bar flickers
+ * between boot and first toggle.
+ */
+test("the theme boot script and the theme control agree on the three themes", async () => {
+  const boot = await readFile(new URL("../app/portal-chrome.tsx", import.meta.url), "utf8");
+  const control = await readFile(new URL("../app/theme-control.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  // Boot: explicit whitelist with dark fallback — not a two-value ternary.
+  assert.match(
+    boot,
+    /\(t==="bright"\|\|t==="thrive"\)\?t:"dark"/,
+    "the boot script must whitelist exactly bright|thrive and fall back to dark",
+  );
+
+  // Control: the THEMES table carries exactly the same ids. Its readTheme
+  // fallback is BRIGHT on purpose — it describes what the DOM shows, and a
+  // missing attribute means the boot never ran, so the unguarded base
+  // (Bright) palette is on screen. The boot's own fallback stays dark.
+  const ids = [...control.matchAll(/id: "([a-z]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(ids, ["bright", "dark", "thrive"], "THEMES table ids changed");
+  assert.match(
+    control,
+    /return known \? known\.id : "bright";/,
+    "readTheme's missing-attribute fallback must describe the DOM's Bright base",
+  );
+  assert.match(
+    control,
+    /useSyncExternalStore\(subscribe, readTheme, \(\) => "dark"\)/,
+    "the server snapshot must match the boot script's dark default",
+  );
+
+  // Chrome hexes: the same three values in both files. Thrive's chrome is
+  // its LIGHT workspace hex — on phones the status bar sits above the white
+  // topbar, not the navy rail.
+  for (const chrome of ["#f3ecdf", "#0c0a07", "#eef2f9"]) {
+    assert.ok(boot.includes(chrome), `boot script lost the ${chrome} chrome hex`);
+    assert.ok(control.includes(chrome), `THEMES table lost the ${chrome} chrome hex`);
+  }
+
+  // The stylesheet actually defines the third skin — token block and the
+  // navy sidebar scope both present.
+  assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \{/);
+  assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \.portal-sidebar \{/);
+  // Every custom property the dark block overrides has a thrive counterpart
+  // on the main scope — a partial skin silently inherits parchment values.
+  const blockOf = (marker) => {
+    const start = css.indexOf(marker);
+    assert.ok(start >= 0, `missing block ${marker}`);
+    return css.slice(start, css.indexOf("}", start));
+  };
+  // Colon-anchored on purpose: --portal-accent is a substring of
+  // --portal-accent-strong, so a bare includes() would let a block that only
+  // defines the -strong variant pass.
+  const darkTokens = [...blockOf('html[data-portal-theme="dark"] .portal {').matchAll(/--portal-[\w-]+(?=:)/g)].map((m) => m[0]);
+  const thriveBlock = blockOf('html[data-portal-theme="thrive"] .portal {');
+  const missing = [...new Set(darkTokens)].filter((token) => !thriveBlock.includes(`${token}:`));
+  assert.deepEqual(missing, [], `thrive theme lacks tokens the dark theme defines: ${missing.join(", ")}`);
+
+  // The boot mirrors ids and chrome hexes from the THEMES table but derives
+  // color-scheme from a hardcoded ternary — pin that ternary AND the table's
+  // scheme column, so a future dark-scheme theme cannot silently boot light.
+  assert.match(boot, /colorScheme=v==="dark"\?"dark":"light"/, "boot color-scheme mapping changed");
+  const schemes = [...control.matchAll(/scheme: "([a-z]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(schemes, ["light", "dark", "light"], "THEMES scheme column changed — update the boot's colorScheme mapping with it");
+
+  // The storage key is duplicated by hand in both files (the boot cannot
+  // import). A mismatch is total theme amnesia, worse than any drift above.
+  assert.match(boot, /PORTAL_THEME_STORAGE_KEY = "core-portal-theme"/);
+  assert.match(control, /const STORAGE_KEY = "core-portal-theme"/);
+});
+
+test("public surfaces offer all three theme choices", async () => {
+  const response = await fetchPath("/");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  for (const label of ["Bright", "Dark", "Thrive"]) {
+    assert.match(
+      html,
+      new RegExp(`portal-theme-label">${label}`),
+      `the theme control is missing the ${label} option`,
+    );
+  }
+});
 
 test("serves a web app manifest that installs to the portal", async () => {
   const response = await fetchPath("/manifest.webmanifest", { accept: "*/*" });
@@ -624,6 +878,8 @@ test("restricted data never reaches a public client chunk", async () => {
     // their presence in immutable assets would bypass every route guard.
     "session_01W4UZQ4izQyBNT2HEd9D9PK",
     "T3-S02-D01",
+    // Human-authored training copy belongs only in authenticated server output.
+    "That’s a carrier I can help you with.",
   ];
 
   for (const name of files) {
@@ -694,6 +950,62 @@ test("the mobile navigation drawer ships both the popover and the checkbox fallb
     css,
     /\.portal-mobile-drawer-toggle \{|\.portal-mobile-drawer-toggle,/,
     "the fallback checkbox is no longer visually hidden — it renders as a stray control",
+  );
+});
+
+test("the drawer checkbox is a tab stop only where it works, and Escape-back survives pre-popover engines", async () => {
+  // Two regressions pinned shut:
+  //
+  // 1. WCAG 2.4.7 — outside the @supports-not fallback branch the
+  //    #portal-mobile-drawer checkbox drives nothing, so left focusable it
+  //    is an invisible 1px tab stop with no focus indication. It must be
+  //    display: none by default and restored to the keyboard order ONLY
+  //    inside the fallback branch, mirroring the desktop collapse toggle
+  //    that goes display: none under 900px.
+  //
+  // 2. querySelector selector-list parsing is non-forgiving: one unknown
+  //    pseudo-class rejects the WHOLE list, so ":popover-open, dialog[open]"
+  //    threw SyntaxError on exactly the pre-Popover engines the checkbox
+  //    fallback exists for, killing Escape-to-go-back there. The
+  //    :popover-open probe must sit alone inside try/catch, and the shell's
+  //    Escape-close of the fallback drawer must preventDefault so one
+  //    keypress cannot both dismiss the drawer and navigate back.
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(
+    css,
+    /\.portal-mobile-drawer-toggle \{ display: none; \}/,
+    "the fallback checkbox is back in the keyboard order outside its functional window",
+  );
+  const fallbackBranch = css.split("@supports not selector(:popover-open)")[1] ?? "";
+  assert.match(
+    fallbackBranch,
+    /\.portal-mobile-drawer-toggle \{ display: inline-block; \}/,
+    "the fallback branch no longer restores the checkbox — pre-popover keyboard users cannot open the drawer",
+  );
+
+  const back = await readFile(
+    new URL("../app/portal/back-control.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.doesNotMatch(
+    back,
+    /querySelector\(\s*["'][^"']*:popover-open[^"']*,/,
+    ":popover-open is back inside a querySelector selector list — SyntaxError on pre-popover engines",
+  );
+  assert.match(
+    back,
+    /try \{\s*if \(document\.querySelector\("\[popover\]:popover-open"\)\) return;\s*\} catch \{/,
+    "the :popover-open probe is no longer try/caught — pre-popover engines throw on every Escape",
+  );
+
+  const shell = await readFile(
+    new URL("../app/portal/components.tsx", import.meta.url),
+    "utf8",
+  );
+  assert.match(
+    shell,
+    /e\.key==="Escape"&&u\(\)\)\{e\.preventDefault\(\)\}/,
+    "the drawer's Escape-close no longer consumes the event — one keypress would dismiss AND navigate",
   );
 });
 

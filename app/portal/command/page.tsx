@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { JarvisCommandPrompt } from "../command-prompt";
-import { requireFounder } from "../access";
+import { requireCommandCenter } from "../access";
 import { PortalShell } from "../components";
 
 export const dynamic = "force-dynamic";
@@ -374,7 +374,7 @@ function QueueRow({ item }: { item: QueueItem }) {
 }
 
 export default async function FounderCommandCenter() {
-  const session = await requireFounder("/portal/command", "command.view");
+  const session = await requireCommandCenter("/portal/command", "command.view");
   const unavailableSignals = SIGNAL_ITEMS.filter(
     (item) => item.tone === "unavailable",
   ).length;
@@ -409,6 +409,72 @@ export default async function FounderCommandCenter() {
           <div className="fcc-hero-foot">
             <SourceStamp>Repository records captured 2026-08-17</SourceStamp>
             <span>Signed in as {session.displayName}</span>
+          </div>
+        </section>
+
+        <section className="fcc-panel fcc-launcher" aria-labelledby="launcher-title">
+          <header className="fcc-panel-head">
+            <div>
+              <p>01 / Launcher</p>
+              <h2 id="launcher-title">One-thumb handoffs</h2>
+            </div>
+            <FactChip tone="attention">No simulated HQ</FactChip>
+          </header>
+          <div className="fcc-launch-grid">
+            {HANDOFFS.map((handoff) => (
+              <a
+                className={`fcc-launch${handoff.configured ? "" : " fcc-launch-unavailable"}`}
+                href={handoff.route}
+                key={handoff.id}
+              >
+                <span>{handoff.code}</span>
+                <strong>{handoff.label}</strong>
+                <small>{handoff.id} · {handoff.state}</small>
+                <i aria-hidden="true">{handoff.configured ? "↗" : "↓"}</i>
+              </a>
+            ))}
+            <a
+              className="fcc-launch"
+              href="https://github.com/bankerrunners/core-platform-site"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>GH</span>
+              <strong>Repository</strong>
+              <small>Real external surface</small>
+              <i aria-hidden="true">↗</i>
+            </a>
+            <Link className="fcc-launch" href="/portal">
+              <span>PT</span>
+              <strong>Portal</strong>
+              <small>Member command surface</small>
+              <i aria-hidden="true">→</i>
+            </Link>
+            <Link className="fcc-launch" href="/portal/audit">
+              <span>AU</span>
+              <strong>Audit</strong>
+              <small>Founder-only live portal record</small>
+              <i aria-hidden="true">→</i>
+            </Link>
+          </div>
+
+          <div className="fcc-handoffs" aria-label="External handoff configuration state">
+            {HANDOFFS.map((handoff) => (
+              <article id={handoff.anchor} key={handoff.id}>
+                <div>
+                  <span>{handoff.code}</span>
+                  <strong>{handoff.label}</strong>
+                </div>
+                <p>{handoff.detail}</p>
+                <div>
+                  <FactChip tone={handoff.configured ? "complete" : "unavailable"}>
+                    {handoff.state}
+                  </FactChip>
+                  <span className="fcc-handoff-owner"><b>Owner</b> {handoff.owner}</span>
+                  <SourceStamp>{handoff.source}</SourceStamp>
+                </div>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -524,71 +590,6 @@ export default async function FounderCommandCenter() {
           </article>
         </section>
 
-        <section className="fcc-panel fcc-launcher" aria-labelledby="launcher-title">
-          <header className="fcc-panel-head">
-            <div>
-              <p>05 / Launcher</p>
-              <h2 id="launcher-title">One-thumb handoffs</h2>
-            </div>
-            <FactChip tone="attention">No simulated HQ</FactChip>
-          </header>
-          <div className="fcc-launch-grid">
-            {HANDOFFS.map((handoff) => (
-              <a
-                className={`fcc-launch${handoff.configured ? "" : " fcc-launch-unavailable"}`}
-                href={handoff.route}
-                key={handoff.id}
-              >
-                <span>{handoff.code}</span>
-                <strong>{handoff.label}</strong>
-                <small>{handoff.id} · {handoff.state}</small>
-                <i aria-hidden="true">{handoff.configured ? "↗" : "↓"}</i>
-              </a>
-            ))}
-            <a
-              className="fcc-launch"
-              href="https://github.com/bankerrunners/core-platform-site"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span>GH</span>
-              <strong>Repository</strong>
-              <small>Real external surface</small>
-              <i aria-hidden="true">↗</i>
-            </a>
-            <Link className="fcc-launch" href="/portal">
-              <span>PT</span>
-              <strong>Portal</strong>
-              <small>Member command surface</small>
-              <i aria-hidden="true">→</i>
-            </Link>
-            <Link className="fcc-launch" href="/portal/audit">
-              <span>AU</span>
-              <strong>Audit</strong>
-              <small>Founder-only live portal record</small>
-              <i aria-hidden="true">→</i>
-            </Link>
-          </div>
-
-          <div className="fcc-handoffs" aria-label="External handoff configuration state">
-            {HANDOFFS.map((handoff) => (
-              <article id={handoff.anchor} key={handoff.id}>
-                <div>
-                  <span>{handoff.code}</span>
-                  <strong>{handoff.label}</strong>
-                </div>
-                <p>{handoff.detail}</p>
-                <div>
-                  <FactChip tone={handoff.configured ? "complete" : "unavailable"}>
-                    {handoff.state}
-                  </FactChip>
-                  <span className="fcc-handoff-owner"><b>Owner</b> {handoff.owner}</span>
-                  <SourceStamp>{handoff.source}</SourceStamp>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
 
         <section className="fcc-flagged" aria-labelledby="flagged-title">
           <div>

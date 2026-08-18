@@ -58,11 +58,16 @@ function fail(headline, detail) {
 }
 
 async function newestMtime(target) {
-  let newest = 0;
-  let newestPath = target;
   const entry = await stat(target).catch(() => null);
   if (!entry) return { mtime: 0, file: target };
   if (entry.isFile()) return { mtime: entry.mtimeMs, file: target };
+
+  // Directory mtimes count as source changes. Deleting or renaming a file
+  // updates nothing but its parent directory's mtime, so a scan that stats
+  // only files cannot see a deletion — dist/ would keep shipping the removed
+  // code and the deploy would report success.
+  let newest = entry.mtimeMs;
+  let newestPath = target;
 
   const stack = [target];
   while (stack.length) {
@@ -72,10 +77,7 @@ async function newestMtime(target) {
       // Build output and dependencies are not sources.
       if (item.name === "node_modules" || item.name === ".wrangler") continue;
       const full = path.join(dir, item.name);
-      if (item.isDirectory()) {
-        stack.push(full);
-        continue;
-      }
+      if (item.isDirectory()) stack.push(full);
       const info = await stat(full).catch(() => null);
       if (info && info.mtimeMs > newest) {
         newest = info.mtimeMs;
@@ -141,6 +143,27 @@ if (hostingRaw !== null) {
   }
 }
 
+// package.json's `name` is the worker's identity — wrangler deploys under it,
+// and no wrangler.toml exists to override it. Read it so the built config can
+// be checked against the one real source.
+const pkgRaw = await readFile(path.join(root, "package.json"), "utf8").catch(() => null);
+let pkg = null;
+if (pkgRaw === null) {
+  fail(
+    "package.json is unreadable.",
+    "It names the worker (`name`), so the built config cannot be checked against it.",
+  );
+} else {
+  try {
+    pkg = JSON.parse(pkgRaw);
+  } catch {
+    fail(
+      "package.json is not valid JSON.",
+      "It names the worker (`name`), so the built config cannot be checked against it. Fix the JSON before deploying.",
+    );
+  }
+}
+
 if (built) {
   const d1 = built.d1_databases?.[0];
   if (!d1) {
@@ -160,10 +183,22 @@ if (built) {
     );
   }
 
-  if (hosting?.r2 && !built.r2_buckets?.some((bucket) => bucket.binding === hosting.r2)) {
+  // The id is checked three ways above; the binding NAME matters just as much.
+  // Absent and misnamed are the same failure.
+  if (d1 && d1.binding !== "DB") {
     fail(
-      `No ${hosting.r2} R2 binding in the built config.`,
-      "Call recordings and music uploads write to R2. Without the binding they fail at runtime, not at deploy.",
+      `The built D1 binding is named ${d1.binding === undefined ? "nothing" : JSON.stringify(d1.binding)}, not "DB".`,
+      `db/index.ts hardcodes \`env.DB\` — that exact name is the only way the app reaches the database. The worker would deploy cleanly, then fail closed at runtime and refuse every member. Check the \`d1\` field in .openai/hosting.json and rebuild.`,
+    );
+  }
+
+  // Deliberately the literal, not hosting.r2: comparing the build against
+  // hosting.json's own value was circular — edit the field and the check
+  // followed it.
+  if (!built.r2_buckets?.some((bucket) => bucket.binding === "CALL_RECORDINGS")) {
+    fail(
+      "No \"CALL_RECORDINGS\" R2 binding in the built config.",
+      "app/portal/calls/storage.ts and app/portal/music/storage.ts read the bucket as `env.CALL_RECORDINGS` — that exact name. Call recordings and music uploads would fail at runtime, not at deploy. Check the `r2` field in .openai/hosting.json and rebuild.",
     );
   }
 
@@ -171,6 +206,16 @@ if (built) {
     fail(
       "The assets directory is not what the build normally emits.",
       `Found: ${JSON.stringify(built.assets?.directory)}. Static files — including the service worker — may not be served.`,
+    );
+  }
+
+  // A wrong or absent name does not fail the deploy — wrangler succeeds at a
+  // second worker on a different URL while the live one keeps serving its
+  // previous build. Absent and mismatched are the same failure.
+  if (pkg && (typeof pkg.name !== "string" || built.name !== pkg.name)) {
+    fail(
+      `The built worker name is ${JSON.stringify(built.name ?? null)}, but package.json says ${JSON.stringify(pkg.name ?? null)}.`,
+      "package.json's `name` is the sole source of the worker's identity — no wrangler.toml exists. Deploying under any other name creates a fresh worker at a new URL, leaves the live one on the previous build, and still reports success. Rebuild.",
     );
   }
 }
@@ -181,6 +226,15 @@ if (workerStat) {
   let newest = { mtime: 0, file: "" };
   for (const target of [...SOURCE_DIRS, ...SOURCE_FILES]) {
     const found = await newestMtime(path.join(root, target));
+    // Absence is not freshness: a deleted source has no mtime to lose the
+    // comparison with, but dist/ still bakes its last version.
+    if (found.mtime === 0) {
+      fail(
+        "A source the build consumed no longer exists.",
+        `${target} is listed as a build input in scripts/verify-build.mjs but is not on disk.\nThe build output still carries its last contents — deploying now ships code the source tree no longer has. Restore it, or update this script's source list if the removal is intentional, then rebuild.`,
+      );
+      continue;
+    }
     if (found.mtime > newest.mtime) newest = found;
   }
   // A second of slack: some filesystems round mtimes, and the build itself

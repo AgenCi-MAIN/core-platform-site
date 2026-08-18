@@ -1,6 +1,14 @@
 import { signOutPath } from "../google-auth";
+import { ThriveMark } from "../thrive-mark";
 import Link from "next/link";
-import { ROLE_LABELS, can, isFounder, type Capability, type PortalSession } from "./access";
+import {
+  ROLE_LABELS,
+  can,
+  isCommandCenter,
+  isFounder,
+  type Capability,
+  type PortalSession,
+} from "./access";
 import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
 import { PortalThemeControl } from "../theme-control";
@@ -14,8 +22,19 @@ type PortalIconName =
   | "radio"
   | "shop"
   | "payrates"
+  | "commission"
+  | "training"
   | "book"
   | "calls"
+  | "leadtech"
+  | "retreaver"
+  | "twilio"
+  | "leaderboard"
+  | "stats"
+  | "surelc"
+  | "underwriter"
+  | "reagan"
+  | "toolbox"
   | "scripts"
   | "team"
   | "leadership"
@@ -28,7 +47,7 @@ type NavItem = {
   label: string;
   capability: Capability;
   icon: PortalIconName;
-  group: "Workspace" | "Operations" | "Administration";
+  group: "Workspace" | "Calls" | "Team" | "API" | "Administration";
   description: string;
   state: "live" | "pending";
   /** Set for third-party tools opened outside the portal. */
@@ -39,6 +58,12 @@ type NavItem = {
    * server-side with requireFounder — this flag only controls the sidebar.
    */
   founderOnly?: boolean;
+  /**
+   * Visible to COMMAND_CENTER_EMAILS (the founder plus named helpers),
+   * regardless of role. The page behind it enforces the same set server-side
+   * with requireCommandCenter — this flag only controls the sidebar.
+   */
+  commandOnly?: boolean;
   stateLabel: string;
 };
 
@@ -56,13 +81,20 @@ const NAV: readonly NavItem[] = [
   {
     href: "/portal/command",
     label: "Command Center",
-    capability: "audit.view",
+    // INERT — commandOnly short-circuits ahead of the capability check, so
+    // this field never gates anything. It is set to the universal capability
+    // ON PURPOSE: if commandOnly were ever lost, the card would show to
+    // everyone and the server guard would refuse loudly on click — a visible
+    // failure. The previous value (audit.view, which no role holds) would
+    // instead have hidden the card from everyone including the founder,
+    // silently.
+    capability: "dashboard.view.self",
     icon: "command",
     group: "Workspace",
-    description: "Founder-only workforce, decisions, signals, and field handoffs.",
+    description: "Workforce, decisions, signals, and field handoffs. Founder + named helpers.",
     state: "live",
-    founderOnly: true,
-    stateLabel: "Founder only",
+    commandOnly: true,
+    stateLabel: "Command access",
   },
   {
     href: "/portal/announcements",
@@ -85,11 +117,31 @@ const NAV: readonly NavItem[] = [
     stateLabel: "Available",
   },
   {
+    href: "/portal/commission",
+    label: "Commission Schedule",
+    capability: "dashboard.view.self",
+    icon: "commission",
+    group: "Workspace",
+    description: "Every carrier's comp grid by contract level, with ladders and promotion rules.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  {
+    href: "/portal/training",
+    label: "Training",
+    capability: "dashboard.view.self",
+    icon: "training",
+    group: "Calls",
+    description: "THRIVE-approved introductions, call angles, and training language.",
+    state: "live",
+    stateLabel: "Approved content",
+  },
+  {
     href: "/portal/book",
     label: "Book of Business",
     capability: "book.view.self",
     icon: "book",
-    group: "Operations",
+    group: "Team",
     description: "Personal policy, placement, and retention intelligence.",
     state: "pending",
     stateLabel: "Source pending",
@@ -99,17 +151,47 @@ const NAV: readonly NavItem[] = [
     label: "Call Lab",
     capability: "calls.review",
     icon: "calls",
-    group: "Operations",
+    group: "Calls",
     description: "Transferred call access and permissioned coaching review.",
     state: "live",
     stateLabel: "Beta ready",
+  },
+  {
+    href: "/portal/leadtech",
+    label: "LeadTech",
+    capability: "leadership.view.all",
+    icon: "leadtech",
+    group: "API",
+    description: "LeadTech contacts and pipeline, rendered natively inside CORE.",
+    state: "live",
+    stateLabel: "Leadership",
+  },
+  {
+    href: "/portal/retreaver",
+    label: "Retreaver",
+    capability: "leadership.view.all",
+    icon: "retreaver",
+    group: "API",
+    description: "Ad campaign to central number to agent — inbound call routing, read-only.",
+    state: "live",
+    stateLabel: "Leadership",
+  },
+  {
+    href: "/portal/twilio",
+    label: "Twilio",
+    capability: "leadership.view.all",
+    icon: "twilio",
+    group: "API",
+    description: "Central numbers and the inbound call log, read-only.",
+    state: "live",
+    stateLabel: "Leadership",
   },
   {
     href: "/portal/scripts",
     label: "Script Vault",
     capability: "scripts.manage",
     icon: "scripts",
-    group: "Operations",
+    group: "Calls",
     description: "Governed, versioned conversation playbooks.",
     state: "pending",
     stateLabel: "Import pending",
@@ -119,17 +201,37 @@ const NAV: readonly NavItem[] = [
     label: "Team",
     capability: "team.view",
     icon: "team",
-    group: "Operations",
+    group: "Team",
     description: "Assignments, coaching, and progression evidence.",
     state: "pending",
     stateLabel: "Model pending",
+  },
+  {
+    href: "/portal/leaderboard",
+    label: "Leaderboard",
+    capability: "dashboard.view.self",
+    icon: "leaderboard",
+    group: "Team",
+    description: "Team standings from real call production — no hand-entered numbers.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  {
+    href: "/portal/stats",
+    label: "My Stats",
+    capability: "dashboard.view.self",
+    icon: "stats",
+    group: "Team",
+    description: "Your own production numbers, computed from the platform's records.",
+    state: "live",
+    stateLabel: "All members",
   },
   {
     href: "/portal/leadership",
     label: "Leadership",
     capability: "leadership.view.all",
     icon: "leadership",
-    group: "Operations",
+    group: "Team",
     description: "Leadership view of company-wide operating evidence and exceptions.",
     state: "pending",
     stateLabel: "Sources pending",
@@ -149,7 +251,7 @@ const NAV: readonly NavItem[] = [
     label: "Exchange",
     capability: "dashboard.view.self",
     icon: "shop",
-    group: "Operations",
+    group: "API",
     description: "Trade contract points for transferred calls and AI capacity.",
     state: "live",
     stateLabel: "Priced menu",
@@ -159,11 +261,86 @@ const NAV: readonly NavItem[] = [
     label: "Quoter",
     capability: "book.view.self",
     icon: "quoter",
-    group: "Operations",
+    group: "API",
     description: "Final expense quoting via InsuranceToolkits. Opens in a new tab; sign in there separately.",
     state: "live",
     stateLabel: "External tool",
     external: true,
+  },
+  {
+    href: "https://app.insurancetoolkits.com",
+    label: "AI Underwriter",
+    capability: "book.view.self",
+    icon: "underwriter",
+    group: "API",
+    description:
+      "InsuranceToolkits' underwriting helper — advisory only, never a quote or a decision. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  // Three SureLC upline instances, each the owner's exact link (2026-08-18).
+  // One entry per upline per PLATFORM-MAP rule 2 — never a shared page.
+  {
+    href: "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D505&gaId=505&client_id=surecrmweb&response_type=code",
+    // gaId 505 arrived unbranched; labeled Heartland per the owner's original
+    // ask — correct the label if the owner says otherwise.
+    label: "SureLC — Heartland",
+    capability: "dashboard.view.self",
+    icon: "surelc",
+    group: "API",
+    description:
+      "Carrier contracting and licensing via SuranceBay. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D862%2526gaId%253D862%2526branch%253DBrenda%252520Daly%2526branchVisible%253Dtrue%2526branchEditable%253Dfalse%2526branchRequired%253Dtrue%2526autoAdd%253Dfalse%2526requestMethod%253DGET&gaId=862&client_id=surecrmweb&response_type=code",
+    label: "SureLC — Brenda Daly",
+    capability: "dashboard.view.self",
+    icon: "surelc",
+    group: "API",
+    description:
+      "Carrier contracting via SuranceBay, Brenda Daly branch. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D323%2526branch%253DAltura%252520of%252520America&gaId=323&client_id=surecrmweb&response_type=code",
+    label: "SureLC — Altura of America",
+    capability: "dashboard.view.self",
+    icon: "surelc",
+    group: "API",
+    description:
+      "Carrier contracting via SuranceBay, Altura of America. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
+    label: "Reagan AI",
+    capability: "dashboard.view.self",
+    icon: "reagan",
+    group: "API",
+    description:
+      "The Reagan.ai agent portal. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "/portal/tools",
+    label: "Tool Directory",
+    capability: "dashboard.view.self",
+    icon: "toolbox",
+    group: "API",
+    description:
+      "Every external tool in one categorized place — carriers, contracting, leads, quoting, documents.",
+    state: "live",
+    stateLabel: "All members",
   },
   {
     href: "/portal/pay-rates",
@@ -198,7 +375,18 @@ const NAV: readonly NavItem[] = [
   },
 ];
 
-const NAV_GROUPS = ["Workspace", "Operations", "Administration"] as const;
+const NAV_GROUPS = ["Workspace", "Calls", "Team", "API", "Administration"] as const;
+
+/**
+ * Subtitle shown under a section header. Only the three operations sections
+ * carry one (owner order: three main sections with subtitles); Workspace and
+ * Administration render their label alone.
+ */
+const NAV_GROUP_SUBTITLES: Partial<Record<(typeof NAV_GROUPS)[number], string>> = {
+  Calls: "Call review, scripts & coaching",
+  Team: "People, books & leadership",
+  API: "External sources & trades",
+};
 
 const MISSION_GROUPS = [
   {
@@ -206,38 +394,63 @@ const MISSION_GROUPS = [
     code: "01",
     title: "Operating Floor",
     description: "Move conversations, policy work, governed language, and team execution.",
-    routes: ["/portal/calls", "/portal/book", "/portal/scripts", "/portal/team"],
+    routes: [
+      "/portal/training",
+      "/portal/calls",
+      "/portal/book",
+      "/portal/scripts",
+      "/portal/team",
+      "/portal/leaderboard",
+      "/portal/stats",
+    ],
   },
   {
     id: "signal-intelligence",
     code: "02",
     title: "Signal & Intelligence",
     description: "Read the source material, operating notes, and leadership-level exceptions.",
-    routes: ["/portal/library", "/portal/announcements", "/portal/leadership"],
+    routes: [
+      "/portal/library",
+      "/portal/announcements",
+      "/portal/leadership",
+      "/portal/leadtech",
+      "/portal/retreaver",
+      "/portal/twilio",
+      "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
+    ],
   },
   {
     id: "economics-lab",
     code: "03",
     title: "Economics Lab",
-    description: "Model capacity and compensation while keeping external tools visibly outside CORE.",
+    description: "Model capacity and compensation; any external tools stay visibly outside CORE.",
     routes: [
       "/portal/shop",
       "/portal/pay-rates",
+      "/portal/commission",
       "https://app.insurancetoolkits.com/fex/quoter",
+      "https://app.insurancetoolkits.com",
+      "/portal/tools",
     ],
   },
   {
     id: "governance-layer",
     code: "04",
     title: "Governance Layer",
-    description: "Inspect membership, founder audit access, and the readiness of approved sources.",
-    routes: ["/portal/command", "/portal/members", "/portal/audit"],
+    description: "Inspect membership, carrier contracting, founder audit access, and the readiness of approved sources.",
+    routes: [
+      "/portal/command",
+      "/portal/members",
+      "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D505&gaId=505&client_id=surecrmweb&response_type=code",
+      "/portal/audit",
+    ],
     sourceReadiness: true,
   },
 ] as const;
 
 const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/command": "Command Center",
+  "/portal/training": "Training",
   "/portal/calls": "Call Lab",
   "/portal/book": "Book",
   "/portal/scripts": "Scripts",
@@ -247,9 +460,20 @@ const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/leadership": "Leadership",
   "/portal/shop": "Exchange",
   "/portal/pay-rates": "Pay Rates",
+  "/portal/commission": "Commissions",
   "https://app.insurancetoolkits.com/fex/quoter": "Quoter",
+  "https://app.insurancetoolkits.com": "Underwriter",
+  "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D505&gaId=505&client_id=surecrmweb&response_type=code":
+    "Contracting",
+  "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount": "Reagan AI",
+  "/portal/tools": "Tool Directory",
   "/portal/members": "Membership",
   "/portal/audit": "Audit",
+  "/portal/leaderboard": "Leaderboard",
+  "/portal/stats": "My Stats",
+  "/portal/leadtech": "Pipeline",
+  "/portal/retreaver": "Call Routing",
+  "/portal/twilio": "Phone Logs",
 };
 
 export function PortalShell({
@@ -264,7 +488,11 @@ export function PortalShell({
   children: React.ReactNode;
 }) {
   const visible = NAV.filter((item) =>
-    item.founderOnly ? isFounder(session) : can(session, item.capability),
+    item.founderOnly
+      ? isFounder(session)
+      : item.commandOnly
+        ? isCommandCenter(session)
+        : can(session, item.capability),
   );
 
   return (
@@ -294,11 +522,14 @@ export function PortalShell({
           page — which also means the mobile drawer no longer closes itself.
           One delegated listener closes it on any link tap inside it. Inline
           for the same reason as PortalThemeBoot: no props, no state, no
-          hydration boundary worth shipping. */}
+          hydration boundary worth shipping. When Escape actually closes the
+          checkbox-fallback drawer, the listener preventDefaults so
+          PortalBackControl's defaultPrevented guard treats that Escape as
+          consumed — one keypress must never both dismiss and navigate. */}
       <script
         dangerouslySetInnerHTML={{
           __html:
-            '(function(){if(window.__thriveDrawerClose)return;window.__thriveDrawerClose=1;function u(){var c=document.getElementById("portal-mobile-drawer");if(c&&c.checked){c.checked=false}}document.addEventListener("click",function(e){var t=e.target instanceof Element?e.target:null;if(!t)return;var p=t.closest("#portal-mobile-navigation");if(p&&t.closest("a")){if(typeof p.hidePopover==="function"){p.hidePopover()}u()}});document.addEventListener("keydown",function(e){if(e.key==="Escape"){u()}})})();',
+            '(function(){if(window.__thriveDrawerClose)return;window.__thriveDrawerClose=1;function u(){var c=document.getElementById("portal-mobile-drawer");if(c&&c.checked){c.checked=false;return true}return false}document.addEventListener("click",function(e){var t=e.target instanceof Element?e.target:null;if(!t)return;var p=t.closest("#portal-mobile-navigation");if(p&&t.closest("a")){if(typeof p.hidePopover==="function"){p.hidePopover()}u()}});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&u()){e.preventDefault()}})})();',
         }}
       />
 
@@ -415,7 +646,7 @@ function PortalSidebarContent({
     <>
       <div className="portal-sidebar-head">
         <Link className="portal-brand" href="/portal" aria-label="THRIVE portal dashboard">
-          <span className="portal-brand-mark" aria-hidden="true">T</span>
+          <span className="portal-brand-mark" aria-hidden="true"><ThriveMark size={19} /></span>
           <span className="portal-brand-copy">
             <strong>THRIVE</strong>
             <small>Operating portal</small>
@@ -432,6 +663,9 @@ function PortalSidebarContent({
           return (
             <div className="portal-nav-group" key={group}>
               <p className="portal-nav-group-label">{group}</p>
+              {NAV_GROUP_SUBTITLES[group] ? (
+                <p className="portal-nav-group-sub">{NAV_GROUP_SUBTITLES[group]}</p>
+              ) : null}
               {/* Internal links navigate client-side ON PURPOSE. A plain
                   <a> is a full page load, which tears down the portal layout
                   — and the audio deck inside it, killing the radio on every
@@ -603,7 +837,11 @@ export function PortalPlaceholderPage({
 
 export function PortalWorkspaceDirectory({ session }: { session: PortalSession }) {
   const visible = NAV.filter((item) =>
-    item.founderOnly ? isFounder(session) : can(session, item.capability),
+    item.founderOnly
+      ? isFounder(session)
+      : item.commandOnly
+        ? isCommandCenter(session)
+        : can(session, item.capability),
   );
 
   return (
@@ -754,6 +992,13 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <circle cx="16.6" cy="15.5" r="2.2" />
     </>
   ),
+  // Open training guide with an approval check.
+  training: (
+    <>
+      <path d="M4.5 5.5h6.2c1.8 0 3.3.7 4.3 1.8v12.2c-1-1.1-2.5-1.8-4.3-1.8H4.5V5.5z" />
+      <path d="M19.5 5.5H15c-.7 0-1.4.1-2 .3M15.7 12.7l1.7 1.7 3.1-3.4" />
+    </>
+  ),
   // Briefcase — the book of business.
   book: (
     <>
@@ -765,6 +1010,75 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
   // Phone handset.
   calls: (
     <path d="M5.5 4h3l1.5 4-2 1.6a12.5 12.5 0 0 0 6.4 6.4L16 14l4 1.5v3A1.5 1.5 0 0 1 18.4 20C10.9 19.4 4.6 13.1 4 5.6A1.5 1.5 0 0 1 5.5 4z" />
+  ),
+  // Funnel — the pipeline.
+  leadtech: (
+    <path d="M4 5h16l-6.2 7.2v6.3l-3.6 1.8v-8.1L4 5z" />
+  ),
+  // One inbound line splitting to two — the call router. Three nodes, not
+  // four: at the sidebar's 17px render size denser geometry smudges.
+  retreaver: (
+    <>
+      <circle cx="5" cy="12" r="2.6" />
+      <circle cx="19" cy="5" r="2.6" />
+      <circle cx="19" cy="19" r="2.6" />
+      <path d="M7.3 10.9 16.7 6.1M7.3 13.1l9.4 4.8" />
+    </>
+  ),
+  // Antenna mast with waves — the phone line. Arc radius kept tight so the
+  // wave bulge survives the 24→17px downscale instead of reading as bars.
+  twilio: (
+    <>
+      <path d="M12 10.5V20.5M9 20.5h6" />
+      <circle cx="12" cy="8.5" r="2" />
+      <path d="M8.5 5a4.6 4.6 0 0 0 0 7M15.5 5a4.6 4.6 0 0 1 0 7" />
+    </>
+  ),
+  // Podium — the leaderboard.
+  leaderboard: (
+    <>
+      <path d="M9 20.5V9.5h6v11" />
+      <path d="M3.5 20.5V13.5H9M15 20.5h5.5v-4.5H15" />
+      <path d="M3.5 20.5h17" />
+    </>
+  ),
+  // Rising bars — personal statistics.
+  stats: (
+    <>
+      <path d="M5 20V14M10.5 20V9M16 20V11.5M21 20V5.5" transform="translate(-1 0)" />
+      <path d="M3.5 20.5h17" />
+    </>
+  ),
+  // Signature line under a document — contracting.
+  surelc: (
+    <>
+      <path d="M6.5 3.5H14L17.5 7v9.5" />
+      <path d="M13.5 3.5V7h4" />
+      <path d="M4 19.5c1.6-2.6 3-2.6 3.6-.6.5 1.7 1.6 1.7 2.6-.6.8-1.8 1.8-1.8 2.6 0" />
+      <path d="M15.5 19.5h5" />
+    </>
+  ),
+  // Umbrella — the underwriter.
+  underwriter: (
+    <>
+      <path d="M3.5 12a8.5 8.5 0 0 1 17 0z" />
+      <path d="M12 3.5V12M12 12v6a2 2 0 0 0 4 0" />
+    </>
+  ),
+  // Target with an outbound arrow — the lead portal.
+  reagan: (
+    <>
+      <circle cx="11" cy="13" r="7" />
+      <path d="M11 13 20 4M20 4h-4.5M20 4v4.5" />
+    </>
+  ),
+  // Toolbox — the external tool directory.
+  toolbox: (
+    <>
+      <rect x="3.5" y="9" width="17" height="11" rx="2" />
+      <path d="M9 9V7a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 7v2" />
+      <path d="M3.5 13.5h17M10.5 12.5v2M13.5 12.5v2" />
+    </>
   ),
   // Document with lines.
   scripts: (
@@ -802,6 +1116,14 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <rect x="5.5" y="3.5" width="13" height="17" rx="2" />
       <path d="M9 7.5h6" />
       <path d="M9 12h.01M12 12h.01M15 12h.01M9 15.7h.01M12 15.7h.01M15 15.7h.01" />
+    </>
+  ),
+  // Percent mark — the comp grid.
+  commission: (
+    <>
+      <circle cx="7.5" cy="7.5" r="2.6" />
+      <circle cx="16.5" cy="16.5" r="2.6" />
+      <path d="M17.5 5.5 6.5 18.5" />
     </>
   ),
   // Dollar in a coin.

@@ -840,7 +840,14 @@ button, .button, .nav-cta, .text-link {
 
 /* Both drawer/collapse state checkboxes are visually hidden but remain in the
    accessibility tree and focusable, so :has(...:checked) can drive layout and
-   keyboard users can still toggle them. */
+   keyboard users can still toggle them — but each is focusable ONLY inside
+   the window where checking it does something visible. Outside that window a
+   1px invisible checkbox is a tab stop with no effect and no focus
+   indication, which fails WCAG 2.4.7. The desktop collapse toggle goes
+   display: none under 900px (in the 899px media query below); the mobile
+   drawer toggle goes display: none here and is restored solely inside the
+   pre-Popover fallback branch — the one place its :has(...:checked) rules
+   exist. */
 .portal-sidebar-toggle,
 .portal-mobile-drawer-toggle {
   position: fixed;
@@ -849,6 +856,7 @@ button, .button, .nav-cta, .text-link {
   opacity: 0;
   pointer-events: none;
 }
+.portal-mobile-drawer-toggle { display: none; }
 
 .portal-shell:has(.portal-sidebar-toggle:checked) { grid-template-columns: 68px minmax(0, 1fr); }
 
@@ -985,6 +993,7 @@ button, .button, .nav-cta, .text-link {
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-brand-copy,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-brand-kicker,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-group-label,
+.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-group-sub,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-label,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-flare,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-account-copy { display: none; }
@@ -997,7 +1006,37 @@ button, .button, .nav-cta, .text-link {
 .portal-brand-kicker { color: var(--portal-subtle); font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .portal-nav-group { display: grid; gap: 2px; }
 .portal-nav-group + .portal-nav-group { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--portal-line); }
-.portal-nav-group-label { margin: 0 9px 5px; color: var(--portal-subtle); font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.portal-nav-group-label { margin: 0 9px 1px; color: var(--portal-subtle); font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.portal-nav-group-sub { margin: 0 9px 6px; color: var(--portal-muted); font-size: 9.5px; font-weight: 600; letter-spacing: .01em; line-height: 1.25; }
+
+/* LeadTech section tabs — server-rendered links, one active via aria-current.
+   Grid auto-fit rather than flex-wrap so a wrapped third tab keeps the same
+   width as its siblings instead of stretching full-bleed. */
+.portal-leadtab-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 4px 0 18px;
+}
+.portal-leadtab {
+  display: grid;
+  gap: 3px;
+  padding: 12px 15px;
+  border: 1px solid var(--portal-line);
+  border-radius: 12px;
+  background: var(--portal-panel);
+  text-decoration: none;
+  color: var(--portal-muted);
+}
+.portal-leadtab strong { color: var(--portal-text); font-size: 13.5px; font-weight: 800; letter-spacing: .01em; }
+.portal-leadtab span { font-size: 10.5px; font-weight: 600; line-height: 1.3; }
+.portal-leadtab:hover { border-color: var(--portal-line-strong); }
+.portal-leadtab[aria-current="page"] {
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  box-shadow: inset 0 -3px 0 var(--portal-accent);
+}
+.portal-leadtab[aria-current="page"] strong { color: var(--portal-accent-strong); }
 /* The symbol is an svg now — the font declarations from the letter-chip era
    are gone; CSS is the only size authority (the element carries no
    width/height attributes). */
@@ -1031,7 +1070,7 @@ button, .button, .nav-cta, .text-link {
 .portal-menu-button { position: relative; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--portal-line); border-radius: 7px; background: var(--portal-panel); cursor: pointer; }
 .portal-menu-button::before,
 .portal-menu-button::after,
-.portal-menu-button > span:first-child { content: ""; position: absolute; left: 9px; width: 14px; height: 1.5px; border-radius: 2px; background: var(--portal-muted); }
+.portal-menu-button > span:first-child { content: ""; position: absolute; left: 9px; width: 14px; height: 2px; border-radius: 2px; background: var(--portal-muted); }
 .portal-menu-button::before { top: 9px; }
 .portal-menu-button > span:first-child { top: 15px; }
 .portal-menu-button::after { top: 21px; }
@@ -1362,6 +1401,131 @@ html[data-portal-theme="dark"] .portal-system-dot-pending { background: #d89d3f;
 html[data-portal-theme="dark"] .portal-system-dot-neutral { background: #9ba5b1; box-shadow: 0 0 0 3px #303640; }
 html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"] { box-shadow: 0 1px 4px rgba(0, 0, 0, .45); }
 
+/* ==========================================================================
+   THRIVE THEME — navy spine, daylight workspace.
+   Matched to the commission schedule's design language by owner order
+   (2026-08-18): #16202e navy chrome, white surfaces, #2563eb accent.
+   Semantic chip hues stay Bright's — their fills are hardcoded light
+   literals in the base sheet, so inheriting them is correct here (unlike
+   dark, which overrides sixteen of them above).
+   ========================================================================== */
+html[data-portal-theme="thrive"] .portal {
+  --portal-bg: #eef2f9;
+  --portal-panel: #ffffff;
+  /* The schedule's own masthead navy family (#071A31/#0F2A4C — saturated
+     blue), not the flatter #16202e slate this block first shipped with; the
+     review's side-by-side read the slate as gunmetal against the anchor. */
+  --portal-sidebar: #0e2340;
+  --portal-raised: #f4f8ff;
+  --portal-soft: #e3ecf9;
+  --portal-text: #16202e;
+  --portal-muted: #4a5a70;
+  --portal-subtle: #556880;
+  --portal-line: #cfd9e7;
+  --portal-line-strong: #93a9c6;
+  --portal-accent: #2563eb;
+  --portal-accent-strong: #1d4ed8;
+  --portal-accent-soft: #dbe7fe;
+  --portal-secondary: #b45309;
+  --portal-success: #157347;
+  --portal-warning: #8a5700;
+  --portal-danger: #a52620;
+  --portal-success-ring: #e5f4ec;
+  --portal-brand-surface: #1e3a8a;
+  --portal-brand-ink: #ffffff;
+  --portal-avatar-surface: #3b82f6;
+  --portal-avatar-ink: #06142b;
+  --portal-hover: #e2ebf8;
+  --portal-icon: #4a6285;
+  --portal-shadow: 0 1px 2px rgba(16, 32, 56, .09), 0 10px 28px rgba(16, 32, 56, .07);
+  color-scheme: light;
+}
+/* The navy rail re-scopes the shared tokens rather than adding new ones, so
+   every sidebar descendant (.portal-nav, .portal-brand, group labels, the
+   account card) inverts with no per-selector rules — custom properties
+   resolve against the nearest scope. */
+html[data-portal-theme="thrive"] .portal .portal-sidebar {
+  /* Two non-token declarations, both load-bearing:
+     color — `color` inherits as a COMPUTED value, so descendants that never
+     declare one (.portal-brand-copy strong, .portal-account-copy strong)
+     would inherit the workspace navy and vanish on the navy rail.
+     background-color — the P0 rail rule uses the background SHORTHAND with
+     only images, resetting background-color to transparent; boost mode then
+     strips background-image, which under thrive (the one theme whose rail
+     inverts from its workspace) left near-white text floating on the light
+     workspace. A longhand background-color survives both. */
+  color: var(--portal-text);
+  background-color: var(--portal-sidebar);
+  --portal-panel: #16304f;
+  --portal-raised: #142c49;
+  --portal-soft: #1b3a5e;
+  --portal-text: #f2f7ff;
+  --portal-muted: #a9c0dc;
+  --portal-subtle: #8fa9c9;
+  --portal-line: #24436a;
+  --portal-line-strong: #3a5c88;
+  --portal-accent: #4c8df6;
+  --portal-accent-strong: #cbe0ff;
+  --portal-accent-soft: #17355e;
+  --portal-hover: #1d3d63;
+  --portal-icon: #7fa8de;
+  --portal-success: #56d29a;
+  --portal-success-ring: #1c3a2c;
+  --portal-secondary: #e0913f;
+  color-scheme: dark;
+}
+/* The schedule's other identity half is its numerals: IBM Plex Mono with
+   tabular figures on every rate and level. The portal's mono-cell utility is
+   `font-family: inherit` by design elsewhere; under thrive it goes truly
+   mono so tables read like the schedule. */
+html[data-portal-theme="thrive"] .portal .portal-cell-mono,
+html[data-portal-theme="thrive"] .portal .portal-metric-value {
+  font-variant-numeric: tabular-nums;
+}
+html[data-portal-theme="thrive"] .portal .portal-cell-mono {
+  font-family: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+}
+/* Companion rules for the P0 layer's hardcoded gold — those literals sit in
+   unconditional .portal rules after line 4180 and would gold-wash the navy
+   skin without these later, equally-or-more specific counters. */
+html[data-portal-theme="thrive"] .portal .button-primary,
+html[data-portal-theme="thrive"] .portal .site-cta {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+}
+html[data-portal-theme="thrive"] .portal .button-primary:hover,
+html[data-portal-theme="thrive"] .portal .site-cta:hover { color: #ffffff; }
+html[data-portal-theme="thrive"] .portal-brand-mark {
+  background: linear-gradient(135deg, #2563eb, var(--portal-brand-surface));
+  color: var(--portal-brand-ink);
+}
+html[data-portal-theme="thrive"] .portal-topbar-avatar,
+html[data-portal-theme="thrive"] .portal-account-avatar {
+  background: linear-gradient(135deg, #60a5fa, var(--portal-avatar-surface));
+  color: var(--portal-avatar-ink);
+}
+html[data-portal-theme="thrive"] .portal-intro h1 em {
+  background: linear-gradient(120deg, var(--portal-accent), #60a5fa 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+html[data-portal-theme="thrive"] .portal-command-prompt button { color: #ffffff; }
+/* The FCC sub-brand keeps its gold "send" button in every theme; the white
+   ink above is for the PORTAL prompt's blue button and would render
+   white-on-gold (1.9:1) inside .fcc-prompt without this counter. */
+html[data-portal-theme="thrive"] .fcc-prompt .portal-command-prompt button { color: #241b10; }
+html[data-portal-theme="thrive"] .portal-command-core {
+  /* Starts at #2563eb, not a lighter blue: white ink must clear 4.5:1 on
+     the gradient's lightest stop. */
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+}
+/* The LIVE flare's hardcoded cream ink fails (2.4:1) on the navy rail's
+   lighter secondary; dark ink on the gold pill reads at 6.9:1. */
+html[data-portal-theme="thrive"] .portal .portal-sidebar .portal-nav-flare { color: #241804; }
+html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true"] { box-shadow: 0 1px 3px rgba(16, 32, 56, .16); }
+
 .portal :where(a, label, input, button, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid var(--portal-accent); outline-offset: 2px; }
 .portal-sidebar-toggle:focus-visible ~ .portal-workspace .portal-menu-button { outline: 3px solid var(--portal-accent); outline-offset: 2px; }
 
@@ -1400,6 +1564,11 @@ html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"]
      .portal-sidebar-mobile) apply to this path unchanged. Explicit z-index
      replaces the popover top layer, which this path cannot use. */
   @supports not selector(:popover-open) {
+    /* The one window where the fallback checkbox works: restore it to the
+       keyboard order here, mirroring how the desktop collapse toggle exists
+       only on desktop. Everywhere else it stays display: none (base rule)
+       so it is never a focusable control with no visible effect. */
+    .portal-mobile-drawer-toggle { display: inline-block; }
     .portal-menu-button-mobile-fallback { display: grid; }
     .portal-drawer-close-popover { display: none; }
     .portal-shell:has(.portal-mobile-drawer-toggle:checked) .portal-drawer-backdrop { display: block; position: fixed; inset: 0; z-index: 40; border: 0; background: rgba(17, 20, 25, .46); }
@@ -1613,6 +1782,111 @@ html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"]
   background: var(--portal-raised); color: var(--portal-text);
   font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas, monospace;
   font-size: var(--portal-type-body); line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+
+/* --- Training library ------------------------------------- */
+.training-page { gap: 0; }
+.training-section-tabs {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(132px, 1fr); gap: 7px;
+  max-width: 720px; margin: 0 0 20px; padding: 6px; overflow-x: auto;
+  border: 1px solid var(--portal-line); border-radius: 999px; background: var(--portal-panel);
+  overscroll-behavior-inline: contain; scrollbar-width: thin;
+}
+.training-section-tabs a {
+  display: grid; place-items: center; min-height: 48px; padding: 8px 14px;
+  border: 1px solid transparent; border-radius: 999px; color: var(--portal-muted);
+  font-size: 11px; font-weight: 850; letter-spacing: .055em; text-align: center; text-transform: uppercase;
+}
+.training-section-tabs a:hover { color: var(--portal-text); background: var(--portal-hover); }
+.training-section-tabs a:focus-visible { outline: 3px solid var(--portal-accent); outline-offset: 2px; }
+.training-section {
+  display: grid; gap: 14px; margin-top: 18px; scroll-margin-top: 92px;
+}
+.training-section + .training-section { padding-top: 22px; border-top: 1px solid var(--portal-line); }
+.training-section-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+}
+.training-section-head > div { min-width: 0; }
+.training-section-head span {
+  color: var(--portal-accent-strong); font-size: 10px; font-weight: 850;
+  letter-spacing: .09em; text-transform: uppercase;
+}
+.training-section-head h2 {
+  margin: 4px 0 0; color: var(--portal-text); font-size: clamp(22px, 5vw, 34px);
+  line-height: 1.04; letter-spacing: -.035em;
+}
+.training-section-head p { margin: 7px 0 0; color: var(--portal-muted); font-size: var(--portal-type-body); }
+.training-section-head > strong {
+  flex: none; min-width: 48px; min-height: 48px; display: grid; place-items: center; padding: 6px;
+  border: 1px solid var(--portal-line-strong); border-radius: 50%; color: var(--portal-accent-strong);
+  background: var(--portal-accent-soft); font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums;
+}
+.training-section-empty {
+  display: flex; align-items: flex-start; gap: 12px; border-style: dashed; box-shadow: none;
+}
+.training-section-empty > div { display: grid; gap: 5px; }
+.training-section-empty strong { color: var(--portal-text); font-size: var(--portal-type-body); }
+.training-section-empty p { margin: 0; color: var(--portal-muted); font-size: var(--portal-type-label); line-height: 1.55; }
+.training-slot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.training-slot-card { display: grid; align-content: start; gap: 12px; min-height: 190px; }
+.training-slot-card-loaded { grid-column: 1 / -1; }
+.training-slot-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.training-slot-head > div { min-width: 0; }
+.training-slot-kicker {
+  display: block; margin-bottom: 4px; color: var(--portal-subtle); font-size: 9px;
+  font-weight: 850; letter-spacing: .08em; text-transform: uppercase;
+}
+.training-slot-head h3 { margin: 0; color: var(--portal-text); font-size: 16px; line-height: 1.25; }
+.training-title-pending { display: block; margin-top: 4px; color: var(--portal-subtle); font-size: 10px; }
+.training-empty-slot {
+  display: flex; align-items: flex-start; gap: 11px; margin-top: auto; padding: 13px;
+  border: 1px dashed var(--portal-line-strong); border-radius: var(--portal-radius-sm); background: var(--portal-soft);
+}
+.training-empty-slot > span {
+  flex: none; display: grid; place-items: center; width: 27px; height: 27px;
+  border-radius: 50%; color: var(--portal-subtle); background: var(--portal-panel); font-size: 16px;
+}
+.training-empty-slot strong { color: var(--portal-text); font-size: 12px; }
+.training-empty-slot p { margin: 4px 0 0; color: var(--portal-muted); font-size: 11px; line-height: 1.5; }
+.training-script-body { max-height: none; word-break: normal; }
+/* Script formatting — presentation only; the text is byte-verbatim approved
+   language and a runtime test compares the rendered text to the constant.
+   The highlighter marks the SPOKEN lines — what an agent actually says. */
+.training-line-step { font-weight: 800; }
+.training-line-purpose { font-style: italic; color: var(--portal-muted); }
+.training-mark {
+  background: #ffe867;
+  color: #241b10;
+  padding: 1px 3px;
+  border-radius: 3px;
+  /* The fill is only ~1.08:1 against the Bright panel — hue, not luminance.
+     The inset underline (4.4:1 on light panels, 4.1:1 on the fill itself)
+     keeps the highlight legible in grayscale and print. It is forced to
+     none in forced-colors mode ON PURPOSE — there the OS repaints <mark>
+     with the system Mark/MarkText pair, which is the HC signal; do not
+     "fix" this with border-bottom, which would double up in HC. */
+  box-shadow: inset 0 -2px 0 #8a6a12;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+/* One highlighter in every theme: bright yellow with near-black ink stays
+   >13:1 on its own fill, so it needs no per-theme variant — on the dark and
+   thrive pages it reads as a real highlighter would on any paper. */
+
+@media (max-width: 720px) {
+  .training-section-tabs {
+    position: sticky; top: calc(8px + env(safe-area-inset-top)); z-index: 10;
+    grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-radius: var(--portal-radius); overflow-x: visible; box-shadow: var(--portal-shadow);
+  }
+  .training-section-tabs a { min-width: 0; padding-inline: 6px; }
+  .training-section-head { align-items: center; }
+  .training-section-head > strong { min-width: 42px; min-height: 42px; }
+  .training-slot-grid { grid-template-columns: 1fr; }
+  .training-slot-card-loaded { grid-column: auto; }
+  .training-slot-head { display: grid; }
+  .training-slot-head .portal-state { width: fit-content; }
+  .training-script-body { padding: 12px; font-size: 11px; line-height: 1.6; }
 }
 
 /* --- Background audio deck -------------------------------- */
@@ -2412,13 +2686,16 @@ html[data-portal-theme="dark"] .site-pillar-mark { background: var(--portal-soft
 
 /* --- Performance boost -------------------------------------- */
 html[data-portal-performance="boost"] .site-topbar { backdrop-filter: none; background: var(--portal-panel); }
-html[data-portal-performance="boost"] .site-brand-mark,
 html[data-portal-performance="boost"] .rank-mark,
 html[data-portal-performance="boost"] .site-pillar-mark,
 html[data-portal-performance="boost"] .site-cta,
 html[data-portal-performance="boost"] .site-cta-card { background: var(--portal-panel); box-shadow: none; }
-html[data-portal-performance="boost"] .site-brand-mark,
 html[data-portal-performance="boost"] .rank-mark { background: var(--portal-brand-surface); }
+/* BOOST keeps the brand mark GOLD (owner order, 2026-08-17). Boost exists to
+   drop expensive paint — blur, animation — not the identity. A static gold
+   gradient costs nothing per frame; only the sweep reflection is animation,
+   and that is already stopped separately below. Repainting the mark obsidian
+   here was why the public topbar "T" showed dark whenever boost was on. */
 html[data-portal-performance="boost"] .site-pillar-mark { background: var(--portal-soft); }
 html[data-portal-performance="boost"] .site-cta { background: var(--portal-accent); }
 html[data-portal-performance="boost"] .site-pulse { animation: none; }
@@ -2824,9 +3101,10 @@ html[data-portal-performance="boost"] .music-list li,
 html[data-portal-performance="boost"] .portal-workspace-item { transition: none; }
 
 /* ============================================================
-   THRIVE GOLD
-   The mark is a gold square with a reflection that sweeps across
-   it. The key is one simple gold shape that turns on hover.
+   THRIVE MARK
+   The "V" glyph (app/thrive-mark.tsx): a gold mark on a deep
+   navy-obsidian badge, matching the founder's supplied logo. A
+   soft reflection sweeps across it on hover.
    ============================================================ */
 
 @keyframes thrive-gold-sweep {
@@ -2843,22 +3121,23 @@ html[data-portal-performance="boost"] .portal-workspace-item { transition: none;
   overflow: hidden;
   isolation: isolate;
   border-radius: 11px;
+  display: grid;
+  place-items: center;
   background:
     linear-gradient(150deg,
-      #fdf3d2 0%,
-      #f0d783 22%,
-      #d9ae43 48%,
-      #b8860b 74%,
-      #8c6410 100%);
-  color: #2a2010;
+      #263a68 0%,
+      #1b2a52 42%,
+      #131d3a 100%);
+  /* The glyph inherits this — gold V on the navy badge. */
+  color: #ecc65f;
   font-weight: 900;
   letter-spacing: -.02em;
-  text-shadow: 0 1px 0 rgba(255, 250, 230, .55);
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .35);
   box-shadow:
-    inset 0 1px 0 rgba(255, 252, 235, .85),
-    inset 0 -1px 0 rgba(90, 62, 8, .5),
-    0 2px 5px rgba(90, 62, 8, .3),
-    0 8px 22px -8px rgba(184, 134, 11, .55);
+    inset 0 1px 0 rgba(150, 180, 240, .35),
+    inset 0 -1px 0 rgba(6, 12, 28, .6),
+    0 2px 5px rgba(8, 14, 30, .35),
+    0 8px 22px -8px rgba(30, 50, 100, .55);
 }
 
 /* The moving reflection. */
@@ -3409,10 +3688,10 @@ html[data-portal-theme="dark"] .member-note-ok {
   .portal-drawer-close { width: 44px; height: 44px; }
   .portal-menu-button::before,
   .portal-menu-button::after,
-  .portal-menu-button > span:first-child { left: 50%; width: 16px; transform: translateX(-50%); }
-  .portal-menu-button::before { top: 14px; }
-  .portal-menu-button > span:first-child { top: 21px; }
-  .portal-menu-button::after { top: 28px; }
+  .portal-menu-button > span:first-child { left: 50%; width: 16px; height: 2px; transform: translateX(-50%); }
+  .portal-menu-button::before { top: 13px; }
+  .portal-menu-button > span:first-child { top: 20px; }
+  .portal-menu-button::after { top: 27px; }
 
   /**
    * A range input with -webkit-appearance:none has a border box the height of
@@ -4098,18 +4377,33 @@ html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
   color: #241b10;
 }
 .portal-nav { gap: 3px; }
-.portal-nav-group { position: relative; }
-.portal-nav-group::before {
+/* Section separation. The old connector rail (a fixed-offset ::before at
+   top:31px) is gone — it could not align across groups that have a subtitle
+   and those that don't, so it rendered as a broken, fading stub. Each nav
+   group now reads as its own block: a wider gap, a stronger divider, and a
+   gold-marked section label. */
+.portal-nav-group + .portal-nav-group {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--portal-line-strong);
+}
+.portal-nav-group-label {
+  position: relative;
+  padding-left: 13px;
+  color: var(--portal-accent-strong);
+}
+.portal-nav-group-label::before {
   content: "";
   position: absolute;
-  top: 31px;
-  bottom: 8px;
-  left: 23px;
-  width: 1px;
-  background: linear-gradient(180deg, var(--portal-line-strong), transparent);
-  pointer-events: none;
+  left: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 2px;
+  background: var(--portal-accent);
 }
-.portal-nav-group + .portal-nav-group { border-top-color: var(--portal-line-strong); }
+.portal-nav-group-sub { padding-left: 13px; }
 .portal-nav a,
 .portal-signout { position: relative; min-height: 44px; border-radius: 10px; }
 .portal-nav-icon {
@@ -4287,7 +4581,11 @@ html[data-portal-theme="dark"] .portal-card {
 .portal-mission-map { padding: clamp(20px, 3vw, 28px); }
 .portal-mission-map-head { align-items: center; margin-bottom: 18px; }
 .portal-mission-map-head .portal-lede { margin-top: 6px; }
-.portal-mission-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+/* align-items: start — without it, stretch paints the shorter lane's dead
+   space INSIDE its raised card (a visible tan slab, 54% of the card for a
+   reviewer's Signal lane); started lanes leave ragged bottoms on the map
+   background instead, which reads as deliberate whitespace. */
+.portal-mission-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
 .portal-mission-lane {
   min-width: 0;
   overflow: hidden;
@@ -4871,3 +5169,4 @@ html[data-portal-performance="boost"] .fcc-thumb-dock { backdrop-filter: none; b
   .fcc-launch { transition: none; }
   .fcc-launch:hover { transform: none; }
 }
+

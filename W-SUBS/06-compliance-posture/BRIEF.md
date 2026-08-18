@@ -27,7 +27,14 @@ costs nothing until summoned.
 
 ## Standing hold — KNOW ON ARRIVAL (added 2026-08-17, migration self-audit)
 
-The **LeadTech ingest socket is HELD**: no build/apply until counsel clears
+~~The **LeadTech ingest socket is HELD**~~ — **hold LIFTED 2026-08-17 by the
+owner's explicit override of E7** ("overrule E7 and start building"), given
+after the gate's reason was explained in full. The build proceeds WITHOUT
+prior counsel review; the risk is named and accepted in the E7 ledger row,
+with MAIN's contrary recommendation recorded beside it. The T3 adversary's
+conditions (F7, F12, timing, identity-leak, audit-everything) are hard
+build requirements. Counsel review remains open as follow-up E7b.
+Original hold text, kept for the record: no build/apply until counsel clears
 the all-party-consent representation and the owner greenlights
 (OWNER-DECISIONS.md E3/E7; WORKFORCE.md Test-3 record). This lane's
 activation trigger is "before any outbound/telephony step" — this hold is

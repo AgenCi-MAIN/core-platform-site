@@ -13,23 +13,30 @@ the owner keeps.
 | --- | --- |
 | Public URL | `https://site-creator-vinext-starter.bankerrunners.workers.dev` |
 | Worker name | `site-creator-vinext-starter` |
-| Cloudflare account | `Bankerrunners@gmail.com's Account` (`e6f9d0a344a0a7b317601ffbe23f871e`) |
-| workers.dev subdomain | `bankerrunners` |
-| D1 database | `site-creator-d1` — `e00c30f0-7017-49d8-9f81-446cef9e32c3` |
+| Cloudflare account | `Btcmao518@gmail.com's Account` (`f39f3a77e56b28e4dfae29489a997014`) — GitHub SSO; migrated 2026-08-18, old account abandoned after cutover |
+| workers.dev subdomain | `thrive18` — `https://site-creator-vinext-starter.thrive18.workers.dev` (was `bankerrunners`) |
+| D1 database | `site-creator-d1` — `e19d74e0-1913-41a5-b695-cd1acc94d5ed` (new account) |
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | First owner | `bankerrunners@gmail.com`, role `owner`, seeded by SQL |
 | Second owner | `ryandavidson.zenith@gmail.com`, role `owner`, granted 2026-08-14 |
-| Source branch | `claude/new-session-9a8g4o` (PR #1) |
+| Source branch | `main` (originally `claude/new-session-9a8g4o`, merged as PR #1; work has landed on `main` through the PR trail since) |
 
-The D1 id is committed in `.openai/hosting.json`; `build/sites-vite-plugin.ts`
-carries it into `dist/server/wrangler.json` at build time, which is the config
-`wrangler deploy` reads.
+The D1 id is committed in `.openai/hosting.json`; `vite.config.ts` reads it
+into the D1 binding config it hands the Cloudflare Vite plugin, which emits
+`dist/server/wrangler.json` at build time — the config `wrangler deploy`
+reads. (`build/sites-vite-plugin.ts` does not carry the id: it copies
+`hosting.json` and `drizzle/` into `dist/.openai/` and hides the Vite build
+manifest. Corrected 2026-08-17 against the code.)
 
 ## Identity
 
 Sign in with Google, implemented in-app — see README "Sign in with Google".
-The Google OAuth client is a **Web application** client in the Google Cloud
-project for this account, with exactly one authorized redirect URI:
+The Google OAuth client is a **Web application** client in the `core-portal`
+Google Cloud project (`core-portal-505803`) under `btcmao518@gmail.com` —
+re-homed 2026-08-17 after Google locked the original `bankerrunners@gmail.com`
+account, killing the old client with it (see CORE_PLATFORM_RECORD.md §3 and
+`strategy/2026-08-17-identity-recovery-docket.md`). Exactly one authorized
+redirect URI:
 
 ```
 https://site-creator-vinext-starter.bankerrunners.workers.dev/auth/callback
@@ -162,8 +169,56 @@ Secrets survive deploys; they only need setting again if they change.
   #38's entry also calling 7427f4f4 the first post-gate code deploy. Merged
   here into the one true timeline: 5c9ed9eb came first and closed the
   follow-up; 7427f4f4 is the current serving version.
-- Account note: the Cloudflare ACCOUNT email is being swapped to
-  btcmao518@gmail.com via support ticket (password lost, old inbox dead) —
-  see strategy/2026-08-17-identity-recovery-docket.md. The `bankerrunners`
-  workers.dev SUBDOMAIN is load-bearing (OAuth redirect URI, Access app,
-  installed PWAs) and must NOT be renamed.
+- 2026-08-17 (third): **version `95741dc5-8d09-4400-8a00-71d806912195`** —
+  deployed by the owner from `C:\dev\core-platform-site` at `main@4375633`.
+  **First code deploy of the Tournament 3 winner and of Tier 1.** New over
+  7427f4f4: the S02 Field Console — `/portal/command` plus the `/go/hq`,
+  `/go/routines` and `/go/desk` handoffs, every one founder-gated by
+  `requireFounder` — and Tier 1 batch 1 (D5-1 runbook lockout, A8-1 identity
+  pin, A8-5 audit-action parameter across all six founder call sites, T4-1
+  inverse guard net). Suite 55 → **60**, green inside the chain; preflight
+  passed. `/portal/command` is reachable in production from this version
+  onward; before it, the surface existed only in the repository.
+  Version id captured at deploy time via the `Tee-Object` practice — third
+  consecutive id preserved, none lost since it was adopted.
+- Account note (2026-08-17, SUPERSEDED next entry): the Cloudflare ACCOUNT
+  email was to be swapped to btcmao518@gmail.com via support ticket (password
+  lost, old inbox dead) — see strategy/2026-08-17-identity-recovery-docket.md.
+  Overtaken by events: the owner chose a full account migration instead.
+- 2026-08-18 (ACCOUNT MIGRATION): **version `5ecbce7a-020c-4892-9866-427c8c0a6cf5`**
+  — first deploy to the NEW Cloudflare account (`Btcmao518@gmail.com's
+  Account`, `f39f3a77e56b28e4dfae29489a997014`, GitHub SSO), at
+  `main@b1cfffb` (#57). New serving URL:
+  **`https://site-creator-vinext-starter.thrive18.workers.dev`** (new
+  subdomain `thrive18`). Full data migration preceded it: D1 exported from
+  the old account (7,453 statements) and imported into the new
+  `site-creator-d1` (`e19d74e0-…`), roster of five owners verified by query;
+  bucket `site-creator-r2` recreated (old bucket held no recordings; radio
+  tracks re-upload from the owner's originals); all three secrets re-set;
+  Google OAuth client gained the new origin + callback. **Owner sign-in on
+  the new URL verified 2026-08-18** — the migrated membership row and
+  subject binding answered. The OLD account
+  (`e6f9d0a3…`/`bankerrunners` subdomain) is unreachable for administration
+  (dashboard credentials lost, CLI token replaced) but its worker remains
+  running behind its Access gate; members must be cut over promptly, since
+  activity on the old site writes to the abandoned database and will not
+  carry forward. Still open on the new account at the time of that entry: the
+  Cloudflare Access edge gate, then the member announcement.
+- 2026-08-18 (later): **Access edge gate rebuilt on the new account and
+  verified by the owner.** Zero Trust team `thrive18`
+  (`thrive18.cloudflareaccess.com`), login method Google ONLY (email PIN
+  excluded — A11), using the same "THRIVE Portal" OAuth client as the app's
+  own sign-in (the planned separate client was never created; the one client
+  carries both origins/callbacks). Access application "THRIVE Portal" fronts
+  `site-creator-vinext-starter.thrive18.workers.dev`, session 1 week, Allow
+  policy = four named owner emails (btcmao518, ryandavidson.zenith,
+  epiclife.nguyen, andrew.davidson.zenith — bankerrunners deliberately
+  omitted: its Google account is locked and cannot pass a Google gate).
+  Setup notes that cost time, kept for the next rebuild: the Google client's
+  secret is only visible at creation (a rotation was needed — the fresh
+  secret went to BOTH the Access IdP and the worker's GOOGLE_CLIENT_SECRET);
+  and the first Test failed "User email was not returned" until the OAuth
+  consent scopes (openid / userinfo.email / userinfo.profile) were added on
+  the Google Auth Platform "Data Access" page. Remaining member-facing step:
+  the cutover announcement. When a new member is seated they must be added
+  in TWO places — the portal roster AND this Access policy.

@@ -13,9 +13,12 @@ keeps. If a value ever lands in this file, rotate it rather than deleting it.
 ## 1. What this is
 
 A permissioned operating portal for THRIVE, deployed as a single Cloudflare
-Worker. The app serves a public site and a closed `/portal` — but since
-2026-08-16 Cloudflare Access fronts the whole workers.dev domain: anonymous
-requests are refused 403 at the edge before this application runs (see §16).
+Worker. The app serves a public site and a closed `/portal` — and Cloudflare
+Access fronts the domain: anonymous requests are refused at the edge before
+this application runs (first stood up 2026-08-16 on the old account, §16;
+rebuilt 2026-08-18 on the new account as Zero Trust team `thrive18`,
+Google-only login, named-email allow policy — see DEPLOYMENT.md's
+2026-08-18 entries).
 Everything under `/portal` is closed
 by default and opens only to people who hold a membership row, at the role that
 row carries. Two independent checks run on every request:
@@ -38,17 +41,20 @@ Every allow and every deny is written to an append-only `audit_events` table.
 | --- | --- |
 | Public URL | `https://site-creator-vinext-starter.bankerrunners.workers.dev` |
 | Worker name | `site-creator-vinext-starter` |
-| Cloudflare account | `Bankerrunners@gmail.com's Account` — `e6f9d0a344a0a7b317601ffbe23f871e` |
-| workers.dev subdomain | `bankerrunners` |
-| D1 database | `site-creator-d1` — `e00c30f0-7017-49d8-9f81-446cef9e32c3` |
+| Cloudflare account | `Btcmao518@gmail.com's Account` — `f39f3a77e56b28e4dfae29489a997014` (GitHub SSO; MIGRATED 2026-08-18 from the old `Bankerrunners@gmail.com` account `e6f9d0a344a0a7b317601ffbe23f871e`, whose recovery email was lost — old account left running until cutover, then abandoned) |
+| workers.dev subdomain | `thrive18` — live at `https://site-creator-vinext-starter.thrive18.workers.dev` since 2026-08-18, owner sign-in verified (was `bankerrunners` on the old account, whose worker still runs unadministered behind its Access gate — do not send members there) |
+| D1 database | `site-creator-d1` — `e19d74e0-1913-41a5-b695-cd1acc94d5ed` (new account; old-account db was `e00c30f0-7017-49d8-9f81-446cef9e32c3`, exported to the owner's machine 2026-08-17/18 before migration) |
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | GitHub repo | `bankerrunners/core-platform-site` |
-| Working branch | `claude/new-session-9a8g4o` (PR #1) |
+| Working branch | `main` — PR #1 (`claude/new-session-9a8g4o`) merged long ago; work lands on `main` through squash-merged pull requests (the PR trail) |
 | Local checkout | **`C:\dev\core-platform-site` — the working copy. Deploy from here.** Corrected 2026-08-17: this row previously named `C:\Users\k2547\OneDrive\Desktop\core-platform-site`, which is **not** the copy deploys run from and **must not be worked in**. A git repository inside OneDrive fights the sync client for file handles: on 2026-08-17 that produced three escalating `Deletion of directory ... failed. Should I try again?` prompts in a single operation — first a remote-tracking ref, then untracked build output, then **`app/auth/callback`, which is tracked source**, leaving a half-reset tree one command away from a deploy. Three frozen backup copies also exist under ARCHIVE, MAINBACK, and RE SUMMON — never work in those either. |
 
-The D1 id lives in `.openai/hosting.json`; `build/sites-vite-plugin.ts` carries
-it into `dist/server/wrangler.json` at build time, which is the config
-`wrangler deploy` actually reads.
+The D1 id lives in `.openai/hosting.json`; `vite.config.ts` reads it into the
+D1 binding config it hands the Cloudflare Vite plugin, which emits
+`dist/server/wrangler.json` at build time — the config `wrangler deploy`
+actually reads. (`build/sites-vite-plugin.ts` does not carry the id: it copies
+`hosting.json` and `drizzle/` into `dist/.openai/`. Corrected 2026-08-17
+against the code.)
 
 ~~Stray resource to clean up~~ — the accidental empty D1 database named `8`
 (`5bc64b69-1c83-4826-adf8-dcad4f576885`) was deleted by the owner on
@@ -184,7 +190,7 @@ Guard a page with `requireCapability(...)`; guard a write with
 | Email | Name | Role | Granted |
 | --- | --- | --- | --- |
 | `btcmao518@gmail.com` | Yuxiang Mao (Shawn) — **current founder identity** | owner | owner-migration 2026-08-17 (`db/sql/0003`); signed in and bound 2026-08-17 |
-| `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) — retired identity (Google locked the account 2026-08-17; cannot sign in; row retained for the record) | owner | bootstrap, 2026-08-14 |
+| `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) — retired identity (Google locked the account 2026-08-17; cannot sign in; row retained for the record; **outreach PAUSED through 2026-08-20 — do not email this address; after that, owner's word required, A12**) | owner | bootstrap, 2026-08-14 |
 | `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | by Shawn, 2026-08-14 |
 | `epiclife.nguyen@gmail.com` | Nate Nguyen | owner | by Shawn, from the portal, confirmed on the live roster 2026-08-15 |
 | `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | owner | approved by Shawn 2026-08-15 ("shawn-aprooved"); granted from the portal 2026-08-15, first sign-in bound 2026-08-16 — LIVE (roster screenshot verified by the owner) |
@@ -259,7 +265,10 @@ live in the interface. Every one of them posts to `/portal/members/manage`,
 which re-resolves the session, asserts `members.manage`, and writes an audit row
 under your name whatever the outcome. Three rules are enforced server-side and
 cannot be clicked past: one approver may grant any role, nobody may change their
-own row, and the last active owner cannot be demoted or suspended.
+own row, and owner rows are peer-protected — no owner's role or status can be
+changed through the route at all (governance, set by Shawn 2026-08-15,
+superseding the earlier last-active-owner rule; see the note above and the
+route's own header comment).
 
 **The D1 console is now the fallback, not the procedure.** It is still the only
 way in when nobody can sign in at all — an empty roster, a locked-out owner, a
@@ -355,6 +364,15 @@ If `wrangler d1 execute --remote` fails with `Authentication error [code: 10000]
 file contents into the D1 console instead. That is how the live database was
 provisioned.
 
+**Founder-attribution exception (owner order F6, 2026-08-17).** The seed
+migrations `0002`/`0003` carry a `-- Seeded by: Yuxiang Mao (Shawn)` provenance
+comment. This is the one sanctioned edit to an applied migration: it is
+comment-only, the loader and a fresh provision strip `--` lines before running,
+so the applied SQL is unchanged and re-provisioning is byte-identical in effect.
+Do NOT read it as a licence to edit applied-migration SQL — that discipline
+holds; only the founder-attribution comment is exempt, and only because the
+owner ordered his name on the seeds.
+
 `drizzle/` holds the same history as generated migrations, kept in sync by
 `npm run db:generate` after any change to `db/schema.ts`. **Do not apply both
 paths to one database** — `0001` uses `CREATE TABLE IF NOT EXISTS`, the drizzle
@@ -373,7 +391,7 @@ npm install
 npm run deploy
 ```
 
-`npm run deploy` is build → the full test suite (50 cases at this writing) →
+`npm run deploy` is build → the full test suite (64 cases at this correction, 2026-08-17 — a grep count of `^test(` across `tests/*.mjs`) →
 preflight → `wrangler deploy`, chained so
 that any failure stops the deploy. It cannot ship a stale `dist/`, because the
 build always runs first and the preflight checks the result. Secrets survive
@@ -514,10 +532,16 @@ identity it is impersonating on every start. The role still comes from the
       as `epiclife.nguyen@gmail.com`, confirmed on the live roster 2026-08-15.
       Section 5 keeps the SQL for the case where nobody can sign in at all.
 - [x] ~~**Record the Worker version id on the next deploy.**~~ **Done
-      2026-08-17.** Live version is
-      **`7427f4f4-8026-4edb-9fa9-23ad403c7307`**, deployed by the owner from
-      `C:\dev\core-platform-site` at `main@3141e99`. The version trail is
-      restored. The gap it closes: the earlier 08-17 founder-gate deploy is
+      2026-08-17.** **Correction, same day:** this entry first credited
+      `7427f4f4` with closing the follow-up and called it the first post-gate
+      code deploy. Both were wrong — **`5c9ed9eb-c9a3-4152-bfc9-67279c1ccce6`
+      (post-PR#36) came first and is what closed it.** The error was honest
+      but real: `5c9ed9eb` was recorded only on the old session's branch and
+      had not reached `main` when this was written, so the record was
+      corrected from the branch rather than the other way round. See
+      DEPLOYMENT.md for the reconciled timeline. **Live version is now
+      `95741dc5-8d09-4400-8a00-71d806912195`** (`main@4375633`), the third id
+      preserved in a row. The version trail is restored. The gap it closes: the earlier 08-17 founder-gate deploy is
       owner-confirmed but its id existed only in the terminal and was lost, so
       between 08-16 and now the record could say *what* was live but not
       *which build*. **Standing practice that fixed it, keep using it:** pipe
@@ -536,7 +560,10 @@ identity it is impersonating on every start. The role still comes from the
       the portal (set by Shawn 2026-08-15, superseding the last-active-owner
       rule). Ships with the next deploy.
 - [x] **Make the portal installable on a phone.** Done — see § 10c.
-- [ ] **Merge PR #1** once the deployment is considered settled.
+- [x] ~~**Merge PR #1**~~ — merged long ago; `main` has been the working
+      branch since, and development has continued through the PR trail (see
+      RELEASE-2.0.0.md and the deploy log in DEPLOYMENT.md). This box sat
+      stale; corrected 2026-08-17.
 - [ ] **Decide the Quoter seam.** The sidebar links out to
       `app.insurancetoolkits.com`, which is outside this app's access model
       entirely: revoking someone here does not revoke them there. Either label
@@ -1060,15 +1087,20 @@ text channel can open for next time.
 | `ryandavidson.zenith@gmail.com` | `ad0e246e-b5d9-4f64-ba72-0daaca69900d` | `sent` |
 | `andrew.davidson.zenith@gmail.com` | `8a24281c-2830-475d-9c54-d301ebf885a7` | `sent` |
 
-### 19d. A13 — text auto-reply granted for three verified numbers
+### 19d. A14 — text auto-reply granted for three verified numbers
+
+**Numbering note:** this decision was drafted as A13 while a parallel
+session was independently granting A13 to Andrew's Command Center access.
+Main's A13 stands; this one is A14. The live routine still carries the
+name "DESK TEXT AUTO-REPLY (A13)" in the trigger registry until renamed.
 
 The founder asked how he gets a text back, was told auto-reply is a leash
 change only he can make, and granted it: "the desk may auto-reply to my
 verified number only: Ryan Shawn Andrew." Scope as recorded in
-OWNER-DECISIONS.md A13: reply content only, three numbers only (Shawn
+OWNER-DECISIONS.md A14: reply content only, three numbers only (Shawn
 +1 409 549 2092, Ryan +1 941 210 1410, Andrew +1 941 210 1411), every other
 sender stays log-and-draft, all content leashes unchanged. Implemented as
-the hourly routine `DESK TEXT AUTO-REPLY (A13)`
+the hourly routine `DESK TEXT AUTO-REPLY (A14)`
 (`trig_019FZZts1LhN9KayiwG9Q7rE`, fires at :41) carrying the complete
 standing order as its prompt — deliberately not caption-only, so a woken
 session has its brief and its leashes. HERALD itself is untouched and still
@@ -1108,7 +1140,7 @@ Note: the A11 Google-IdP migration for Access, once the founder executes
 it, retires the code emails — these instructions describe the wall as it
 is today and will need a one-line update after A11 lands.
 
-**A13 verification status (13:55Z):** the founder's live test ("Talk back
+**A14 verification status (13:55Z):** the founder's live test ("Talk back
 this is a test" + four more) was answered by the HQ session in real time
 (message `1faa7803-…`, delivered and read; the founder confirmed receipt and
 went for coffee). The manually-fired routine session sent nothing — either
@@ -1118,7 +1150,7 @@ path is therefore **not yet verified**. The founder's 13:50 reply is left
 as the organic test case for the first scheduled pass at 14:41Z; a
 self-check at 14:50Z records the outcome either way.
 
-**A13 scheduled-pass verification FAILED (14:50Z).** The routine fired on
+**A14 scheduled-pass verification FAILED (14:50Z).** The routine fired on
 schedule (`last_fired_at` 2026-08-17T14:41:41Z) and sent nothing. The
 founder's 13:50 message was still the newest message in the thread nine
 minutes later; HQ answered it instead (`9aa558cb-…`). The routine path is
@@ -1141,7 +1173,7 @@ exists in the thread. Same environment, same connector, same allowlist
 shape. The founder should assume the daily morning text has never actually
 sent, rather than that a quiet night produced nothing.
 
-Status: A13 remains **granted, armed, and unverified**; the HQ path is the
+Status: A14 remains **granted, armed, and unverified**; the HQ path is the
 only proven way the desk texts anyone.
 
 ### 19f. Andrew's welcome + desk introduction
@@ -1185,6 +1217,6 @@ Two channel facts learned here, worth keeping:
   into that thread. Andrew's iMessage path reached that state and remains
   there; SMS is what carried the message.
 
-Andrew is now the second number on the A13 allowlist with a live channel
+Andrew is now the second number on the A14 allowlist with a live channel
 (Shawn's iMessage being the first). Ryan +1 941 210 1410 remains blocked on
 both channels — no opt-in of any kind yet.

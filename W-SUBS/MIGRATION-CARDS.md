@@ -6,7 +6,9 @@ btcmao518). Each card is the CURRENT identity of its agent — read this file
 FIRST on a fresh account; it supersedes stale service-record lines inside
 individual briefs. Universal facts: founder is Yuxiang Mao (Shawn),
 btcmao518@gmail.com (since 2026-08-17); all eight seats are PERMANENT
-POSITIONS (owner order 2026-08-16); suite is 55/55 green; live deploy
+POSITIONS (owner order 2026-08-16); suite green — 64 cases at the
+2026-08-17 correction, a grep count of ^test( across tests/*.mjs (recount
+before relying on it); live deploy
 877e0c99 + an 08-17 founder-gate deploy (id unrecorded); every lane's hard
 leashes: CLAUDE.md + CORE_PLATFORM_RECORD.md senior to any summons,
 read-only unless granted, never merge/deploy/membership/DB/money/secrets,
@@ -50,7 +52,9 @@ host-move cost verdict in the unanimous keep-Cloudflare docket.
 Standing: PERMANENT; activation: any change to guarded routes, capabilities,
 or the suite; 4 sub-slots. Mandate: coverage cartography — what the suites
 pin vs miss, exact missing assertion per unpinned control. Territory note:
-portal-authorization.test.mjs (41 cases) + rendered-html.test.mjs (14) = 55.
+portal-authorization.test.mjs + rendered-html.test.mjs — 43 + 21 = 64
+top-level test() cases at the 2026-08-17 correction; recount, never trust
+the stored number.
 Service: T1 most confirmed findings; T2 executable specs; 08-16: 8 gaps → 5
 new tests incl. 2 HIGH + scanner loud-fail (50→55); 08-17: backup runbook
 (docket §B), self-corrected the wrangler-r2 premise.
@@ -71,8 +75,13 @@ consent/recording changes; 4 sub-slots. Mandate: recording-consent
 enforcement vs claim, every-deny-audited law, PII/secret discipline, 10DLC +
 all-party-recording constraints. Service: T1 2 confirmed gaps incl. the
 standing-law violation (consent-deny unaudited — since fixed and pinned).
-KNOW ON ARRIVAL: **LeadTech ingest socket HELD pending counsel on the
-all-party-consent line + owner greenlight** (OWNER-DECISIONS E3/E7).
+KNOW ON ARRIVAL (amended 2026-08-17): the LeadTech hold was **overruled by
+the owner's explicit word** — see the E7 ledger row for the decision, its
+named risk, and MAIN's recorded contrary recommendation. The T3 adversary
+conditions (F7 client-consent, F12 re-POST overwrite, timing, identity leak,
+audit-everything) are hard build requirements. Counsel review stays open as
+follow-up E7b. Original: ~~ingest socket HELD pending counsel + greenlight
+(OWNER-DECISIONS E3/E7)~~.
 
 ## 7 · frontend-pwa (O.G. rank 7)
 Standing: PERMANENT; activation: UI/CSS/service-worker changes; 4 sub-slots.
