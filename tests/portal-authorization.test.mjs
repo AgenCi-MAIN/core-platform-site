@@ -2387,24 +2387,37 @@ test("LeadTech renders the honest not-connected state to leadership and refuses 
 });
 
 test("the commission schedule serves every active member from inside the bundle", async (t) => {
-  // The schedule ships inside the worker via a ?raw import (an ASSETS-binding
-  // proxy 503'd on the first live deploy — this pins that it can never
-  // regress to an empty response). dashboard.view.self means EVERY member
-  // role gets it, agents included; anonymous refusal is pinned separately in
-  // the PROTECTED_ROUTES suite.
+  // The schedule lives INSIDE the portal: /portal/commission renders the
+  // shell page with an embedded frame, and /portal/commission/document
+  // serves the interactive grid from a ?raw import in the worker bundle (an
+  // ASSETS-binding proxy 503'd on the first live deploy — this pins that it
+  // can never regress to an empty response). dashboard.view.self means EVERY
+  // member role gets it, agents included; anonymous refusal of both routes
+  // is pinned separately in the PROTECTED_ROUTES suite.
   const portal = await startPortal();
   t.after(portal.dispose);
 
   await portal.addMember("agent-commission@example.com", "agent");
-  const res = await portal.get("/portal/commission", {
+  const identity = {
     subject: "subject-agent-commission",
     email: "agent-commission@example.com",
-  });
-  assert.equal(res.status, 200, "an active agent receives the schedule");
-  assert.match(res.headers.get("content-type") ?? "", /text\/html/);
-  assert.match(res.headers.get("cache-control") ?? "", /no-store/);
+  };
 
-  const html = await res.text();
+  const page = await portal.get("/portal/commission", identity);
+  assert.equal(page.status, 200, "an active agent opens the schedule page");
+  const pageHtml = await page.text();
+  assert.match(
+    pageHtml,
+    /<iframe[^>]*src="\/portal\/commission\/document"/,
+    "the page must embed the guarded document frame inside the portal shell",
+  );
+
+  const doc = await portal.get("/portal/commission/document", identity);
+  assert.equal(doc.status, 200, "an active agent receives the schedule document");
+  assert.match(doc.headers.get("content-type") ?? "", /text\/html/);
+  assert.match(doc.headers.get("cache-control") ?? "", /no-store/);
+
+  const html = await doc.text();
   assert.match(html, /Commission Schedule/i, "the schedule document must render");
   assert.match(html, /LEVEL_KEYS/, "the interactive grid data must be present");
   assert.ok(

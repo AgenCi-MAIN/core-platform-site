@@ -1,4 +1,4 @@
-import { recordAudit, requireCapability } from "../access";
+import { requireCapability } from "../../access";
 // The schedule document ships INSIDE the worker bundle (vite ?raw import) on
 // purpose: an earlier revision proxied it from the static-asset layer via an
 // ASSETS binding, and the first live deploy proved that binding is not
@@ -10,27 +10,16 @@ import { recordAudit, requireCapability } from "../access";
 import scheduleHtml from "./schedule.html?raw";
 
 /**
- * The Thrive commission schedule — the full interactive comp grid (29
+ * The commission schedule DOCUMENT — the full interactive comp grid (29
  * carriers, level picker 80–150, per-product ladders, promotion rules),
- * served as its own standalone page behind the portal's membership gate.
- *
- * dashboard.view.self is the gate deliberately: the schedule is every
- * member's comp reference, not a leadership surface. Every open is guarded
- * (anonymous → sign-in, non-member/suspended → refused) and audited.
+ * rendered inside the portal page at /portal/commission via an iframe so the
+ * member never leaves the portal shell. This route serves the frame's
+ * content and carries the same guard as the page: anonymous → sign-in,
+ * non-member/suspended → refused. The page audits the view; this route
+ * only serves the already-authorized frame, so it records no second row.
  */
 export async function GET() {
-  const session = await requireCapability("dashboard.view.self", "/portal/commission");
-
-  await recordAudit({
-    action: "dashboard.view.self",
-    decision: "allow",
-    reason: "commission_schedule_view",
-    actorEmail: session.email,
-    actorSubjectId: session.subjectId,
-    actorRole: session.role,
-    resource: "commission",
-    requestPath: "/portal/commission",
-  });
+  await requireCapability("dashboard.view.self", "/portal/commission/document");
 
   // no-store mirrors the service worker's stance on /portal: a comp grid must
   // never be served stale to a member whose access has since changed.
