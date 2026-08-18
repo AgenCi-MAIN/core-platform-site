@@ -1,4 +1,5 @@
-import { can, requireCapability } from "../access";
+import Link from "next/link";
+import { can, isCommandCenter, requireCapability } from "../access";
 import { PortalPageIntro, PortalShell } from "../components";
 import { MusicManager } from "./uploader";
 
@@ -36,6 +37,25 @@ export default async function MusicPage() {
         </p>
 
         <MusicManager canUpload={canUpload} />
+
+        {/* The Command Center's front door (founder's order 2026-08-18:
+            "Move Command center in RADIO. Hidden in plain sight"). Rendered
+            only for people already on COMMAND_CENTER_EMAILS, so it is not a
+            hint to anyone else — and hiding it from them was never what
+            stopped them: /portal/command refuses on the server whether or not
+            this link exists. Anyone but the founder still needs a live lodge
+            code after clicking it. */}
+        {isCommandCenter(session) ? (
+          <p className="radio-frequency">
+            <Link href="/portal/command">
+              <span className="radio-frequency-dial" aria-hidden="true">◉</span>
+              <span>
+                <strong>Frequency 00.1</strong>
+                <small>Command Center</small>
+              </span>
+            </Link>
+          </p>
+        ) : null}
       </main>
     </PortalShell>
   );

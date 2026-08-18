@@ -509,7 +509,16 @@ identity it is impersonating on every start. The role still comes from the
    its own cookie container, so an Access session completed in Safari does not
    carry into the installed icon, and leaving the app to fetch the code tends to
    lose the waiting context. PWA plus One-Time PIN fights itself on iOS.
-   **The real fix is decided (A11, owner order 2026-08-17):** point Access at
+   **HISTORICAL AS OF 2026-08-18 — this trap no longer exists on the live
+   gate.** A11 was executed: Access was rebuilt on the new account with login
+   method Google ONLY and the email PIN excluded, verified by the owner. No
+   code is emailed by the current gate, so there is nothing to copy and
+   nothing to tap. The trap survives only on the retired `bankerrunners` site.
+   Kept here because the failure mode is worth knowing if a code gate is ever
+   reintroduced — and because this entry sat stale for a day, found by a
+   fact-check rather than by anyone noticing.
+
+   **The fix as decided (A11, owner order 2026-08-17):** point Access at
    Google as the identity provider and retire the codes. It removes the email
    round-trip; it does not remove the second sign-in, since Access and the
    portal remain independent OAuth flows. That is Zero Trust dashboard work on
@@ -1220,3 +1229,126 @@ Two channel facts learned here, worth keeping:
 Andrew is now the second number on the A14 allowlist with a live channel
 (Shawn's iMessage being the first). Ryan +1 941 210 1410 remains blocked on
 both channels — no opt-in of any kind yet.
+
+### 19g. Roster corrections executed — 2026-08-18
+
+Owner decisions A15, run by the founder against the remote D1 and verified by
+query the same minute.
+
+| Email | Name | Role | Status |
+| --- | --- | --- | --- |
+| `btcmao518@gmail.com` | Yuxiang Mao (Shawn) | owner | active |
+| `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | active |
+| `andrew.davidson.zenith@gmail.com` | Andrew Davidson | owner | active |
+| `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) — retired identity | owner | **revoked** |
+| `epiclife.nguyen@gmail.com` | Nate Nguyen — declined to invest | owner | **revoked** |
+
+The roster is now three people, not five rows pretending to be five people.
+Two things worth keeping from how this went:
+
+- **The duplicate founder was a data defect, not a rendering one.** Both of
+  his identities were stored `active` although Google locked the retired one
+  on 2026-08-17, so every surface filtering on `status = 'active'` correctly
+  showed him twice. Marking it revoked is not cosmetic — it makes the stored
+  state match the fact that the address can never sign in again.
+- **No row was deleted.** `access.ts` refuses any non-active row, so a revoked
+  row grants nothing while remaining readable. Section 5 keeps the rule: the
+  roster is the account of who held access and when, and a deleted row erases
+  that account.
+
+**Still open after this entry:** the `audit_events` inserts from
+`db/sql/0004_roster_2026_08_18.sql` (the founder used two `--command` UPDATEs
+rather than the file, so the status changes are live but unlogged — running
+the file closes it, and the UPDATEs no-op), and Nate's removal from the
+Cloudflare Access allow policy. Until that policy edit, his address still
+clears the edge gate and is stopped only by the membership check: correct
+behaviour, but he should not be reaching the gate at all. Outreach to him
+ends here.
+
+### 19h. Nate reinstated as an employee — A16 amends A15 the same day
+
+The owner revoked Nate's owner row on the morning of 2026-08-18 because he
+declined to invest, then clarified hours later: "He's my employee, leave him
+the access." Both are true and they are not in conflict — **investing and
+working here are different things**, and the role system exists to carry
+exactly that difference. He becomes a **manager**, active.
+
+Why this state rather than the obvious alternatives:
+
+- **Not left revoked-with-Access.** Revoked in the roster while still on the
+  Cloudflare Access allow policy would let him clear the edge gate and then be
+  refused inside at `/portal/no-access`. That is a locked door behind an
+  unlocked one — technically correct, and a bad thing to do to an employee.
+- **Not restored as owner.** Ownership was the thing he declined. Putting the
+  owner row back would make the roster claim an investment relationship that
+  does not exist, and would hand him `members.manage` — the ability to change
+  other people's access — for a role he no longer holds.
+- **Manager** is the honest fit: he can see the roster (`members.view`) and
+  never change it, review calls, and see team and leadership surfaces. He
+  cannot manage members or edit approved call language.
+
+**Withdrawn:** the A15 follow-up to remove him from the Cloudflare Access
+policy. He is staff and signs in normally, so the policy keeps all four
+addresses and no Access edit is needed.
+
+The audit trail records the reinstatement as its own event rather than
+overwriting the revocation. Both decisions happened, in that order, on one
+day, and the record of access should show that rather than a tidy fiction in
+which only the final state ever existed.
+
+**Executed and verified 2026-08-18.** The roster now reads:
+
+| Email | Name | Role | Status |
+| --- | --- | --- | --- |
+| `btcmao518@gmail.com` | Yuxiang Mao (Shawn) | owner | active |
+| `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | active |
+| `andrew.davidson.zenith@gmail.com` | Andrew Davidson | owner | active |
+| `epiclife.nguyen@gmail.com` | Nate Nguyen | **manager** | active |
+| `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) — retired identity | owner | revoked |
+
+Four people hold access; one retired identity is retained and cannot sign in.
+The Cloudflare Access allow policy keeps all four addresses and needed no
+edit.
+
+**Audit-log debt, carried deliberately so it is not forgotten.** Three access
+decisions of 2026-08-18 were applied with `--command` UPDATEs rather than the
+SQL files, so their `audit_events` rows may not exist: Nate's revocation, the
+retired-identity marking, and Nate's reinstatement. The portal's premise is
+that every allow and deny is written to an append-only table; a roster change
+that is live but unlogged is exactly the gap that table exists to prevent.
+Running `db/sql/0004` and `db/sql/0005` from a merged `main` closes it — every
+UPDATE in them no-ops against rows already in the target state, so a late run
+is safe and writes only the missing audit rows. Confirm what is actually
+missing first:
+
+```
+npx wrangler d1 execute site-creator-d1 --remote --command="SELECT actor_email, action, reason, created_at FROM audit_events ORDER BY id DESC LIMIT 6;"
+```
+
+### 19i. A14 verified live — the desk answered on its own
+
+**2026-08-18.** The auto-reply routine had fired since 2026-08-17 without
+sending anything (§19d): it woke, could not reach the Inkbox tools, and ended
+quietly. The founder corrected the routine's configuration on the morning of
+the 18th.
+
+The loop then closed with no session open:
+
+| | |
+| --- | --- |
+| Founder texted | 2026-08-18T05:13Z — a Meet link, an attachment, and "1:00pm" |
+| Routine fired | on its own schedule, unattended |
+| Desk replied | 2026-08-18T07:34:58Z, Inkbox `c79cec0d-b872-4263-bcad-9e34720d0f8e`, delivered |
+
+**The reply's content is the part worth recording.** It acknowledged the Meet
+link and the time, then said plainly that the attachment had arrived as an
+unlabeled file type it could not read, and asked what was needed from it —
+rather than guessing at the contents or passing over the gap in silence. The
+allowlist held, the content leashes held, and the agent reported its own
+limitation while unattended. A leash that holds when nobody is watching is
+the only kind that counts.
+
+**Still unverified:** HERALD MORNING TEXT. It last fired 2026-08-17T13:37Z and
+sent nothing; its next scheduled pass is 2026-08-18T13:32Z. Until an outbound
+brief appears in the thread, the daily 8:30 text remains a routine that has
+never delivered.

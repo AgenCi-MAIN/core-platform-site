@@ -102,6 +102,7 @@ const PROTECTED_ROUTES = [
   "/portal/book",
   "/portal/calls",
   "/portal/command",
+  "/portal/command/lodge",
   "/portal/calls/review",
   "/portal/calls/review/1",
   "/portal/commission",
@@ -465,15 +466,44 @@ test("Training is guarded, ordered above Book of Business, and stays server-only
   // content and compares it byte-for-byte against the approved constant,
   // which is the stronger, output-level form of the direct-render pin that
   // used to live here.
+  //
+  // The body now reaches ScriptBody through splitApprovedBody, which cuts it
+  // into the author's own sections so an agent can work a step at a time on a
+  // live call. That is a split, never a rewrite, and it is pinned three ways
+  // rather than one:
+  //   1. the only thing handed to the splitter is slot.body itself,
+  //   2. the only thing handed to the renderer is a snippet of that split,
+  //   3. the splitter refuses to return a split that does not rejoin to its
+  //      input exactly — asserted here at the source, so the guarantee cannot
+  //      be quietly deleted from library.ts.
+  // The output-level proof still lives in portal-authorization, and it grew
+  // with this change: it concatenates EVERY rendered snippet and compares the
+  // result byte-for-byte to the approved constant, so a dropped, duplicated,
+  // or reordered section now fails too.
   assert.match(
     page,
-    /<ScriptBody body=\{slot\.body\} \/>/,
+    /splitApprovedBody\(slot\.body\)/,
+    "the approved body is no longer what gets split",
+  );
+  assert.match(
+    page,
+    /<ScriptBody body=\{snippet\.text\} \/>/,
     "approved training text no longer flows verbatim into the script renderer",
+  );
+  assert.match(
+    library,
+    /if \(rejoined !== body\) \{\n\s*throw new Error/,
+    "splitApprovedBody no longer refuses a lossy split",
   );
   assert.doesNotMatch(
     page,
     /slot\.body\.(?:trim|replace|slice|substring)|marked\(|dangerouslySetInnerHTML/,
     "approved training text is transformed before rendering",
+  );
+  assert.doesNotMatch(
+    `${page}\n${library}`,
+    /snippet\.text\.(?:trim|replace|slice|substring)/,
+    "a snippet is transformed after the split",
   );
 });
 
@@ -632,11 +662,14 @@ test("the theme boot script and the theme control agree on the three themes", as
   const control = await readFile(new URL("../app/theme-control.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
-  // Boot: explicit whitelist with dark fallback — not a two-value ternary.
+  // Boot: explicit whitelist with THRIVE fallback — not a two-value ternary.
+  // Thrive became the default on the founder's order 2026-08-18 ("DO NOT TAKE
+  // THRIVE COLOR OUT. THAT'LL BE THE DEFAULT COLOR WHILE STILL HAVING BRIGHT
+  // AND DARK"). All three remain selectable; only the unset case moved.
   assert.match(
     boot,
-    /\(t==="bright"\|\|t==="thrive"\)\?t:"dark"/,
-    "the boot script must whitelist exactly bright|thrive and fall back to dark",
+    /\(t==="bright"\|\|t==="dark"\)\?t:"thrive"/,
+    "the boot script must whitelist exactly bright|dark and fall back to thrive",
   );
 
   // Control: the THEMES table carries exactly the same ids. Its readTheme
@@ -652,8 +685,8 @@ test("the theme boot script and the theme control agree on the three themes", as
   );
   assert.match(
     control,
-    /useSyncExternalStore\(subscribe, readTheme, \(\) => "dark"\)/,
-    "the server snapshot must match the boot script's dark default",
+    /useSyncExternalStore\(subscribe, readTheme, \(\) => "thrive"\)/,
+    "the server snapshot must match the boot script's thrive default",
   );
 
   // Chrome hexes: the same three values in both files. Thrive's chrome is
@@ -1049,5 +1082,128 @@ test("sign-out refuses a return path that normalizes into a protocol-relative UR
     ok.headers.get("location") ?? "",
     /\/portal\/calls|\/access|\//,
     "a legitimate return path must still be honored",
+  );
+});
+
+test("no page-scoped style ships a hardcoded colour instead of a theme token", async () => {
+  // The bug this pins shut cost the founder a portal he could not read.
+  //
+  // Several pages ship their own minified `const STYLES` string. Four of them
+  // were authored against the dark theme with a literal slate/teal/amber
+  // palette and zero `--portal-*` tokens. The portal's boot default is dark,
+  // so every one of them measured fine in the theme they were written in and
+  // collapsed to roughly 1:1 contrast in Bright — headings rendering white on
+  // cream, which is not "low contrast", it is invisible. Product names,
+  // prices, and the leaderboard's own honesty sentence were absent from the
+  // page while every test passed.
+  //
+  // A colour that is not a token cannot follow the theme. So: no page-scoped
+  // style may declare a literal colour. Tokens resolve per theme; hex does not.
+  const pages = [
+    "../app/portal/inbound/page.tsx",
+    "../app/portal/shop/page.tsx",
+    "../app/portal/leaderboard/page.tsx",
+    "../app/portal/navigation-upgrade.tsx",
+  ];
+
+  for (const page of pages) {
+    const source = await readFile(new URL(page, import.meta.url), "utf8");
+    // Match a literal ANYWHERE in the declaration's value, not only as its
+    // first token. The first version of this guard checked the head of the
+    // value and therefore passed
+    //   background:linear-gradient(145deg,rgba(56,35,10,.18),rgba(12,17,29,.9))
+    // which is the Routing bridge card: a translucent gradient with no opaque
+    // ground under it. Authored over a dark page it looked solid; over a light
+    // one its first stop is 18% opaque, the page shows straight through, and
+    // the light ink on top is unreadable. A literal buried in a gradient is
+    // the same defect as a literal on its own, and hid for exactly one round.
+    const literals = source.match(/(?:color|background|background-color|border-color)\s*:[^;}]*(?:#[0-9a-fA-F]{3,8}|rgba?\([^)]*\))[^;}]*/g) ?? [];
+    assert.deepEqual(
+      literals,
+      [],
+      `${page} declares colour literally instead of through a --portal-* token: ${literals.join(", ")}`,
+    );
+  }
+});
+
+test("touch controls meet the 44px floor and answer a tap without delay", async () => {
+  // The portal installs to the home screen and is used one-handed, so it is
+  // judged against native apps. Three properties carry most of that feeling,
+  // and each has failed here before:
+  //
+  //   The audio transport shipped at 33px with a 13px slider thumb — a desktop
+  //   control handed to a thumb. Apple's floor is 44x44pt.
+  //
+  //   Without touch-action: manipulation the browser waits 300ms for a
+  //   possible double-tap before acting. That wait is most of what "feels
+  //   like a website" means.
+  //
+  //   -webkit-tap-highlight-color: transparent removes the grey flash. Doing
+  //   that WITHOUT providing a press state leaves a control that gives no
+  //   feedback at all, which is worse than the flash.
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  assert.match(css, /touch-action:\s*manipulation/,
+    "interactive elements must not wait 300ms for a possible double-tap");
+
+  assert.match(css, /-webkit-tap-highlight-color:\s*transparent/,
+    "the grey tap flash is replaced by a real press state, not left as-is");
+
+  assert.match(css, /:active[^{]*\{[^}]*transform:\s*scale\(/,
+    "removing the tap flash requires giving a press state back");
+
+  assert.match(css, /width:\s*max\(100%,\s*44px\)/,
+    "small controls expand their hit area to the 44px floor on touch");
+
+  assert.match(css, /-webkit-text-size-adjust:\s*100%/,
+    "text sizing stays the user's decision");
+
+  // A press state that ignores prefers-reduced-motion is a press state that
+  // moves the screen for someone who asked it not to.
+  const reducedBlocks = css.match(/@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\n\}/g) ?? [];
+  assert.ok(
+    reducedBlocks.some((block) => /:active/.test(block) && /transform:\s*none/.test(block)),
+    "the press state must be dropped under prefers-reduced-motion",
+  );
+
+  // iOS Safari zooms the viewport on focusing any input under 16px and never
+  // zooms back. The lodge code field is the first thing a locked-out person
+  // meets; throwing the page at them is not an option.
+  assert.match(css, /input,\s*select,\s*textarea\s*\{\s*font-size:\s*max\(16px/,
+    "inputs must be 16px or larger on touch or iOS zooms the page and stays there");
+});
+
+test("nothing traps the vertical wheel", async () => {
+  // Three separate founder reports came from this one property, applied three
+  // different ways:
+  //
+  //   "cant scroll while hover over some these tabs" — contain on
+  //   .portal-main, which is not a scroll container at all.
+  //
+  //   "CLEARLY still CANNOT SCROLL ON BUTTONS" — contain on the sidebar nav.
+  //   With the pointer over the rail's links the wheel scrolled the list and
+  //   then stopped, instead of handing off to the page behind it.
+  //
+  //   A page that stops scrolling under the cursor reads as broken, and the
+  //   person reporting it has no way to know which element caused it. That is
+  //   what makes this worth a test rather than a comment.
+  //
+  // BLOCK-AXIS containment is therefore banned outright. INLINE-axis
+  // containment stays allowed and is not matched here: a horizontally
+  // scrolling table or tab strip should not drag the page sideways, and
+  // stopping that has nothing to do with the vertical wheel.
+  // Comments are stripped first. The explanations of WHY this property is
+  // banned necessarily name it, and a guard that fails on its own rationale
+  // teaches people to delete the rationale.
+  const css = (await readFile(new URL("../app/globals.css", import.meta.url), "utf8"))
+    .replace(/\/\*[\s\S]*?\*\//g, "");
+
+  const offenders = (css.match(/overscroll-behavior(?:-y|-block)?\s*:\s*(?:contain|none)/g) ?? [])
+    .filter((declaration) => !/-inline/.test(declaration));
+
+  assert.deepEqual(
+    offenders,
+    [],
+    `vertical overscroll containment traps the wheel over that element: ${offenders.join(", ")}`,
   );
 });

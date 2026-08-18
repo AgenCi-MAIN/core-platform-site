@@ -55,7 +55,7 @@ function readTheme(): PortalTheme {
   const value = document.documentElement.dataset.portalTheme;
   const known = THEMES.find((theme) => theme.id === value);
   // Missing/unknown attribute falls back to BRIGHT — deliberately NOT the
-  // boot script's dark default, because this function describes what the
+  // boot script's thrive default, because this function describes what the
   // DOM currently shows: with no data-portal-theme attribute, no themed CSS
   // selector matches and the stylesheet's unguarded base palette (Bright)
   // is what's on screen. That happens exactly when the boot script could
@@ -66,10 +66,13 @@ function readTheme(): PortalTheme {
   return known ? known.id : "bright";
 }
 
-const DARK_THEME = THEMES.find((entry) => entry.id === "dark")!;
+// The fallback must match the boot script exactly — a test pins the two
+// together, because a control that disagrees with the boot produces a page
+// that flashes one theme and settles into another.
+const DEFAULT_THEME = THEMES.find((entry) => entry.id === "thrive")!;
 
 function applyTheme(themeId: PortalTheme) {
-  const theme = THEMES.find((entry) => entry.id === themeId) ?? DARK_THEME;
+  const theme = THEMES.find((entry) => entry.id === themeId) ?? DEFAULT_THEME;
   document.documentElement.dataset.portalTheme = theme.id;
   document.documentElement.style.colorScheme = theme.scheme;
   // The status-bar/browser chrome colour follows the page. The boot script
@@ -83,7 +86,7 @@ export function PortalThemeControl() {
   // first-time visitor before hydration — a "bright" snapshot would flash
   // the Bright pill pressed on a dark page between paint and hydration, and
   // would lie permanently if hydration never runs.
-  const theme = useSyncExternalStore(subscribe, readTheme, () => "dark");
+  const theme = useSyncExternalStore(subscribe, readTheme, () => "thrive");
 
   function chooseTheme(nextTheme: PortalTheme) {
     applyTheme(nextTheme);

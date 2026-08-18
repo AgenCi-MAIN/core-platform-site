@@ -79,24 +79,6 @@ const NAV: readonly NavItem[] = [
     stateLabel: "Available",
   },
   {
-    href: "/portal/command",
-    label: "Command Center",
-    // INERT — commandOnly short-circuits ahead of the capability check, so
-    // this field never gates anything. It is set to the universal capability
-    // ON PURPOSE: if commandOnly were ever lost, the card would show to
-    // everyone and the server guard would refuse loudly on click — a visible
-    // failure. The previous value (audit.view, which no role holds) would
-    // instead have hidden the card from everyone including the founder,
-    // silently.
-    capability: "dashboard.view.self",
-    icon: "command",
-    group: "Workspace",
-    description: "Workforce, decisions, signals, and field handoffs. Founder + named helpers.",
-    state: "live",
-    commandOnly: true,
-    stateLabel: "Command access",
-  },
-  {
     href: "/portal/announcements",
     label: "Announcements",
     capability: "dashboard.view.self",
@@ -246,6 +228,22 @@ const NAV: readonly NavItem[] = [
     state: "live",
     stateLabel: "Available",
   },
+  /**
+   * The Command Center no longer carries its own sidebar entry (founder's
+   * order 2026-08-18: "Move Command center in RADIO. Hidden in plain sight").
+   * It is reached from inside Radio instead.
+   *
+   * BE CLEAR ABOUT WHAT THIS IS AND IS NOT. Removing a label hides the DOOR,
+   * never the room: `/portal/command` still resolves, still refuses anyone
+   * without a member row, still refuses anyone off COMMAND_CENTER_EMAILS, and
+   * still demands a single-use lodge code from everyone but the founder. The
+   * route is unchanged on purpose, so bookmarks, the /go/hq handoff, and every
+   * guard test keep working.
+   *
+   * Obscurity is not a control and nothing here is treated as one. This is a
+   * quieter front door on a locked room, which is fine — and it would be
+   * dangerous only if it were ever mistaken for the lock itself.
+   */
   {
     href: "/portal/shop",
     label: "Exchange",

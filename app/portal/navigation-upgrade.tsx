@@ -85,10 +85,10 @@ export function PortalNavigationUpgrade() {
 
   return (
     <style>{`
-      .thrive-inbound-live{margin-left:auto;border:1px solid rgba(52,211,153,.26);border-radius:999px;padding:2px 5px;color:#6ee7b7;background:rgba(16,185,129,.08);font-size:.52rem;font-weight:900;letter-spacing:.08em}
-      .thrive-balance-pill{display:grid;gap:1px;min-width:112px;border:1px solid rgba(45,212,191,.16);border-radius:10px;padding:6px 9px;text-decoration:none;background:rgba(15,23,42,.5);transition:border-color .18s ease,background .18s ease}
-      .thrive-balance-pill:hover{border-color:rgba(45,212,191,.34);background:rgba(20,184,166,.08)}
-      .thrive-balance-pill span{color:#7f91aa;font-size:.58rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.thrive-balance-pill strong{color:#e6edf6;font-size:.72rem;white-space:nowrap}
+      .thrive-inbound-live{margin-left:auto;border:1px solid color-mix(in srgb,var(--portal-accent) 16%,transparent);border-radius:999px;padding:2px 5px;color:var(--portal-accent-strong);background:color-mix(in srgb,var(--portal-accent) 12%,transparent);font-size:.52rem;font-weight:900;letter-spacing:.08em}
+      .thrive-balance-pill{display:grid;gap:1px;min-width:112px;border:1px solid color-mix(in srgb,var(--portal-accent) 28%,transparent);border-radius:10px;padding:6px 9px;text-decoration:none;background:var(--portal-raised);transition:border-color .18s ease,background .18s ease}
+      .thrive-balance-pill:hover{border-color:color-mix(in srgb,var(--portal-accent) 28%,transparent);background:color-mix(in srgb,var(--portal-accent) 12%,transparent)}
+      .thrive-balance-pill span{color:var(--portal-muted);font-size:.58rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.thrive-balance-pill strong{color:var(--portal-text);font-size:.72rem;white-space:nowrap}
       @media(max-width:860px){.thrive-balance-pill{display:none}}
     `}</style>
   );
