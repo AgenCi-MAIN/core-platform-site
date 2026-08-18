@@ -5704,3 +5704,19 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .playbook-tablewrap { overflow-x: auto; border: 1px solid var(--portal-line); border-radius: var(--portal-radius, 10px); }
 .playbook-tablewrap table { margin: 0; }
 .playbook-sub { display: block; margin-top: 2px; color: var(--portal-subtle, var(--portal-muted)); font-size: .72rem; font-weight: 500; }
+
+
+/* Per-person seats in the Playbook. Each is a block rather than a table row:
+   what a person may do needs sentences, and a table would force it into
+   fragments that read as slights. */
+.playbook-seat { padding: 14px 0; border-top: 1px solid var(--portal-line); }
+.playbook-seat:first-of-type { border-top: 0; padding-top: 4px; }
+.playbook-seat h4 {
+  margin: 0 0 8px;
+  font-size: .95rem;
+  font-weight: 750;
+  letter-spacing: -.005em;
+  color: var(--portal-text);
+}
+.playbook-seat p { margin: 0 0 8px; font-size: .9rem; }
+.playbook-seat p:last-child { margin-bottom: 0; }

@@ -111,6 +111,125 @@ export function LeadershipPlaybook({ session }: { session: PortalSession }) {
         </div>
       </section>
 
+
+      <section className="portal-card" id="playbook-seats">
+        <h3>Where each of you sits</h3>
+        <p>
+          Mapped onto the Operating Plan&apos;s ten-seat model, and checked
+          against what the software actually grants. Where a seat and a
+          capability disagree, the capability wins — it is the one that
+          decides what opens.
+        </p>
+
+        <div className="playbook-seat">
+          <h4>Shawn — Seat 1, Executive Sponsor and Decision Owner</h4>
+          <p>
+            The seat exists to answer what no amount of engineering can settle:
+            who gets access, what the portal may claim, what the AI staff is
+            allowed to say, and when something is ready to be trusted. In the
+            software it is not a job title — it is one address.
+          </p>
+          <p>
+            <strong>Reserved to that address alone,</strong> by identity rather
+            than role, so Ryan and Andrew are refused here as owners: the audit
+            log, the Investigator console, the three <code>/go/*</code>{" "}
+            handoffs, issuing lodge codes, and the Command Center without one.
+          </p>
+          <p>
+            <strong>And the things that are his because nothing else can do
+            them:</strong> arming routines, running database migrations,
+            deploying, and the Cloudflare Access policy. Those are deliberate
+            single points of authority, not bottlenecks to engineer away.
+          </p>
+        </div>
+
+        <div className="playbook-seat">
+          <h4>Ryan — Seat 8, Sales, Lead and Routing Operations</h4>
+          <p>
+            Owner: the widest role the platform has. The roster, Call Lab,
+            Script Vault, Team, Leaderboard, Book of Business, the commission
+            schedule, and the leadership-only integration pages.
+          </p>
+          <p>
+            <strong>What refuses him, and why it is correct:</strong> the
+            founder-only surfaces answer one address, not a role. He is also
+            not on the Command Center list at all — that is Shawn and Andrew —
+            so Frequency 00.1 is not a door he can open, with or without a
+            code. None of that is a slight; it is the model working.
+          </p>
+          <p>
+            <strong>His ground is the definition of a usable lead:</strong>{" "}
+            agent availability, qualification, routing reasons, transfer
+            acceptance, disposition quality, source disputes. His owner
+            capabilities already reach every surface that will hold those
+            answers.
+          </p>
+          <p>
+            <strong>First week, honestly:</strong> the data he would manage is
+            not connected yet. The useful work now is deciding what a usable
+            lead <em>is</em>, and what a disposition must record — written down
+            before a feed arrives, rather than reverse-engineered from whatever
+            the first integration happens to send.
+          </p>
+        </div>
+
+        <div className="playbook-seat">
+          <h4>Andrew — Seat 3/4, Backend and Portal Product</h4>
+          <p>
+            Owner, plus the only name besides Shawn&apos;s on the Command
+            Center list — decision A13, &quot;he is going to help Dev&quot;. A
+            per-person grant, not something the owner role carries: Ryan is an
+            owner and the Command Center refuses him.
+          </p>
+          <p>
+            <strong>The list makes him eligible; the code makes the
+            session.</strong> Since the 18 August order (A21), being named is
+            necessary and no longer sufficient. That is not a comment on
+            Andrew — it is the same shape as everything else here. Access lets
+            you to the door, Google proves who you are, and only an active
+            roster row lets you in. A name on a list has never been the thing
+            that opens something in this portal.
+          </p>
+          <p>
+            <strong>One correction worth stating plainly:</strong> owner does
+            not mean he can change any row. He can grant new members and change
+            or revoke <strong>non-owner</strong> rows. His own row and every
+            other owner row are locked — changing an owner is a database-console
+            job, on purpose.
+          </p>
+          <p>
+            <strong>Getting in:</strong> Radio → <strong>Frequency 00.1</strong>,
+            then a six-digit code from Shawn. Fifteen minutes, one use, five
+            wrong attempts locks it.
+          </p>
+        </div>
+
+        <div className="playbook-seat">
+          <h4>Nate — manager</h4>
+          <p>
+            Held owner until 18 August. He declined to invest, so the row moved
+            to manager; he remains an employee and nothing about his job
+            changed with it. The portal keeps ownership and employment apart on
+            purpose — the role column decides which doors open, not who is
+            valued.
+          </p>
+          <p>
+            <strong>Manager opens</strong> everything every member gets, plus
+            Call Lab, Team, Leadership, and sight of the roster.{" "}
+            <strong>It does not open</strong> changing the roster or editing
+            approved call language.
+          </p>
+          <p>
+            <strong>On My Stats:</strong> his own call numbers only, filtered to
+            his address — he cannot see another member&apos;s stats there.
+            Everyone&apos;s call count and talk time <em>are</em> visible by
+            name on the Leaderboard, including his. The premium and closed
+            columns are blank and stay blank until a policy source exists.
+            They are not zero; they are unknown.
+          </p>
+        </div>
+      </section>
+
       <section className="portal-card" id="playbook-truth">
         <h3>When the portal says it does not know</h3>
         <p>
