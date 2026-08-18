@@ -810,7 +810,7 @@ button, .button, .nav-cta, .text-link {
   --portal-radius: 9px;
   --portal-radius-lg: 12px;
   --portal-shadow: 0 1px 2px rgba(55, 37, 13, .08), 0 10px 28px rgba(82, 53, 12, .06);
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--portal-bg);
@@ -831,7 +831,7 @@ button, .button, .nav-cta, .text-link {
 }
 
 .portal-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   grid-template-columns: 232px minmax(0, 1fr);
   background: var(--portal-bg);
@@ -1049,7 +1049,7 @@ button, .button, .nav-cta, .text-link {
 .portal-system-dot-link { display: inline-flex; align-items: center; padding: 4px; margin: -4px; border-radius: 6px; }
 .portal-system-dot-link:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 1px; }
 
-.portal-workspace { min-width: 0; min-height: 100vh; background: var(--portal-bg); }
+.portal-workspace { min-width: 0; min-height: 0; background: var(--portal-bg); display: flex; flex-direction: column; }
 .portal-topbar {
   position: sticky;
   top: 0;
@@ -4702,7 +4702,7 @@ html[data-portal-performance="boost"] .portal-sidebar {
   --fcc-grid: rgba(228, 181, 78, .11);
   display: grid;
   gap: 14px;
-  padding-bottom: 112px;
+  padding-bottom: 40px;
 }
 
 .fcc-hero {
