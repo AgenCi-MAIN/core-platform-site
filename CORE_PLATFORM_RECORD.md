@@ -38,9 +38,9 @@ Every allow and every deny is written to an append-only `audit_events` table.
 | --- | --- |
 | Public URL | `https://site-creator-vinext-starter.bankerrunners.workers.dev` |
 | Worker name | `site-creator-vinext-starter` |
-| Cloudflare account | `Bankerrunners@gmail.com's Account` — `e6f9d0a344a0a7b317601ffbe23f871e` |
-| workers.dev subdomain | `bankerrunners` |
-| D1 database | `site-creator-d1` — `e00c30f0-7017-49d8-9f81-446cef9e32c3` |
+| Cloudflare account | `Btcmao518@gmail.com's Account` — `f39f3a77e56b28e4dfae29489a997014` (GitHub SSO; MIGRATED 2026-08-18 from the old `Bankerrunners@gmail.com` account `e6f9d0a344a0a7b317601ffbe23f871e`, whose recovery email was lost — old account left running until cutover, then abandoned) |
+| workers.dev subdomain | set on first deploy to the new account (was `bankerrunners` on the old) |
+| D1 database | `site-creator-d1` — `e19d74e0-1913-41a5-b695-cd1acc94d5ed` (new account; old-account db was `e00c30f0-7017-49d8-9f81-446cef9e32c3`, exported to the owner's machine 2026-08-17/18 before migration) |
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | GitHub repo | `bankerrunners/core-platform-site` |
 | Working branch | `main` — PR #1 (`claude/new-session-9a8g4o`) merged long ago; work lands on `main` through squash-merged pull requests (the PR trail) |
