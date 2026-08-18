@@ -222,3 +222,33 @@ Secrets survive deploys; they only need setting again if they change.
   the Google Auth Platform "Data Access" page. Remaining member-facing step:
   the cutover announcement. When a new member is seated they must be added
   in TWO places — the portal roster AND this Access policy.
+- 2026-08-18 (current serving version): **version
+  `fd0926a3-a01d-400a-8cda-b26095e8c7b2`** — deployed by the owner from
+  `C:\dev\core-platform-site` at `main@9be299d`, on the new Cloudflare
+  account, serving `https://site-creator-vinext-starter.thrive18.workers.dev`.
+  Bindings confirmed present in the deploy output: `env.DB` →
+  `site-creator-d1` and `env.CALL_RECORDINGS` → `site-creator-r2`. 41 client
+  assets read from `dist/client`; no changed assets to upload, so the client
+  bundle is unchanged from the previous version and the delta is worker-side.
+  Total upload 2735.50 KiB (gzip 933.22 KiB); worker startup 30 ms.
+  Version id captured at deploy time — the preserved-id streak continues.
+
+  **What this version carries over `5ecbce7a`:** everything merged to main
+  since the account migration, including the guarded verbatim Training
+  library and its Training tab above Book of Business (#47, #48), the
+  LeadTech/Retreaver/Twilio honest not-connected surfaces and the
+  `COMMAND_CENTER_EMAILS` named allowlist (#55), the THRIVE navy theme rounds
+  (#59, #60), the in-portal commission schedule (#58), the sales-tools and
+  mission-map wiring (#62), the outreach log carrying decision A14 (#63,
+  documentation only), and the THRIVE inbound portal, leaderboard and
+  marketplace at the branch tip (#64).
+
+  **Vercel note, recorded so it is not rediscovered:** a Vercel build of this
+  repository fails at the post-build step with "The Next.js output directory
+  `.next` was not found". The build itself succeeds — Vercel auto-detects the
+  Next.js preset because `next` is a dependency, but `vinext build` emits
+  `dist/client` and `dist/server`, not `.next`. This is not a settings bug to
+  fix: the portal is a Cloudflare Worker needing the workerd runtime and the
+  D1 binding, neither of which Vercel provides, so a Vercel deployment could
+  only ever serve assetless static output at a second, unadministered
+  address. Deploy only via `npm run deploy`.
