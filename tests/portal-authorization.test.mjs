@@ -2804,3 +2804,61 @@ test("the Leadership Playbook answers manager and above, and nobody else", async
     );
   }
 });
+
+test("a session cookie cannot be worn as a Command Center pass", async () => {
+  // The lodge lock (#72) is enforced by hasLivePass(), which reads the
+  // core_command_pass cookie and checks the HMAC, the expiry, and the subject.
+  // Those three checks are all satisfied by the ORDINARY SESSION COOKIE: it is
+  // signed with the same SESSION_SECRET, it carries the same `sub`, and it is
+  // unexpired for as long as the person is signed in. So until the `pass`
+  // claim was verified too, anyone eligible for the lodge could open the
+  // Command Center by copying core_session into core_command_pass in their own
+  // browser — no code issued, no code redeemed, no pass burned, no audit row,
+  // and the door held open for the full session lifetime rather than one
+  // session capped at two hours.
+  //
+  // HttpOnly does not prevent this. It hides a cookie from page scripts; it
+  // hides nothing from the person holding the browser, who can read and re-set
+  // their own cookies from devtools in about four seconds. The attacker here
+  // is the cookie's rightful owner, which is exactly the threat a
+  // per-session code exists to bound.
+  //
+  // The fix is one line — require the `pass` claim that only redeemPass()
+  // mints — and this test is what keeps it there. Note that it needs no
+  // command_passes table: the bypass never reached the database, which is
+  // precisely what made it silent.
+  const portal = await startPortal();
+  await portal.addMember("andrew.davidson.zenith@gmail.com", "owner");
+  const helper = {
+    subject: "sub-command-helper-forged-pass",
+    email: "andrew.davidson.zenith@gmail.com",
+  };
+
+  const sessionToken = mintSessionToken(helper);
+  const forged = await portal.mf.dispatchFetch("http://localhost/portal/command", {
+    redirect: "manual",
+    headers: {
+      accept: "text/html",
+      // The same token in both slots — the whole attack.
+      cookie: `core_session=${sessionToken}; core_command_pass=${sessionToken}`,
+    },
+  });
+
+  assert.equal(
+    forged.status,
+    307,
+    "a session token presented as a pass must not open the Command Center",
+  );
+  assert.match(
+    forged.headers.get("location") ?? "",
+    /\/portal\/command\/lodge/,
+    "the forged pass must be ignored and the holder sent back to the lodge",
+  );
+  assert.equal(
+    await forged.text(),
+    "",
+    "a refused Command Center must emit no body",
+  );
+
+  await portal.dispose();
+});

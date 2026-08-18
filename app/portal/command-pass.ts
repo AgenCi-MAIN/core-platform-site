@@ -209,6 +209,15 @@ export async function hasLivePass(
   const expires = typeof claims.exp === "number" ? claims.exp : 0;
   if (expires <= nowSeconds()) return false;
 
+  // The pass claim is what makes this a PASS and not merely a signed token.
+  // Without it, any token this secret signs satisfies the checks above — and
+  // the ordinary session cookie is exactly that shape (sub + exp, same
+  // SESSION_SECRET). Copying core_session into core_command_pass would have
+  // opened the Command Center for the whole session lifetime, with no code
+  // redeemed, no pass burned, and no audit row. HttpOnly hides a cookie from
+  // scripts, not from the person holding the browser.
+  if (typeof claims.pass !== "number") return false;
+
   return claims.sub === subjectId;
 }
 

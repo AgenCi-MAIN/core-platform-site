@@ -112,8 +112,11 @@ $v.Dispose()
 Script Vault is `/portal/scripts`, Exchange is `/portal/shop`, Radio is
 `/portal/music`. Quoter is not a route at all — it is an outbound link to a
 third-party tool, outside the access model entirely. The full mapping is in
-[CORE_PLATFORM_RECORD.md](../CORE_PLATFORM_RECORD.md) § 10a. The repository and
-the deployed site are in sync; the naming just makes them look divergent.
+[CORE_PLATFORM_RECORD.md](../CORE_PLATFORM_RECORD.md) § 10a. Every sidebar
+label resolves to a route in this repository; the naming just makes them look
+divergent. That is a statement about names, not about deploy freshness — what
+the worker is currently serving is DEPLOYMENT.md's question, and `main` can and
+does run ahead of it.
 
 **The surfaces are gated, but mostly unfilled.** The frame is real and enforces
 access correctly. Business sources — CRM, carrier, dialer, financial — are not
