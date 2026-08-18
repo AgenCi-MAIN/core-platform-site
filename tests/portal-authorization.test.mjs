@@ -674,6 +674,10 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
   assert.deepEqual(
     [...deskLocation.searchParams.entries()].sort(),
     [
+      // authuser pins the compose to the migrated founder identity — the
+      // retired bankerrunners account is locked and frozen for outreach
+      // (A12), so the desk must never open a compose as it.
+      ["authuser", "btcmao518@gmail.com"],
       ["fs", "1"],
       ["to", "out-reach@inkboxmail.com"],
       ["view", "cm"],
