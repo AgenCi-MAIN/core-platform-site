@@ -1255,3 +1255,63 @@ Cloudflare Access allow policy. Until that policy edit, his address still
 clears the edge gate and is stopped only by the membership check: correct
 behaviour, but he should not be reaching the gate at all. Outreach to him
 ends here.
+
+### 19h. Nate reinstated as an employee — A16 amends A15 the same day
+
+The owner revoked Nate's owner row on the morning of 2026-08-18 because he
+declined to invest, then clarified hours later: "He's my employee, leave him
+the access." Both are true and they are not in conflict — **investing and
+working here are different things**, and the role system exists to carry
+exactly that difference. He becomes a **manager**, active.
+
+Why this state rather than the obvious alternatives:
+
+- **Not left revoked-with-Access.** Revoked in the roster while still on the
+  Cloudflare Access allow policy would let him clear the edge gate and then be
+  refused inside at `/portal/no-access`. That is a locked door behind an
+  unlocked one — technically correct, and a bad thing to do to an employee.
+- **Not restored as owner.** Ownership was the thing he declined. Putting the
+  owner row back would make the roster claim an investment relationship that
+  does not exist, and would hand him `members.manage` — the ability to change
+  other people's access — for a role he no longer holds.
+- **Manager** is the honest fit: he can see the roster (`members.view`) and
+  never change it, review calls, and see team and leadership surfaces. He
+  cannot manage members or edit approved call language.
+
+**Withdrawn:** the A15 follow-up to remove him from the Cloudflare Access
+policy. He is staff and signs in normally, so the policy keeps all four
+addresses and no Access edit is needed.
+
+The audit trail records the reinstatement as its own event rather than
+overwriting the revocation. Both decisions happened, in that order, on one
+day, and the record of access should show that rather than a tidy fiction in
+which only the final state ever existed.
+
+**Executed and verified 2026-08-18.** The roster now reads:
+
+| Email | Name | Role | Status |
+| --- | --- | --- | --- |
+| `btcmao518@gmail.com` | Yuxiang Mao (Shawn) | owner | active |
+| `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | active |
+| `andrew.davidson.zenith@gmail.com` | Andrew Davidson | owner | active |
+| `epiclife.nguyen@gmail.com` | Nate Nguyen | **manager** | active |
+| `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) — retired identity | owner | revoked |
+
+Four people hold access; one retired identity is retained and cannot sign in.
+The Cloudflare Access allow policy keeps all four addresses and needed no
+edit.
+
+**Audit-log debt, carried deliberately so it is not forgotten.** Three access
+decisions of 2026-08-18 were applied with `--command` UPDATEs rather than the
+SQL files, so their `audit_events` rows may not exist: Nate's revocation, the
+retired-identity marking, and Nate's reinstatement. The portal's premise is
+that every allow and deny is written to an append-only table; a roster change
+that is live but unlogged is exactly the gap that table exists to prevent.
+Running `db/sql/0004` and `db/sql/0005` from a merged `main` closes it — every
+UPDATE in them no-ops against rows already in the target state, so a late run
+is safe and writes only the missing audit rows. Confirm what is actually
+missing first:
+
+```
+npx wrangler d1 execute site-creator-d1 --remote --command="SELECT actor_email, action, reason, created_at FROM audit_events ORDER BY id DESC LIMIT 6;"
+```
