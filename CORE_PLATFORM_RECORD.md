@@ -1169,3 +1169,22 @@ artifact. He's on the site" / "send Andrew an introduction at msg
   the Quoter-is-external seam stated, owner peer-protection, deny-by-default
   capabilities, and the iOS code-copy trap. Founder-only surfaces are not
   mentioned. No secret name or value appears; the page grants nothing.
+
+**19f follow-up — Andrew's text channel is open.** He texted `START` to the
+desk line (+1 689 689 1349) at 2026-08-18T03:51:45Z, which cleared the SMS
+consent block. His introduction was sent immediately over SMS: Inkbox id
+`12e03f72-535a-4668-a8da-48ebd4d87a45`, conversation
+`5ce5a4bc-e920-4d68-870d-6304f70818d6`, status `queued`.
+
+Two channel facts learned here, worth keeping:
+- SMS opt-in is granted by ANY inbound message from the recipient; `START`
+  is the conventional word but not a required one.
+- iMessage has a second gate beyond the router connect: after
+  `connect @out-reach` the assignment exists but the desk still cannot speak
+  first — `imessage_awaiting_inbound` until the recipient sends a message
+  into that thread. Andrew's iMessage path reached that state and remains
+  there; SMS is what carried the message.
+
+Andrew is now the second number on the A13 allowlist with a live channel
+(Shawn's iMessage being the first). Ryan +1 941 210 1410 remains blocked on
+both channels — no opt-in of any kind yet.
