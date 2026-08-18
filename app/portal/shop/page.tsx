@@ -113,7 +113,7 @@ export default async function MarketplacePage() {
         </div>
 
         <p className="marketplace-boundary" role="note">
-          <strong>What the button does today:</strong> it writes a permissioned <code>marketplace.request</code> record to CORE's append-only audit stream so leadership has a real order request to act on. <strong>It does not charge a card, debit a balance, or change compensation.</strong> Checkout becomes transactional only after a wallet/payment system of record is connected.
+          <strong>What the button does today:</strong> it writes a permissioned <code>marketplace.request</code> record to CORE&rsquo;s append-only audit stream so leadership has a real order request to act on. <strong>It does not charge a card, debit a balance, or change compensation.</strong> Checkout becomes transactional only after a wallet/payment system of record is connected.
         </p>
       </main>
     </PortalShell>
