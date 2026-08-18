@@ -13,9 +13,9 @@ the owner keeps.
 | --- | --- |
 | Public URL | `https://site-creator-vinext-starter.bankerrunners.workers.dev` |
 | Worker name | `site-creator-vinext-starter` |
-| Cloudflare account | `Bankerrunners@gmail.com's Account` (`e6f9d0a344a0a7b317601ffbe23f871e`) |
-| workers.dev subdomain | `bankerrunners` |
-| D1 database | `site-creator-d1` — `e00c30f0-7017-49d8-9f81-446cef9e32c3` |
+| Cloudflare account | `Btcmao518@gmail.com's Account` (`f39f3a77e56b28e4dfae29489a997014`) — GitHub SSO; migrated 2026-08-18, old account abandoned after cutover |
+| workers.dev subdomain | set on first deploy to the new account (was `bankerrunners`) |
+| D1 database | `site-creator-d1` — `e19d74e0-1913-41a5-b695-cd1acc94d5ed` (new account) |
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | First owner | `bankerrunners@gmail.com`, role `owner`, seeded by SQL |
 | Second owner | `ryandavidson.zenith@gmail.com`, role `owner`, granted 2026-08-14 |
