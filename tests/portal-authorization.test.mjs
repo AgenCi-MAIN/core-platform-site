@@ -674,6 +674,10 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
   assert.deepEqual(
     [...deskLocation.searchParams.entries()].sort(),
     [
+      // authuser pins the compose to the migrated founder identity — the
+      // retired bankerrunners account is locked and frozen for outreach
+      // (A12), so the desk must never open a compose as it.
+      ["authuser", "btcmao518@gmail.com"],
       ["fs", "1"],
       ["to", "out-reach@inkboxmail.com"],
       ["view", "cm"],
@@ -2380,6 +2384,46 @@ test("LeadTech renders the honest not-connected state to leadership and refuses 
   assert.equal(agentRes.status, 307, "an agent lacks leadership.view.all");
   assert.match(agentRes.headers.get("location") ?? "", /\/portal\/no-access/);
   assert.equal(await agentRes.text(), "", "a refused agent receives no body");
+});
+
+test("the commission schedule serves every active member from inside the bundle", async (t) => {
+  // The schedule lives INSIDE the portal: /portal/commission renders the
+  // shell page with an embedded frame, and /portal/commission/document
+  // serves the interactive grid from a ?raw import in the worker bundle (an
+  // ASSETS-binding proxy 503'd on the first live deploy — this pins that it
+  // can never regress to an empty response). dashboard.view.self means EVERY
+  // member role gets it, agents included; anonymous refusal of both routes
+  // is pinned separately in the PROTECTED_ROUTES suite.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("agent-commission@example.com", "agent");
+  const identity = {
+    subject: "subject-agent-commission",
+    email: "agent-commission@example.com",
+  };
+
+  const page = await portal.get("/portal/commission", identity);
+  assert.equal(page.status, 200, "an active agent opens the schedule page");
+  const pageHtml = await page.text();
+  assert.match(
+    pageHtml,
+    /<iframe[^>]*src="\/portal\/commission\/document"/,
+    "the page must embed the guarded document frame inside the portal shell",
+  );
+
+  const doc = await portal.get("/portal/commission/document", identity);
+  assert.equal(doc.status, 200, "an active agent receives the schedule document");
+  assert.match(doc.headers.get("content-type") ?? "", /text\/html/);
+  assert.match(doc.headers.get("cache-control") ?? "", /no-store/);
+
+  const html = await doc.text();
+  assert.match(html, /Commission Schedule/i, "the schedule document must render");
+  assert.match(html, /LEVEL_KEYS/, "the interactive grid data must be present");
+  assert.ok(
+    !html.includes("unavailable on this deployment"),
+    "the fail-closed fallback must not fire when the bundle carries the document",
+  );
 });
 
 test("Retreaver and Twilio render honest not-connected states to leadership and refuse an agent", async (t) => {

@@ -105,6 +105,7 @@ const PROTECTED_ROUTES = [
   "/portal/calls/review",
   "/portal/calls/review/1",
   "/portal/commission",
+  "/portal/commission/document",
   "/portal/investigator",
   "/portal/leadership",
   "/portal/leadtech",

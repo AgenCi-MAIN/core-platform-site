@@ -109,11 +109,9 @@ const NAV: readonly NavItem[] = [
     capability: "dashboard.view.self",
     icon: "commission",
     group: "Workspace",
-    description:
-      "Every carrier's comp grid by contract level, with ladders and promotion rules. Opens in a new tab.",
+    description: "Every carrier's comp grid by contract level, with ladders and promotion rules.",
     state: "live",
     stateLabel: "All members",
-    external: true,
   },
   {
     href: "/portal/training",

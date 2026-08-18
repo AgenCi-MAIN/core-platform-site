@@ -14,7 +14,7 @@ the owner keeps.
 | Public URL | `https://site-creator-vinext-starter.bankerrunners.workers.dev` |
 | Worker name | `site-creator-vinext-starter` |
 | Cloudflare account | `Btcmao518@gmail.com's Account` (`f39f3a77e56b28e4dfae29489a997014`) — GitHub SSO; migrated 2026-08-18, old account abandoned after cutover |
-| workers.dev subdomain | set on first deploy to the new account (was `bankerrunners`) |
+| workers.dev subdomain | `thrive18` — `https://site-creator-vinext-starter.thrive18.workers.dev` (was `bankerrunners`) |
 | D1 database | `site-creator-d1` — `e19d74e0-1913-41a5-b695-cd1acc94d5ed` (new account) |
 | R2 bucket | `site-creator-r2` (binding `CALL_RECORDINGS`) |
 | First owner | `bankerrunners@gmail.com`, role `owner`, seeded by SQL |
@@ -181,8 +181,26 @@ Secrets survive deploys; they only need setting again if they change.
   onward; before it, the surface existed only in the repository.
   Version id captured at deploy time via the `Tee-Object` practice — third
   consecutive id preserved, none lost since it was adopted.
-- Account note: the Cloudflare ACCOUNT email is being swapped to
-  btcmao518@gmail.com via support ticket (password lost, old inbox dead) —
-  see strategy/2026-08-17-identity-recovery-docket.md. The `bankerrunners`
-  workers.dev SUBDOMAIN is load-bearing (OAuth redirect URI, Access app,
-  installed PWAs) and must NOT be renamed.
+- Account note (2026-08-17, SUPERSEDED next entry): the Cloudflare ACCOUNT
+  email was to be swapped to btcmao518@gmail.com via support ticket (password
+  lost, old inbox dead) — see strategy/2026-08-17-identity-recovery-docket.md.
+  Overtaken by events: the owner chose a full account migration instead.
+- 2026-08-18 (ACCOUNT MIGRATION): **version `5ecbce7a-020c-4892-9866-427c8c0a6cf5`**
+  — first deploy to the NEW Cloudflare account (`Btcmao518@gmail.com's
+  Account`, `f39f3a77e56b28e4dfae29489a997014`, GitHub SSO), at
+  `main@b1cfffb` (#57). New serving URL:
+  **`https://site-creator-vinext-starter.thrive18.workers.dev`** (new
+  subdomain `thrive18`). Full data migration preceded it: D1 exported from
+  the old account (7,453 statements) and imported into the new
+  `site-creator-d1` (`e19d74e0-…`), roster of five owners verified by query;
+  bucket `site-creator-r2` recreated (old bucket held no recordings; radio
+  tracks re-upload from the owner's originals); all three secrets re-set;
+  Google OAuth client gained the new origin + callback. **Owner sign-in on
+  the new URL verified 2026-08-18** — the migrated membership row and
+  subject binding answered. The OLD account
+  (`e6f9d0a3…`/`bankerrunners` subdomain) is unreachable for administration
+  (dashboard credentials lost, CLI token replaced) but its worker remains
+  running behind its Access gate; members must be cut over promptly, since
+  activity on the old site writes to the abandoned database and will not
+  carry forward. Still open on the new account: the Cloudflare Access edge
+  gate (Zero Trust team `thrive18`), then the member announcement.
