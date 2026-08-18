@@ -7,16 +7,9 @@ const PATH = "/portal/tools";
 
 /**
  * The external tool directory — every third-party tool the operation uses,
- * in one categorized, guarded place (owner tab-dump, 2026-08-18). Rules:
- *
- *   - LINKS ONLY. Nothing here authenticates through CORE, stores data in
- *     CORE, or renders third-party content inside CORE. Every entry opens in
- *     a new tab where the member signs in separately.
- *   - Stable URLs only. The owner's Aetna and Transamerica links arrived
- *     carrying one-time session tokens; those were stripped to the stable
- *     login pages, because an expired token link would 404 for every member.
- *   - Adding a tool = one entry in TOOL_CATEGORIES (and, if it earns a
- *     sidebar tab, a NAV item too). Category first, alphabetical-ish within.
+ * in one categorized, guarded place. Every entry opens in a separate tab and
+ * keeps its own authentication boundary; CORE never stores third-party login
+ * credentials here.
  */
 const TOOL_CATEGORIES: readonly {
   title: string;
@@ -38,22 +31,12 @@ const TOOL_CATEGORIES: readonly {
   },
   {
     title: "Contracting & licensing",
-    blurb: "SureLC by SuranceBay — one entry per upline.",
+    blurb: "Heartland contracting now routes through the Reagan AI agent portal.",
     tools: [
       {
-        label: "SureLC — Heartland",
-        href: "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D505&gaId=505&client_id=surecrmweb&response_type=code",
-        note: "gaId 505",
-      },
-      {
-        label: "SureLC — Brenda Daly",
-        href: "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D862%2526gaId%253D862%2526branch%253DBrenda%252520Daly%2526branchVisible%253Dtrue%2526branchEditable%253Dfalse%2526branchRequired%253Dtrue%2526autoAdd%253Dfalse%2526requestMethod%253DGET&gaId=862&client_id=surecrmweb&response_type=code",
-        note: "gaId 862",
-      },
-      {
-        label: "SureLC — Altura of America",
-        href: "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D323%2526branch%253DAltura%252520of%252520America&gaId=323&client_id=surecrmweb&response_type=code",
-        note: "gaId 323",
+        label: "Reagan AI — Heartland",
+        href: "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
+        note: "Heartland agent portal",
       },
     ],
   },
@@ -61,10 +44,6 @@ const TOOL_CATEGORIES: readonly {
     title: "Leads & CRM",
     blurb: "Lead sources and the systems that track them.",
     tools: [
-      {
-        label: "Reagan AI",
-        href: "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
-      },
       { label: "InteleLead", href: "https://www.intelelead.com/portal/" },
       {
         label: "Salesforce",
