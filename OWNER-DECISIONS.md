@@ -60,7 +60,7 @@ an action) · 🔵 OPEN (still the owner's to decide)
 | C1 | Build the **JARVIS Presence** (the talking pet, pitch #2) with a hard isolation contract | ✅ live |
 | C2 | Release **2.0.0** — platform + AI staff as one versioned whole | ✅ |
 | C3 | Deploy from the owner's Windows machine only, via `npm run deploy` | ✅ standing |
-| C4 | `PRESENCE_MODEL` — Opus 5 (current) vs Haiku 4.5 (~5× cheaper) | 🔵 |
+| C4 | `PRESENCE_MODEL` — Opus 5 (current) vs Haiku 4.5 (~5× cheaper). **DECIDED 2026-08-18: Haiku.** The owner set `PRESENCE_MODEL=claude-haiku-4-5-20251001` on the new deployment while restoring the Presence's `ANTHROPIC_API_KEY` (the fourth secret, missed in the account migration's first pass). The key was rotated once immediately after setting — a fragment had appeared on-screen in a shared screenshot, and the house rule treats any appearance outside the vault as exposure | ✅ 2026-08-18 |
 | C5 | Leadership page shows live company oversight, aggregates only | ✅ deployed |
 
 ## D. Telephony & comms
@@ -105,7 +105,7 @@ an action) · 🔵 OPEN (still the owner's to decide)
 ## What still needs the owner (the short list)
 
 1. **Inkbox $30 upgrade** — unlocks the staff phone number (D3, D4)
-2. **`PRESENCE_MODEL`** — one word for the ~5× cost cut (C4)
+2. ~~`PRESENCE_MODEL`~~ — ✅ done 2026-08-18, Haiku set (C4)
 3. **Counsel on the consent line**, then the socket greenlight (E7)
 4. **Carrier statements + LeadTech CPL data** — the pilot's entry ticket (E3)
 6. **The A/B/C centralization decision** (E6)

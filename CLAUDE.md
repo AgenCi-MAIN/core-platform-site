@@ -8,11 +8,13 @@ deploy sequence, and the traps that have already cost time once.
 ## What this is
 
 A permissioned operating portal for THRIVE, deployed as one Cloudflare Worker at
-`https://site-creator-vinext-starter.bankerrunners.workers.dev`. The public site
-was designed open, but as of 2026-08-16 Cloudflare Access fronts the entire
-workers.dev domain — anonymous requests get 403 at the edge before the app
-runs. Everything under `/portal` remains additionally closed by the app's own
-checks.
+`https://site-creator-vinext-starter.thrive18.workers.dev` (Cloudflare account
+migrated 2026-08-18 — see DEPLOYMENT.md; the old `bankerrunners` address still
+renders but is unadministered, frozen, and must not be used). The public site
+was designed open, but Cloudflare Access fronts the domain — Zero Trust team
+`thrive18`, Google-only login, a named-email allow policy — so anonymous
+requests are refused at the edge before the app runs. Everything under
+`/portal` remains additionally closed by the app's own checks.
 
 Two independent checks run on every request: **Sign in with Google** establishes
 identity, and an active `portal_members` row establishes membership and role.
