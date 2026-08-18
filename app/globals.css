@@ -5357,3 +5357,185 @@ html[data-portal-performance="boost"] .fcc-thumb-dock { backdrop-filter: none; b
   .surface-invert::after,.inbound-availability-card::after,
   .inbound-stat::after,.inbound-bridge::after{ transition: none; }
 }
+
+
+/* ============================================================
+   iOS ADAPTATION LAYER
+
+   The portal is used one-handed on a phone, and it is installed to the home
+   screen, so it is judged against native apps rather than against websites.
+   Three things separate the two, and none of them is decoration:
+
+     1. A control you cannot reliably hit is broken, however good it looks.
+        Apple's floor is 44x44pt. Thirty-three controls here sit under it —
+        the audio transport is 33px, its slider thumb 13px.
+     2. Native apps answer a touch instantly. The web adds a 300ms wait for a
+        possible double-tap unless told not to, and that delay is most of what
+        "feels like a website" means.
+     3. A tap must acknowledge itself. iOS removes the grey flash but replaces
+        it with its own press state; removing the flash and giving nothing
+        back is worse than leaving it.
+
+   The hit-area expansion below grows the TOUCHABLE region without moving a
+   single pixel of layout, and only where the pointer is coarse — a mouse
+   keeps the tight visual design it was drawn with.
+   ============================================================ */
+
+/* 1 — Instant response. No 300ms double-tap wait anywhere interactive. */
+button, a, label, summary, select,
+input[type="button"], input[type="submit"], input[type="range"], input[type="checkbox"],
+.portal-nav a, .portal-menu-button, .audio-deck-button, .portal-theme-control button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 2 — A press must be felt. Replaces the flash we just removed. */
+@media (hover: none) and (pointer: coarse) {
+  button:active, a:active, label:active, .portal-nav a:active,
+  .audio-deck-button:active, .portal-menu-button:active,
+  .lodge-submit:active, .radio-frequency a:active {
+    transform: scale(.97);
+    transition: transform .06s ease-out;
+  }
+}
+
+/* 3 — Hit-area expansion to the 44px floor, touch only, layout untouched.
+   The pseudo-element is the touch target; the element stays its drawn size. */
+@media (pointer: coarse) {
+  .audio-deck-button,
+  .audio-deck-button-primary,
+  .portal-menu-button,
+  .portal-theme-control button,
+  .script-steps button,
+  .call-filters button,
+  .portal-signout,
+  .portal-nav a {
+    position: relative;
+  }
+  .audio-deck-button::before,
+  .audio-deck-button-primary::before,
+  .portal-menu-button::before,
+  .portal-theme-control button::before,
+  .script-steps button::before,
+  .call-filters button::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+    /* Invisible, unclickable to the eye, and it never paints over content. */
+    background: transparent;
+    border-radius: inherit;
+  }
+
+  /* Rows are already wide; they need height, not a pseudo-element. */
+  .portal-nav a, .portal-signout { min-height: 44px; }
+
+  /* 4 — Sliders. A 13px thumb on a 4px rail is a desktop control shipped to a
+     thumb. Both grow on touch; the rail keeps its slim look by growing its
+     hit area rather than its paint. */
+  .audio-deck-slider, .pay-dial input[type="range"] {
+    height: 28px;
+    background: transparent;
+  }
+  .audio-deck-slider::-webkit-slider-runnable-track,
+  .pay-dial input[type="range"]::-webkit-slider-runnable-track { height: 6px; }
+  .audio-deck-slider::-moz-range-track,
+  .pay-dial input[type="range"]::-moz-range-track { height: 6px; }
+  .audio-deck-slider::-webkit-slider-thumb,
+  .pay-dial input[type="range"]::-webkit-slider-thumb {
+    width: 26px; height: 26px; margin-top: -10px;
+  }
+  .audio-deck-slider::-moz-range-thumb,
+  .pay-dial input[type="range"]::-moz-range-thumb { width: 26px; height: 26px; }
+}
+
+/* 5 — Text sizing stays the user's decision. iOS inflates text in landscape
+   unless told not to, and a portal that fights Dynamic Type is a portal
+   somebody has to pinch to read. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* 6 — Scrolling that behaves like a native list: momentum inside scrollable
+   regions, and no rubber-banding the whole page when one of them ends. */
+.portal-table-scroll, .portal-main, .script-list, .training-slot-body {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* 7 — Inputs at 16px or larger, because iOS Safari zooms the viewport on
+   focus for anything smaller and never zooms back out. The lodge code field
+   is the one a locked-out person meets first; it must not throw the page. */
+@media (pointer: coarse) {
+  input, select, textarea { font-size: max(16px, 1rem); }
+  .lodge-input { font-size: max(16px, 1.9rem); }
+}
+
+/* 8 — Respect the user who asked for less movement. */
+@media (prefers-reduced-motion: reduce) {
+  button:active, a:active, label:active, .portal-nav a:active,
+  .audio-deck-button:active, .portal-menu-button:active { transform: none; }
+}
+
+
+/* ============================================================
+   iOS ADAPTATION — the standalone app
+
+   Installed to the home screen there is no browser chrome, so the portal owns
+   the whole screen including the parts the hardware occupies: the notch or
+   Dynamic Island at the top, the home indicator at the bottom. Content that
+   ignores those is content sitting under a physical object.
+   ============================================================ */
+
+/* The sticky bar sits under the status bar in standalone. It must pad itself
+   past it, and it must be legible while content scrolls beneath — which is
+   what the blur is for, not decoration. */
+.portal-topbar {
+  padding-top: max(8px, env(safe-area-inset-top));
+  background: color-mix(in srgb, var(--portal-panel) 82%, transparent);
+  -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  backdrop-filter: saturate(1.6) blur(14px);
+}
+
+/* Where blur is unsupported the bar must stay opaque rather than let text
+   scroll through it. Opting IN on support, rather than out on failure, is
+   what keeps the fallback safe. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .portal-topbar { background: var(--portal-panel); }
+}
+
+@media (display-mode: standalone) {
+  /* No browser chrome means no browser scroll rubber-band either — the page
+     should feel anchored, the way a native list does. */
+  body { overscroll-behavior-y: none; }
+
+  /* The audio deck already clears the home indicator; the page content behind
+     it needs the same clearance or the last row hides under the deck. */
+  .portal-main { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
+
+  /* Nothing in the portal is a document to select; controls that highlight
+     blue on a long-press read as a web page. Text content stays selectable —
+     a member copying their own policy number is a real thing. */
+  .portal-nav a, .portal-menu-button, .audio-deck-button,
+  .portal-theme-control button, .lodge-submit {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Landscape on a notched phone puts the hardware on the SIDE. Portrait-only
+   insets leave the sidebar under the notch when someone turns the phone. */
+@media (orientation: landscape) {
+  .portal-sidebar-desktop, .portal-sidebar-mobile {
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+  .portal-main {
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* Smooth in-page movement, but only for people who did not ask otherwise. */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
