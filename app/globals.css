@@ -1401,6 +1401,98 @@ html[data-portal-theme="dark"] .portal-system-dot-pending { background: #d89d3f;
 html[data-portal-theme="dark"] .portal-system-dot-neutral { background: #9ba5b1; box-shadow: 0 0 0 3px #303640; }
 html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"] { box-shadow: 0 1px 4px rgba(0, 0, 0, .45); }
 
+/* ==========================================================================
+   THRIVE THEME — navy spine, daylight workspace.
+   Matched to the commission schedule's design language by owner order
+   (2026-08-18): #16202e navy chrome, white surfaces, #2563eb accent.
+   Semantic chip hues stay Bright's — their fills are hardcoded light
+   literals in the base sheet, so inheriting them is correct here (unlike
+   dark, which overrides sixteen of them above).
+   ========================================================================== */
+html[data-portal-theme="thrive"] .portal {
+  --portal-bg: #eef2f9;
+  --portal-panel: #ffffff;
+  --portal-sidebar: #16202e;
+  --portal-raised: #f4f8ff;
+  --portal-soft: #e3ecf9;
+  --portal-text: #16202e;
+  --portal-muted: #4a5a70;
+  --portal-subtle: #5d7086;
+  --portal-line: #cfd9e7;
+  --portal-line-strong: #93a9c6;
+  --portal-accent: #2563eb;
+  --portal-accent-strong: #1d4ed8;
+  --portal-accent-soft: #dbe7fe;
+  --portal-secondary: #b45309;
+  --portal-orange: #b45309;
+  --portal-success: #157347;
+  --portal-warning: #8a5700;
+  --portal-danger: #a52620;
+  --portal-success-ring: #e5f4ec;
+  --portal-brand-surface: #1e3a8a;
+  --portal-brand-ink: #ffffff;
+  --portal-avatar-surface: #3b82f6;
+  --portal-avatar-ink: #06142b;
+  --portal-hover: #e2ebf8;
+  --portal-icon: #4a6285;
+  --portal-shadow: 0 1px 2px rgba(16, 32, 56, .09), 0 10px 28px rgba(16, 32, 56, .07);
+  color-scheme: light;
+}
+/* The navy rail re-scopes the shared tokens rather than adding new ones, so
+   every sidebar descendant (.portal-nav, .portal-brand, group labels, the
+   account card) inverts with no per-selector rules — custom properties
+   resolve against the nearest scope. */
+html[data-portal-theme="thrive"] .portal .portal-sidebar {
+  --portal-panel: #1d2a3c;
+  --portal-raised: #1b2736;
+  --portal-soft: #223146;
+  --portal-text: #f2f7ff;
+  --portal-muted: #a8bdd6;
+  --portal-subtle: #8fa7c4;
+  --portal-line: #2c3a4e;
+  --portal-line-strong: #3f5673;
+  --portal-accent: #4c8df6;
+  --portal-accent-strong: #cbe0ff;
+  --portal-accent-soft: #1c3352;
+  --portal-hover: #22314a;
+  --portal-icon: #7fa8de;
+  --portal-success: #56d29a;
+  --portal-success-ring: #1c3a2c;
+  --portal-secondary: #e0913f;
+  color-scheme: dark;
+}
+/* Companion rules for the P0 layer's hardcoded gold — those literals sit in
+   unconditional .portal rules after line 4180 and would gold-wash the navy
+   skin without these later, equally-or-more specific counters. */
+html[data-portal-theme="thrive"] .portal .button-primary,
+html[data-portal-theme="thrive"] .portal .site-cta {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+}
+html[data-portal-theme="thrive"] .portal .button-primary:hover,
+html[data-portal-theme="thrive"] .portal .site-cta:hover { color: #ffffff; }
+html[data-portal-theme="thrive"] .portal .button-primary .key-glyph-lock { background: rgba(255, 255, 255, .58); }
+html[data-portal-theme="thrive"] .portal-brand-mark {
+  background: linear-gradient(135deg, #2563eb, var(--portal-brand-surface));
+  color: var(--portal-brand-ink);
+}
+html[data-portal-theme="thrive"] .portal-topbar-avatar,
+html[data-portal-theme="thrive"] .portal-account-avatar {
+  background: linear-gradient(135deg, #60a5fa, var(--portal-avatar-surface));
+  color: var(--portal-avatar-ink);
+}
+html[data-portal-theme="thrive"] .portal-intro h1 em {
+  background: linear-gradient(120deg, var(--portal-accent), #60a5fa 85%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+html[data-portal-theme="thrive"] .portal-command-prompt button { color: #ffffff; }
+html[data-portal-theme="thrive"] .portal-command-core {
+  background: linear-gradient(135deg, #60a5fa, #1d4ed8);
+  color: #ffffff;
+}
+html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true"] { box-shadow: 0 1px 3px rgba(16, 32, 56, .16); }
+
 .portal :where(a, label, input, button, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid var(--portal-accent); outline-offset: 2px; }
 .portal-sidebar-toggle:focus-visible ~ .portal-workspace .portal-menu-button { outline: 3px solid var(--portal-accent); outline-offset: 2px; }
 
