@@ -202,5 +202,23 @@ Secrets survive deploys; they only need setting again if they change.
   (dashboard credentials lost, CLI token replaced) but its worker remains
   running behind its Access gate; members must be cut over promptly, since
   activity on the old site writes to the abandoned database and will not
-  carry forward. Still open on the new account: the Cloudflare Access edge
-  gate (Zero Trust team `thrive18`), then the member announcement.
+  carry forward. Still open on the new account at the time of that entry: the
+  Cloudflare Access edge gate, then the member announcement.
+- 2026-08-18 (later): **Access edge gate rebuilt on the new account and
+  verified by the owner.** Zero Trust team `thrive18`
+  (`thrive18.cloudflareaccess.com`), login method Google ONLY (email PIN
+  excluded — A11), using the same "THRIVE Portal" OAuth client as the app's
+  own sign-in (the planned separate client was never created; the one client
+  carries both origins/callbacks). Access application "THRIVE Portal" fronts
+  `site-creator-vinext-starter.thrive18.workers.dev`, session 1 week, Allow
+  policy = four named owner emails (btcmao518, ryandavidson.zenith,
+  epiclife.nguyen, andrew.davidson.zenith — bankerrunners deliberately
+  omitted: its Google account is locked and cannot pass a Google gate).
+  Setup notes that cost time, kept for the next rebuild: the Google client's
+  secret is only visible at creation (a rotation was needed — the fresh
+  secret went to BOTH the Access IdP and the worker's GOOGLE_CLIENT_SECRET);
+  and the first Test failed "User email was not returned" until the OAuth
+  consent scopes (openid / userinfo.email / userinfo.profile) were added on
+  the Google Auth Platform "Data Access" page. Remaining member-facing step:
+  the cutover announcement. When a new member is seated they must be added
+  in TWO places — the portal roster AND this Access policy.

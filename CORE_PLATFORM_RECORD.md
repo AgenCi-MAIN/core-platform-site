@@ -13,9 +13,12 @@ keeps. If a value ever lands in this file, rotate it rather than deleting it.
 ## 1. What this is
 
 A permissioned operating portal for THRIVE, deployed as a single Cloudflare
-Worker. The app serves a public site and a closed `/portal` — but since
-2026-08-16 Cloudflare Access fronts the whole workers.dev domain: anonymous
-requests are refused 403 at the edge before this application runs (see §16).
+Worker. The app serves a public site and a closed `/portal` — and Cloudflare
+Access fronts the domain: anonymous requests are refused at the edge before
+this application runs (first stood up 2026-08-16 on the old account, §16;
+rebuilt 2026-08-18 on the new account as Zero Trust team `thrive18`,
+Google-only login, named-email allow policy — see DEPLOYMENT.md's
+2026-08-18 entries).
 Everything under `/portal` is closed
 by default and opens only to people who hold a membership row, at the role that
 row carries. Two independent checks run on every request:
