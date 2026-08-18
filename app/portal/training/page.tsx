@@ -39,6 +39,43 @@ type ScriptLineKind = "plain" | "step" | "purpose" | "spoken";
  * deliberately survives blank lines, since approved scripts separate spoken
  * beats with them) and tags each ORIGINAL line untouched.
  */
+/**
+ * A bare stage direction the owner's documents indent rather than quote —
+ * "Holding" sits 26 spaces in. Indentation is the source's own signal, so that
+ * is what this reads rather than guessing from the words. Bullets are excluded
+ * explicitly: the approved body indents them by one space, under the
+ * threshold, but one character is too thin a margin to rely on.
+ */
+function isIndentedDirection(line: string, bare: string): boolean {
+  const indent = line.length - line.trimStart().length;
+  return indent >= 4 && !bare.startsWith("\u2022") && !/[.?!:,;]$/.test(bare);
+}
+
+/**
+ * Inside a SCRIPT region, an unquoted line is speech only if it LOOKS like
+ * speech. The rule used to run the other way — spoken unless it ended in a
+ * colon — which marked whole narrative lines such as "If Yes, get carrier,
+ * monthly premium, coverage amount, and how long ago." as words to read out.
+ * Highlighting a stage direction tells an agent to say it to a client, which
+ * is a worse failure than leaving a real line unhighlighted.
+ */
+function isSpokenInScript(line: string, bare: string): boolean {
+  if (line.includes("\u201c")) return true;
+  return bare.endsWith("?") || isIndentedDirection(line, bare);
+}
+
+/**
+ * Outside any SCRIPT region, some of the owner's documents carry speech with
+ * no label and no quotes — "Can you spell out your first and last name for
+ * me?". A trailing question mark is the only unquoted form accepted here:
+ * admitting "!" as well regressed "\u2022 Follow the order!" in the approved body
+ * from an instruction into speech. That is how narrow this has to be.
+ */
+function isUnlabelledSpeech(line: string, bare: string): boolean {
+  if (bare.startsWith("\u2022")) return false;
+  return bare.endsWith("?") || isIndentedDirection(line, bare);
+}
+
 function classifyScriptLines(body: string): { line: string; kind: ScriptLineKind }[] {
   const out: { line: string; kind: ScriptLineKind }[] = [];
   let region: "none" | "script" | "purpose" = "none";
@@ -50,7 +87,7 @@ function classifyScriptLines(body: string): { line: string; kind: ScriptLineKind
     } else if (bare.startsWith("STEP ")) {
       region = "none";
       out.push({ line, kind: "step" });
-    } else if (bare === "SCRIPT:") {
+    } else if (/^SCRIPT\b[^:]*:$/.test(bare)) {
       region = "script";
       out.push({ line, kind: "plain" });
     } else if (bare === "PURPOSE:") {
@@ -63,11 +100,8 @@ function classifyScriptLines(body: string): { line: string; kind: ScriptLineKind
       // direction introducing what follows ("After they explain:"), not
       // words an agent says — leave it plain. Bare directions like
       // "Holding" stay highlighted, matching the owner's mockup.
-      out.push({
-        line,
-        kind: !line.includes("“") && bare.endsWith(":") ? "plain" : "spoken",
-      });
-    } else if (bare.startsWith("“")) {
+      out.push({ line, kind: isSpokenInScript(line, bare) ? "spoken" : "plain" });
+    } else if (bare.startsWith("“") || isUnlabelledSpeech(line, bare)) {
       // Some steps carry spoken lines without a SCRIPT: label (STEP 4 in the
       // approved body). A line that OPENS with a quote is speech; narrative
       // lines that merely contain a quote ("If the caller asks: “…”") stay

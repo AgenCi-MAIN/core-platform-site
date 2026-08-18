@@ -507,28 +507,83 @@ test("Training is guarded, ordered above Book of Business, and stays server-only
   );
 });
 
-test("the approved Training body remains byte-verbatim", async () => {
+test("every approved Training body remains byte-verbatim", async () => {
+  // These are the words agents read to real clients on recorded calls. The
+  // library's own rule is that J.A.R.V.I.S. may arrange and render them but
+  // must never write, rewrite, shorten or complete them — and a rule nothing
+  // measures is a preference. This is the measurement.
+  //
+  // It pins EVERY approved body, not just the first one. The earlier version
+  // pinned one and asserted "exactly one is loaded", which was fine while one
+  // was true and would have quietly let the second through as soon as it was
+  // not. The check below inverts that: an approved body with no pin entry is
+  // a FAILURE, so adding a script without recording its bytes is impossible
+  // rather than merely discouraged.
   const library = await readFile(
     new URL("../app/portal/training/library.ts", import.meta.url),
     "utf8",
   );
-  const literal = library.match(
-    /^export const DIRECT_CARRIER_QUESTION_INTRO_BODY = (".*");$/m,
-  )?.[1];
-  assert.ok(literal, "approved Training body must remain a JSON-compatible string literal");
-  const body = JSON.parse(literal);
 
-  assert.equal(Buffer.byteLength(body, "utf8"), 3765);
-  assert.equal((body.match(/\n/g) ?? []).length, 130);
-  assert.equal(
-    createHash("sha256").update(body, "utf8").digest("hex"),
-    "04740e30b911a5da2c1435eae4f5f0eb11e085d73b4db8448810bde3c92b89d8",
+  const PINS = {
+    DIRECT_CARRIER_QUESTION_INTRO_BODY: {
+      bytes: 3765,
+      newlines: 130,
+      sha256: "04740e30b911a5da2c1435eae4f5f0eb11e085d73b4db8448810bde3c92b89d8",
+    },
+    CLIENT_STATES_PROBLEM_FIRST_BODY: {
+      bytes: 2079,
+      newlines: 60,
+      sha256: "5b2d79935cfe93d8177414b689f3e73d618057243ba398868556b3d9a647bac5",
+    },
+    DEATH_CLAIM_DISCOVERY_INTRO_BODY: {
+      bytes: 2935,
+      newlines: 77,
+      sha256: "7ae9c0f67482d0d51a5c7e7f76679e2ccdb8f50d95221f2933e4e92210526f24",
+    },
+    CANCELATION_INTRO_BODY: {
+      bytes: 2601,
+      newlines: 80,
+      sha256: "4c3dd3c41c8aaee9d87aaee925d30a96405a1b4c9f251a6010e774f76867e7b5",
+    },
+  };
+
+  // Discover what the file actually declares, rather than trusting the table
+  // to be the complete list. This is the half that makes an unpinned body
+  // impossible: a new `*_BODY` constant appears here whether or not anyone
+  // remembered to add a pin.
+  const declared = [...library.matchAll(/^export const (\w+_BODY) = (".*");$/gm)];
+  assert.deepEqual(
+    declared.map(([, name]) => name).sort(),
+    Object.keys(PINS).sort(),
+    "every exported script body must carry a pin, and every pin must name a real body",
+  );
+
+  for (const [, name, literal] of declared) {
+    const body = JSON.parse(literal);
+    const pin = PINS[name];
+    assert.equal(Buffer.byteLength(body, "utf8"), pin.bytes, `${name} byte length changed`);
+    assert.equal((body.match(/\n/g) ?? []).length, pin.newlines, `${name} line count changed`);
+    assert.equal(
+      createHash("sha256").update(body, "utf8").digest("hex"),
+      pin.sha256,
+      `${name} was edited — approved language may not be changed without a founder decision`,
+    );
+  }
+
+  // A slot may not be marked approved while pointing at anything other than
+  // one of the pinned constants. Otherwise an inline body string would render
+  // as approved language while sitting outside every check above.
+  const approved = [...library.matchAll(/state: "approved",\n    body: (\w+),/g)].map(
+    ([, ref]) => ref,
   );
   assert.equal(
-    (library.match(/\n    state: "approved",\n    body:/g) ?? []).length,
-    1,
-    "exactly one human-approved script body is loaded",
+    approved.length,
+    declared.length,
+    "the number of approved slots must equal the number of pinned bodies",
   );
+  for (const ref of approved) {
+    assert.ok(ref in PINS, `an approved slot points at ${ref}, which carries no pin`);
+  }
 });
 
 test("the supervised preview remains a Vite-native, allowlisted server", async () => {
