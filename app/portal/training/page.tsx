@@ -3,6 +3,7 @@ import { PortalPageIntro, PortalShell } from "../components";
 import {
   CALL_ANGLE_SLOTS,
   INTRODUCTION_SLOTS,
+  splitApprovedBody,
   type TrainingSlot,
 } from "./library";
 
@@ -183,22 +184,54 @@ function ContentSlot({ slot }: { slot: TrainingSlot }) {
             </div>
           </dl>
 
-          {/* Verbatim. Whitespace preserved. Never transformed — ScriptBody
-              styles substrings but its text content is byte-identical to
-              slot.body, and a runtime test proves it on the rendered page. */}
-          <ScriptBody body={slot.body} />
+          {slot.purpose ? (
+            <p className="training-slot-purpose">
+              <span className="training-slot-purpose-tag">Covers</span>
+              {slot.purpose}
+            </p>
+          ) : null}
+
+          {/* Verbatim, in the author's own sections.
+              splitApprovedBody is a pure split: every character of slot.body
+              lands in exactly one snippet, in order, and the function throws
+              rather than render if rejoining them does not reproduce the body
+              exactly. ScriptBody then styles substrings without touching text.
+              A runtime test concatenates every rendered snippet and asserts
+              the result equals the approved body byte for byte — so breaking
+              the script into pieces an agent can work from on a live call
+              cannot become editing it. */}
+          <div className="training-snippets">
+            {splitApprovedBody(slot.body).map((snippet, index) => (
+              <section className="training-snippet" key={snippet.id}>
+                <span className="training-snippet-index" aria-hidden="true">
+                  {index + 1}
+                </span>
+                <ScriptBody body={snippet.text} />
+              </section>
+            ))}
+          </div>
         </>
       ) : (
+        <>
+        {slot.purpose ? (
+          <p className="training-slot-purpose">
+            <span className="training-slot-purpose-tag">Covers</span>
+            {slot.purpose}
+          </p>
+        ) : null}
         <div className="training-empty-slot" role="note">
           <span aria-hidden="true">○</span>
           <div>
             <strong>Label reserved; script intentionally empty.</strong>
             <p>
               THRIVE has not loaded approved wording for this slot. No draft,
-              suggestion, summary, or AI-generated substitute is shown.
+              suggested phrasing, or AI-generated substitute is shown — the
+              line below describes which call this slot covers, not anything
+              to say on one.
             </p>
           </div>
         </div>
+        </>
       )}
     </article>
   );

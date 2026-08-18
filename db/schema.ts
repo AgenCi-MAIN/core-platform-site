@@ -205,3 +205,56 @@ export const dialerTransfers = sqliteTable(
     ),
   ],
 );
+
+/**
+ * Command Center lodge passes — single-use, time-boxed, bound to one person.
+ *
+ * The founder holds Command Center permanently and never touches this table.
+ * Everyone else reaches it only by redeeming a pass the founder issued for
+ * their address, which dies on first use or on expiry, whichever comes first.
+ *
+ * The code itself is NEVER stored. Only its SHA-256 hash is written here, so a
+ * database read — by anyone, including an operator with console access — cannot
+ * recover a live code. The plaintext exists exactly once, on the screen that
+ * issued it, and is never written to a file, a log, a commit, or a message.
+ */
+export const commandPasses = sqliteTable(
+  "command_passes",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+
+    /** Lowercased email this pass is bound to. A pass is useless to anyone else. */
+    email: text("email").notNull(),
+
+    /** SHA-256 of the code, hex. The code itself is never persisted. */
+    codeHash: text("code_hash").notNull(),
+
+    /** Email of the human who issued it — the founder. */
+    issuedBy: text("issued_by").notNull(),
+    issuedAt: text("issued_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+
+    /** Expiry instant. A pass dies here whether or not it was ever used. */
+    expiresAt: text("expires_at").notNull(),
+
+    /** Set on redemption. A pass with this set can never be redeemed again. */
+    redeemedAt: text("redeemed_at"),
+    redeemedSubjectId: text("redeemed_subject_id"),
+
+    /** Set when the founder kills a pass early. */
+    revokedAt: text("revoked_at"),
+
+    /**
+     * Failed redemption attempts. A six-digit code is a small space, so a pass
+     * locks itself after FIVE wrong guesses rather than waiting for expiry.
+     * Guessing is therefore bounded by 5, not by 15 minutes of traffic.
+     */
+    failedAttempts: integer("failed_attempts").notNull().default(0),
+
+    /** Free-text reason the founder issued it, shown in the audit view. */
+    note: text("note"),
+  },
+  (table) => [
+    index("command_passes_email_idx").on(table.email),
+    index("command_passes_expires_idx").on(table.expiresAt),
+  ],
+);

@@ -5174,3 +5174,87 @@ html[data-portal-performance="boost"] .fcc-thumb-dock { backdrop-filter: none; b
   .fcc-launch:hover { transform: none; }
 }
 
+
+
+/* Training slot purpose line.
+   Descriptive metadata, never approved wording — so it is deliberately styled
+   unlike a script body: no monospace, no verbatim frame, and a label that says
+   what it is. A reader must never mistake this for something to say aloud. */
+.training-slot-purpose {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: var(--portal-muted);
+  font-size: var(--portal-type-label);
+  line-height: 1.55;
+}
+.training-slot-purpose-tag {
+  flex: none;
+  padding: 1px 7px 2px;
+  border: 1px solid var(--portal-line-strong, var(--portal-line));
+  border-radius: 999px;
+  color: var(--portal-subtle, var(--portal-muted));
+  font-size: .68rem;
+  font-weight: 650;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+
+/* Approved script, broken into the author's own sections so an agent can work
+   from one piece at a time on a live call. The split is lossless by
+   construction and proven against the rendered HTML; these styles only decide
+   where the pieces sit. */
+.training-snippets { display: flex; flex-direction: column; gap: 10px; }
+.training-snippet {
+  position: relative;
+  padding-left: 34px;
+  border-left: 2px solid var(--portal-line);
+}
+.training-snippet:hover { border-left-color: var(--portal-accent); }
+.training-snippet-index {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--portal-line-strong, var(--portal-line));
+  border-radius: 50%;
+  color: var(--portal-subtle, var(--portal-muted));
+  font-size: .7rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  background: var(--portal-panel);
+}
+.training-snippet .training-script-body { margin: 0; }
+@media (max-width: 34rem) {
+  .training-snippet { padding-left: 26px; }
+  .training-snippet-index { width: 18px; height: 18px; font-size: .62rem; }
+}
+
+
+/* Command Center lodge lock. Deliberately plain: a gate should look like a
+   gate, not like a product surface trying to sell the visitor something. */
+.lodge-card{max-width:34rem}
+.lodge-form{display:flex;flex-direction:column;gap:10px}
+.lodge-label{font-size:.7rem;font-weight:850;letter-spacing:.11em;text-transform:uppercase;color:var(--portal-muted)}
+.lodge-input{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:1.9rem;letter-spacing:.34em;text-align:center;padding:14px 12px;border:1px solid var(--portal-line-strong);border-radius:var(--portal-radius,10px);background:var(--portal-soft);color:var(--portal-text)}
+.lodge-input:focus-visible{outline:2px solid var(--portal-accent);outline-offset:2px;border-color:var(--portal-accent)}
+.lodge-submit{align-self:flex-start;padding:11px 18px;border:1px solid var(--portal-accent);border-radius:var(--portal-radius,10px);background:var(--portal-accent-soft);color:var(--portal-accent-strong);font-weight:700;font-size:.9rem;cursor:pointer}
+.lodge-submit:hover{background:var(--portal-accent);color:var(--portal-panel)}
+.lodge-submit:focus-visible{outline:2px solid var(--portal-accent);outline-offset:3px}
+.lodge-help{margin:0;color:var(--portal-muted);font-size:.82rem;line-height:1.55}
+.lodge-error{margin:0;color:var(--portal-danger);font-size:.85rem;font-weight:600;line-height:1.5}
+/* The Command Center's door, sitting inside Radio. Styled as a station preset
+   rather than a nav item — quiet, and belonging to the page it hides in. */
+.radio-frequency{margin:22px 0 0}
+.radio-frequency a{display:inline-flex;align-items:center;gap:12px;padding:11px 16px 11px 13px;border:1px solid var(--portal-line);border-radius:999px;background:var(--portal-soft);color:var(--portal-text);text-decoration:none;transition:border-color .18s ease,background-color .18s ease}
+.radio-frequency a:hover{border-color:var(--portal-accent);background:var(--portal-accent-soft)}
+.radio-frequency a:focus-visible{outline:2px solid var(--portal-accent);outline-offset:3px}
+.radio-frequency-dial{color:var(--portal-accent-strong);font-size:.85rem}
+.radio-frequency strong{display:block;font-size:.82rem;letter-spacing:.02em}
+.radio-frequency small{display:block;margin-top:1px;color:var(--portal-muted);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase}

@@ -61,6 +61,7 @@ function sqlStatements(text) {
 const INIT_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0001_portal_init.sql"), "utf8"));
 const SEED_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0002_portal_seed_owner.sql"), "utf8"));
 const SEEDED_OWNER_EMAIL = "bankerrunners@gmail.com";
+const FOUNDER_EMAIL = "btcmao518@gmail.com";
 
 /**
  * Identity is asserted the same way production does it: a session cookie
@@ -699,13 +700,44 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
     email: "andrew.davidson.zenith@gmail.com",
   };
 
+  // NARROWED 2026-08-18 (founder: "code-per-session for ALL except Shawn";
+  // "Yuxiang will have it 24/7 UNLOCKED"). Being on COMMAND_CENTER_EMAILS is
+  // now NECESSARY and NOT SUFFICIENT for anyone but the founder: the named
+  // helper reaches the lodge, not the console, until he redeems a single-use
+  // code the founder issued for his own address. His name still matters —
+  // it is what makes him eligible to hold a pass at all — which is why the
+  // redirect below must go to the lodge and never to no-access.
   const helperCommand = await portal.get("/portal/command", helper);
   assert.equal(
     helperCommand.status,
-    200,
-    "the named helper opens the Command Center",
+    307,
+    "the named helper must meet the lodge lock, not the console",
   );
-  assert.match(await helperCommand.text(), /Your field console\./);
+  assert.match(
+    helperCommand.headers.get("location") ?? "",
+    /\/portal\/command\/lodge/,
+    "an eligible helper goes to the lodge — sending him to no-access would deny the eligibility he holds",
+  );
+  assert.equal(
+    await helperCommand.text(),
+    "",
+    "the locked Command Center must emit no body",
+  );
+
+  // The founder is the one person the lock does not apply to. He already
+  // holds an active row from earlier in this test — membership is still the
+  // first check, and the lock is a third one layered after it, never a
+  // replacement for either.
+  // Reuse the founder identity already bound earlier in this test. Inventing
+  // a second subject for the same address would be refused as an identity
+  // conflict — which is the binding rule working, not a test detail.
+  const founderCommand = await portal.get("/portal/command", founder);
+  assert.equal(
+    founderCommand.status,
+    200,
+    "the founder opens the Command Center permanently, with no code",
+  );
+  assert.match(await founderCommand.text(), /Your field console\./);
 
   for (const pathname of ["/go/hq", "/go/routines", "/go/desk"]) {
     const heldShut = await portal.get(pathname, helper);
@@ -2415,10 +2447,21 @@ test("the rendered Training script is byte-identical to the approved body", asyn
   assert.equal(res.status, 200);
   const html = await res.text();
 
-  const pre = html.match(
-    /<pre class="script-body training-script-body">([\s\S]*?)<\/pre>/,
+  // The script now renders as the author's own sections — one <pre> per
+  // snippet, so an agent can work a step at a time on a live call. The
+  // guarantee is therefore asserted across ALL of them, concatenated: a lost
+  // snippet, a duplicated one, or a reordering all break this equality just
+  // as surely as a reworded sentence would. This is strictly stronger than
+  // checking a single block.
+  const blocks = [
+    ...html.matchAll(/<pre class="script-body training-script-body">([\s\S]*?)<\/pre>/g),
+  ].map((match) => match[1]);
+  assert.ok(blocks.length > 0, "the approved script's <pre> blocks must render");
+  assert.ok(
+    blocks.length >= 6,
+    `the script must render as its own sections, found ${blocks.length} block(s)`,
   );
-  assert.ok(pre, "the approved script's <pre> must render");
+  const pre = [null, blocks.join("")];
 
   const rendered = pre[1]
     .replace(/<[^>]+>/g, "")
