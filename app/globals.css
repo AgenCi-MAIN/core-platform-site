@@ -5174,3 +5174,30 @@ html[data-portal-performance="boost"] .fcc-thumb-dock { backdrop-filter: none; b
   .fcc-launch:hover { transform: none; }
 }
 
+
+
+/* Training slot purpose line.
+   Descriptive metadata, never approved wording — so it is deliberately styled
+   unlike a script body: no monospace, no verbatim frame, and a label that says
+   what it is. A reader must never mistake this for something to say aloud. */
+.training-slot-purpose {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: var(--portal-muted);
+  font-size: var(--portal-type-label);
+  line-height: 1.55;
+}
+.training-slot-purpose-tag {
+  flex: none;
+  padding: 1px 7px 2px;
+  border: 1px solid var(--portal-line-strong, var(--portal-line));
+  border-radius: 999px;
+  color: var(--portal-subtle, var(--portal-muted));
+  font-size: .68rem;
+  font-weight: 650;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}

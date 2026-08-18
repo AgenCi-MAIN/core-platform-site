@@ -15,6 +15,15 @@
 type ApprovedTrainingSlot = {
   id: string;
   label: string;
+  /**
+   * What this slot is for, in one line: which caller it covers and when it is
+   * used. This is DESCRIPTION, not wording — it names the situation, never
+   * what an agent says in it. It exists so a slot awaiting approved language
+   * still tells a reader what belongs there. Keeping it a separate field from
+   * `body` is the point: nothing here can be mistaken for approved language,
+   * and the content rule above still governs `body` alone.
+   */
+  purpose?: string;
   state: "approved";
   body: string;
   source: string;
@@ -24,6 +33,8 @@ type ApprovedTrainingSlot = {
 type EmptyTrainingSlot = {
   id: string;
   label: string;
+  /** See ApprovedTrainingSlot.purpose — description of the slot, never wording. */
+  purpose?: string;
   state: "not_loaded";
   body?: never;
   source?: never;
@@ -38,6 +49,8 @@ export const INTRODUCTION_SLOTS: readonly TrainingSlot[] = [
   {
     id: "direct-carrier-question-intro",
     label: "Direct Carrier Question Intro",
+    purpose:
+      "The caller opens by asking which carrier they have reached. Runs full verification and builds the policy snapshot before anything else.",
     state: "approved",
     body: DIRECT_CARRIER_QUESTION_INTRO_BODY,
     source: "Owner-supplied Word document",
@@ -45,29 +58,59 @@ export const INTRODUCTION_SLOTS: readonly TrainingSlot[] = [
   {
     id: "client-states-problem-first",
     label: "Client States Problem First ...",
+    purpose:
+      "The caller leads with their problem instead of asking who they have reached, so the call starts from the concern rather than from verification.",
     state: "not_loaded",
     labelCompleteness: "truncated",
   },
-  { id: "death-claim-discovery-intro", label: "Death Claim Discovery Intro", state: "not_loaded" },
-  { id: "non-life-discovery-intro", label: "Non life Discovery Intro", state: "not_loaded" },
-  { id: "cancelation-intro", label: "Cancelation intro", state: "not_loaded" },
+  { id: "death-claim-discovery-intro", label: "Death Claim Discovery Intro", purpose:
+      "The caller is raising a death claim. Establishes what has happened and which policy it concerns before any other question.",
+    state: "not_loaded" },
+  { id: "non-life-discovery-intro", label: "Non life Discovery Intro", purpose:
+      "The caller's product is not life insurance. Separates the call from the life-policy path early.",
+    state: "not_loaded" },
+  { id: "cancelation-intro", label: "Cancelation intro", purpose:
+      "The caller wants to cancel. Covers the opening of a cancellation conversation.",
+    state: "not_loaded" },
   {
     id: "quote-shopper-intro-for-cs",
     label: "Quote Shopper Intro for CS...",
+    purpose:
+      "The caller is comparison-shopping quotes rather than raising a problem with an existing policy.",
     state: "not_loaded",
     labelCompleteness: "truncated",
   },
-  { id: "intro-tips-and-tricks", label: "Intro Tips and Tricks", state: "not_loaded" },
+  { id: "intro-tips-and-tricks", label: "Intro Tips and Tricks", purpose:
+      "General guidance on handling openings. A reference for agents rather than a script read on a call.",
+    state: "not_loaded" },
 ];
 
 export const CALL_ANGLE_SLOTS: readonly TrainingSlot[] = [
-  { id: "standard-to-preferred", label: "Standard To Preferred", state: "not_loaded" },
-  { id: "term-to-perm", label: "Term To perm", state: "not_loaded" },
-  { id: "cash-surrender", label: "Cash Surrender", state: "not_loaded" },
-  { id: "loan-forgiveness", label: "Loan Forgiveness", state: "not_loaded" },
-  { id: "death-claim-extension", label: "Death Claim Extension", state: "not_loaded" },
-  { id: "non-insurance-extension", label: "Non Insurance Extension", state: "not_loaded" },
-  { id: "consolidation", label: "Consolidation", state: "not_loaded" },
-  { id: "work-policy", label: "Work Policy", state: "not_loaded" },
-  { id: "quote-shopper-angle", label: "Quote Shopper Angle", state: "not_loaded" },
+  { id: "standard-to-preferred", label: "Standard To Preferred", purpose:
+      "Conversations about moving a policy from a standard rating class to preferred.",
+    state: "not_loaded" },
+  { id: "term-to-perm", label: "Term To perm", purpose:
+      "Conversations about converting term coverage to permanent coverage.",
+    state: "not_loaded" },
+  { id: "cash-surrender", label: "Cash Surrender", purpose:
+      "The caller is asking about surrendering a policy for its cash value.",
+    state: "not_loaded" },
+  { id: "loan-forgiveness", label: "Loan Forgiveness", purpose:
+      "Situations involving an outstanding policy loan.",
+    state: "not_loaded" },
+  { id: "death-claim-extension", label: "Death Claim Extension", purpose:
+      "Death claim matters that continue beyond the first call.",
+    state: "not_loaded" },
+  { id: "non-insurance-extension", label: "Non Insurance Extension", purpose:
+      "Matters the caller raises that fall outside insurance.",
+    state: "not_loaded" },
+  { id: "consolidation", label: "Consolidation", purpose:
+      "Conversations about consolidating more than one policy.",
+    state: "not_loaded" },
+  { id: "work-policy", label: "Work Policy", purpose:
+      "Coverage held through an employer or group plan.",
+    state: "not_loaded" },
+  { id: "quote-shopper-angle", label: "Quote Shopper Angle", purpose:
+      "Callers weighing quotes against what they already hold.",
+    state: "not_loaded" },
 ];

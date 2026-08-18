@@ -183,22 +183,39 @@ function ContentSlot({ slot }: { slot: TrainingSlot }) {
             </div>
           </dl>
 
+          {slot.purpose ? (
+            <p className="training-slot-purpose">
+              <span className="training-slot-purpose-tag">Covers</span>
+              {slot.purpose}
+            </p>
+          ) : null}
+
           {/* Verbatim. Whitespace preserved. Never transformed — ScriptBody
               styles substrings but its text content is byte-identical to
               slot.body, and a runtime test proves it on the rendered page. */}
           <ScriptBody body={slot.body} />
         </>
       ) : (
+        <>
+        {slot.purpose ? (
+          <p className="training-slot-purpose">
+            <span className="training-slot-purpose-tag">Covers</span>
+            {slot.purpose}
+          </p>
+        ) : null}
         <div className="training-empty-slot" role="note">
           <span aria-hidden="true">○</span>
           <div>
             <strong>Label reserved; script intentionally empty.</strong>
             <p>
               THRIVE has not loaded approved wording for this slot. No draft,
-              suggestion, summary, or AI-generated substitute is shown.
+              suggested phrasing, or AI-generated substitute is shown — the
+              line below describes which call this slot covers, not anything
+              to say on one.
             </p>
           </div>
         </div>
+        </>
       )}
     </article>
   );
