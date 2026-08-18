@@ -1849,6 +1849,22 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
 .training-empty-slot strong { color: var(--portal-text); font-size: 12px; }
 .training-empty-slot p { margin: 4px 0 0; color: var(--portal-muted); font-size: 11px; line-height: 1.5; }
 .training-script-body { max-height: none; word-break: normal; }
+/* Script formatting — presentation only; the text is byte-verbatim approved
+   language and a runtime test compares the rendered text to the constant.
+   The highlighter marks the SPOKEN lines — what an agent actually says. */
+.training-line-step { font-weight: 800; }
+.training-line-purpose { font-style: italic; color: var(--portal-muted); }
+.training-mark {
+  background: #ffe867;
+  color: #241b10;
+  padding: 1px 3px;
+  border-radius: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+/* One highlighter in every theme: bright yellow with near-black ink stays
+   >13:1 on its own fill, so it needs no per-theme variant — on the dark and
+   thrive pages it reads as a real highlighter would on any paper. */
 
 @media (max-width: 720px) {
   .training-section-tabs {

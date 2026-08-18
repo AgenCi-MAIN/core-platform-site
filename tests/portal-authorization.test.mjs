@@ -2386,6 +2386,107 @@ test("LeadTech renders the honest not-connected state to leadership and refuses 
   assert.equal(await agentRes.text(), "", "a refused agent receives no body");
 });
 
+test("the rendered Training script is byte-identical to the approved body", async (t) => {
+  // The Training page styles the approved script (bold steps, highlighted
+  // spoken lines) through a presentation-only renderer. This test is the
+  // load-bearing guarantee that presentation never became transformation:
+  // the <pre>'s rendered TEXT CONTENT, tags stripped and entities decoded,
+  // must equal the human-approved constant byte for byte. If a future
+  // "improvement" rewords, trims, or reorders one character of approved
+  // language, this fails.
+  const { readFile: read } = await import("node:fs/promises");
+  const library = await read(
+    new URL("../app/portal/training/library.ts", import.meta.url),
+    "utf8",
+  );
+  const literal = library.match(
+    /^export const DIRECT_CARRIER_QUESTION_INTRO_BODY = (".*");$/m,
+  )?.[1];
+  assert.ok(literal, "approved Training body constant not found");
+  const approved = JSON.parse(literal);
+
+  const portal = await startPortal();
+  t.after(portal.dispose);
+  await portal.addMember("agent-training@example.com", "agent");
+  const res = await portal.get("/portal/training", {
+    subject: "subject-agent-training",
+    email: "agent-training@example.com",
+  });
+  assert.equal(res.status, 200);
+  const html = await res.text();
+
+  const pre = html.match(
+    /<pre class="script-body training-script-body">([\s\S]*?)<\/pre>/,
+  );
+  assert.ok(pre, "the approved script's <pre> must render");
+
+  const rendered = pre[1]
+    .replace(/<[^>]+>/g, "")
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+  assert.equal(
+    rendered,
+    approved,
+    "the rendered script text diverged from the approved body — presentation became transformation",
+  );
+
+  // The formatting itself must also be present — highlighted spoken lines —
+  // or the renderer has silently degraded to plain text.
+  assert.match(html, /<mark class="training-mark">/, "spoken lines are no longer highlighted");
+});
+
+test("the dashboard mission map carries every lane and respects capability filtering", async (t) => {
+  // The mission map is the dashboard's primary content and was previously
+  // pinned only by accident (one NAV description string). This pins the four
+  // lane titles, the newly-wired surfaces, external-tool rendering, and that
+  // leadership-gated items stay invisible to agents.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("owner-missions@example.com", "owner");
+  await portal.addMember("agent-missions@example.com", "agent");
+
+  const ownerRes = await portal.get("/portal", {
+    subject: "subject-owner-missions",
+    email: "owner-missions@example.com",
+  });
+  assert.equal(ownerRes.status, 200);
+  const ownerHtml = await ownerRes.text();
+
+  for (const lane of ["Operating Floor", "Signal &amp; Intelligence", "Economics Lab", "Governance Layer"]) {
+    assert.match(ownerHtml, new RegExp(lane), `lane "${lane}" missing from the mission map`);
+  }
+  for (const label of ["Leaderboard", "My Stats", "Commissions", "Pipeline", "Call Routing", "Phone Logs", "Contracting", "Underwriter"]) {
+    assert.match(ownerHtml, new RegExp(`>${label}<`), `"${label}" missing from the owner's mission map`);
+  }
+  // External tools render as hard anchors that leave the app in a new tab.
+  assert.match(
+    ownerHtml,
+    /href="https:\/\/surelc\.surancebay\.com\/sbweb\/login"[^>]*target="_blank"/,
+    "SureLC must render as a new-tab external anchor",
+  );
+
+  const agentRes = await portal.get("/portal", {
+    subject: "subject-agent-missions",
+    email: "agent-missions@example.com",
+  });
+  assert.equal(agentRes.status, 200);
+  const agentHtml = await agentRes.text();
+  for (const label of ["Leaderboard", "My Stats", "Commissions", "Contracting"]) {
+    assert.match(agentHtml, new RegExp(`>${label}<`), `"${label}" missing from the agent's mission map`);
+  }
+  for (const label of ["Pipeline", "Call Routing", "Phone Logs"]) {
+    assert.doesNotMatch(
+      agentHtml,
+      new RegExp(`>${label}<`),
+      `leadership-only "${label}" leaked into the agent's mission map`,
+    );
+  }
+});
+
 test("the commission schedule serves every active member from inside the bundle", async (t) => {
   // The schedule lives INSIDE the portal: /portal/commission renders the
   // shell page with an embedded frame, and /portal/commission/document

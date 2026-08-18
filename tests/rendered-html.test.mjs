@@ -457,10 +457,17 @@ test("Training is guarded, ordered above Book of Business, and stays server-only
     /^["']use client["'];/m,
     "approved training language moved into a public client module",
   );
+  // The body flows VERBATIM into the presentation-only ScriptBody component
+  // (owner order 2026-08-18: highlight the spoken lines). The component may
+  // wrap substrings in styling elements but must never alter the text — a
+  // runtime test in portal-authorization extracts the rendered <pre>'s text
+  // content and compares it byte-for-byte against the approved constant,
+  // which is the stronger, output-level form of the direct-render pin that
+  // used to live here.
   assert.match(
     page,
-    /<pre className="script-body training-script-body">\{slot\.body\}<\/pre>/,
-    "approved training text is no longer rendered directly",
+    /<ScriptBody body=\{slot\.body\} \/>/,
+    "approved training text no longer flows verbatim into the script renderer",
   );
   assert.doesNotMatch(
     page,
