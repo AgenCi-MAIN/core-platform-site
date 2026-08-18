@@ -1,7 +1,8 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { JarvisCommandPrompt } from "../command-prompt";
-import { requireCommandCenter } from "../access";
+import { COMMAND_CENTER_EMAILS, isCommandCenterUnlocked, requireCommandCenter } from "../access";
+import { PASS_ATTEMPT_LIMIT, PASS_TTL_SECONDS } from "../command-pass";
 import { PortalShell } from "../components";
 
 export const dynamic = "force-dynamic";
@@ -373,8 +374,117 @@ function QueueRow({ item }: { item: QueueItem }) {
   );
 }
 
-export default async function FounderCommandCenter() {
+/**
+ * The key desk. The lodge lock has existed since #72 and the issue route with
+ * it, but nothing ever rendered a way to CALL that route or showed the code it
+ * hands back — so the door had a lock, a keyhole, and no way to cut a key. The
+ * founder was left issuing passes by hand or not at all.
+ *
+ * Founder-only, and rendered only for him: the route already refuses everyone
+ * else, and a form that visibly exists for a helper who cannot use it is an
+ * invitation to try. This is presentation matching an authorization decision
+ * already made server-side, never the decision itself.
+ */
+function LodgeKeyDesk({
+  issued,
+  issuedFor,
+  problem,
+}: {
+  issued: string | null;
+  issuedFor: string | null;
+  problem: string | null;
+}) {
+  // Everyone eligible to HOLD a pass, minus the founder, who never needs one.
+  const holders = [...COMMAND_CENTER_EMAILS].filter(
+    (email) => !isCommandCenterUnlocked({ email } as never),
+  );
+  const minutes = Math.round(PASS_TTL_SECONDS / 60);
+
+  return (
+    <section className="fcc-panel" aria-labelledby="fcc-lodge-title">
+      <div className="fcc-panel-head">
+        <h2 id="fcc-lodge-title">Lodge key</h2>
+        <FactChip tone="attention">Founder only</FactChip>
+      </div>
+
+      {issued ? (
+        <div className="fcc-lodge-issued" role="status">
+          <p className="fcc-lodge-issued-label">
+            Code for {issuedFor ?? "the named helper"} — read it to them now.
+          </p>
+          {/* Shown once. It is not stored, not logged, and not recoverable:
+              only its SHA-256 hash reached the database. Leaving this page
+              loses it, and the answer is to issue another. */}
+          <p className="fcc-lodge-code">{issued}</p>
+          <p className="fcc-lodge-issued-note">
+            Good for {minutes} minutes, for that address only, once. It dies on
+            first use. Five wrong guesses lock it. This screen is the only place
+            the code exists — reload and it is gone for good.
+          </p>
+        </div>
+      ) : null}
+
+      {problem === "ineligible" ? (
+        <p className="fcc-lodge-problem" role="status">
+          No pass was issued: that address is not on the Command Center list. A
+          code cannot put someone on the list — being on it is what makes a code
+          worth holding.
+        </p>
+      ) : null}
+
+      {holders.length === 0 ? (
+        <p className="fcc-lodge-empty">
+          Nobody but you is on the Command Center list, so there is nobody to
+          issue a code to.
+        </p>
+      ) : (
+        <form className="fcc-lodge-form" method="post" action="/portal/command/lodge/issue">
+          <label className="fcc-lodge-field">
+            <span>Issue to</span>
+            <select name="email" defaultValue={holders[0]} required>
+              {holders.map((email) => (
+                <option key={email} value={email}>
+                  {email}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="fcc-lodge-field">
+            <span>Note (optional)</span>
+            <input
+              type="text"
+              name="note"
+              maxLength={120}
+              placeholder="What this session is for"
+            />
+          </label>
+          <button className="fcc-lodge-submit" type="submit">
+            Cut a key
+          </button>
+        </form>
+      )}
+
+      <p className="fcc-lodge-fine">
+        A code is bound to one address, lasts {minutes} minutes, works once, and
+        locks itself after {PASS_ATTEMPT_LIMIT} wrong attempts. It is never
+        stored — the database holds only its hash, so reading the table cannot
+        recover a live code. You never need one yourself.
+      </p>
+    </section>
+  );
+}
+
+export default async function FounderCommandCenter({
+  searchParams,
+}: {
+  searchParams: Promise<{ issued?: string; for?: string; issue?: string }>;
+}) {
   const session = await requireCommandCenter("/portal/command", "command.view");
+  const params = await searchParams;
+  // Only the founder can issue, so only the founder is shown the desk — and
+  // the code is only ever rendered back to the person who just minted it.
+  const canIssue = isCommandCenterUnlocked(session);
+  const issued = canIssue ? (params.issued ?? null) : null;
   const unavailableSignals = SIGNAL_ITEMS.filter(
     (item) => item.tone === "unavailable",
   ).length;
@@ -406,6 +516,13 @@ export default async function FounderCommandCenter() {
             </div>
             <JarvisCommandPrompt />
           </div>
+          {canIssue ? (
+            <LodgeKeyDesk
+              issued={issued}
+              issuedFor={params.for ?? null}
+              problem={params.issue ?? null}
+            />
+          ) : null}
           <div className="fcc-hero-foot">
             <SourceStamp>Repository records captured 2026-08-17</SourceStamp>
             <span>Signed in as {session.displayName}</span>

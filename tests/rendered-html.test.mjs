@@ -545,6 +545,61 @@ test("every approved Training body remains byte-verbatim", async () => {
       newlines: 80,
       sha256: "4c3dd3c41c8aaee9d87aaee925d30a96405a1b4c9f251a6010e774f76867e7b5",
     },
+    STANDARD_TO_PREFERRED_BODY: {
+      bytes: 3423,
+      newlines: 62,
+      sha256: "d3eff3b91f6396d5465c0bffddc72dcc4bc30ef36f61789ccdc2c28e96583785",
+    },
+    TERM_TO_PERM_BODY: {
+      bytes: 4326,
+      newlines: 86,
+      sha256: "be3d65b662ab764cab66c13b9c5eed62b0bd41dc81b74b07e371e88cfbf170d7",
+    },
+    CASH_SURRENDER_BODY: {
+      bytes: 4481,
+      newlines: 87,
+      sha256: "91bef711bd1632c516e7adec1d6b155264d2233ca0fb18f584cae50276561210",
+    },
+    LOAN_FORGIVENESS_BODY: {
+      bytes: 4335,
+      newlines: 86,
+      sha256: "3da4aa90ec0d256780cf0bedb0b3c489c005f84fd6aa0a25cf4f371383467c0c",
+    },
+    DEATH_CLAIM_EXTENSION_BODY: {
+      bytes: 5037,
+      newlines: 105,
+      sha256: "152b02038555be4b1aed158212fc638005d3f18e927c91c666e88469633fa5c9",
+    },
+    NON_LIFE_EXTENSION_BODY: {
+      bytes: 4624,
+      newlines: 89,
+      sha256: "848395da4b8224fe852de21895603d17ca81d4059f31dd626b3d7201db847aa5",
+    },
+    CONSOLIDATION_BODY: {
+      bytes: 3966,
+      newlines: 76,
+      sha256: "bba28d7eb7315fc068e0b0c74269a283e7eb5b5a17e98ceda467acc76884b074",
+    },
+    WORK_POLICY_BODY: {
+      bytes: 3296,
+      newlines: 78,
+      sha256: "fb093c7bb9c9623d221b07f1ed36cbaccd661ee5ee64d82e951f29c5d02364fc",
+    },
+    QUOTE_SHOPPER_ANGLE_BODY: {
+      bytes: 2920,
+      newlines: 56,
+      sha256: "7531e3ced3735025f85db4ffa888f863ec62c274fb7d27db269fde03e723b46a",
+    },
+    THREE_OPTION_CLOSE_BODY: {
+      bytes: 1934,
+      newlines: 57,
+      sha256: "8c8176cce32d6f08d91be10353dc625f7f2b92230167e0501e7af8990f8ad557",
+    },
+    BILLING_PAGE_BODY: {
+      bytes: 2153,
+      newlines: 54,
+      sha256: "e43659bd847c3bd81d65e05830a3e6886b95fe586e8c4cafa4227bebbfa79ba6",
+    },
   };
 
   // Discover what the file actually declares, rather than trusting the table

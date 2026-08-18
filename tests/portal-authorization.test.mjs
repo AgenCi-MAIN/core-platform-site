@@ -360,8 +360,9 @@ test("active members open Training with one verbatim intro and labelled empty sl
   );
   assert.equal(
     (html.match(/data-content-state="loaded"/g) ?? []).length,
-    1,
-    "only the owner-supplied Word script may be loaded",
+    2,
+    "the default intro and the default call angle are both owner-supplied and both load; " +
+      "the Closing slot is still awaiting its wording, so exactly two panels may claim content",
   );
   // Both truncated labels still disclose themselves in the tab strip.
   assert.ok(
@@ -2480,8 +2481,22 @@ test("the rendered Training script is byte-identical to the approved body", asyn
   // snippet, a duplicated one, or a reordering all break this equality just
   // as surely as a reworded sentence would. This is strictly stronger than
   // checking a single block.
+  // Scoped to the Introductions section on purpose. This test compares the
+  // rendered text against ONE approved body, and every loaded section renders
+  // <pre> blocks of its own — so an unscoped sweep silently concatenates the
+  // default call angle onto the intro and then fails with a diff nobody can
+  // read. Slice to the section the body belongs to, and the equality means
+  // what it says.
+  const introSection = html.slice(
+    html.indexOf('id="introductions"'),
+    html.indexOf('id="call-angles"'),
+  );
+  assert.ok(
+    introSection.length > 0,
+    "the Introductions section must be findable — this test is vacuous without it",
+  );
   const blocks = [
-    ...html.matchAll(/<pre class="script-body training-script-body">([\s\S]*?)<\/pre>/g),
+    ...introSection.matchAll(/<pre class="script-body training-script-body">([\s\S]*?)<\/pre>/g),
   ].map((match) => match[1]);
   assert.ok(blocks.length > 0, "the approved script's <pre> blocks must render");
   assert.ok(
