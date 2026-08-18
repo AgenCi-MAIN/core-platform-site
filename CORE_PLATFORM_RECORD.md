@@ -1286,3 +1286,32 @@ The audit trail records the reinstatement as its own event rather than
 overwriting the revocation. Both decisions happened, in that order, on one
 day, and the record of access should show that rather than a tidy fiction in
 which only the final state ever existed.
+
+**Executed and verified 2026-08-18.** The roster now reads:
+
+| Email | Name | Role | Status |
+| --- | --- | --- | --- |
+| `btcmao518@gmail.com` | Yuxiang Mao (Shawn) | owner | active |
+| `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | active |
+| `andrew.davidson.zenith@gmail.com` | Andrew Davidson | owner | active |
+| `epiclife.nguyen@gmail.com` | Nate Nguyen | **manager** | active |
+| `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) — retired identity | owner | revoked |
+
+Four people hold access; one retired identity is retained and cannot sign in.
+The Cloudflare Access allow policy keeps all four addresses and needed no
+edit.
+
+**Audit-log debt, carried deliberately so it is not forgotten.** Three access
+decisions of 2026-08-18 were applied with `--command` UPDATEs rather than the
+SQL files, so their `audit_events` rows may not exist: Nate's revocation, the
+retired-identity marking, and Nate's reinstatement. The portal's premise is
+that every allow and deny is written to an append-only table; a roster change
+that is live but unlogged is exactly the gap that table exists to prevent.
+Running `db/sql/0004` and `db/sql/0005` from a merged `main` closes it — every
+UPDATE in them no-ops against rows already in the target state, so a late run
+is safe and writes only the missing audit rows. Confirm what is actually
+missing first:
+
+```
+npx wrangler d1 execute site-creator-d1 --remote --command="SELECT actor_email, action, reason, created_at FROM audit_events ORDER BY id DESC LIMIT 6;"
+```
