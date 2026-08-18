@@ -1255,3 +1255,34 @@ Cloudflare Access allow policy. Until that policy edit, his address still
 clears the edge gate and is stopped only by the membership check: correct
 behaviour, but he should not be reaching the gate at all. Outreach to him
 ends here.
+
+### 19h. Nate reinstated as an employee — A16 amends A15 the same day
+
+The owner revoked Nate's owner row on the morning of 2026-08-18 because he
+declined to invest, then clarified hours later: "He's my employee, leave him
+the access." Both are true and they are not in conflict — **investing and
+working here are different things**, and the role system exists to carry
+exactly that difference. He becomes a **manager**, active.
+
+Why this state rather than the obvious alternatives:
+
+- **Not left revoked-with-Access.** Revoked in the roster while still on the
+  Cloudflare Access allow policy would let him clear the edge gate and then be
+  refused inside at `/portal/no-access`. That is a locked door behind an
+  unlocked one — technically correct, and a bad thing to do to an employee.
+- **Not restored as owner.** Ownership was the thing he declined. Putting the
+  owner row back would make the roster claim an investment relationship that
+  does not exist, and would hand him `members.manage` — the ability to change
+  other people's access — for a role he no longer holds.
+- **Manager** is the honest fit: he can see the roster (`members.view`) and
+  never change it, review calls, and see team and leadership surfaces. He
+  cannot manage members or edit approved call language.
+
+**Withdrawn:** the A15 follow-up to remove him from the Cloudflare Access
+policy. He is staff and signs in normally, so the policy keeps all four
+addresses and no Access edit is needed.
+
+The audit trail records the reinstatement as its own event rather than
+overwriting the revocation. Both decisions happened, in that order, on one
+day, and the record of access should show that rather than a tidy fiction in
+which only the final state ever existed.
