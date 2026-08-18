@@ -1,274 +1,120 @@
-import { RankMedallion } from "../../rank-medallion";
-import { can, requireCapability } from "../access";
+import Link from "next/link";
+import { requireCapability } from "../access";
 import { PortalPageIntro, PortalShell } from "../components";
-import { OFFERS } from "./catalogue";
-import {
-  AVG_PREMIUM,
-  BASE_CONTRACT,
-  CLOSE_RATE,
-  LEAD_COST,
-  money,
-  tierEconomics,
-} from "./economics";
+import { MarketplaceAction } from "./marketplace-action";
 
 export const dynamic = "force-dynamic";
 
-/**
- * THRIVE Exchange.
- *
- * Agents trade contract points for transferred calls and AI capacity. This page
- * prices the trade; it does not make it. A change to anyone's contract level is
- * a compensation decision, made and recorded by a human outside this system.
- *
- * The margin panel is gated on `leadership.view.all` — agents see what they get
- * and what it costs them, leadership additionally sees whether the agency makes
- * money on it.
- */
-export default async function ShopPage() {
+const PRODUCTS = [
+  {
+    id: "transfer-calls" as const,
+    eyebrow: "Inbound volume",
+    name: "Live transfer calls",
+    price: "$23",
+    priceNote: "per call",
+    description: "Buy additional live transfer inventory for agents who are ready to take inbound conversations.",
+    bullets: ["$23 per delivered call", "Use with the Inbound Calls portal", "Quantity-based request"],
+    quantityEnabled: true,
+    unitPrice: 23,
+    accent: "emerald",
+  },
+  {
+    id: "recruiting-ads" as const,
+    eyebrow: "Growth",
+    name: "Recruiting ads",
+    price: "Custom",
+    priceNote: "campaign",
+    description: "Request THRIVE recruiting campaign support for agent acquisition and local market expansion.",
+    bullets: ["Creative + campaign request", "Market-specific setup", "Pricing approved before charge"],
+    quantityEnabled: false,
+    unitPrice: null,
+    accent: "violet",
+  },
+  {
+    id: "gohighlevel" as const,
+    eyebrow: "Software",
+    name: "GoHighLevel access",
+    price: "Access",
+    priceNote: "plan",
+    description: "Request access to THRIVE's GoHighLevel software stack for CRM, automations, pipelines, and follow-up.",
+    bullets: ["CRM workspace", "Automation tooling", "Account setup request"],
+    quantityEnabled: false,
+    unitPrice: null,
+    accent: "blue",
+  },
+  {
+    id: "ai-capacity" as const,
+    eyebrow: "Automation",
+    name: "AI capacity",
+    price: "Custom",
+    priceNote: "allocation",
+    description: "Request additional THRIVE AI capacity for agent support, recruiting, or operating workflows.",
+    bullets: ["Capacity request", "Use-case review", "Approved allocation only"],
+    quantityEnabled: false,
+    unitPrice: null,
+    accent: "amber",
+  },
+] as const;
+
+const STYLES = `
+.marketplace-balance{display:grid;grid-template-columns:1fr auto;gap:22px;align-items:center;margin-bottom:18px;padding:22px 24px;border:1px solid rgba(45,212,191,.18);border-radius:20px;background:radial-gradient(circle at 92% 10%,rgba(45,212,191,.14),transparent 30%),linear-gradient(145deg,rgba(11,18,31,.98),rgba(8,13,24,.9));box-shadow:0 20px 50px rgba(2,6,23,.22)}.marketplace-balance-kicker{color:#7f91a9;font-size:.7rem;font-weight:850;letter-spacing:.13em;text-transform:uppercase}.marketplace-balance strong{display:block;margin-top:7px;color:#f8fafc;font-size:clamp(1.8rem,3vw,2.7rem);letter-spacing:-.05em}.marketplace-balance p{margin:5px 0 0;color:#91a0b4;font-size:.82rem}.marketplace-balance-actions{display:flex;gap:10px;align-items:center}.marketplace-balance-actions a{border:1px solid rgba(45,212,191,.24);border-radius:10px;padding:10px 13px;color:#99f6e4;background:rgba(20,184,166,.07);font-size:.76rem;font-weight:800;text-decoration:none}.marketplace-balance-state{border:1px solid rgba(245,158,11,.26);border-radius:999px;padding:7px 10px;color:#fbbf24;background:rgba(245,158,11,.06);font-size:.68rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.marketplace-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.marketplace-card{position:relative;overflow:hidden;min-height:390px;padding:24px!important;border-radius:20px!important}.marketplace-card:before{content:"";position:absolute;inset:0 0 auto;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--market-accent),transparent);opacity:.75}.marketplace-card:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;right:-95px;top:-100px;background:radial-gradient(circle,var(--market-glow),transparent 66%);pointer-events:none}.marketplace-card.emerald{--market-accent:#34d399;--market-glow:rgba(52,211,153,.16)}.marketplace-card.violet{--market-accent:#a78bfa;--market-glow:rgba(167,139,250,.15)}.marketplace-card.blue{--market-accent:#60a5fa;--market-glow:rgba(96,165,250,.15)}.marketplace-card.amber{--market-accent:#fbbf24;--market-glow:rgba(251,191,36,.14)}.marketplace-card-head{position:relative;z-index:1;display:flex;justify-content:space-between;gap:18px;align-items:flex-start}.marketplace-card-kicker{margin:0;color:#7789a2;font-size:.69rem;font-weight:850;letter-spacing:.12em;text-transform:uppercase}.marketplace-card h2{margin:8px 0 0;color:#f8fafc;font-size:1.35rem;letter-spacing:-.025em}.marketplace-price{text-align:right}.marketplace-price strong{display:block;color:#f8fafc;font-size:1.7rem;letter-spacing:-.04em}.marketplace-price small{color:#7789a2;font-size:.72rem}.marketplace-description{position:relative;z-index:1;margin:18px 0 0;color:#99a8bc;line-height:1.58;font-size:.88rem;max-width:560px}.marketplace-bullets{position:relative;z-index:1;display:grid;gap:9px;margin:20px 0;padding:0;list-style:none}.marketplace-bullets li{display:flex;gap:9px;align-items:center;color:#b5c0d0;font-size:.8rem}.marketplace-bullets li:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--market-accent);box-shadow:0 0 14px var(--market-accent)}.marketplace-action{position:relative;z-index:1;display:grid;grid-template-columns:auto 1fr;gap:9px;margin-top:auto;padding-top:18px;border-top:1px solid rgba(148,163,184,.1)}.marketplace-quantity{display:grid;gap:5px}.marketplace-quantity span{color:#72849d;font-size:.64rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.marketplace-quantity input{width:84px;border:1px solid rgba(148,163,184,.2);border-radius:10px;padding:10px 9px;background:#0b1321;color:#f8fafc;font:inherit}.marketplace-action button{align-self:end;border:1px solid color-mix(in srgb,var(--market-accent) 35%,transparent);border-radius:11px;padding:11px 14px;background:linear-gradient(135deg,color-mix(in srgb,var(--market-accent) 28%,#0b1321),#101827);color:#f8fafc;font:inherit;font-size:.8rem;font-weight:850;cursor:pointer}.marketplace-action button:disabled{opacity:.6;cursor:wait}.marketplace-estimate{grid-column:1/-1;color:#788ba4;font-size:.71rem}.marketplace-message{grid-column:1/-1;margin:0;border-left:2px solid var(--market-accent);padding:8px 10px;color:#b9c6d7;background:rgba(15,23,42,.45);font-size:.73rem;line-height:1.45}.marketplace-boundary{margin-top:18px;padding:18px 20px;border:1px solid rgba(148,163,184,.13);border-radius:16px;background:rgba(11,17,29,.72);color:#8fa0b6;font-size:.78rem;line-height:1.55}.marketplace-boundary strong{color:#d9e2ee}.marketplace-boundary code{color:#99f6e4}@media(max-width:900px){.marketplace-grid{grid-template-columns:1fr}}@media(max-width:680px){.marketplace-balance{grid-template-columns:1fr}.marketplace-balance-actions{justify-content:space-between}.marketplace-card-head{flex-direction:column}.marketplace-price{text-align:left}.marketplace-action{grid-template-columns:1fr}.marketplace-quantity input{width:100%}}
+`;
+
+export default async function MarketplacePage() {
   const session = await requireCapability("dashboard.view.self", "/portal/shop");
-  const seesMargin = can(session, "leadership.view.all");
-
-  const rows = OFFERS.map((offer) => ({
-    offer,
-    econ: tierEconomics(offer.giveback, offer.callsPerDay, offer.apiBudget),
-  }));
-
-  const chart = rows.filter((r) => r.offer.callsPerDay[1] > 0);
-  const peak = Math.max(...chart.map((r) => Math.max(Math.abs(r.econ.agencyMargin), 1)), 1);
 
   return (
-    <PortalShell session={session} current="/portal/shop" section="Exchange">
+    <PortalShell session={session} current="/portal/shop" section="Marketplace">
+      <style>{STYLES}</style>
       <main className="portal-main">
         <PortalPageIntro
-          eyebrow="THRIVE Exchange"
-          title="Trade contract points for volume."
-          subtitle="Give up percentage, get transferred calls and AI capacity. Every tier shows exactly what you surrender and what you have to produce to come out ahead."
+          eyebrow="THRIVE Marketplace"
+          title={<>Buy the tools that <em>move production</em>.</>}
+          subtitle="Calls, recruiting, software, and AI capacity live in one storefront. The portal records order intent now; the wallet and payment rail remain visibly disconnected until a real ledger is wired in."
           compact
         />
 
-        <p className="script-governance" role="note">
-          <span className="script-governance-tag">Not a transaction</span>
-          <span>
-            This is a priced menu, not a checkout. Compensation is an employment
-            term — a change to your contract level is agreed with a human and
-            recorded outside this system.{" "}
-            <strong>Nothing on this page changes your pay.</strong>
-          </span>
-        </p>
+        <section className="marketplace-balance" aria-label="Portal account balance">
+          <div>
+            <span className="marketplace-balance-kicker">Account balance</span>
+            <strong>—</strong>
+            <p>Wallet ledger not connected yet. No request below can silently charge an agent.</p>
+          </div>
+          <div className="marketplace-balance-actions">
+            <span className="marketplace-balance-state">Ledger pending</span>
+            <Link href="/portal/inbound">Open inbound portal</Link>
+          </div>
+        </section>
 
-        {/* ---------------- the offers ---------------- */}
-        <div className="shop-grid">
-          {rows.map(({ offer, econ }) => {
-            const profitable = econ.agencyMargin >= 0;
-            return (
-              <article className={`portal-card shop-card shop-card-${offer.metal}`} key={offer.id}>
-                <header className="shop-head">
-                  <RankMedallion
-                    metal={offer.metal}
-                    numeral={offer.giveback ? `-${offer.giveback}` : "0"}
-                    size={44}
-                  />
-                  <div>
-                    <h2>{offer.name}</h2>
-                    <p>{offer.tagline}</p>
-                  </div>
-                </header>
-
-                <div className="shop-trade">
-                  <div className="shop-trade-side">
-                    <span className="shop-trade-label">You give</span>
-                    <strong className="shop-give">
-                      {offer.giveback ? `${offer.giveback} pts` : "Nothing"}
-                    </strong>
-                    <small>
-                      {offer.giveback
-                        ? `${BASE_CONTRACT}% → ${BASE_CONTRACT - offer.giveback}% contract`
-                        : "Full contract for your rank"}
-                    </small>
-                  </div>
-                  <span className="shop-trade-arrow" aria-hidden="true">⇄</span>
-                  <div className="shop-trade-side">
-                    <span className="shop-trade-label">You get</span>
-                    <strong className="shop-get">
-                      {offer.callsPerDay[1]
-                        ? `${offer.callsPerDay[0]}–${offer.callsPerDay[1]} calls/day`
-                        : "Own sourcing"}
-                    </strong>
-                    <small>{offer.api}</small>
-                  </div>
+        <div className="marketplace-grid">
+          {PRODUCTS.map((product) => (
+            <article className={`portal-card marketplace-card ${product.accent}`} key={product.id}>
+              <div className="marketplace-card-head">
+                <div>
+                  <p className="marketplace-card-kicker">{product.eyebrow}</p>
+                  <h2>{product.name}</h2>
                 </div>
-
-                <ul className="shop-perks">
-                  {offer.perks.map((p) => (
-                    <li key={p}>{p}</li>
-                  ))}
-                </ul>
-
-                {offer.giveback > 0 ? (
-                  <div className="shop-agent-math">
-                    <span className="shop-trade-label">What it takes to win</span>
-                    <p>
-                      The points come off <strong>every</strong> deal, not just the
-                      supplied ones. You need{" "}
-                      <strong className="shop-uplift">
-                        {Math.round((econ.agentUpliftNeeded - 1) * 100)}% more production
-                      </strong>{" "}
-                      to earn the same, and roughly{" "}
-                      <strong>{Math.ceil(econ.dealsMonth)} deals a month</strong> is
-                      what this feed should produce.
-                    </p>
-                  </div>
-                ) : null}
-
-                {seesMargin ? (
-                  <div className={`shop-margin ${profitable ? "is-good" : "is-bad"}`}>
-                    <span className="shop-trade-label">Agency margin</span>
-                    <strong>{money(econ.agencyMargin)}/mo</strong>
-                    <small>
-                      keeps {money(econ.agencyRevenue)} · spends {money(econ.agencyCost)} ·
-                      break-even at {econ.breakEvenGiveback.toFixed(1)} pts
-                    </small>
-                  </div>
-                ) : null}
-              </article>
-            );
-          })}
+                <div className="marketplace-price">
+                  <strong>{product.price}</strong>
+                  <small>{product.priceNote}</small>
+                </div>
+              </div>
+              <p className="marketplace-description">{product.description}</p>
+              <ul className="marketplace-bullets">
+                {product.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}
+              </ul>
+              <MarketplaceAction
+                productId={product.id}
+                unitPrice={product.unitPrice}
+                quantityEnabled={product.quantityEnabled}
+              />
+            </article>
+          ))}
         </div>
 
-        {/* ---------------- the graph, leadership only ---------------- */}
-        {seesMargin ? (
-          <section className="portal-card shop-chart-card">
-            <header className="portal-card-header">
-              <span className="portal-card-icon" aria-hidden="true">◫</span>
-              <div>
-                <h2>Agency margin per tier</h2>
-                <p>
-                  At {money(LEAD_COST)} per transferred call and a{" "}
-                  {(CLOSE_RATE * 100).toFixed(0)}% close rate.
-                </p>
-              </div>
-            </header>
-
-            <svg className="shop-chart" viewBox="0 0 720 260" role="img" aria-label="Agency margin by tier">
-              {(() => {
-                const L = 92;
-                const R = 96;
-                const zero = L + (720 - L - R) / 2;
-                const half = (720 - L - R) / 2;
-                const bh = 34;
-                const gap = 22;
-                return (
-                  <>
-                    <line x1={zero} y1={14} x2={zero} y2={14 + chart.length * (bh + gap)} className="shop-axis" />
-                    <text x={zero} y={14 + chart.length * (bh + gap) + 18} textAnchor="middle" className="shop-glab">
-                      break even
-                    </text>
-                    {chart.map((r, i) => {
-                      const y = 14 + i * (bh + gap);
-                      const w = Math.max((Math.abs(r.econ.agencyMargin) / peak) * half, 3);
-                      const good = r.econ.agencyMargin >= 0;
-                      return (
-                        <g key={r.offer.id}>
-                          <text x={L - 10} y={y + bh / 2 + 5} textAnchor="end" className="shop-glab shop-glab-strong">
-                            {r.offer.name}
-                          </text>
-                          <rect
-                            x={good ? zero : zero - w}
-                            y={y}
-                            width={w}
-                            height={bh}
-                            rx={6}
-                            className={good ? "shop-bar-good" : "shop-bar-bad"}
-                          />
-                          <text
-                            x={good ? zero + w + 10 : zero - w - 10}
-                            y={y + bh / 2 + 5}
-                            textAnchor={good ? "start" : "end"}
-                            className="shop-glab shop-glab-value"
-                          >
-                            {money(r.econ.agencyMargin)}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </>
-                );
-              })()}
-            </svg>
-
-            <div className="shop-equation">
-              <p className="shop-trade-label">The equation</p>
-              <code>margin = (G × AP × N × R) − (L × N) − A</code>
-              <p className="portal-fine">
-                G giveback · AP average premium · N calls supplied · R close rate ·
-                L cost per call · A AI budget.
-              </p>
-              <code className="shop-equation-key">G* ≈ L ÷ (AP × R)</code>
-              <p className="portal-fine">
-                Break-even giveback is the lead cost divided by the revenue one
-                call generates — {money(LEAD_COST)} ÷{" "}
-                {money(AVG_PREMIUM * CLOSE_RATE)} ={" "}
-                <strong>{((LEAD_COST / (AVG_PREMIUM * CLOSE_RATE)) * 100).toFixed(1)} points</strong>.
-                It does not depend on volume: supplying more calls never rescues a
-                tier priced below this line, it only enlarges the loss.
-              </p>
-            </div>
-
-            <div className="shop-verdict" role="note">
-              <p className="shop-trade-label">What this pricing implies</p>
-              <p>
-                Because break-even is dominated by{" "}
-                <strong>lead cost ÷ revenue per call</strong>, it lands at roughly
-                the same {((LEAD_COST / (AVG_PREMIUM * CLOSE_RATE)) * 100).toFixed(0)}{" "}
-                points for <em>every</em> tier that supplies calls. A smaller feed
-                does not justify a smaller giveback — the AI budget is fixed
-                overhead, so light tiers are actually the hardest to make work.
-              </p>
-              <p>
-                <strong>Any tier that supplies leads needs 18–20 points minimum.</strong>{" "}
-                Differentiate the tiers on volume and AI capacity, not on a
-                discounted giveback. A tier priced under the line loses money on
-                every agent who takes it, and loses more the better it sells.
-              </p>
-            </div>
-          </section>
-        ) : null}
-
-        <section className="portal-card">
-          <header className="portal-card-header">
-            <span className="portal-card-icon" aria-hidden="true">◇</span>
-            <div>
-              <h2>What is assumed, and what is measured</h2>
-              <p>Nothing on this page is measured. All of it is assumption.</p>
-            </div>
-          </header>
-          <dl className="shop-assumptions">
-            <div>
-              <dt>Average premium</dt>
-              <dd>{money(AVG_PREMIUM)} — owner-supplied</dd>
-            </div>
-            <div>
-              <dt>Cost per transferred call</dt>
-              <dd>
-                {money(LEAD_COST)} — <strong>placeholder, and the deciding number</strong>
-              </dd>
-            </div>
-            <div>
-              <dt>Close rate on a transfer</dt>
-              <dd>{(CLOSE_RATE * 100).toFixed(0)}% — assumption, no call data connected</dd>
-            </div>
-          </dl>
-          <p className="portal-fine">
-            The portal has no dialer, CRM, or carrier connection, so none of these
-            can be verified here. At a {(CLOSE_RATE * 100).toFixed(0)}% close rate
-            the Accelerate tier is profitable at {money(15)} per call and loses
-            money at {money(20)}.{" "}
-            <strong>
-              Replace the lead cost with the real figure from THRIVE&apos;s invoices
-              before anyone is offered a trade.
-            </strong>
-          </p>
-        </section>
+        <p className="marketplace-boundary" role="note">
+          <strong>What the button does today:</strong> it writes a permissioned <code>marketplace.request</code> record to CORE's append-only audit stream so leadership has a real order request to act on. <strong>It does not charge a card, debit a balance, or change compensation.</strong> Checkout becomes transactional only after a wallet/payment system of record is connected.
+        </p>
       </main>
     </PortalShell>
   );
