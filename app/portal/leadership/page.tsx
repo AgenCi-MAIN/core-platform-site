@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { LeadershipPlaybook } from "./playbook";
 import { desc } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { dialerTransfers } from "../../../db/schema";
@@ -31,8 +33,22 @@ const SAMPLE = 200;
  * ingest socket posts its first transfer, the call-operations tile and the
  * source banner light up here on their own — no code change required.
  */
-export default async function LeadershipPage() {
+export default async function LeadershipPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  /**
+   * Manager and above. `leadership.view.all` is held by owner, admin and
+   * manager and by nobody else — reviewer, agent and support are refused —
+   * so the founder's "Only Manager or Above" is already exactly this
+   * capability. No new capability was added for the Playbook tab, because
+   * adding one is a governance decision and this needed none: the tab lives
+   * behind the guard the page already had.
+   */
   const session = await requireCapability("leadership.view.all", "/portal/leadership");
+  const params = await searchParams;
+  const view = params.view === "playbook" ? "playbook" : "oversight";
 
   const { rows: calls, fault } = await readRows("dialer_transfers", () =>
     getDb()
@@ -79,6 +95,27 @@ export default async function LeadershipPage() {
           subtitle="Company-wide operating evidence for authorized decision-makers — aggregates only, drawn from connected and reconciled sources."
         />
 
+        <nav className="training-tabs" aria-label="Leadership views">
+          <Link
+            aria-current={view === "oversight" ? "page" : undefined}
+            className={`training-tab${view === "oversight" ? " is-active" : ""}`}
+            href="/portal/leadership"
+          >
+            <span className="training-tab-label">Oversight</span>
+          </Link>
+          <Link
+            aria-current={view === "playbook" ? "page" : undefined}
+            className={`training-tab${view === "playbook" ? " is-active" : ""}`}
+            href="/portal/leadership?view=playbook"
+          >
+            <span className="training-tab-label">Playbook</span>
+          </Link>
+        </nav>
+
+        {view === "playbook" ? (
+          <LeadershipPlaybook session={session} />
+        ) : (
+          <>
         <section className="portal-card">
           <div className="portal-card-title-row">
             <PortalCardHeader
@@ -156,6 +193,8 @@ export default async function LeadershipPage() {
           Leadership reports only from connected, reconciled sources and shows aggregates only.
           A blank tile means a source is not yet connected — never that a value is zero.
         </PrototypeNotice>
+          </>
+        )}
       </main>
     </PortalShell>
   );

@@ -5657,3 +5657,50 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 @media (pointer: coarse) {
   .training-tab { padding: 13px 15px; }
 }
+
+
+/* ============================================================
+   THE PLAYBOOK — Leadership > Playbook, manager and above.
+   A reading surface inside the portal rather than a link out to a document,
+   so it cannot drift from the platform it describes.
+   ============================================================ */
+.playbook { display: grid; gap: 14px; }
+.playbook h2 { margin: 0 0 8px; font-size: 1.35rem; letter-spacing: -.02em; }
+.playbook h3 { margin: 0 0 10px; font-size: 1.08rem; letter-spacing: -.01em; }
+.playbook p { max-width: var(--portal-measure, 68ch); margin: 0 0 10px; color: var(--portal-muted); line-height: 1.6; }
+.playbook-lede p { font-size: .96rem; }
+.playbook-you {
+  margin: 4px 0 0;
+  padding: 9px 12px;
+  border-left: 2px solid var(--portal-accent);
+  background: var(--portal-soft);
+  border-radius: 0 8px 8px 0;
+  font-size: .86rem;
+}
+.playbook-role { text-transform: uppercase; letter-spacing: .08em; font-size: .72rem; font-weight: 850; color: var(--portal-accent-strong); }
+
+.playbook-steps { margin: 0 0 12px; padding-left: 1.15rem; display: grid; gap: 8px; }
+.playbook-steps li { color: var(--portal-muted); line-height: 1.55; }
+.playbook-steps li::marker { color: var(--portal-accent-strong); font-weight: 800; }
+.playbook-steps strong, .playbook-list strong { color: var(--portal-text); }
+
+.playbook-list { margin: 0 0 12px; padding-left: 1.15rem; display: grid; gap: 6px; }
+.playbook-list li { color: var(--portal-muted); line-height: 1.55; }
+
+.playbook-note {
+  margin-top: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--portal-line);
+  border-left: 3px solid var(--portal-accent);
+  border-radius: var(--portal-radius, 10px);
+  background: var(--portal-panel);
+  color: var(--portal-muted);
+  font-size: .88rem;
+  line-height: 1.55;
+}
+.playbook-note strong { color: var(--portal-text); }
+
+/* Wide tables scroll in their own container; the page body never does. */
+.playbook-tablewrap { overflow-x: auto; border: 1px solid var(--portal-line); border-radius: var(--portal-radius, 10px); }
+.playbook-tablewrap table { margin: 0; }
+.playbook-sub { display: block; margin-top: 2px; color: var(--portal-subtle, var(--portal-muted)); font-size: .72rem; font-weight: 500; }
