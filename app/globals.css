@@ -5174,3 +5174,64 @@ html[data-portal-performance="boost"] .fcc-thumb-dock { backdrop-filter: none; b
   .fcc-launch:hover { transform: none; }
 }
 
+
+
+/* Training slot purpose line.
+   Descriptive metadata, never approved wording — so it is deliberately styled
+   unlike a script body: no monospace, no verbatim frame, and a label that says
+   what it is. A reader must never mistake this for something to say aloud. */
+.training-slot-purpose {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: var(--portal-muted);
+  font-size: var(--portal-type-label);
+  line-height: 1.55;
+}
+.training-slot-purpose-tag {
+  flex: none;
+  padding: 1px 7px 2px;
+  border: 1px solid var(--portal-line-strong, var(--portal-line));
+  border-radius: 999px;
+  color: var(--portal-subtle, var(--portal-muted));
+  font-size: .68rem;
+  font-weight: 650;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+
+/* Approved script, broken into the author's own sections so an agent can work
+   from one piece at a time on a live call. The split is lossless by
+   construction and proven against the rendered HTML; these styles only decide
+   where the pieces sit. */
+.training-snippets { display: flex; flex-direction: column; gap: 10px; }
+.training-snippet {
+  position: relative;
+  padding-left: 34px;
+  border-left: 2px solid var(--portal-line);
+}
+.training-snippet:hover { border-left-color: var(--portal-accent); }
+.training-snippet-index {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--portal-line-strong, var(--portal-line));
+  border-radius: 50%;
+  color: var(--portal-subtle, var(--portal-muted));
+  font-size: .7rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  background: var(--portal-panel);
+}
+.training-snippet .training-script-body { margin: 0; }
+@media (max-width: 34rem) {
+  .training-snippet { padding-left: 26px; }
+  .training-snippet-index { width: 18px; height: 18px; font-size: .62rem; }
+}
