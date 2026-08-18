@@ -125,6 +125,58 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
   support: ["portal.access", "dashboard.view.self", "team.view", "pet.chat"],
 };
 
+/**
+ * Seniority, for VISIBILITY only — never for authorization.
+ *
+ * Founder order 2026-08-18: "you can see only RANKS below you, you can't see
+ * yOUR UPLINE." A member sees their downline and themselves; they never see a
+ * peer or anyone above them.
+ *
+ * This ladder decides who APPEARS IN A LIST. It decides nothing about what
+ * anyone may DO — that stays `ROLE_CAPABILITIES`, which is deny-by-default and
+ * unaffected by any number here. Keeping the two apart matters: a rank
+ * comparison is an ordering and quietly invites "greater than or equal means
+ * allowed", which is how a visibility ladder turns into an authorization
+ * ladder nobody voted for. Capabilities are a set, not a height.
+ *
+ * `reviewer` and `support` are staff functions rather than rungs on the sales
+ * ladder, and they are ranked below `agent` deliberately: neither carries a
+ * downline, so ranking them low means they see nobody, which is the honest
+ * answer for a role that supervises nobody.
+ */
+const ROLE_RANK: Record<PortalRole, number> = {
+  owner: 60,
+  admin: 50,
+  manager: 40,
+  agent: 30,
+  reviewer: 20,
+  support: 10,
+};
+
+/**
+ * May `viewer` see `subject` in a roster?
+ *
+ * At or below, never above. The operative half of the founder's sentence is
+ * "you can't see yOUR UPLINE" — peers are not upline, and hiding them breaks
+ * the surfaces this is meant to protect rather than protecting them. A
+ * leaderboard filtered to strictly-below shows an agent a standings table
+ * containing one name, their own, which is not a leaderboard. Comparison
+ * against peers is the point of that page; comparison against the people
+ * above you is what was ordered hidden.
+ *
+ * The founder is exempt, matching every other place identity outranks role in
+ * this system (`requireFounder`, `audit.view`): the person accountable for
+ * the roster has to be able to read all of it.
+ */
+export function canSeeInRoster(
+  viewer: { email: string; role: PortalRole },
+  subject: { email: string; role: PortalRole },
+): boolean {
+  if (normalizeEmail(viewer.email) === normalizeEmail(subject.email)) return true;
+  if (FOUNDER_EMAILS.has(normalizeEmail(viewer.email))) return true;
+  return ROLE_RANK[subject.role] <= ROLE_RANK[viewer.role];
+}
+
 export const ROLE_LABELS: Record<PortalRole, string> = {
   owner: "Owner",
   admin: "Administrator",

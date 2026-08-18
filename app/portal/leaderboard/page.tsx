@@ -2,7 +2,7 @@ import { asc, eq, isNotNull, sql } from "drizzle-orm";
 import type { CSSProperties } from "react";
 import { getDb } from "../../../db";
 import { dialerTransfers, portalMembers } from "../../../db/schema";
-import { ROLE_LABELS, requireCapability } from "../access";
+import { ROLE_LABELS, canSeeInRoster, requireCapability } from "../access";
 import { EmptyState, PortalPageIntro, PortalShell } from "../components";
 import { readFaultCopy, readRows } from "../read-guard";
 
@@ -65,7 +65,14 @@ export default async function LeaderboardPage() {
 
   const fault = membersFault ?? transfersFault;
   const byAgent = new Map(totals.map((row) => [row.agentKey, row]));
+  // Downline and self only, same rule as the Members roster (founder
+  // 2026-08-18). A leaderboard is a roster with numbers attached: leaving the
+  // upline on it would publish exactly what the roster was told to hide, and
+  // publish their production figures besides.
   const board = members
+    .filter((member) =>
+      canSeeInRoster(session, { email: member.email, role: member.role }),
+    )
     .map((member) => {
       const entry = byAgent.get(member.email.toLowerCase());
       return {
