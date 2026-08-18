@@ -1051,3 +1051,35 @@ test("sign-out refuses a return path that normalizes into a protocol-relative UR
     "a legitimate return path must still be honored",
   );
 });
+
+test("no page-scoped style ships a hardcoded colour instead of a theme token", async () => {
+  // The bug this pins shut cost the founder a portal he could not read.
+  //
+  // Several pages ship their own minified `const STYLES` string. Four of them
+  // were authored against the dark theme with a literal slate/teal/amber
+  // palette and zero `--portal-*` tokens. The portal's boot default is dark,
+  // so every one of them measured fine in the theme they were written in and
+  // collapsed to roughly 1:1 contrast in Bright — headings rendering white on
+  // cream, which is not "low contrast", it is invisible. Product names,
+  // prices, and the leaderboard's own honesty sentence were absent from the
+  // page while every test passed.
+  //
+  // A colour that is not a token cannot follow the theme. So: no page-scoped
+  // style may declare a literal colour. Tokens resolve per theme; hex does not.
+  const pages = [
+    "../app/portal/inbound/page.tsx",
+    "../app/portal/shop/page.tsx",
+    "../app/portal/leaderboard/page.tsx",
+    "../app/portal/navigation-upgrade.tsx",
+  ];
+
+  for (const page of pages) {
+    const source = await readFile(new URL(page, import.meta.url), "utf8");
+    const literals = source.match(/(?:color|background|background-color|border-color)\s*:\s*(?:#[0-9a-fA-F]{3,8}|rgba?\([^)]*\))/g) ?? [];
+    assert.deepEqual(
+      literals,
+      [],
+      `${page} declares colour literally instead of through a --portal-* token: ${literals.join(", ")}`,
+    );
+  }
+});
