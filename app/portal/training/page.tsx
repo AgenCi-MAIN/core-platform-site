@@ -32,8 +32,10 @@ type ScriptLineKind = "plain" | "step" | "purpose" | "spoken";
 /**
  * Pure classification pass — no rendering, no mutation of component scope.
  * Walks the body's lines with a tiny region state machine (SCRIPT: opens the
- * spoken region, PURPOSE: opens the purpose region, blank lines and STEP
- * headings close them) and tags each ORIGINAL line untouched.
+ * spoken region, PURPOSE: opens the purpose region; STEP headings and the
+ * labels close regions, and a blank line closes purpose — the spoken region
+ * deliberately survives blank lines, since approved scripts separate spoken
+ * beats with them) and tags each ORIGINAL line untouched.
  */
 function classifyScriptLines(body: string): { line: string; kind: ScriptLineKind }[] {
   const out: { line: string; kind: ScriptLineKind }[] = [];
@@ -55,6 +57,19 @@ function classifyScriptLines(body: string): { line: string; kind: ScriptLineKind
     } else if (region === "purpose") {
       out.push({ line, kind: "purpose" });
     } else if (region === "script") {
+      // Inside a SCRIPT region, an unquoted line ending in ":" is a stage
+      // direction introducing what follows ("After they explain:"), not
+      // words an agent says — leave it plain. Bare directions like
+      // "Holding" stay highlighted, matching the owner's mockup.
+      out.push({
+        line,
+        kind: !line.includes("“") && bare.endsWith(":") ? "plain" : "spoken",
+      });
+    } else if (bare.startsWith("“")) {
+      // Some steps carry spoken lines without a SCRIPT: label (STEP 4 in the
+      // approved body). A line that OPENS with a quote is speech; narrative
+      // lines that merely contain a quote ("If the caller asks: “…”") stay
+      // plain, matching the mockup.
       out.push({ line, kind: "spoken" });
     } else {
       out.push({ line, kind: "plain" });
@@ -99,7 +114,21 @@ function ScriptBody({ body }: { body: string }) {
                       <span key={partIndex}>{part}</span>
                     ),
                   )
-                : <mark className="training-mark">{line}</mark>}
+                : (() => {
+                    // Whole-line stage direction ("Holding"): mark only the
+                    // visible text — painting 26 leading spaces draws a long
+                    // empty highlight bar, and a screen reader would open a
+                    // "highlighted" region on whitespace.
+                    const lead = line.length - line.trimStart().length;
+                    const end = line.trimEnd().length;
+                    return (
+                      <>
+                        {line.slice(0, lead)}
+                        <mark className="training-mark">{line.slice(lead, end)}</mark>
+                        {line.slice(end)}
+                      </>
+                    );
+                  })()}
               {newline}
             </span>
           );

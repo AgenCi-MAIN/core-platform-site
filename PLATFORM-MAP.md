@@ -60,7 +60,9 @@ group and a lane (or a deliberate note that it's lane-exempt, like Radio).
 | Exchange | `app/portal/shop/` | `dashboard.view.self` | live (priced menu) | — |
 | Quoter (external) | NAV link → insurancetoolkits | `book.view.self` | — | sign in there |
 | AI Underwriter (external) | NAV link → insurancetoolkits | `book.view.self` | — | sign in there; tile states advisory-only |
-| SureLC — Heartland (external) | NAV link → surancebay | `dashboard.view.self` | **generic login URL is a placeholder** | owner supplies Heartland's branded link (`…/sbweb/ui/login?gaId=…`) → swap the href. **More SureLC instances**: each upline gets its own NAV entry in the API group, label `SureLC (<upline>)` — one entry per link, never a shared page |
+| SureLC ×3 (external) | NAV links → surancebay OAuth (owner's exact links, 2026-08-18) | `dashboard.view.self` | — | gaId 505 = labeled Heartland (arrived unbranched — owner to confirm), 862 = Brenda Daly, 323 = Altura of America. One entry per upline, never a shared page |
+| Reagan AI (external) | NAV link → reagan.ai agent portal | `dashboard.view.self` | — | sign in there ("Reagan AI" decoded 2026-08-18) |
+| **Tool Directory** | `app/portal/tools/` | `dashboard.view.self` | curated in-file `TOOL_CATEGORIES` | THE home for every external tool that doesn't earn a sidebar tab: carrier portals (Aetna, Corebridge Connext, Occidental, Transamerica — session tokens stripped from supplied URLs, stable login pages kept), leads & CRM (Reagan, InteleLead, Salesforce), quoting, team Google docs, utilities (AudioConvert). Adding a tool = one entry in the array |
 
 ### Administration
 | Surface | Folder | Guard | Data source |

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { dialerTransfers } from "../../../db/schema";
 import { requireCapability } from "../access";
@@ -25,15 +25,22 @@ function talk(seconds: number): string {
 export default async function StatsPage() {
   const session = await requireCapability("dashboard.view.self", "/portal/stats");
 
+  // Case-normalized on BOTH sides: agent_email is written by an external
+  // dialer whose casing CORE does not control, and a case-sensitive match
+  // would under-report a member's own production while the leaderboard
+  // (which normalizes) credited it — two pages disagreeing about the same
+  // person. The filter itself is the self-scoping guarantee; a runtime test
+  // pins that one member's stats never contain another's.
   const { rows: calls, fault } = await readRows("dialer_transfers", () =>
     getDb()
       .select({
         durationSeconds: dialerTransfers.durationSeconds,
         status: dialerTransfers.status,
-        startedAt: dialerTransfers.startedAt,
       })
       .from(dialerTransfers)
-      .where(eq(dialerTransfers.agentEmail, session.email)),
+      .where(
+        sql`lower(${dialerTransfers.agentEmail}) = ${session.email.toLowerCase()}`,
+      ),
   );
 
   const totalSeconds = calls.reduce((sum, row) => sum + (row.durationSeconds ?? 0), 0);

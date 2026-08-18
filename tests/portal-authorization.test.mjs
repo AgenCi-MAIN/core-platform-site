@@ -2434,8 +2434,89 @@ test("the rendered Training script is byte-identical to the approved body", asyn
   );
 
   // The formatting itself must also be present — highlighted spoken lines —
-  // or the renderer has silently degraded to plain text.
-  assert.match(html, /<mark class="training-mark">/, "spoken lines are no longer highlighted");
+  // asserted INSIDE the extracted <pre> and counted, so a renderer that
+  // degraded to a single stray mark (or marked something outside the script)
+  // cannot pass. The approved body carries well over eight spoken spans.
+  const markCount = (pre[1].match(/<mark class="training-mark">/g) ?? []).length;
+  assert.ok(
+    markCount >= 8,
+    `expected the script's spoken lines highlighted (>=8 marks), found ${markCount}`,
+  );
+  // Targeted classification pins — the two cases review found mis-rendered:
+  // a narrative cue must never read as spoken, and STEP 4's label-less
+  // spoken lines must still highlight.
+  assert.ok(
+    !pre[1].includes('<mark class="training-mark">After they explain:'),
+    "a stage direction must not be highlighted as spoken",
+  );
+  assert.match(
+    pre[1],
+    /<mark class="training-mark">“Go ahead and verify/,
+    "STEP 4's spoken lines must highlight despite the missing SCRIPT: label",
+  );
+  // Known limit, recorded honestly: byte-equality is proven for the
+  // characters this body actually contains (no tab, no straight quote, no
+  // "<"). A transformation touching only those would need the renderer
+  // itself to add it — the classification never rewrites the line variable —
+  // and code review guards that seam.
+});
+
+test("My Stats is self-scoped and the leaderboard shows names, never emails", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("stats-a@example.com", "agent");
+  await portal.addMember("stats-b@example.com", "agent");
+  // A third member who has NEVER signed in — display_name genuinely NULL,
+  // inserted directly because the harness's addMember helpfully fills one.
+  // The leaderboard must not fall back to any slice of their email address.
+  await portal.db
+    .prepare(
+      "INSERT INTO portal_members (email, subject_id, display_name, role, status, granted_by) VALUES (?, NULL, NULL, 'agent', 'active', 'test')",
+    )
+    .bind("never-signed-in@example.com")
+    .run();
+
+  const insert = (id, email, seconds) =>
+    portal.db
+      .prepare(
+        `INSERT INTO dialer_transfers
+          (transfer_id, source_system, direction, status, consent_status, agent_email, duration_seconds)
+         VALUES (?, 'test-dialer', 'inbound', 'ready', 'verified', ?, ?)`,
+      )
+      .bind(id, email, seconds)
+      .run();
+  await insert("selfscope-a1", "stats-a@example.com", 120);
+  await insert("selfscope-a2", "STATS-A@EXAMPLE.COM", 60); // hostile casing
+  await insert("selfscope-b1", "stats-b@example.com", 300);
+
+  const a = { subject: "subject-stats-a", email: "stats-a@example.com" };
+  const statsRes = await portal.get("/portal/stats", a);
+  assert.equal(statsRes.status, 200);
+  const statsHtml = await statsRes.text();
+  // Self-scoping with case normalization: A sees BOTH of A's calls (the
+  // hostile-cased row included) and none of B's — 2 calls, 3 minutes.
+  assert.match(statsHtml, />2</, "A's stats must count both of A's calls despite casing");
+  assert.doesNotMatch(statsHtml, />5m/, "B's 5-minute call must never reach A's stats");
+  assert.match(statsHtml, /3m 0s/, "A's talk time must sum only A's calls");
+
+  const boardRes = await portal.get("/portal/leaderboard", a);
+  assert.equal(boardRes.status, 200);
+  const boardHtml = await boardRes.text();
+  const table = boardHtml.slice(boardHtml.indexOf("<table"), boardHtml.indexOf("</table>"));
+  assert.ok(
+    !table.includes("@"),
+    "the leaderboard table must never contain an email address or its parts",
+  );
+  assert.ok(
+    !table.includes("never-signed-in"),
+    "a never-signed-in member's email local-part must not render",
+  );
+  assert.match(
+    table,
+    /Pending first sign-in/,
+    "an unbound member renders the honest pending label",
+  );
 });
 
 test("the dashboard mission map carries every lane and respects capability filtering", async (t) => {
@@ -2449,24 +2530,40 @@ test("the dashboard mission map carries every lane and respects capability filte
   await portal.addMember("owner-missions@example.com", "owner");
   await portal.addMember("agent-missions@example.com", "agent");
 
+  // Whole-page matching would be vacuous for labels that are ALSO sidebar
+  // NAV labels (Leaderboard, My Stats) — the sidebar renders on every portal
+  // page and would satisfy the match with the mission map empty. Slice the
+  // page to the mission-map section (it contains no nested <section>) so
+  // every assertion speaks about the map itself.
+  const missionMap = (html) => {
+    const start = html.indexOf('id="mission-map"');
+    assert.ok(start >= 0, "the mission-map section must render");
+    const end = html.indexOf("</section>", start);
+    return html.slice(start, end);
+  };
+
   const ownerRes = await portal.get("/portal", {
     subject: "subject-owner-missions",
     email: "owner-missions@example.com",
   });
   assert.equal(ownerRes.status, 200);
-  const ownerHtml = await ownerRes.text();
+  const ownerMap = missionMap(await ownerRes.text());
 
   for (const lane of ["Operating Floor", "Signal &amp; Intelligence", "Economics Lab", "Governance Layer"]) {
-    assert.match(ownerHtml, new RegExp(lane), `lane "${lane}" missing from the mission map`);
+    assert.match(ownerMap, new RegExp(lane), `lane "${lane}" missing from the mission map`);
   }
   for (const label of ["Leaderboard", "My Stats", "Commissions", "Pipeline", "Call Routing", "Phone Logs", "Contracting", "Underwriter"]) {
-    assert.match(ownerHtml, new RegExp(`>${label}<`), `"${label}" missing from the owner's mission map`);
+    assert.match(ownerMap, new RegExp(`>${label}<`), `"${label}" missing from the owner's mission map`);
   }
-  // External tools render as hard anchors that leave the app in a new tab.
+  // External tools render as hard anchors that leave the app in a new tab —
+  // asserted inside the map slice, so the sidebar's identical anchor cannot
+  // satisfy it.
+  // React escapes & as &amp; inside attributes, so match on the stable
+  // host + gaId rather than the exact raw URL.
   assert.match(
-    ownerHtml,
-    /href="https:\/\/surelc\.surancebay\.com\/sbweb\/login"[^>]*target="_blank"/,
-    "SureLC must render as a new-tab external anchor",
+    ownerMap,
+    /href="https:\/\/accounts\.surancebay\.com[^"]*gaId=505[^"]*"[^>]*target="_blank"/,
+    "SureLC must render as a new-tab external anchor in the mission map",
   );
 
   const agentRes = await portal.get("/portal", {
@@ -2474,13 +2571,13 @@ test("the dashboard mission map carries every lane and respects capability filte
     email: "agent-missions@example.com",
   });
   assert.equal(agentRes.status, 200);
-  const agentHtml = await agentRes.text();
+  const agentMap = missionMap(await agentRes.text());
   for (const label of ["Leaderboard", "My Stats", "Commissions", "Contracting"]) {
-    assert.match(agentHtml, new RegExp(`>${label}<`), `"${label}" missing from the agent's mission map`);
+    assert.match(agentMap, new RegExp(`>${label}<`), `"${label}" missing from the agent's mission map`);
   }
   for (const label of ["Pipeline", "Call Routing", "Phone Logs"]) {
     assert.doesNotMatch(
-      agentHtml,
+      agentMap,
       new RegExp(`>${label}<`),
       `leadership-only "${label}" leaked into the agent's mission map`,
     );

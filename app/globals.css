@@ -1859,6 +1859,13 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
   color: #241b10;
   padding: 1px 3px;
   border-radius: 3px;
+  /* The fill is only ~1.08:1 against the Bright panel — hue, not luminance.
+     The inset underline (4.4:1 on light panels, 4.1:1 on the fill itself)
+     keeps the highlight legible in grayscale and print. It is forced to
+     none in forced-colors mode ON PURPOSE — there the OS repaints <mark>
+     with the system Mark/MarkText pair, which is the HC signal; do not
+     "fix" this with border-bottom, which would double up in HC. */
+  box-shadow: inset 0 -2px 0 #8a6a12;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
@@ -4574,7 +4581,11 @@ html[data-portal-theme="dark"] .portal-card {
 .portal-mission-map { padding: clamp(20px, 3vw, 28px); }
 .portal-mission-map-head { align-items: center; margin-bottom: 18px; }
 .portal-mission-map-head .portal-lede { margin-top: 6px; }
-.portal-mission-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+/* align-items: start — without it, stretch paints the shorter lane's dead
+   space INSIDE its raised card (a visible tan slab, 54% of the card for a
+   reviewer's Signal lane); started lanes leave ragged bottoms on the map
+   background instead, which reads as deliberate whitespace. */
+.portal-mission-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
 .portal-mission-lane {
   min-width: 0;
   overflow: hidden;

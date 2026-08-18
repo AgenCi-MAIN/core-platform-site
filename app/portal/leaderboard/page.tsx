@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, isNotNull, sql } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { dialerTransfers, portalMembers } from "../../../db/schema";
 import { ROLE_LABELS, requireCapability } from "../access";
@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 const PATH = "/portal/leaderboard";
 
 function talk(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
   const m = Math.floor(seconds / 60);
   return m >= 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m}m`;
 }
@@ -37,38 +38,40 @@ export default async function LeaderboardPage() {
       .orderBy(asc(portalMembers.email)),
   );
 
-  const { rows: transfers, fault: transfersFault } = await readRows("dialer_transfers", () =>
+  // Aggregated in SQL, not JS: this table will carry real call volume once
+  // the dialer socket lands, and pulling every row to sum in memory does not
+  // scale. Case-normalized in the query — agent_email arrives from an
+  // external system whose casing CORE does not control.
+  const { rows: totals, fault: transfersFault } = await readRows("dialer_transfers", () =>
     getDb()
       .select({
-        agentEmail: dialerTransfers.agentEmail,
-        durationSeconds: dialerTransfers.durationSeconds,
+        agentKey: sql<string>`lower(${dialerTransfers.agentEmail})`,
+        calls: sql<number>`count(*)`,
+        seconds: sql<number>`coalesce(sum(${dialerTransfers.durationSeconds}), 0)`,
       })
-      .from(dialerTransfers),
+      .from(dialerTransfers)
+      .where(isNotNull(dialerTransfers.agentEmail))
+      .groupBy(sql`lower(${dialerTransfers.agentEmail})`),
   );
 
   const fault = membersFault ?? transfersFault;
 
-  const totals = new Map<string, { calls: number; seconds: number }>();
-  for (const transfer of transfers) {
-    if (!transfer.agentEmail) continue;
-    const key = transfer.agentEmail.toLowerCase();
-    const entry = totals.get(key) ?? { calls: 0, seconds: 0 };
-    entry.calls += 1;
-    entry.seconds += transfer.durationSeconds ?? 0;
-    totals.set(key, entry);
-  }
-
+  const byAgent = new Map(totals.map((row) => [row.agentKey, row]));
   const board = members
     .map((member) => {
-      const entry = totals.get(member.email.toLowerCase()) ?? { calls: 0, seconds: 0 };
+      const entry = byAgent.get(member.email.toLowerCase());
       return {
-        name: member.displayName ?? member.email.split("@")[0],
+        // NEVER an email or its local-part: a member who has not signed in
+        // yet has no display name, and rendering any slice of their address
+        // to every agent would be roster leakage the access model refuses
+        // elsewhere. "Pending first sign-in" is the honest label.
+        name: member.displayName ?? "Pending first sign-in",
         role: member.role,
-        calls: entry.calls,
-        seconds: entry.seconds,
+        calls: entry?.calls ?? 0,
+        seconds: entry?.seconds ?? 0,
       };
     })
-    .sort((a, b) => b.calls - a.calls || b.seconds - a.seconds);
+    .sort((a, b) => b.calls - a.calls || b.seconds - a.seconds || a.name.localeCompare(b.name));
 
   const anyProduction = board.some((row) => row.calls > 0);
 
@@ -116,7 +119,10 @@ export default async function LeaderboardPage() {
                 <tbody>
                   {board.map((row, index) => (
                     <tr key={`${row.name}-${index}`}>
-                      <td><strong>{index + 1}</strong></td>
+                      {/* No fake ranks: with zero production everywhere the
+                          order is alphabetical, and printing #1..#N beside
+                          copy saying nobody is ranked would contradict it. */}
+                      <td><strong>{anyProduction ? index + 1 : "—"}</strong></td>
                       <td><strong>{row.name}</strong></td>
                       <td>{ROLE_LABELS[row.role]}</td>
                       <td>{row.calls}</td>

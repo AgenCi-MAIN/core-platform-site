@@ -33,6 +33,8 @@ type PortalIconName =
   | "stats"
   | "surelc"
   | "underwriter"
+  | "reagan"
+  | "toolbox"
   | "scripts"
   | "team"
   | "leadership"
@@ -79,7 +81,14 @@ const NAV: readonly NavItem[] = [
   {
     href: "/portal/command",
     label: "Command Center",
-    capability: "audit.view",
+    // INERT — commandOnly short-circuits ahead of the capability check, so
+    // this field never gates anything. It is set to the universal capability
+    // ON PURPOSE: if commandOnly were ever lost, the card would show to
+    // everyone and the server guard would refuse loudly on click — a visible
+    // failure. The previous value (audit.view, which no role holds) would
+    // instead have hidden the card from everyone including the founder,
+    // silently.
+    capability: "dashboard.view.self",
     icon: "command",
     group: "Workspace",
     description: "Workforce, decisions, signals, and field handoffs. Founder + named helpers.",
@@ -270,9 +279,13 @@ const NAV: readonly NavItem[] = [
     stateLabel: "External tool",
     external: true,
   },
+  // Three SureLC upline instances, each the owner's exact link (2026-08-18).
+  // One entry per upline per PLATFORM-MAP rule 2 — never a shared page.
   {
-    href: "https://surelc.surancebay.com/sbweb/login",
-    label: "SureLC (Heartland)",
+    href: "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D505&gaId=505&client_id=surecrmweb&response_type=code",
+    // gaId 505 arrived unbranched; labeled Heartland per the owner's original
+    // ask — correct the label if the owner says otherwise.
+    label: "SureLC — Heartland",
     capability: "dashboard.view.self",
     icon: "surelc",
     group: "API",
@@ -281,6 +294,53 @@ const NAV: readonly NavItem[] = [
     state: "live",
     stateLabel: "External tool",
     external: true,
+  },
+  {
+    href: "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D862%2526gaId%253D862%2526branch%253DBrenda%252520Daly%2526branchVisible%253Dtrue%2526branchEditable%253Dfalse%2526branchRequired%253Dtrue%2526autoAdd%253Dfalse%2526requestMethod%253DGET&gaId=862&client_id=surecrmweb&response_type=code",
+    label: "SureLC — Brenda Daly",
+    capability: "dashboard.view.self",
+    icon: "surelc",
+    group: "API",
+    description:
+      "Carrier contracting via SuranceBay, Brenda Daly branch. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D323%2526branch%253DAltura%252520of%252520America&gaId=323&client_id=surecrmweb&response_type=code",
+    label: "SureLC — Altura of America",
+    capability: "dashboard.view.self",
+    icon: "surelc",
+    group: "API",
+    description:
+      "Carrier contracting via SuranceBay, Altura of America. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
+    label: "Reagan AI",
+    capability: "dashboard.view.self",
+    icon: "reagan",
+    group: "API",
+    description:
+      "The Reagan.ai agent portal. Opens in a new tab; sign in there separately.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "/portal/tools",
+    label: "Tool Directory",
+    capability: "dashboard.view.self",
+    icon: "toolbox",
+    group: "API",
+    description:
+      "Every external tool in one categorized place — carriers, contracting, leads, quoting, documents.",
+    state: "live",
+    stateLabel: "All members",
   },
   {
     href: "/portal/pay-rates",
@@ -356,19 +416,21 @@ const MISSION_GROUPS = [
       "/portal/leadtech",
       "/portal/retreaver",
       "/portal/twilio",
+      "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
     ],
   },
   {
     id: "economics-lab",
     code: "03",
     title: "Economics Lab",
-    description: "Model capacity and compensation while keeping external tools visibly outside CORE.",
+    description: "Model capacity and compensation; any external tools stay visibly outside CORE.",
     routes: [
       "/portal/shop",
       "/portal/pay-rates",
       "/portal/commission",
       "https://app.insurancetoolkits.com/fex/quoter",
       "https://app.insurancetoolkits.com",
+      "/portal/tools",
     ],
   },
   {
@@ -379,7 +441,7 @@ const MISSION_GROUPS = [
     routes: [
       "/portal/command",
       "/portal/members",
-      "https://surelc.surancebay.com/sbweb/login",
+      "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D505&gaId=505&client_id=surecrmweb&response_type=code",
       "/portal/audit",
     ],
     sourceReadiness: true,
@@ -401,7 +463,10 @@ const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/commission": "Commissions",
   "https://app.insurancetoolkits.com/fex/quoter": "Quoter",
   "https://app.insurancetoolkits.com": "Underwriter",
-  "https://surelc.surancebay.com/sbweb/login": "Contracting",
+  "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D505&gaId=505&client_id=surecrmweb&response_type=code":
+    "Contracting",
+  "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount": "Reagan AI",
+  "/portal/tools": "Tool Directory",
   "/portal/members": "Membership",
   "/portal/audit": "Audit",
   "/portal/leaderboard": "Leaderboard",
@@ -998,6 +1063,21 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
     <>
       <path d="M3.5 12a8.5 8.5 0 0 1 17 0z" />
       <path d="M12 3.5V12M12 12v6a2 2 0 0 0 4 0" />
+    </>
+  ),
+  // Target with an outbound arrow — the lead portal.
+  reagan: (
+    <>
+      <circle cx="11" cy="13" r="7" />
+      <path d="M11 13 20 4M20 4h-4.5M20 4v4.5" />
+    </>
+  ),
+  // Toolbox — the external tool directory.
+  toolbox: (
+    <>
+      <rect x="3.5" y="9" width="17" height="11" rx="2" />
+      <path d="M9 9V7a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 7v2" />
+      <path d="M3.5 13.5h17M10.5 12.5v2M13.5 12.5v2" />
     </>
   ),
   // Document with lines.

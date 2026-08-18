@@ -113,6 +113,7 @@ const PROTECTED_ROUTES = [
   "/portal/library",
   "/portal/retreaver",
   "/portal/stats",
+  "/portal/tools",
   "/portal/twilio",
   "/portal/members",
   "/portal/pay-rates",
