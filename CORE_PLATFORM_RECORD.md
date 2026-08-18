@@ -1031,3 +1031,192 @@ outbound send that is not in the record does not exist.
   secret names and values.
 - **No change** to source, authentication, membership, capabilities, roles,
   D1, R2, or the Cloudflare Access policy. Nothing was deployed.
+
+### 19a. Outbound send — coffee reminder text to the founder, same day
+
+Owner's order from the HQ session ("Reach out to Shawn on text msg to remind
+him to make a coffee"). Sent over the Founder Channel iMessage conversation
+(the owner's verified +1 409 549 2092, conversation `3cb144a0-…`), message id
+`c80b6841-14b2-4fc0-8a94-2a77c518d4f3`, from the desk's own line. Plain SMS
+was preflighted first and is blocked `recipient_not_opted_in` — the owner's
+number has inbound consent as a recognized sender but no outbound SMS opt-in;
+iMessage on the active assignment is the working outbound text channel to the
+founder until that changes. The message also pointed him at the §19 morning
+brief email and the Spam/Promotions caveat.
+
+### 19b. Attempted good-morning texts to Ryan and Andre — blocked; email copy to the founder
+
+Owner's order, same session ("Send a good morning text to these two as well
+(friendly_playful), send Shawn copy of these 2 on email"), giving the numbers
+Ryan Davidson **+1 941 210 1410** and Andre **+1 941 210 1411** (the owner
+wrote "Andre"; presumed Andrew Davidson but not confirmed — the numbers are
+recorded exactly as given).
+
+- **Neither text was delivered.** Both channels are platform-blocked for
+  both numbers: SMS preflight returns `recipient_not_opted_in`, and iMessage
+  returns `imessage_no_assignment` — Inkbox requires each recipient to text
+  "connect @out-reach" to the iMessage router (+1 650 484 9720) before the
+  desk can message them, which is how the Founder Channel itself was opened.
+  No workaround was attempted; the block is the consent model working.
+- **The two drafts** (friendly/playful register, desk identified as AI,
+  sent-on-Shawn's-order stated, pointer to the §19 brief email) were emailed
+  verbatim to the founder with delivery status marked NOT DELIVERED and both
+  unblock paths spelled out: Inkbox message id
+  `d7595ad5-a6b7-40e6-82de-6a301dfee87a`, to `btcmao518@gmail.com`, status
+  `sent`.
+- **Standing state:** the texts go out as written the moment a recipient's
+  channel opens and the founder says the word. Until an opt-in exists, the
+  desk has no outbound text path to any member except the founder's own
+  iMessage thread.
+
+**Correction, same day:** the founder confirmed "Andre" was a typo for
+**Andrew Davidson** — +1 941 210 1411 is Andrew's number, as presumed above.
+His pending draft now greets him as Andrew.
+
+### 19c. Good-mornings delivered by email; text channels still closed
+
+Owner's order ("Send both"), same session. The iMessage sends were retried
+first and both still return `imessage_no_assignment` — neither recipient has
+connected. The two greetings therefore went out by email, content as drafted
+(Andrew's greeting corrected per the 19b correction), each including the
+connect instructions ("connect @out-reach" to the iMessage router) so the
+text channel can open for next time.
+
+| Recipient | Inkbox message id | Status |
+| --- | --- | --- |
+| `ryandavidson.zenith@gmail.com` | `ad0e246e-b5d9-4f64-ba72-0daaca69900d` | `sent` |
+| `andrew.davidson.zenith@gmail.com` | `8a24281c-2830-475d-9c54-d301ebf885a7` | `sent` |
+
+### 19d. A14 — text auto-reply granted for three verified numbers
+
+**Numbering note:** this decision was drafted as A13 while a parallel
+session was independently granting A13 to Andrew's Command Center access.
+Main's A13 stands; this one is A14. The live routine still carries the
+name "DESK TEXT AUTO-REPLY (A13)" in the trigger registry until renamed.
+
+The founder asked how he gets a text back, was told auto-reply is a leash
+change only he can make, and granted it: "the desk may auto-reply to my
+verified number only: Ryan Shawn Andrew." Scope as recorded in
+OWNER-DECISIONS.md A14: reply content only, three numbers only (Shawn
++1 409 549 2092, Ryan +1 941 210 1410, Andrew +1 941 210 1411), every other
+sender stays log-and-draft, all content leashes unchanged. Implemented as
+the hourly routine `DESK TEXT AUTO-REPLY (A14)`
+(`trig_019FZZts1LhN9KayiwG9Q7rE`, fires at :41) carrying the complete
+standing order as its prompt — deliberately not caption-only, so a woken
+session has its brief and its leashes. HERALD itself is untouched and still
+never sends.
+
+**Honest limit at creation:** the trigger API refused the Inkbox connector
+attachment from this session, so until the founder attaches Inkbox to the
+routine in the claude.ai Routines UI, each firing wakes toolless and stops
+by its own instruction. Reply latency once live is up to one hour (cron
+minimum), not instant; instant replies remain a session-order away.
+
+### 19e. Setup-instructions email to all four founders
+
+Owner's order, same session ("email All founders clear instructions to
+activate the app on Safari to the home screen and the instruction to allow
+the text to go through"). One individual send per founder, identical body
+apart from the greeting; no member sees another's address.
+
+| Recipient | Inkbox message id | Status |
+| --- | --- | --- |
+| `btcmao518@gmail.com` (Shawn) | `0f66f3e7-e9fb-4c83-9acd-620efac957e8` | `sent` |
+| `ryandavidson.zenith@gmail.com` (Ryan) | `f2303e4f-e8b8-4b52-9134-dbee8dca2c01` | `sent` |
+| `epiclife.nguyen@gmail.com` (Nate) | `24bb2533-c6ac-436a-9565-f0662bbf319f` | `sent` |
+| `andrew.davidson.zenith@gmail.com` (Andrew) | `2cdd2edb-983d-4ed5-9e75-8d66b2d4e1ba` | `sent` |
+
+Contents: (1) iPhone/Safari home-screen install — the live URL, both gates
+named in order, the §9 trap #9 rule stated as an instruction (copy the
+six-digit Access code, never tap the emailed link), and the §10c warning
+that the installed PWA has its own cookie container so both gates repeat
+once inside the icon; (2) the two text-channel opt-in paths ("connect
+@out-reach" to the iMessage router, or START to the desk's SMS line), with
+the plain statement that the consent wall blocks all desk texts until one
+is done. No secret value or name appears; nothing about founder-only
+surfaces or other members' details is included.
+
+Note: the A11 Google-IdP migration for Access, once the founder executes
+it, retires the code emails — these instructions describe the wall as it
+is today and will need a one-line update after A11 lands.
+
+**A14 verification status (13:55Z):** the founder's live test ("Talk back
+this is a test" + four more) was answered by the HQ session in real time
+(message `1faa7803-…`, delivered and read; the founder confirmed receipt and
+went for coffee). The manually-fired routine session sent nothing — either
+correct stand-down (HQ's reply was already the latest outbound when it
+checked) or a silent failure; indistinguishable from outside. The routine
+path is therefore **not yet verified**. The founder's 13:50 reply is left
+as the organic test case for the first scheduled pass at 14:41Z; a
+self-check at 14:50Z records the outcome either way.
+
+**A14 scheduled-pass verification FAILED (14:50Z).** The routine fired on
+schedule (`last_fired_at` 2026-08-17T14:41:41Z) and sent nothing. The
+founder's 13:50 message was still the newest message in the thread nine
+minutes later; HQ answered it instead (`9aa558cb-…`). The routine path is
+**not working**, and firing is not the problem — the woken session is.
+
+Probable root cause, and it is not A13-specific: the trigger's stored
+`session_context.allowed_tools` lists only built-in tools
+(`preset:default`, Task, Bash, Read, Edit, …). No `mcp__Inkbox__*` entry
+appears, even though the Inkbox connector IS attached to the trigger. A
+fired session with no human present cannot clear a permission prompt for a
+tool outside its allowlist, so the send never happens and the session ends
+quietly. `update_trigger` exposes only name/cron/enabled/model/prompt — the
+tool allowlist cannot be corrected from a session, so the fix is the
+founder's, in the claude.ai Routines UI.
+
+**Corroboration — a second routine is failing the same way, unnoticed:**
+HERALD MORNING TEXT (`trig_01CRstytgH4Q3X2rEcTxy6zL`, the daily 8:30 AM
+Central founder brief) fired today at 13:37:14Z and no morning-brief text
+exists in the thread. Same environment, same connector, same allowlist
+shape. The founder should assume the daily morning text has never actually
+sent, rather than that a quiet night produced nothing.
+
+Status: A14 remains **granted, armed, and unverified**; the HQ path is the
+only proven way the desk texts anyone.
+
+### 19f. Andrew's welcome + desk introduction
+
+Owner's order ("send andrew along welcome mail top quality drafted with
+artifact. He's on the site" / "send Andrew an introduction at msg
+9412101411").
+
+- **The text could not be sent.** +1 941 210 1411 is still blocked on both
+  channels — SMS `recipient_not_opted_in`, iMessage `imessage_no_assignment`.
+  Being signed in to the portal does not open a text channel; the phone-side
+  connect step is separate and only Andrew can perform it. No workaround
+  attempted.
+- **Delivered by email instead**, carrying both the welcome and the
+  introduction: Inkbox id `69ac7961-835e-44d0-bdb0-c216eccf287a`, to
+  `andrew.davidson.zenith@gmail.com`, status `sent`. Contents: his roster row
+  (owner, approved 2026-08-15, bound 2026-08-16), a link to the welcome
+  artifact, the desk's self-introduction with the AI disclosure and the
+  not-a-licensed-producer limit stated plainly, and both opt-in paths so the
+  text channel can open.
+- **Welcome artifact published:**
+  `https://claude.ai/code/artifact/bb534d76-6017-4630-a463-f3c5cbfac704`
+  ("Andrew's CORE Credential"). Content drawn from this record: the three
+  access layers and fail-closed behaviour, the §10a sidebar surfaces with
+  the Quoter-is-external seam stated, owner peer-protection, deny-by-default
+  capabilities, and the iOS code-copy trap. Founder-only surfaces are not
+  mentioned. No secret name or value appears; the page grants nothing.
+
+**19f follow-up — Andrew's text channel is open.** He texted `START` to the
+desk line (+1 689 689 1349) at 2026-08-18T03:51:45Z, which cleared the SMS
+consent block. His introduction was sent immediately over SMS: Inkbox id
+`12e03f72-535a-4668-a8da-48ebd4d87a45`, conversation
+`5ce5a4bc-e920-4d68-870d-6304f70818d6`, status `queued`.
+
+Two channel facts learned here, worth keeping:
+- SMS opt-in is granted by ANY inbound message from the recipient; `START`
+  is the conventional word but not a required one.
+- iMessage has a second gate beyond the router connect: after
+  `connect @out-reach` the assignment exists but the desk still cannot speak
+  first — `imessage_awaiting_inbound` until the recipient sends a message
+  into that thread. Andrew's iMessage path reached that state and remains
+  there; SMS is what carried the message.
+
+Andrew is now the second number on the A14 allowlist with a live channel
+(Shawn's iMessage being the first). Ryan +1 941 210 1410 remains blocked on
+both channels — no opt-in of any kind yet.
