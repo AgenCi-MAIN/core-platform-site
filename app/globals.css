@@ -1266,8 +1266,8 @@ button, .button, .nav-cta, .text-link {
 .portal-gate-actions .text-link { border-color: #7b818a; color: var(--portal-text); }
 .portal-gate-actions .text-link:hover { color: var(--portal-accent); border-color: var(--portal-accent); }
 
-.portal-footer { padding: 18px max(24px, 3vw); background: var(--portal-panel); color: var(--portal-muted); border-top: 1px solid var(--portal-line); }
-.portal-footer p { max-width: 100ch; margin: 0 0 8px; font-size: var(--portal-type-label); line-height: 1.65; }
+.portal-footer { padding: 12px max(24px, 3vw); background: var(--portal-panel); color: var(--portal-muted); border-top: 1px solid var(--portal-line); }
+.portal-footer p { max-width: 100ch; margin: 0 0 5px; font-size: var(--portal-type-label); line-height: 1.5; }
 .portal-footer p:last-child { margin-bottom: 0; }
 .portal-footer strong { color: var(--portal-text); }
 
@@ -3783,7 +3783,7 @@ html[data-portal-theme="dark"] .member-note-ok {
 
 .portal-sidebar-mobile .portal-drawer-close { top: calc(18px + env(safe-area-inset-top)); }
 
-.portal-footer { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+.portal-footer { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
 
 /**
  * The section name is a hard floor in a nowrap topbar: without an ellipsis it
@@ -5466,8 +5466,33 @@ input[type="button"], input[type="submit"], input[type="range"], input[type="che
     border-radius: inherit;
   }
 
-  /* Rows are already wide; they need height, not a pseudo-element. */
-  .portal-nav a, .portal-signout { min-height: 44px; }
+  /* Nav rows get the SAME treatment as every other control: the hit area
+     grows to the floor, the drawn size does not change. Inflating them to
+     44px visually was inconsistent with the rest of this layer and made the
+     collapsed icon rail enormous — the founder's report was "buttons are way
+     too huge". A touch target is a region the finger can land in, not a box
+     the eye has to look at. */
+  .portal-nav a, .portal-signout { position: relative; }
+  .portal-nav a::before, .portal-signout::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+    background: transparent;
+    border-radius: inherit;
+  }
+
+  /* The collapsed rail is icons only at 68px wide. It stays dense: the
+     pseudo-element above already carries the touch target, so the visible
+     button has no reason to grow. */
+  .portal-shell:has(.portal-sidebar-toggle:checked) .portal-nav a {
+    min-height: 34px;
+    padding-block: 5px;
+  }
+  .portal-shell:has(.portal-sidebar-toggle:checked) .portal-nav-group { gap: 1px; }
 
   /* 4 — Sliders. A 13px thumb on a 4px rail is a desktop control shipped to a
      thumb. Both grow on touch; the rail keeps its slim look by growing its
@@ -5706,6 +5731,24 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .playbook-sub { display: block; margin-top: 2px; color: var(--portal-subtle, var(--portal-muted)); font-size: .72rem; font-weight: 500; }
 
 
+/* The collapsed rail is 68px wide and its icons are centred in it. A 10px
+   scrollbar drawn inside that width lands ON the icons — the founder's
+   "button bug when full screen" is the classic overlay-scrollbar collision,
+   and it only shows once the nav list is long enough to scroll.
+
+   Collapsed: no visible scrollbar at all. The list still scrolls by wheel and
+   by touch, and nothing is hidden — the rail is a strip of icons with no
+   horizontal detail a scrollbar could help you find.
+   Expanded: the scrollbar stays, and the gutter is reserved so the labels do
+   not shift sideways the moment the list becomes scrollable. */
+.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav {
+  scrollbar-width: none;
+}
+.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.portal-sidebar .portal-nav { scrollbar-gutter: stable; }
 /* Per-person seats in the Playbook. Each is a block rather than a table row:
    what a person may do needs sentences, and a table would force it into
    fragments that read as slights. */
