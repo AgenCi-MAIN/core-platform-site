@@ -1324,3 +1324,31 @@ missing first:
 ```
 npx wrangler d1 execute site-creator-d1 --remote --command="SELECT actor_email, action, reason, created_at FROM audit_events ORDER BY id DESC LIMIT 6;"
 ```
+
+### 19i. A14 verified live — the desk answered on its own
+
+**2026-08-18.** The auto-reply routine had fired since 2026-08-17 without
+sending anything (§19d): it woke, could not reach the Inkbox tools, and ended
+quietly. The founder corrected the routine's configuration on the morning of
+the 18th.
+
+The loop then closed with no session open:
+
+| | |
+| --- | --- |
+| Founder texted | 2026-08-18T05:13Z — a Meet link, an attachment, and "1:00pm" |
+| Routine fired | on its own schedule, unattended |
+| Desk replied | 2026-08-18T07:34:58Z, Inkbox `c79cec0d-b872-4263-bcad-9e34720d0f8e`, delivered |
+
+**The reply's content is the part worth recording.** It acknowledged the Meet
+link and the time, then said plainly that the attachment had arrived as an
+unlabeled file type it could not read, and asked what was needed from it —
+rather than guessing at the contents or passing over the gap in silence. The
+allowlist held, the content leashes held, and the agent reported its own
+limitation while unattended. A leash that holds when nobody is watching is
+the only kind that counts.
+
+**Still unverified:** HERALD MORNING TEXT. It last fired 2026-08-17T13:37Z and
+sent nothing; its next scheduled pass is 2026-08-18T13:32Z. Until an outbound
+brief appears in the thread, the daily 8:30 text remains a routine that has
+never delivered.
