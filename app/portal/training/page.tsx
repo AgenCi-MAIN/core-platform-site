@@ -3,6 +3,7 @@ import { requireCapability } from "../access";
 import { PortalPageIntro, PortalShell } from "../components";
 import {
   CALL_ANGLE_SLOTS,
+  CLOSING_SLOTS,
   INTRODUCTION_SLOTS,
   splitApprovedBody,
   type TrainingSlot,
@@ -275,7 +276,7 @@ function ContentSlot({ slot }: { slot: TrainingSlot }) {
 export default async function TrainingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ intro?: string; angle?: string }>;
+  searchParams: Promise<{ intro?: string; angle?: string; closing?: string }>;
 }) {
   const session = await requireCapability("dashboard.view.self", "/portal/training");
   const params = await searchParams;
@@ -293,10 +294,15 @@ export default async function TrainingPage({
     INTRODUCTION_SLOTS.find((slot) => slot.id === params.intro) ?? INTRODUCTION_SLOTS[0];
   const activeAngle =
     CALL_ANGLE_SLOTS.find((slot) => slot.id === params.angle) ?? CALL_ANGLE_SLOTS[0];
+  const activeClosing =
+    CLOSING_SLOTS.find((slot) => slot.id === params.closing) ?? CLOSING_SLOTS[0];
   const loadedIntroductions = INTRODUCTION_SLOTS.filter(
     (slot) => slot.state === "approved",
   ).length;
   const loadedAngles = CALL_ANGLE_SLOTS.filter(
+    (slot) => slot.state === "approved",
+  ).length;
+  const loadedClosings = CLOSING_SLOTS.filter(
     (slot) => slot.state === "approved",
   ).length;
 
@@ -323,6 +329,7 @@ export default async function TrainingPage({
           <a href="#training">Training</a>
           <a href="#introductions">Introductions</a>
           <a href="#call-angles">Call Angles</a>
+          <a href="#closing">Closing</a>
         </nav>
 
         <section className="training-section" id="training" aria-labelledby="training-title">
@@ -428,6 +435,46 @@ export default async function TrainingPage({
 
           <div className="training-slot-grid training-angle-grid training-tab-panel">
             <ContentSlot slot={activeAngle} />
+          </div>
+        </section>
+
+        <section
+          className="training-section"
+          id="closing"
+          aria-labelledby="closing-title"
+        >
+          <header className="training-section-head">
+            <div>
+              <span>04 · Closing</span>
+              <h2 id="closing-title">Compliance language, read as written</h2>
+              <p>All labels from the supplied closing screenshot are reserved in order.</p>
+            </div>
+            <strong>{loadedClosings}/{CLOSING_SLOTS.length}</strong>
+          </header>
+
+          <nav className="training-tabs" aria-label="Closing steps">
+            {CLOSING_SLOTS.map((slot) => {
+              const current = slot.id === activeClosing.id;
+              return (
+                <Link
+                  aria-current={current ? "page" : undefined}
+                  className={`training-tab${current ? " is-active" : ""}`}
+                  href={`/portal/training?closing=${slot.id}#closing`}
+                  key={slot.id}
+                  scroll={false}
+                >
+                  <span className="training-tab-label">{slot.label}</span>
+                  <span className={`training-tab-dot training-tab-dot-${slot.state === "approved" ? "loaded" : "empty"}`} aria-hidden="true" />
+                  <span className="sr-only">
+                    {slot.state === "approved" ? " — approved language loaded" : " — awaiting approved language"}
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="training-slot-grid training-tab-panel">
+            <ContentSlot slot={activeClosing} />
           </div>
         </section>
       </main>

@@ -342,7 +342,7 @@ test("active members open Training with one verbatim intro and labelled empty sl
   const tabs = html.match(/class="training-tab(?: is-active)?"/g) ?? [];
   assert.equal(
     tabs.length,
-    16,
+    20,
     "every supplied label keeps a tab — tabbing must not drop a slot",
   );
   assert.equal(
@@ -355,8 +355,8 @@ test("active members open Training with one verbatim intro and labelled empty sl
     (html.match(/data-content-state="(?:not-loaded|loaded)"/g) ?? []).length;
   assert.equal(
     panelStates,
-    3,
-    "the standalone Training slot plus one intro panel and one angle panel render, each declaring its state",
+    4,
+    "the standalone Training slot plus the intro, angle and closing panels render, each declaring its state",
   );
   assert.equal(
     (html.match(/data-content-state="loaded"/g) ?? []).length,

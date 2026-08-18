@@ -956,6 +956,60 @@ test("restricted data never reaches a public client chunk", async () => {
   const files = (await readdir(dir)).filter((name) => name.endsWith(".js"));
   assert.ok(files.length > 0, "no client chunks were built — this test would pass vacuously");
 
+  /**
+   * Human-authored training copy belongs only in authenticated server output.
+   *
+   * These markers are DERIVED from app/portal/training/library.ts rather than
+   * listed here. A hard-coded phrase only ever pins the one body it was written
+   * against: every body loaded afterwards ships unscanned until someone
+   * remembers to come back and add a string, and nothing fails while they
+   * forget. Deriving inverts that — a body approved and loaded tomorrow is
+   * pinned by this test the moment it lands, with no second edit and no memory
+   * involved.
+   *
+   * Normalised to LF first, for the same reason as the service worker check
+   * above: on a Windows checkout the literals end `";\r`, and a `$`-anchored
+   * match would find nothing at all — silently emptying the scan rather than
+   * failing it. The assertions below are what make that impossible: zero bodies
+   * or a body with no usable line is a test failure, never a quiet pass.
+   */
+  const librarySource = (
+    await readFile(
+      new URL("../app/portal/training/library.ts", import.meta.url),
+      "utf8",
+    )
+  ).replace(/\r\n/g, "\n");
+
+  const bodies = [
+    ...librarySource.matchAll(/^export const (\w+_BODY) = (".*");$/gm),
+  ].map(([, name, literal]) => ({ name, text: JSON.parse(literal) }));
+
+  assert.ok(
+    bodies.length > 0,
+    "no approved training bodies were found in library.ts — the training half of " +
+      "this scan would pass vacuously. Check the export shape before assuming the " +
+      "library is simply empty.",
+  );
+
+  // One distinctive spoken line per body: the longest curly-quoted span in it.
+  // Spoken lines are what a client chunk would leak, and the longest is the
+  // least likely to collide with ordinary prose elsewhere in the bundle.
+  const trainingMarkers = [
+    ...new Set(
+      bodies.map(({ name, text }) => {
+        const spoken = [...text.matchAll(/“([^”]{20,})”/g)].map((m) => m[1]);
+        assert.ok(
+          spoken.length > 0,
+          `${name} yielded no quoted line over 20 characters, so nothing pins it — ` +
+            "the body is unscanned. Widen the extraction rather than dropping the body.",
+        );
+        return spoken.reduce((longest, line) =>
+          line.length > longest.length ? line : longest,
+        );
+      }),
+    ),
+  ];
+
   // Rank names and the shape the economics compile to.
   const FORBIDDEN = [
     "Obsidian",
@@ -966,8 +1020,7 @@ test("restricted data never reaches a public client chunk", async () => {
     // their presence in immutable assets would bypass every route guard.
     "session_01W4UZQ4izQyBNT2HEd9D9PK",
     "T3-S02-D01",
-    // Human-authored training copy belongs only in authenticated server output.
-    "That’s a carrier I can help you with.",
+    ...trainingMarkers,
   ];
 
   for (const name of files) {
@@ -1410,6 +1463,175 @@ test("the sidebar rail stays where the founder put it", async () => {
       new RegExp(`\\${selector} \\{[^}]*align-content:\\s*start`).test(css),
       `${selector} is a grid that stretches to fill the rail, so it must declare ` +
         "align-content: start or its rows absorb the surplus height",
+    );
+  }
+});
+
+test("no client module reaches the server-only training library", async () => {
+  /**
+   * Two modules in this app carry a documented server-only rule:
+   * `app/portal/training/library.ts` (approved training language) and
+   * `app/portal/access.ts` (the authorization checks themselves). Until now
+   * each was pinned by hand — a `"use client"` assertion on the module itself,
+   * a substring scan of the built chunks, and one hard-coded pair
+   * (error.tsx must not import access). None of those sees the shape the rule
+   * actually forbids.
+   *
+   * A transitive hop leaks exactly as surely as a direct import. `"use client"`
+   * marks a boundary, not a file: everything the boundary module imports —
+   * and everything those imports import — is compiled into the client chunk
+   * that ships under /assets, which is served straight from the ASSETS binding
+   * with no session, capability, or audit check in front of it. So
+   * `dialpad.tsx -> ./helpers -> ../training/library` publishes the approved
+   * bodies just as completely as `dialpad.tsx -> ../training/library`, and it
+   * does it without any single file looking wrong in review. That is the
+   * failure this walks the whole graph to catch.
+   *
+   * There are four approved bodies in the library today and more coming, so
+   * the value of the mistake grows while the chance of noticing it by reading
+   * one diff shrinks.
+   */
+  const { existsSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const { dirname, relative, resolve } = await import("node:path");
+
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const appDir = resolve(root, "app");
+  const show = (file) => relative(root, file).split("\\").join("/");
+
+  const sources = (await readdir(appDir, { recursive: true }))
+    .filter((name) => /\.tsx?$/.test(name))
+    .map((name) => resolve(appDir, name));
+
+  const read = new Map();
+  const sourceOf = async (file) => {
+    if (!read.has(file)) read.set(file, await readFile(file, "utf8"));
+    return read.get(file);
+  };
+
+  /**
+   * The directive, and ONLY the directive. Both protected modules explain the
+   * rule in their header comments by quoting `"use client"`, so a plain grep
+   * reports them as client modules and this test starts failing on correct
+   * code — which is how a guard gets deleted. Anchor to the start of the file,
+   * allow the byte-order mark, whitespace, and any leading comments (a
+   * bundler still honours a directive that sits under a licence header), then
+   * require the string itself to be the first thing that is not a comment.
+   * The block-comment skip is non-greedy, so it stops at the END of the
+   * header comment rather than swallowing past a directive further down.
+   */
+  const CLIENT_DIRECTIVE = /^\uFEFF?\s*(?:\/\*[\s\S]*?\*\/\s*|\/\/[^\n]*\n\s*)*["']use client["']\s*;/;
+
+  const clients = new Set();
+  for (const file of sources) {
+    if (CLIENT_DIRECTIVE.test(await sourceOf(file))) clients.add(file);
+  }
+
+  // Vacuity guard, asserted before anything else. Every assertion below is of
+  // the form "no path from a client module reaches X", which is trivially
+  // true when the set of client modules is empty. If the directive regex is
+  // ever broken by a formatting change — or by someone hardening it against a
+  // false positive — this fails loudly instead of passing on an empty walk.
+  assert.ok(
+    clients.size > 0,
+    "no `\"use client\"` module was detected anywhere under app/, so the import walk below " +
+      "would pass without examining anything — the directive test has broken",
+  );
+
+  // Path aliases come from tsconfig.json rather than being assumed: today the
+  // only entry is `@/* -> ./*` and nothing under app/ uses it yet, so a
+  // resolver that handled relative specifiers alone would look correct right
+  // up until the first `@/portal/...` import made the graph silently
+  // incomplete — the failure mode a guard can least afford.
+  const { paths = {} } = JSON.parse(await readFile(resolve(root, "tsconfig.json"), "utf8")).compilerOptions ?? {};
+
+  const fromAlias = (specifier) => {
+    const targets = [];
+    for (const [pattern, replacements] of Object.entries(paths)) {
+      if (!pattern.includes("*")) {
+        if (specifier === pattern) targets.push(...replacements.map((t) => resolve(root, t)));
+        continue;
+      }
+      const [head, tail = ""] = pattern.split("*");
+      if (!specifier.startsWith(head) || !specifier.endsWith(tail)) continue;
+      const middle = specifier.slice(head.length, tail.length ? -tail.length : undefined);
+      targets.push(...replacements.map((t) => resolve(root, t.replace("*", middle))));
+    }
+    return targets;
+  };
+
+  // Extension guesses in TypeScript's own order. A specifier that lands on
+  // anything but a .ts/.tsx file (`./schedule.html?raw`, a bare package) is
+  // not an edge in this graph.
+  const CANDIDATES = ["", ".ts", ".tsx", "/index.ts", "/index.tsx"];
+  const resolveSpecifier = (importer, specifier) => {
+    const bare = specifier.split("?")[0];
+    const bases = bare.startsWith(".") ? [resolve(dirname(importer), bare)] : fromAlias(bare);
+    for (const base of bases) {
+      for (const extension of CANDIDATES) {
+        const candidate = base + extension;
+        if (/\.tsx?$/.test(candidate) && existsSync(candidate)) return candidate;
+      }
+    }
+    return null;
+  };
+
+  /**
+   * Every form that makes one module's text part of another's build: static
+   * and re-exported `from`, bare side-effect imports, and `import(...)`.
+   * `import type` counts. It emits nothing, so on its own it leaks nothing —
+   * but it is one deleted keyword away from the import that does, it points
+   * at the file where the protected values live, and a rule with an exception
+   * in it is the rule people edit toward. Over-approximating here costs a
+   * false alarm that a human resolves in a minute; under-approximating costs
+   * the training bodies.
+   */
+  const specifiers = (source) => [
+    ...source.matchAll(/\bfrom\s*["']([^"']+)["']/g),
+    ...source.matchAll(/^\s*import\s+["']([^"']+)["']/gm),
+    ...source.matchAll(/\bimport\s*\(\s*["']([^"']+)["']\s*\)/g),
+  ].map((match) => match[1]);
+
+  // One breadth-first walk seeded with every client module at once, keeping
+  // the edge that first reached each file. That parent chain is what turns
+  // "something imports the library" into the actual route someone has to fix.
+  const cameFrom = new Map(clients.size ? [...clients].map((file) => [file, null]) : []);
+  const queue = [...clients];
+  while (queue.length) {
+    const importer = queue.shift();
+    for (const specifier of specifiers(await sourceOf(importer))) {
+      const imported = resolveSpecifier(importer, specifier);
+      if (!imported || cameFrom.has(imported)) continue;
+      cameFrom.set(imported, importer);
+      queue.push(imported);
+    }
+  }
+
+  const chainTo = (file) => {
+    const chain = [];
+    for (let step = file; step; step = cameFrom.get(step)) chain.unshift(show(step));
+    return chain.join("\n    -> ");
+  };
+
+  // Both modules carry the same documented rule, so both get the same walk.
+  // access.ts was pinned for exactly one importer (app/portal/error.tsx);
+  // this covers every file that exists and every file that will.
+  const SERVER_ONLY = [
+    [
+      resolve(appDir, "portal/training/library.ts"),
+      "approved training language would ship in a public immutable asset",
+    ],
+    [
+      resolve(appDir, "portal/access.ts"),
+      "authorization would move to the client, where the visitor controls it",
+    ],
+  ];
+
+  for (const [target, consequence] of SERVER_ONLY) {
+    assert.ok(existsSync(target), `${show(target)} has moved — this guard is now pointed at nothing`);
+    assert.ok(
+      !cameFrom.has(target),
+      `a \`"use client"\` module reaches ${show(target)}, so ${consequence}:\n    ${chainTo(target)}`,
     );
   }
 });

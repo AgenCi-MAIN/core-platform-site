@@ -133,6 +133,21 @@ export const CALL_ANGLE_SLOTS: readonly TrainingSlot[] = [
   { id: "quote-shopper-angle", label: "Quote Shopper Angle", purpose:
       "Callers weighing quotes against what they already hold.",
     state: "not_loaded" },
+  { id: "non-life-insurance-extension-angle", label: "Non Life Insurance Extension Angle", purpose:
+      "The caller's non-life policy is the entry point. Covers activating a death benefit alongside coverage they already hold.",
+    state: "not_loaded" },
+  { id: "three-option-close", label: "Three Option Close", purpose:
+      "Coverage selection mid-application, where three priced options are put in front of the caller.",
+    state: "not_loaded" },
+  { id: "billing-page", label: "Billing Page", purpose:
+      "The payment stage of the application: verifying payment details and setting up the draft.",
+    state: "not_loaded" },
+];
+
+export const CLOSING_SLOTS: readonly TrainingSlot[] = [
+  { id: "life-summary-and-consent", label: "Life Summary & Consent", purpose:
+      "The compliance step before an application is submitted: the verbatim summary and the recorded verbal consent.",
+    state: "not_loaded" },
 ];
 
 /**
@@ -152,7 +167,16 @@ export const CALL_ANGLE_SLOTS: readonly TrainingSlot[] = [
 export type ScriptSnippet = { id: string; text: string };
 
 export function splitApprovedBody(body: string): readonly ScriptSnippet[] {
-  const boundary = /\n(?=STEP \d+ —|CORE RULES\n|END STATE\n)/g;
+  // `\d+[A-Z]?` and the leading-whitespace allowance are both load-bearing.
+  // The Cancelation script branches at STEP 5A / STEP 5B — two mutually
+  // exclusive paths an agent picks between on a live call — and one of them
+  // is indented a single space in the source. A stricter `STEP \\d+ ` missed
+  // both, fusing three steps into one 35-line snippet, so the branches could
+  // not be separated on the page. It looked fine, too: the line classifier
+  // bolds any line starting "STEP ", so the headings rendered correctly while
+  // the split behind them was wrong. Match what the documents actually
+  // contain, not what they were assumed to contain.
+  const boundary = /\n(?=[ \t]*STEP \d+[A-Z]? —|CORE RULES\n|END STATE\n)/g;
   const parts: string[] = [];
   let cursor = 0;
   for (const match of body.matchAll(boundary)) {
