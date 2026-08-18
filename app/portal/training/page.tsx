@@ -3,6 +3,7 @@ import { requireCapability } from "../access";
 import { PortalPageIntro, PortalShell } from "../components";
 import {
   CALL_ANGLE_SLOTS,
+  CLOSING_SLOTS,
   INTRODUCTION_SLOTS,
   splitApprovedBody,
   type TrainingSlot,
@@ -39,6 +40,43 @@ type ScriptLineKind = "plain" | "step" | "purpose" | "spoken";
  * deliberately survives blank lines, since approved scripts separate spoken
  * beats with them) and tags each ORIGINAL line untouched.
  */
+/**
+ * A bare stage direction the owner's documents indent rather than quote —
+ * "Holding" sits 26 spaces in. Indentation is the source's own signal, so that
+ * is what this reads rather than guessing from the words. Bullets are excluded
+ * explicitly: the approved body indents them by one space, under the
+ * threshold, but one character is too thin a margin to rely on.
+ */
+function isIndentedDirection(line: string, bare: string): boolean {
+  const indent = line.length - line.trimStart().length;
+  return indent >= 4 && !bare.startsWith("\u2022") && !/[.?!:,;]$/.test(bare);
+}
+
+/**
+ * Inside a SCRIPT region, an unquoted line is speech only if it LOOKS like
+ * speech. The rule used to run the other way — spoken unless it ended in a
+ * colon — which marked whole narrative lines such as "If Yes, get carrier,
+ * monthly premium, coverage amount, and how long ago." as words to read out.
+ * Highlighting a stage direction tells an agent to say it to a client, which
+ * is a worse failure than leaving a real line unhighlighted.
+ */
+function isSpokenInScript(line: string, bare: string): boolean {
+  if (line.includes("\u201c")) return true;
+  return bare.endsWith("?") || isIndentedDirection(line, bare);
+}
+
+/**
+ * Outside any SCRIPT region, some of the owner's documents carry speech with
+ * no label and no quotes — "Can you spell out your first and last name for
+ * me?". A trailing question mark is the only unquoted form accepted here:
+ * admitting "!" as well regressed "\u2022 Follow the order!" in the approved body
+ * from an instruction into speech. That is how narrow this has to be.
+ */
+function isUnlabelledSpeech(line: string, bare: string): boolean {
+  if (bare.startsWith("\u2022")) return false;
+  return bare.endsWith("?") || isIndentedDirection(line, bare);
+}
+
 function classifyScriptLines(body: string): { line: string; kind: ScriptLineKind }[] {
   const out: { line: string; kind: ScriptLineKind }[] = [];
   let region: "none" | "script" | "purpose" = "none";
@@ -50,7 +88,7 @@ function classifyScriptLines(body: string): { line: string; kind: ScriptLineKind
     } else if (bare.startsWith("STEP ")) {
       region = "none";
       out.push({ line, kind: "step" });
-    } else if (bare === "SCRIPT:") {
+    } else if (/^SCRIPT\b[^:]*:$/.test(bare)) {
       region = "script";
       out.push({ line, kind: "plain" });
     } else if (bare === "PURPOSE:") {
@@ -63,11 +101,8 @@ function classifyScriptLines(body: string): { line: string; kind: ScriptLineKind
       // direction introducing what follows ("After they explain:"), not
       // words an agent says — leave it plain. Bare directions like
       // "Holding" stay highlighted, matching the owner's mockup.
-      out.push({
-        line,
-        kind: !line.includes("“") && bare.endsWith(":") ? "plain" : "spoken",
-      });
-    } else if (bare.startsWith("“")) {
+      out.push({ line, kind: isSpokenInScript(line, bare) ? "spoken" : "plain" });
+    } else if (bare.startsWith("“") || isUnlabelledSpeech(line, bare)) {
       // Some steps carry spoken lines without a SCRIPT: label (STEP 4 in the
       // approved body). A line that OPENS with a quote is speech; narrative
       // lines that merely contain a quote ("If the caller asks: “…”") stay
@@ -241,7 +276,7 @@ function ContentSlot({ slot }: { slot: TrainingSlot }) {
 export default async function TrainingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ intro?: string; angle?: string }>;
+  searchParams: Promise<{ intro?: string; angle?: string; closing?: string }>;
 }) {
   const session = await requireCapability("dashboard.view.self", "/portal/training");
   const params = await searchParams;
@@ -259,10 +294,15 @@ export default async function TrainingPage({
     INTRODUCTION_SLOTS.find((slot) => slot.id === params.intro) ?? INTRODUCTION_SLOTS[0];
   const activeAngle =
     CALL_ANGLE_SLOTS.find((slot) => slot.id === params.angle) ?? CALL_ANGLE_SLOTS[0];
+  const activeClosing =
+    CLOSING_SLOTS.find((slot) => slot.id === params.closing) ?? CLOSING_SLOTS[0];
   const loadedIntroductions = INTRODUCTION_SLOTS.filter(
     (slot) => slot.state === "approved",
   ).length;
   const loadedAngles = CALL_ANGLE_SLOTS.filter(
+    (slot) => slot.state === "approved",
+  ).length;
+  const loadedClosings = CLOSING_SLOTS.filter(
     (slot) => slot.state === "approved",
   ).length;
 
@@ -289,6 +329,7 @@ export default async function TrainingPage({
           <a href="#training">Training</a>
           <a href="#introductions">Introductions</a>
           <a href="#call-angles">Call Angles</a>
+          <a href="#closing">Closing</a>
         </nav>
 
         <section className="training-section" id="training" aria-labelledby="training-title">
@@ -394,6 +435,46 @@ export default async function TrainingPage({
 
           <div className="training-slot-grid training-angle-grid training-tab-panel">
             <ContentSlot slot={activeAngle} />
+          </div>
+        </section>
+
+        <section
+          className="training-section"
+          id="closing"
+          aria-labelledby="closing-title"
+        >
+          <header className="training-section-head">
+            <div>
+              <span>04 · Closing</span>
+              <h2 id="closing-title">Compliance language, read as written</h2>
+              <p>All labels from the supplied closing screenshot are reserved in order.</p>
+            </div>
+            <strong>{loadedClosings}/{CLOSING_SLOTS.length}</strong>
+          </header>
+
+          <nav className="training-tabs" aria-label="Closing steps">
+            {CLOSING_SLOTS.map((slot) => {
+              const current = slot.id === activeClosing.id;
+              return (
+                <Link
+                  aria-current={current ? "page" : undefined}
+                  className={`training-tab${current ? " is-active" : ""}`}
+                  href={`/portal/training?closing=${slot.id}#closing`}
+                  key={slot.id}
+                  scroll={false}
+                >
+                  <span className="training-tab-label">{slot.label}</span>
+                  <span className={`training-tab-dot training-tab-dot-${slot.state === "approved" ? "loaded" : "empty"}`} aria-hidden="true" />
+                  <span className="sr-only">
+                    {slot.state === "approved" ? " — approved language loaded" : " — awaiting approved language"}
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="training-slot-grid training-tab-panel">
+            <ContentSlot slot={activeClosing} />
           </div>
         </section>
       </main>
