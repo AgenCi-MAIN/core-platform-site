@@ -1143,3 +1143,29 @@ sent, rather than that a quiet night produced nothing.
 
 Status: A13 remains **granted, armed, and unverified**; the HQ path is the
 only proven way the desk texts anyone.
+
+### 19f. Andrew's welcome + desk introduction
+
+Owner's order ("send andrew along welcome mail top quality drafted with
+artifact. He's on the site" / "send Andrew an introduction at msg
+9412101411").
+
+- **The text could not be sent.** +1 941 210 1411 is still blocked on both
+  channels — SMS `recipient_not_opted_in`, iMessage `imessage_no_assignment`.
+  Being signed in to the portal does not open a text channel; the phone-side
+  connect step is separate and only Andrew can perform it. No workaround
+  attempted.
+- **Delivered by email instead**, carrying both the welcome and the
+  introduction: Inkbox id `69ac7961-835e-44d0-bdb0-c216eccf287a`, to
+  `andrew.davidson.zenith@gmail.com`, status `sent`. Contents: his roster row
+  (owner, approved 2026-08-15, bound 2026-08-16), a link to the welcome
+  artifact, the desk's self-introduction with the AI disclosure and the
+  not-a-licensed-producer limit stated plainly, and both opt-in paths so the
+  text channel can open.
+- **Welcome artifact published:**
+  `https://claude.ai/code/artifact/bb534d76-6017-4630-a463-f3c5cbfac704`
+  ("Andrew's CORE Credential"). Content drawn from this record: the three
+  access layers and fail-closed behaviour, the §10a sidebar surfaces with
+  the Quoter-is-external seam stated, owner peer-protection, deny-by-default
+  capabilities, and the iOS code-copy trap. Founder-only surfaces are not
+  mentioned. No secret name or value appears; the page grants nothing.
