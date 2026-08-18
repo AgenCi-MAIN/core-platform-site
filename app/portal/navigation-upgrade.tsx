@@ -8,9 +8,10 @@ const REAGAN_HREF = "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2F
  * Small compatibility layer for the existing static portal navigation.
  *
  * The portal shell still owns its route authorization; this component only
- * upgrades the visible navigation vocabulary and adds the universal inbound
- * route. It is deliberately idempotent because the shell can be replaced by
- * client navigation while this layout stays mounted.
+ * upgrades the visible navigation vocabulary, adds the universal inbound
+ * route, and exposes the wallet status in the authenticated top bar. It is
+ * deliberately idempotent because the shell can be replaced by client
+ * navigation while this layout stays mounted.
  */
 export function PortalNavigationUpgrade() {
   useEffect(() => {
@@ -51,13 +52,23 @@ export function PortalNavigationUpgrade() {
         else calls.appendChild(link);
       });
 
-      document.querySelectorAll<HTMLAnchorElement>('a[href="/portal/shop"] .portal-workspace-copy strong').forEach((node) => {
+      document.querySelectorAll<HTMLElement>(".portal-topbar-end").forEach((topbar) => {
+        if (topbar.querySelector(".thrive-balance-pill")) return;
+        const balance = document.createElement("a");
+        balance.href = "/portal/shop";
+        balance.className = "thrive-balance-pill";
+        balance.title = "Open THRIVE Marketplace";
+        balance.innerHTML = "<span>Account balance</span><strong>— · ledger pending</strong>";
+        topbar.insertBefore(balance, topbar.firstChild);
+      });
+
+      document.querySelectorAll<HTMLElement>('a[href="/portal/shop"] .portal-workspace-copy strong').forEach((node) => {
         node.textContent = "Marketplace";
       });
-      document.querySelectorAll<HTMLAnchorElement>(`a[href="${REAGAN_HREF}"] .portal-workspace-copy strong`).forEach((node) => {
+      document.querySelectorAll<HTMLElement>(`a[href="${REAGAN_HREF}"] .portal-workspace-copy strong`).forEach((node) => {
         node.textContent = "Reagan AI — Heartland";
       });
-      document.querySelectorAll<HTMLAnchorElement>('a[href*="surancebay.com"] .portal-workspace-copy').forEach((node) => {
+      document.querySelectorAll<HTMLElement>('a[href*="surancebay.com"] .portal-workspace-copy').forEach((node) => {
         node.closest("a")?.remove();
       });
     }
@@ -71,8 +82,10 @@ export function PortalNavigationUpgrade() {
   return (
     <style>{`
       .thrive-inbound-live{margin-left:auto;border:1px solid rgba(52,211,153,.26);border-radius:999px;padding:2px 5px;color:#6ee7b7;background:rgba(16,185,129,.08);font-size:.52rem;font-weight:900;letter-spacing:.08em}
-      .thrive-balance-pill{display:grid;gap:1px;min-width:92px;border:1px solid rgba(45,212,191,.16);border-radius:10px;padding:6px 9px;text-decoration:none;background:rgba(15,23,42,.5)}
-      .thrive-balance-pill span{color:#7f91aa;font-size:.58rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.thrive-balance-pill strong{color:#e6edf6;font-size:.76rem}
+      .thrive-balance-pill{display:grid;gap:1px;min-width:112px;border:1px solid rgba(45,212,191,.16);border-radius:10px;padding:6px 9px;text-decoration:none;background:rgba(15,23,42,.5);transition:border-color .18s ease,background .18s ease}
+      .thrive-balance-pill:hover{border-color:rgba(45,212,191,.34);background:rgba(20,184,166,.08)}
+      .thrive-balance-pill span{color:#7f91aa;font-size:.58rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.thrive-balance-pill strong{color:#e6edf6;font-size:.72rem;white-space:nowrap}
+      @media(max-width:860px){.thrive-balance-pill{display:none}}
     `}</style>
   );
 }
