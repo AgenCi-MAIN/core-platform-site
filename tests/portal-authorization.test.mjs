@@ -2853,16 +2853,23 @@ test("a session cookie cannot be worn as a Command Center pass", async () => {
   // is the cookie's rightful owner, which is exactly the threat a
   // per-session code exists to bound.
   //
-  // The fix is one line — require the `pass` claim that only redeemPass()
-  // mints — and this test is what keeps it there. Note that it needs no
-  // command_passes table: the bypass never reached the database, which is
-  // precisely what made it silent.
+  // The fix has two halves and this test pins both. First, redeemPass() mints
+  // a `typ` claim that sessions do not carry, so a session is not merely
+  // missing something a pass has — it is the wrong KIND of token, checked
+  // positively rather than by the absence of a field. Second, hasLivePass()
+  // re-reads the command_passes row on every request, because the cookie is a
+  // claim about the past and the table is the present: without the re-read,
+  // revoking a pass does nothing until it expires on its own and `revoked_at`
+  // is decorative.
   const portal = await startPortal();
   await portal.addMember("andrew.davidson.zenith@gmail.com", "owner");
   const helper = {
     subject: "sub-command-helper-forged-pass",
     email: "andrew.davidson.zenith@gmail.com",
   };
+
+  // Bind the identity first, exactly as a real sign-in would.
+  await portal.get("/portal", helper);
 
   const sessionToken = mintSessionToken(helper);
   const forged = await portal.mf.dispatchFetch("http://localhost/portal/command", {
@@ -2888,6 +2895,37 @@ test("a session cookie cannot be worn as a Command Center pass", async () => {
     await forged.text(),
     "",
     "a refused Command Center must emit no body",
+  );
+
+  // The other half. A token of the RIGHT shape — correct signature, correct
+  // subject, unexpired, and carrying both `typ` and a numeric `pass` — must
+  // still be refused when no redeemed row backs it. The claims describe a
+  // redemption that never happened, and the table is what decides.
+  const now = Math.floor(Date.now() / 1000);
+  const unredeemedBody = `v1.${Buffer.from(
+    JSON.stringify({
+      typ: "command_pass",
+      sub: helper.subject,
+      pass: 999,
+      exp: now + 3600,
+    }),
+  ).toString("base64url")}`;
+  const unredeemedPass = `${unredeemedBody}.${createHmac("sha256", SESSION_SECRET)
+    .update(unredeemedBody)
+    .digest("base64url")}`;
+
+  const noRow = await portal.mf.dispatchFetch("http://localhost/portal/command", {
+    redirect: "manual",
+    headers: {
+      accept: "text/html",
+      cookie: `core_session=${sessionToken}; core_command_pass=${unredeemedPass}`,
+    },
+  });
+
+  assert.equal(
+    noRow.status,
+    307,
+    "a correctly-shaped pass with no redeemed row must still be refused — fail closed",
   );
 
   await portal.dispose();
