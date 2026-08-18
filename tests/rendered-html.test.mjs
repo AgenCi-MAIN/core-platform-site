@@ -607,6 +607,73 @@ test("public surfaces carry no member or audit data", async () => {
    Installable app (PWA)
    ============================================================ */
 
+/**
+ * The theme system: three named themes (bright / dark / thrive), declared in
+ * TWO places that must not drift — the THEMES table in theme-control.tsx and
+ * the pre-paint boot script in portal-chrome.tsx (inlined because it runs
+ * before React). Both must validate stored values against the same set and
+ * fall back to the same default (dark): if their fallbacks disagree, a junk
+ * stored value makes aria-pressed lie about the active theme. The chrome
+ * (theme-color) hexes must also match, or the phone status bar flickers
+ * between boot and first toggle.
+ */
+test("the theme boot script and the theme control agree on the three themes", async () => {
+  const boot = await readFile(new URL("../app/portal-chrome.tsx", import.meta.url), "utf8");
+  const control = await readFile(new URL("../app/theme-control.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  // Boot: explicit whitelist with dark fallback — not a two-value ternary.
+  assert.match(
+    boot,
+    /\(t==="bright"\|\|t==="thrive"\)\?t:"dark"/,
+    "the boot script must whitelist exactly bright|thrive and fall back to dark",
+  );
+
+  // Control: the THEMES table carries exactly the same ids, dark fallback.
+  const ids = [...control.matchAll(/id: "([a-z]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(ids, ["bright", "dark", "thrive"], "THEMES table ids changed");
+  assert.match(
+    control,
+    /return known \? known\.id : "dark";/,
+    "readTheme's fallback must stay dark — the same default as the boot script",
+  );
+
+  // Chrome hexes: the same three values in both files.
+  for (const chrome of ["#f3ecdf", "#0c0a07", "#16202e"]) {
+    assert.ok(boot.includes(chrome), `boot script lost the ${chrome} chrome hex`);
+    assert.ok(control.includes(chrome), `THEMES table lost the ${chrome} chrome hex`);
+  }
+
+  // The stylesheet actually defines the third skin — token block and the
+  // navy sidebar scope both present.
+  assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \{/);
+  assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \.portal-sidebar \{/);
+  // Every custom property the dark block overrides has a thrive counterpart
+  // on the main scope — a partial skin silently inherits parchment values.
+  const blockOf = (marker) => {
+    const start = css.indexOf(marker);
+    assert.ok(start >= 0, `missing block ${marker}`);
+    return css.slice(start, css.indexOf("}", start));
+  };
+  const darkTokens = [...blockOf('html[data-portal-theme="dark"] .portal {').matchAll(/--portal-[\w-]+/g)].map((m) => m[0]);
+  const thriveBlock = blockOf('html[data-portal-theme="thrive"] .portal {');
+  const missing = [...new Set(darkTokens)].filter((token) => !thriveBlock.includes(token));
+  assert.deepEqual(missing, [], `thrive theme lacks tokens the dark theme defines: ${missing.join(", ")}`);
+});
+
+test("public surfaces offer all three theme choices", async () => {
+  const response = await fetchPath("/");
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  for (const label of ["Bright", "Dark", "Thrive"]) {
+    assert.match(
+      html,
+      new RegExp(`portal-theme-label">${label}`),
+      `the theme control is missing the ${label} option`,
+    );
+  }
+});
+
 test("serves a web app manifest that installs to the portal", async () => {
   const response = await fetchPath("/manifest.webmanifest", { accept: "*/*" });
   assert.equal(response.status, 200);
