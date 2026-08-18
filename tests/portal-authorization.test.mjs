@@ -2415,10 +2415,21 @@ test("the rendered Training script is byte-identical to the approved body", asyn
   assert.equal(res.status, 200);
   const html = await res.text();
 
-  const pre = html.match(
-    /<pre class="script-body training-script-body">([\s\S]*?)<\/pre>/,
+  // The script now renders as the author's own sections — one <pre> per
+  // snippet, so an agent can work a step at a time on a live call. The
+  // guarantee is therefore asserted across ALL of them, concatenated: a lost
+  // snippet, a duplicated one, or a reordering all break this equality just
+  // as surely as a reworded sentence would. This is strictly stronger than
+  // checking a single block.
+  const blocks = [
+    ...html.matchAll(/<pre class="script-body training-script-body">([\s\S]*?)<\/pre>/g),
+  ].map((match) => match[1]);
+  assert.ok(blocks.length > 0, "the approved script's <pre> blocks must render");
+  assert.ok(
+    blocks.length >= 6,
+    `the script must render as its own sections, found ${blocks.length} block(s)`,
   );
-  assert.ok(pre, "the approved script's <pre> must render");
+  const pre = [null, blocks.join("")];
 
   const rendered = pre[1]
     .replace(/<[^>]+>/g, "")

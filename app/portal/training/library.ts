@@ -114,3 +114,43 @@ export const CALL_ANGLE_SLOTS: readonly TrainingSlot[] = [
       "Callers weighing quotes against what they already hold.",
     state: "not_loaded" },
 ];
+
+/**
+ * Split an approved body into the snippets an agent works from on a live call.
+ *
+ * This is a SPLIT, never a rewrite. Every character of `body` lands in exactly
+ * one snippet, in order, including each snippet's own heading line and its
+ * trailing whitespace — so `splitApprovedBody(b).map(s => s.text).join("") === b`
+ * holds for any input. That identity is the whole safety argument: presentation
+ * can rearrange where the text sits on the page, and still cannot add, drop, or
+ * reorder a byte of approved language. A test asserts it against the rendered
+ * HTML, not just against this function.
+ *
+ * Boundaries are the document's own section markers — STEP n, CORE RULES,
+ * END STATE — so the snippets are the author's structure, not one imposed here.
+ */
+export type ScriptSnippet = { id: string; text: string };
+
+export function splitApprovedBody(body: string): readonly ScriptSnippet[] {
+  const boundary = /\n(?=STEP \d+ —|CORE RULES\n|END STATE\n)/g;
+  const parts: string[] = [];
+  let cursor = 0;
+  for (const match of body.matchAll(boundary)) {
+    const index = match.index ?? 0;
+    // +1 keeps the newline with the PRECEDING snippet, so nothing is dropped.
+    parts.push(body.slice(cursor, index + 1));
+    cursor = index + 1;
+  }
+  parts.push(body.slice(cursor));
+
+  const snippets = parts
+    .map((text, order) => ({ id: `part-${order}`, text }))
+    .filter((snippet) => snippet.text.length > 0);
+
+  // Fail loudly rather than render a silently lossy script.
+  const rejoined = snippets.map((snippet) => snippet.text).join("");
+  if (rejoined !== body) {
+    throw new Error("splitApprovedBody lost or altered text — refusing to render");
+  }
+  return snippets;
+}

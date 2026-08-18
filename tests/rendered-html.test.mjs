@@ -465,15 +465,44 @@ test("Training is guarded, ordered above Book of Business, and stays server-only
   // content and compares it byte-for-byte against the approved constant,
   // which is the stronger, output-level form of the direct-render pin that
   // used to live here.
+  //
+  // The body now reaches ScriptBody through splitApprovedBody, which cuts it
+  // into the author's own sections so an agent can work a step at a time on a
+  // live call. That is a split, never a rewrite, and it is pinned three ways
+  // rather than one:
+  //   1. the only thing handed to the splitter is slot.body itself,
+  //   2. the only thing handed to the renderer is a snippet of that split,
+  //   3. the splitter refuses to return a split that does not rejoin to its
+  //      input exactly — asserted here at the source, so the guarantee cannot
+  //      be quietly deleted from library.ts.
+  // The output-level proof still lives in portal-authorization, and it grew
+  // with this change: it concatenates EVERY rendered snippet and compares the
+  // result byte-for-byte to the approved constant, so a dropped, duplicated,
+  // or reordered section now fails too.
   assert.match(
     page,
-    /<ScriptBody body=\{slot\.body\} \/>/,
+    /splitApprovedBody\(slot\.body\)/,
+    "the approved body is no longer what gets split",
+  );
+  assert.match(
+    page,
+    /<ScriptBody body=\{snippet\.text\} \/>/,
     "approved training text no longer flows verbatim into the script renderer",
+  );
+  assert.match(
+    library,
+    /if \(rejoined !== body\) \{\n\s*throw new Error/,
+    "splitApprovedBody no longer refuses a lossy split",
   );
   assert.doesNotMatch(
     page,
     /slot\.body\.(?:trim|replace|slice|substring)|marked\(|dangerouslySetInnerHTML/,
     "approved training text is transformed before rendering",
+  );
+  assert.doesNotMatch(
+    `${page}\n${library}`,
+    /snippet\.text\.(?:trim|replace|slice|substring)/,
+    "a snippet is transformed after the split",
   );
 });
 
