@@ -5540,3 +5540,79 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 @media (prefers-reduced-motion: no-preference) {
   html { scroll-behavior: smooth; }
 }
+
+
+/* ============================================================
+   TRAINING TABS — folder tabs across the top of each section.
+
+   Server-rendered links, not a client widget: selection lives in the URL, so
+   a specific intro can be bookmarked or sent to someone mid-shift, and the
+   page stays server-only with nothing for the guard to miss.
+
+   The tab strip scrolls horizontally on a phone rather than wrapping into
+   three ragged rows, and its own container scrolls — never the page body.
+   ============================================================ */
+.training-tabs {
+  display: flex;
+  gap: 2px;
+  margin: 0 0 -1px;
+  padding: 0 2px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scroll-snap-type: x proximity;
+}
+.training-tab {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 15rem;
+  padding: 10px 14px;
+  border: 1px solid var(--portal-line);
+  border-bottom-color: transparent;
+  border-radius: 10px 10px 0 0;
+  background: var(--portal-soft);
+  color: var(--portal-muted);
+  font-size: .82rem;
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color .16s ease, color .16s ease, border-color .16s ease;
+}
+.training-tab:hover { background: var(--portal-raised); color: var(--portal-text); }
+.training-tab:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: -2px; }
+
+/* The active tab joins the panel below it — the folder metaphor only reads if
+   the seam between tab and panel is actually open. */
+.training-tab.is-active {
+  background: var(--portal-panel);
+  color: var(--portal-text);
+  border-color: var(--portal-line);
+  border-bottom-color: var(--portal-panel);
+  position: relative;
+  z-index: 1;
+}
+
+.training-tab-label { overflow: hidden; text-overflow: ellipsis; }
+
+/* Loaded versus reserved, at a glance and never by colour alone — the label
+   is in the accessible name for anyone not seeing the dot. */
+.training-tab-dot { flex: none; width: 7px; height: 7px; border-radius: 50%; }
+.training-tab-dot-loaded { background: var(--portal-success); }
+.training-tab-dot-empty {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--portal-subtle, var(--portal-muted));
+}
+
+.training-tab-panel {
+  border: 1px solid var(--portal-line);
+  border-radius: 0 12px 12px 12px;
+  padding: 18px;
+  background: var(--portal-panel);
+}
+
+@media (pointer: coarse) {
+  .training-tab { padding: 13px 15px; }
+}

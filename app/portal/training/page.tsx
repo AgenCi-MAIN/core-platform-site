@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireCapability } from "../access";
 import { PortalPageIntro, PortalShell } from "../components";
 import {
@@ -237,8 +238,27 @@ function ContentSlot({ slot }: { slot: TrainingSlot }) {
   );
 }
 
-export default async function TrainingPage() {
+export default async function TrainingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ intro?: string; angle?: string }>;
+}) {
   const session = await requireCapability("dashboard.view.self", "/portal/training");
+  const params = await searchParams;
+
+  /**
+   * Tabs, server-rendered.
+   *
+   * Selection travels in the query string and each tab is a link, so the whole
+   * surface stays server-only — no client bundle, nothing for the guard to
+   * miss, and a specific intro is a URL an agent can bookmark or send to
+   * someone mid-shift. An unknown or absent value falls back to the first
+   * slot rather than rendering an empty page.
+   */
+  const activeIntro =
+    INTRODUCTION_SLOTS.find((slot) => slot.id === params.intro) ?? INTRODUCTION_SLOTS[0];
+  const activeAngle =
+    CALL_ANGLE_SLOTS.find((slot) => slot.id === params.angle) ?? CALL_ANGLE_SLOTS[0];
   const loadedIntroductions = INTRODUCTION_SLOTS.filter(
     (slot) => slot.state === "approved",
   ).length;
@@ -311,8 +331,29 @@ export default async function TrainingPage() {
             <strong>{loadedIntroductions}/{INTRODUCTION_SLOTS.length}</strong>
           </header>
 
-          <div className="training-slot-grid">
-            {INTRODUCTION_SLOTS.map((slot) => <ContentSlot key={slot.id} slot={slot} />)}
+          <nav className="training-tabs" aria-label="Introduction types">
+            {INTRODUCTION_SLOTS.map((slot) => {
+              const current = slot.id === activeIntro.id;
+              return (
+                <Link
+                  aria-current={current ? "page" : undefined}
+                  className={`training-tab${current ? " is-active" : ""}`}
+                  href={`/portal/training?intro=${slot.id}#introductions`}
+                  key={slot.id}
+                  scroll={false}
+                >
+                  <span className="training-tab-label">{slot.label}</span>
+                  <span className={`training-tab-dot training-tab-dot-${slot.state === "approved" ? "loaded" : "empty"}`} aria-hidden="true" />
+                  <span className="sr-only">
+                    {slot.state === "approved" ? " — approved language loaded" : " — awaiting approved language"}
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="training-slot-grid training-tab-panel">
+            <ContentSlot slot={activeIntro} />
           </div>
         </section>
 
@@ -330,8 +371,29 @@ export default async function TrainingPage() {
             <strong>{loadedAngles}/{CALL_ANGLE_SLOTS.length}</strong>
           </header>
 
-          <div className="training-slot-grid training-angle-grid">
-            {CALL_ANGLE_SLOTS.map((slot) => <ContentSlot key={slot.id} slot={slot} />)}
+          <nav className="training-tabs" aria-label="Call angles">
+            {CALL_ANGLE_SLOTS.map((slot) => {
+              const current = slot.id === activeAngle.id;
+              return (
+                <Link
+                  aria-current={current ? "page" : undefined}
+                  className={`training-tab${current ? " is-active" : ""}`}
+                  href={`/portal/training?angle=${slot.id}#call-angles`}
+                  key={slot.id}
+                  scroll={false}
+                >
+                  <span className="training-tab-label">{slot.label}</span>
+                  <span className={`training-tab-dot training-tab-dot-${slot.state === "approved" ? "loaded" : "empty"}`} aria-hidden="true" />
+                  <span className="sr-only">
+                    {slot.state === "approved" ? " — approved language loaded" : " — awaiting approved language"}
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="training-slot-grid training-angle-grid training-tab-panel">
+            <ContentSlot slot={activeAngle} />
           </div>
         </section>
       </main>

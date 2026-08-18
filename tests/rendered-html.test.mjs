@@ -662,11 +662,14 @@ test("the theme boot script and the theme control agree on the three themes", as
   const control = await readFile(new URL("../app/theme-control.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
-  // Boot: explicit whitelist with dark fallback — not a two-value ternary.
+  // Boot: explicit whitelist with THRIVE fallback — not a two-value ternary.
+  // Thrive became the default on the founder's order 2026-08-18 ("DO NOT TAKE
+  // THRIVE COLOR OUT. THAT'LL BE THE DEFAULT COLOR WHILE STILL HAVING BRIGHT
+  // AND DARK"). All three remain selectable; only the unset case moved.
   assert.match(
     boot,
-    /\(t==="bright"\|\|t==="thrive"\)\?t:"dark"/,
-    "the boot script must whitelist exactly bright|thrive and fall back to dark",
+    /\(t==="bright"\|\|t==="dark"\)\?t:"thrive"/,
+    "the boot script must whitelist exactly bright|dark and fall back to thrive",
   );
 
   // Control: the THEMES table carries exactly the same ids. Its readTheme
@@ -682,8 +685,8 @@ test("the theme boot script and the theme control agree on the three themes", as
   );
   assert.match(
     control,
-    /useSyncExternalStore\(subscribe, readTheme, \(\) => "dark"\)/,
-    "the server snapshot must match the boot script's dark default",
+    /useSyncExternalStore\(subscribe, readTheme, \(\) => "thrive"\)/,
+    "the server snapshot must match the boot script's thrive default",
   );
 
   // Chrome hexes: the same three values in both files. Thrive's chrome is
