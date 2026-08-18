@@ -5235,3 +5235,29 @@ html[data-portal-performance="boost"] .fcc-thumb-dock { backdrop-filter: none; b
   .training-snippet { padding-left: 26px; }
   .training-snippet-index { width: 18px; height: 18px; font-size: .62rem; }
 }
+
+
+/* BLUEPRINT 0.0.1 panel — Command Center.
+   Recorded state, not live state: the phase pills read "not started" because
+   nothing is armed, and they are styled as pending rather than as anything a
+   glance could mistake for running. */
+.fcc-blueprint-lede{margin:0 0 16px;max-width:var(--portal-measure,68ch);color:var(--fcc-ink-soft,var(--portal-muted));font-size:.9rem;line-height:1.6}
+.fcc-blueprint-phases{display:grid;gap:10px;margin:0 0 22px;padding:0;list-style:none;counter-reset:bp}
+.fcc-blueprint-phase{border:1px solid var(--portal-line);border-left:3px solid var(--portal-accent);border-radius:var(--portal-radius,10px);padding:13px 15px;background:var(--portal-panel)}
+.fcc-blueprint-phase-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px;margin-bottom:6px}
+.fcc-blueprint-phase-num{font-size:.66rem;font-weight:850;letter-spacing:.11em;text-transform:uppercase;color:var(--portal-accent-strong)}
+.fcc-blueprint-phase-head strong{color:var(--portal-text);font-size:1rem}
+.fcc-blueprint-state{margin-left:auto;white-space:nowrap;border:1px solid color-mix(in srgb,var(--portal-warning) 40%,transparent);border-radius:999px;padding:3px 9px;color:var(--portal-warning);background:color-mix(in srgb,var(--portal-warning) 10%,var(--portal-panel));font-size:.62rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+.fcc-blueprint-phase p{margin:0 0 8px;max-width:var(--portal-measure,68ch);color:var(--portal-muted);font-size:.85rem;line-height:1.55}
+.fcc-blueprint-seats{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.7rem;letter-spacing:.06em;color:var(--portal-subtle,var(--portal-muted))}
+.fcc-blueprint-subhead{margin:0 0 10px;font-size:.72rem;font-weight:850;letter-spacing:.12em;text-transform:uppercase;color:var(--portal-muted)}
+.fcc-blueprint-bench{display:grid;gap:6px;margin:0 0 18px;padding:0;list-style:none}
+.fcc-blueprint-bench li{display:grid;grid-template-columns:auto auto 1fr;align-items:baseline;gap:10px;padding:9px 12px;border:1px solid var(--portal-line);border-radius:var(--portal-radius,10px);background:var(--portal-soft)}
+.fcc-blueprint-seat{font-family:ui-monospace,monospace;font-size:.66rem;font-weight:700;color:var(--portal-accent-strong)}
+.fcc-blueprint-bench strong{color:var(--portal-text);font-size:.84rem;letter-spacing:.02em}
+.fcc-blueprint-owns{color:var(--portal-muted);font-size:.78rem;line-height:1.45}
+@media (max-width:40rem){
+  .fcc-blueprint-bench li{grid-template-columns:auto 1fr}
+  .fcc-blueprint-owns{grid-column:1/-1}
+  .fcc-blueprint-state{margin-left:0}
+}

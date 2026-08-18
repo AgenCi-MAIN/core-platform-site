@@ -338,6 +338,72 @@ const HANDOFFS = [
   },
 ] as const;
 
+
+/**
+ * BLUEPRINT 0.0.1 — the A2A build, laid out on the founder's order 2026-08-18.
+ *
+ * Recorded state only. Every line here is drawn from BLUEPRINT_0.0.1.md and
+ * W-SUBS/A2A/, and the phase status words are the honest ones: nothing in this
+ * blueprint has been armed, deployed, or executed. A panel that showed these
+ * seats as running would be the first lie the fleet told about itself.
+ */
+const BLUEPRINT_PHASES: readonly {
+  id: string;
+  phase: string;
+  title: string;
+  detail: string;
+  seats: string;
+  state: "not_started" | "declared";
+}[] = [
+  {
+    id: "P0",
+    phase: "Phase 0",
+    title: "Stop the bleeding",
+    detail:
+      "Every routine gets its full standing order instead of a caption, and every scheduled agent gets an expected-output assertion so silence raises an alarm rather than passing for health.",
+    seats: "LEASH · DEADMAN",
+    state: "not_started",
+  },
+  {
+    id: "P1",
+    phase: "Phase 1",
+    title: "Write down what exists",
+    detail:
+      "Every standing agent gets a card generated from its brief — never hand-written — so the advertisement and the leash cannot drift apart.",
+    seats: "CARDWRIGHT",
+    state: "not_started",
+  },
+  {
+    id: "P2",
+    phase: "Phase 2",
+    title: "One real handoff",
+    detail:
+      "The highest-value handoff now routing through the founder becomes machine-to-machine, fully instrumented, with human approval preserved before anything leaves the building.",
+    seats: "COURIER · LATTICE · LEDGER",
+    state: "not_started",
+  },
+  {
+    id: "P3",
+    phase: "Phase 3",
+    title: "Identity, then breadth",
+    detail:
+      "Only once one instrumented edge runs does a second make sense. The identity mechanism is defined before the third edge, never after the sixth.",
+    seats: "SEAL · CAVEAT",
+    state: "not_started",
+  },
+];
+
+const ELITE_8: readonly { seat: string; name: string; owns: string }[] = [
+  { seat: "A1", name: "CARDWRIGHT", owns: "What can this agent do, and what will it refuse?" },
+  { seat: "A2", name: "SEAL", owns: "Why should I believe you are who you say?" },
+  { seat: "A3", name: "LEASH", owns: "What are you allowed to do, and who enforces it?" },
+  { seat: "A4", name: "COURIER", owns: "How is work handed over, tracked, and finished?" },
+  { seat: "A5", name: "LATTICE", owns: "Who may hand work to whom, and why that shape?" },
+  { seat: "A6", name: "CAVEAT", owns: "Whose instruction is this really?" },
+  { seat: "A7", name: "DEADMAN", owns: "Did anything actually happen?" },
+  { seat: "A8", name: "LEDGER", owns: "Can we prove what happened afterwards?" },
+];
+
 function FactChip({ tone, children }: { tone: FactTone; children: ReactNode }) {
   return <span className={`fcc-chip fcc-chip-${tone}`}>{children}</span>;
 }
@@ -509,6 +575,51 @@ export default async function FounderCommandCenter() {
             <strong>—</strong>
             <small>Unavailable to this portal</small>
           </article>
+        </section>
+
+
+        <section className="fcc-panel fcc-blueprint" aria-labelledby="blueprint-title">
+          <header className="fcc-panel-head">
+            <div>
+              <p>05 / Blueprint 0.0.1</p>
+              <h2 id="blueprint-title">The A2A build</h2>
+            </div>
+            <FactChip tone="attention">Declared, not armed</FactChip>
+          </header>
+
+          <p className="fcc-blueprint-lede">
+            Eight standing seats and a four-phase build, laid out from{" "}
+            <em>The Handoff Doctrine</em>. Nothing below is scheduled, holds a
+            credential, or can act until it is armed seat by seat — and arming
+            one means pasting its brief in full, never a caption.
+          </p>
+
+          <ol className="fcc-blueprint-phases">
+            {BLUEPRINT_PHASES.map((phase) => (
+              <li className="fcc-blueprint-phase" key={phase.id}>
+                <div className="fcc-blueprint-phase-head">
+                  <span className="fcc-blueprint-phase-num">{phase.phase}</span>
+                  <strong>{phase.title}</strong>
+                  <span className="fcc-blueprint-state">not started</span>
+                </div>
+                <p>{phase.detail}</p>
+                <span className="fcc-blueprint-seats">{phase.seats}</span>
+              </li>
+            ))}
+          </ol>
+
+          <h3 className="fcc-blueprint-subhead">ELITE_8 — the standing bench</h3>
+          <ul className="fcc-blueprint-bench">
+            {ELITE_8.map((seat) => (
+              <li key={seat.seat}>
+                <span className="fcc-blueprint-seat">{seat.seat}</span>
+                <strong>{seat.name}</strong>
+                <span className="fcc-blueprint-owns">{seat.owns}</span>
+              </li>
+            ))}
+          </ul>
+
+          <SourceStamp>BLUEPRINT_0.0.1.md · W-SUBS/A2A · decision A17</SourceStamp>
         </section>
 
         <section className="fcc-layout fcc-layout-primary">
