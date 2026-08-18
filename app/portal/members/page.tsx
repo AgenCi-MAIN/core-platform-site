@@ -24,6 +24,46 @@ export default async function MembersPage() {
       .orderBy(asc(portalMembers.role), asc(portalMembers.email)),
   );
 
+  /**
+   * One human, one row.
+   *
+   * A person who has migrated identity holds more than one row: the live
+   * address they sign in with, plus the retired one kept deliberately for the
+   * record (see CORE_PLATFORM_RECORD.md § 5 — a retired row is never deleted,
+   * because deleting it would erase who held access and when). Rendered
+   * literally that reads as two different people with the same name, which is
+   * how the founder appeared twice on his own roster.
+   *
+   * Grouping is by display name AND requires every extra identity to be
+   * non-active: two people who genuinely share a name both hold active rows
+   * and are never merged. The rows themselves are untouched — this is a
+   * display decision only, and the record still holds every one of them.
+   */
+  const byPerson = new Map<string, typeof members>();
+  for (const member of members) {
+    const key = member.displayName?.trim().toLowerCase() ?? `#${member.id}`;
+    byPerson.set(key, [...(byPerson.get(key) ?? []), member]);
+  }
+
+  const people = [...byPerson.values()].map((rows) => {
+    const active = rows.filter((row) => row.status === "active");
+    // Merge only when exactly one identity is live and the rest are retired.
+    const mergeable = rows.length > 1 && active.length === 1;
+    const primary = mergeable ? active[0] : rows[0];
+    return {
+      primary,
+      retired: mergeable ? rows.filter((row) => row.id !== primary.id) : [],
+      // An unmergeable duplicate stays visible as its own entry rather than
+      // being hidden — an ambiguous roster must look ambiguous.
+      extras: mergeable ? [] : rows.slice(1),
+    };
+  });
+
+  const entries = people.flatMap((person) => [
+    { primary: person.primary, retired: person.retired },
+    ...person.extras.map((row) => ({ primary: row, retired: [] as typeof members })),
+  ]);
+
   return (
     <PortalShell session={session} current="/portal/members" section="Members">
       <main className="portal-main">
@@ -46,7 +86,11 @@ export default async function MembersPage() {
             description={
               fault
                 ? "The roster could not be read, so no count is shown."
-                : `${members.length} verified membership record${members.length === 1 ? "" : "s"} in the portal database.`
+                : `${members.length} verified membership record${members.length === 1 ? "" : "s"} in the portal database${
+                    members.length === entries.length
+                      ? ""
+                      : `, held by ${entries.length} ${entries.length === 1 ? "person" : "people"} — retired identities are folded into the person who holds them`
+                  }.`
             }
           />
           {fault ? (
@@ -70,11 +114,16 @@ export default async function MembersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {members.map((member) => (
+                  {entries.map(({ primary: member, retired }) => (
                     <tr key={member.id}>
                       <td>
                         <strong>{member.displayName ?? "—"}</strong>
                         <span className="portal-cell-sub">{member.email}</span>
+                        {retired.map((old) => (
+                          <span className="portal-cell-sub portal-cell-retired" key={old.id}>
+                            {old.email} — {old.status}, cannot sign in
+                          </span>
+                        ))}
                       </td>
                       <td>{ROLE_LABELS[member.role] ?? member.role}</td>
                       <td>
