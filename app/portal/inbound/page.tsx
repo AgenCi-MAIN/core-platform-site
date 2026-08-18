@@ -30,7 +30,9 @@ const STYLES = `
 `;
 
 export default async function InboundPage() {
-  const session = await requireCapability("dashboard.view.self", PATH);
+  // Direct anonymous visits return to the main portal after sign-in; normal
+  // use reaches this page from the authenticated portal navigation.
+  const session = await requireCapability("dashboard.view.self", "/portal");
   const email = session.email.toLowerCase();
 
   const { rows: availabilityRows, fault: availabilityFault } = await readRows("audit_events", () =>
