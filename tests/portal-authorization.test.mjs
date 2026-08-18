@@ -2760,3 +2760,47 @@ test("Retreaver and Twilio render honest not-connected states to leadership and 
     assert.equal(await agentRes.text(), "", "a refused agent receives no body");
   }
 });
+
+test("the Leadership Playbook answers manager and above, and nobody else", async (t) => {
+  // The founder's requirement: "Only Manager or Above RANKING can have
+  // access." That is already exactly `leadership.view.all` — owner, admin and
+  // manager hold it; reviewer, agent and support do not — so the Playbook
+  // needed NO new capability. Adding one would have been a governance change
+  // for a tab, and this pins that it stayed a tab.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  const allowed = ["owner", "admin", "manager"];
+  const refused = ["reviewer", "agent", "support"];
+
+  for (const role of allowed) {
+    const email = `${role}-playbook@example.com`;
+    await portal.addMember(email, role);
+    const response = await portal.get("/portal/leadership?view=playbook", {
+      subject: `subject-${role}-playbook`,
+      email,
+    });
+    assert.equal(response.status, 200, `${role} must reach the Playbook`);
+    const html = await response.text();
+    assert.match(html, /How CORE works, and who does what/, `${role} must see the Playbook body`);
+    // It must state the reader's own standing rather than a generic greeting —
+    // a playbook that does not know who is reading it cannot tell them what
+    // they hold.
+    assert.match(html, new RegExp(email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  for (const role of refused) {
+    const email = `${role}-playbook@example.com`;
+    await portal.addMember(email, role);
+    const response = await portal.get("/portal/leadership?view=playbook", {
+      subject: `subject-${role}-playbook`,
+      email,
+    });
+    assert.equal(response.status, 307, `${role} must be refused the Playbook`);
+    assert.equal(
+      await response.text(),
+      "",
+      `${role} must receive no Playbook body — a refused page that leaks its content has refused nothing`,
+    );
+  }
+});
