@@ -831,7 +831,13 @@ button, .button, .nav-cta, .text-link {
 }
 
 .portal-shell {
-  min-height: 100dvh;
+  /* Fill the space .portal already reserves; do NOT claim a viewport of your
+     own. The governance footer sits inside .portal AFTER this element, so a
+     shell with its own min-height: 100dvh made the page scroll by the footer's
+     height on every route before a single card was rendered. The founder's
+     words: "I Dont want be able to drag it down this much." */
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
   grid-template-columns: 232px minmax(0, 1fr);
   background: var(--portal-bg);
@@ -864,15 +870,37 @@ button, .button, .nav-cta, .text-link {
   position: sticky;
   top: 0;
   z-index: 30;
-  height: 100vh;
+  /* Stretch to the shell, capped at the viewport. Height: 100dvh made the
+     rail taller than its own container — that is what put a scrollbar on it
+     and pushed the page down. dvh rather than vh for the cap, because on iOS
+     vh counts browser chrome that is not on screen. */
+  align-self: stretch;
+  min-height: 100%;
+  max-height: 100dvh;
   min-width: 0;
   display: flex;
   flex-direction: column;
   padding: 14px 12px 12px;
-  overflow-y: auto;
+  /* The RAIL no longer scrolls as a whole (founder: "lock left side tool
+     bar"). Brand at the top and the account block at the bottom stay put; if
+     the link list is taller than the space between them, that list scrolls on
+     its own. A toolbar whose sign-out slides away when you scroll is a
+     toolbar you cannot rely on. */
+  overflow: hidden;
   background: var(--portal-sidebar);
   border-right: 1px solid var(--portal-line);
 }
+
+/* The only part of the rail that may move. */
+.portal-sidebar .portal-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.portal-sidebar .portal-brand,
+.portal-sidebar .portal-sidebar-account { flex: none; }
 
 .portal-brand {
   min-height: 46px;
@@ -1083,7 +1111,7 @@ button, .button, .nav-cta, .text-link {
 .portal-topbar-avatar { flex: 0 0 auto; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--portal-avatar-surface); color: var(--portal-avatar-ink); font-size: 10px; font-weight: 850; letter-spacing: .02em; }
 .portal-drawer-scrim { display: none; }
 
-.portal-main { width: min(1380px, calc(100% - 48px)); margin: 0 auto; padding: 28px 0 56px; }
+.portal-main { width: min(1380px, calc(100% - 48px)); margin: 0 auto; padding: 28px 0 20px; }
 .portal-intro { max-width: 800px; margin-bottom: 22px; }
 .portal-eyebrow { margin: 0 0 7px; color: var(--portal-muted); font-size: var(--portal-type-label); font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
 .portal-intro h1 { margin: 0; font-size: var(--portal-type-display); line-height: 1.16; letter-spacing: -.025em; font-weight: 760; }
@@ -5460,9 +5488,15 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 
 /* 6 — Scrolling that behaves like a native list: momentum inside scrollable
    regions, and no rubber-banding the whole page when one of them ends. */
-.portal-table-scroll, .portal-main, .script-list, .training-slot-body {
+/* Momentum only, and ONLY on containers that genuinely scroll.
+   The first version of this rule included .portal-main, .script-list and
+   .training-slot-body, none of which is a scroll container — and
+   overscroll-behavior: contain on an element the wheel is over stops the
+   scroll chaining to the page. The founder's report was exact: "cant scroll
+   while hover over some these tabs". A property that only matters for
+   scrollable elements is not harmless on elements that are not. */
+.portal-table-scroll, .music-list, .tour-table-wrap {
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
 }
 
 /* 7 — Inputs at 16px or larger, because iOS Safari zooms the viewport on
