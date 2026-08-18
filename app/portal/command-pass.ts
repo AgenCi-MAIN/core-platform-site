@@ -51,6 +51,12 @@ export const PASS_SESSION_SECONDS = 2 * 60 * 60;
 
 export const COMMAND_PASS_COOKIE = "core_command_pass";
 
+/**
+ * Marks a token as a redeemed pass rather than a session. Session tokens are
+ * minted without a `typ`, so this value cannot be forged by replaying one.
+ */
+export const PASS_TOKEN_TYPE = "command_pass";
+
 /** SHA-256, hex. The only form of a code that is ever persisted. */
 export async function hashCode(code: string): Promise<string> {
   const digest = await crypto.subtle.digest(
@@ -177,6 +183,14 @@ export async function redeemPass(
 
   const token = await mintToken(
     {
+      // The type claim is load-bearing, not decoration. Pass tokens and
+      // session tokens are signed with the SAME secret and both carry `sub`
+      // and `exp`, so without something that distinguishes them a member's own
+      // `core_session` value is a structurally valid pass. It was: pasted into
+      // the pass cookie it opened the Command Center for seven days instead of
+      // two hours, with no redemption row. Sessions carry no `typ`, so
+      // requiring one here is what separates the two.
+      typ: PASS_TOKEN_TYPE,
       sub: subjectId,
       pass: match.id,
       exp: nowSeconds() + PASS_SESSION_SECONDS,
@@ -206,19 +220,44 @@ export async function hasLivePass(
   const claims = await verifyToken(cookieValue, secret);
   if (!claims) return false;
 
+  // A valid signature is NOT enough. Sessions are signed with this same
+  // secret, so without this check a member's own session cookie is a pass.
+  if (claims.typ !== PASS_TOKEN_TYPE) return false;
+
   const expires = typeof claims.exp === "number" ? claims.exp : 0;
   if (expires <= nowSeconds()) return false;
 
-  // The pass claim is what makes this a PASS and not merely a signed token.
-  // Without it, any token this secret signs satisfies the checks above — and
-  // the ordinary session cookie is exactly that shape (sub + exp, same
-  // SESSION_SECRET). Copying core_session into core_command_pass would have
-  // opened the Command Center for the whole session lifetime, with no code
-  // redeemed, no pass burned, and no audit row. HttpOnly hides a cookie from
-  // scripts, not from the person holding the browser.
-  if (typeof claims.pass !== "number") return false;
+  if (claims.sub !== subjectId) return false;
 
-  return claims.sub === subjectId;
+  const passId = typeof claims.pass === "number" ? claims.pass : null;
+  if (passId === null) return false;
+
+  // Re-read the row every time. The cookie is a claim about the past; the
+  // table is the present. Without this, revoking a pass does nothing until it
+  // expires on its own, which makes `revoked_at` decorative.
+  //
+  // Anything unexpected here — unreachable database, unapplied migration,
+  // missing row — returns false. The Command Center fails CLOSED, exactly as
+  // the portal does when it cannot resolve membership.
+  try {
+    const db = getDb();
+    const [row] = await db
+      .select({
+        redeemedAt: commandPasses.redeemedAt,
+        redeemedSubjectId: commandPasses.redeemedSubjectId,
+        revokedAt: commandPasses.revokedAt,
+      })
+      .from(commandPasses)
+      .where(eq(commandPasses.id, passId))
+      .limit(1);
+
+    if (!row) return false;
+    if (row.revokedAt) return false;
+    if (!row.redeemedAt) return false;
+    return row.redeemedSubjectId === subjectId;
+  } catch {
+    return false;
+  }
 }
 
 /** Session cookie: no Max-Age, so closing the browser ends the pass. */
