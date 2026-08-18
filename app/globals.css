@@ -870,12 +870,26 @@ button, .button, .nav-cta, .text-link {
   position: sticky;
   top: 0;
   z-index: 30;
-  /* Stretch to the shell, capped at the viewport. Height: 100dvh made the
-     rail taller than its own container — that is what put a scrollbar on it
-     and pushed the page down. dvh rather than vh for the cap, because on iOS
-     vh counts browser chrome that is not on screen. */
+  /* Stretch to the shell, capped at the viewport. dvh rather than vh for the
+     cap, because on iOS vh counts browser chrome that is not on screen.
+     `min-height: 100%` USED TO BE HERE and it silently defeated the cap: a
+     min-height always wins over a max-height, and that 100% resolves against
+     the shell's grid area, which is the whole DOCUMENT, not the viewport.
+     Measured in headless Chromium on a long page at a 1080px viewport, the
+     rail rendered 3187px tall with a computed max-height of 1080px. Two
+     things followed. The account block and sign-out sat below the fold at
+     scroll 0, so `position: sticky` had nothing to stick — directly against
+     the founder's "lock left side tool bar". And the nav, being `flex: 1 1
+     auto` inside that over-tall rail, was handed thousands of surplus pixels,
+     which is what the grid then poured into the rows. #93 stopped the rows
+     absorbing the surplus; this stops the surplus existing. `align-self:
+     stretch` still fills the shell on short pages, and the cap now binds on
+     long ones. */
   align-self: stretch;
-  min-height: 100%;
+  /* Explicitly 0, not merely absent: the initial `min-height: auto` on a grid
+     item is the automatic minimum size, i.e. content-based, which would put
+     the leak straight back the moment `overflow: hidden` below is touched. */
+  min-height: 0;
   max-height: 100dvh;
   min-width: 0;
   display: flex;
@@ -1042,8 +1056,42 @@ button, .button, .nav-cta, .text-link {
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-group-label,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-group-sub,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-label,
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-flare,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-account-copy { display: none; }
+/* The two LIVE surfaces — Inbound Calls and the Marketplace — keep their
+   marker when the tray is collapsed, as a dot rather than a word.
+   `.thrive-inbound-live` is injected by navigation-upgrade.tsx and was never
+   in the hide list above, so in a 74px rail it kept its full pill width and
+   `margin-left: auto`, pushing the row wider than the rail; `overflow: hidden`
+   on the sidebar then sliced the row's own highlight off at the edge. That is
+   the misalignment. Hiding it outright would have been the easy fix and the
+   wrong one: these are the only two live surfaces in the product, and losing
+   the marker is exactly what the collapsed rail should not cost you.
+   Absolutely positioned so it contributes no width at all — a marker that
+   participates in the row box can always push the row again. */
+.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-flare,
+.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .thrive-inbound-live {
+  position: absolute;
+  top: 5px;
+  right: 13px;
+  width: 7px;
+  height: 7px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  /* The word itself is collapsed rather than removed, so the row still
+     announces "LIVE" to a screen reader that never sees the dot. */
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
+}
+.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-flare {
+  background: var(--portal-secondary);
+}
+.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .thrive-inbound-live {
+  background: var(--portal-accent);
+}
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav a,
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-signout { justify-content: center; padding-inline: 6px; }
 .portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-sidebar-account { grid-template-columns: 1fr; justify-items: center; }
@@ -5478,9 +5526,17 @@ input[type="button"], input[type="submit"], input[type="range"], input[type="che
   .portal-nav a {
     position: relative;
   }
+  /* .portal-menu-button::before is NOT in this list, and must never be added
+     back. That pseudo-element is not spare — it is the TOP BAR of the
+     hamburger's three-bar glyph (see the base rule, and the coarse-pointer
+     block that re-centres all three). Including it here overrode its top,
+     width, transform and background in one go, so every touch device drew a
+     two-bar hamburger. The button needs no hit area from this list anyway:
+     it is already grown to a real 44px box on coarse pointers. A shared
+     selector list is a cheap way to apply one idea to many controls, and an
+     easy way to clobber a control that was already using the hook. */
   .audio-deck-button::before,
   .audio-deck-button-primary::before,
-  .portal-menu-button::before,
   .portal-theme-control button::before,
   .script-steps button::before,
   .call-filters button::before {
