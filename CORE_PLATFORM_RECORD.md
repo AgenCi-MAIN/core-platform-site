@@ -212,7 +212,7 @@ Guard a page with `requireCapability(...)`; guard a write with
 | `btcmao518@gmail.com` | Yuxiang Mao (Shawn) — **current founder identity** | owner | owner-migration 2026-08-17 (`db/sql/0003`); signed in and bound 2026-08-17 |
 | `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) — retired identity (Google locked the account 2026-08-17; cannot sign in; row retained for the record; **outreach PAUSED through 2026-08-20 — do not email this address; after that, owner's word required, A12**) | owner | bootstrap, 2026-08-14 |
 | `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | by Shawn, 2026-08-14 |
-| `epiclife.nguyen@gmail.com` | Nate Nguyen | owner | by Shawn, from the portal, confirmed on the live roster 2026-08-15 |
+| `epiclife.nguyen@gmail.com` | Nate Nguyen | **manager** | seated as owner by Shawn from the portal 2026-08-15; revoked 2026-08-18 (A15, declined to invest), reinstated the same day as **manager** (A16 — employment and ownership are separate). **This row read `owner` until 2026-08-18**, three days after A16 changed it: whoever consulted the record to decide his role would have found the wrong answer, which is how a stale table stops being documentation and starts being a cause. Corrected alongside `db/sql/0008`. |
 | `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | owner | approved by Shawn 2026-08-15 ("shawn-aprooved"); granted from the portal 2026-08-15, first sign-in bound 2026-08-16 — LIVE (roster screenshot verified by the owner) |
 
 Pending: **Oscar Valencia** is named as an owner in the agreement record, but
