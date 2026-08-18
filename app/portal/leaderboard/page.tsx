@@ -37,7 +37,7 @@ const STYLES = `
  * from calls and no agent is given an invented close count.
  */
 export default async function LeaderboardPage() {
-  const session = await requireCapability("dashboard.view.self", PATH);
+  const session = await requireCapability("dashboard.view.self", "/portal/leaderboard");
 
   const { rows: members, fault: membersFault } = await readRows("portal_members", () =>
     getDb()
