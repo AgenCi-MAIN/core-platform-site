@@ -814,13 +814,6 @@ function PortalSidebarContent({
       </div>
 
       <div className="portal-sidebar-account">
-        <span className="portal-account-avatar" aria-hidden="true">
-          {initials(session.displayName)}
-        </span>
-        <span className="portal-account-copy">
-          <strong>{session.displayName}</strong>
-          <small>{ROLE_LABELS[session.role]}</small>
-        </span>
         {/* Deliberately a plain <a>, never <Link>: Link may prefetch its
             target, and prefetching /auth/signout would sign the member out
             for merely rendering the sidebar. */}
