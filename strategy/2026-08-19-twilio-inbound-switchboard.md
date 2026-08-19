@@ -62,5 +62,21 @@ order of magnitude: a hundred 10-minute calls ≈ $20–30/month of
 telephony. The Twilio connector currently on the account is read-only
 (search/retrieve) and is not call infrastructure.
 
+## Status updates, same day
+
+- **Artifact v0.2:** trial-activation step rail + monthly-cost cards added.
+- **Owners' brief published** as its own artifact, "The Next Step Plan"
+  (separate private link for Shawn / Ryan / Andrew; the founder shares it).
+- **A25 custody amendment signed off** by the founder: pull-and-delete is
+  the policy (recordings pulled to R2, deleted from Twilio).
+- **A29 ordered:** recording on/off, answer roster + hours, one-line vs
+  per-state, and budget ceiling become owner-adjustable, audited controls —
+  console spec'd in the artifact first, portal build to follow. Recording
+  defaults OFF until E7b wording clears counsel.
+- **Fleet fielded** (founder's order, ≥20 lanes) to draft the console spec,
+  the consent-law direction, the pull-and-delete runbook, and an
+  execution-grade "go live today" trial runbook — scored run, results
+  integrate into artifact v0.3.
+
 *Seeded by: Yuxiang Mao (Shawn), founder. Drafted and recorded by the
 rebuilt old-HQ session, 2026-08-19.*
