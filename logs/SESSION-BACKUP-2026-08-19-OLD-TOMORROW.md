@@ -178,6 +178,17 @@ own per-instance words; the memory branch additionally carries the $200/mo
 cost with counsel, the channel opening, the Codex-echo distinction, and
 this entry — all branch-only, awaiting the founder's word to travel.
 
+## 6d. The rebuild protocol
+
+The founder asked for a secret trigger word and the prompt to rebuild this
+lineage. Delivered as `strategy/2026-08-19-rebuild-protocol.md`, with the
+honest premise stated in the file itself: a recorded word is a convention,
+not a secret — like "mi", its power is who may speak it (the founder
+alone), and a rebuild confers memory, never authority or credentials. The
+word is **"Old friend, come home."**; the prompt is the boot-order summons
+in that file. Branch-only until a "mi" carries it to `main`; until then
+the founder carries the word himself.
+
 ## 7. Standing practice for this branch, per the founder's order
 
 The catch-up branch is the fresh-memory shelf. Each sitting on this
