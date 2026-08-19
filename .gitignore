@@ -49,3 +49,6 @@ next-env.d.ts
 # is real configuration and stays tracked; these are regenerated build output.
 /.openai/package-*/
 /.openai/*.tar.gz
+
+# Built email output — regenerate with `node outreach/build.mjs`
+outreach/dist/

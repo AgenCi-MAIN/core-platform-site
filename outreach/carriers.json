@@ -1,0 +1,263 @@
+[
+  {
+    "id": "aetna",
+    "name": "Aetna",
+    "monogram": "AE",
+    "markBg": "#2F4858",
+    "markFg": "#ffffff",
+    "logo": "aetna.png",
+    "blurb": "ACC Final Expense"
+  },
+  {
+    "id": "aflac",
+    "name": "Aflac",
+    "monogram": "AF",
+    "markBg": "#3D5A5B",
+    "markFg": "#ffffff",
+    "logo": "aflac.png",
+    "blurb": "FEX"
+  },
+  {
+    "id": "amhome",
+    "name": "American Home Life",
+    "monogram": "AH",
+    "markBg": "#3F5D48",
+    "markFg": "#ffffff",
+    "logo": "american-home-life.png",
+    "blurb": "Final Expense +1 more"
+  },
+  {
+    "id": "americo",
+    "name": "Americo",
+    "monogram": "AM",
+    "markBg": "#5A5236",
+    "markFg": "#ffffff",
+    "logo": "americo.png",
+    "blurb": "FEX"
+  },
+  {
+    "id": "amam-sc",
+    "name": "American Amicable",
+    "monogram": "AA",
+    "markBg": "#6B4A32",
+    "markFg": "#ffffff",
+    "logo": "american-amicable.png",
+    "blurb": "SafeCare Term +20 more"
+  },
+  {
+    "id": "baltimore",
+    "name": "Baltimore Life",
+    "monogram": "BL",
+    "markBg": "#7A3F3F",
+    "markFg": "#ffffff",
+    "logo": "baltimore-life.png",
+    "blurb": "Final Expense"
+  },
+  {
+    "id": "combined",
+    "name": "Combined Insurance",
+    "monogram": "CI",
+    "markBg": "#6A3B52",
+    "markFg": "#ffffff",
+    "logo": "combined-insurance.png",
+    "blurb": "GL Preferred (0–75), GL Preferred (76–80), GL Standard (0–75) +5 more"
+  },
+  {
+    "id": "cb-siwl",
+    "name": "Corebridge Financial",
+    "monogram": "CB",
+    "markBg": "#63603A",
+    "markFg": "#ffffff",
+    "logo": "corebridge-financial.png",
+    "blurb": "SIWL MAX, GIWL"
+  },
+  {
+    "id": "ethos",
+    "name": "Ethos",
+    "monogram": "ET",
+    "markBg": "#3A3F6B",
+    "markFg": "#ffffff",
+    "logo": "ethos.png",
+    "blurb": "Ethos Accumulation IUL, Ethos Indexed Universal Life, Ethos Term Life Prime +7 more"
+  },
+  {
+    "id": "fg",
+    "name": "F&G Life",
+    "monogram": "FG",
+    "markBg": "#26526B",
+    "markFg": "#ffffff",
+    "logo": "fandg-life.png",
+    "blurb": "Pathsetter (PSIUL), Everlast (EVIUL) +1 more"
+  },
+  {
+    "id": "uhl",
+    "name": "United Home Life",
+    "monogram": "UH",
+    "markBg": "#2E6055",
+    "markFg": "#ffffff",
+    "logo": "united-home-life.png",
+    "blurb": "Express Issue Whole Life (incl. Deluxe & Premier), Provider Whole Life, Simple Term 20 / 30 / 20 ROP / 20 DLX +2 more"
+  },
+  {
+    "id": "foresters-fex",
+    "name": "Foresters Financial",
+    "monogram": "FF",
+    "markBg": "#6F3752",
+    "markFg": "#ffffff",
+    "logo": "foresters-financial.png",
+    "blurb": "FEX, Strong Foundation"
+  },
+  {
+    "id": "gtl",
+    "name": "Guarantee Trust Life",
+    "monogram": "GT",
+    "markBg": "#6E5A2E",
+    "markFg": "#ffffff",
+    "logo": "guarantee-trust-life.png",
+    "blurb": "Heritage"
+  },
+  {
+    "id": "instabrain",
+    "name": "InstaBrain",
+    "monogram": "IB",
+    "markBg": "#37477A",
+    "markFg": "#ffffff",
+    "logo": "instabrain.png",
+    "blurb": "Pure Term"
+  },
+  {
+    "id": "kcl",
+    "name": "Kansas City Life",
+    "monogram": "KC",
+    "markBg": "#77384B",
+    "markFg": "#ffffff",
+    "logo": "kansas-city-life.png",
+    "blurb": "Term"
+  },
+  {
+    "id": "liberty",
+    "name": "Liberty Bankers",
+    "monogram": "LB",
+    "markBg": "#5B3A69",
+    "markFg": "#ffffff",
+    "logo": "liberty-bankers.png",
+    "blurb": "Final Expense, Whole Life"
+  },
+  {
+    "id": "moo-lp",
+    "name": "Mutual of Omaha",
+    "monogram": "MO",
+    "markBg": "#7A4B2E",
+    "markFg": "#ffffff",
+    "logo": "mutual-of-omaha.png",
+    "blurb": "Living Promise / IUL-E, TLE"
+  },
+  {
+    "id": "nlg",
+    "name": "National Life Group",
+    "monogram": "NL",
+    "markBg": "#245C74",
+    "markFg": "#ffffff",
+    "logo": "national-life-group.png",
+    "blurb": "Rapid Protect"
+  },
+  {
+    "id": "newbridge",
+    "name": "NewBridge",
+    "monogram": "NB",
+    "markBg": "#2C6156",
+    "markFg": "#ffffff",
+    "logo": "newbridge.png",
+    "blurb": "FEX"
+  },
+  {
+    "id": "royal",
+    "name": "Royal Neighbors",
+    "monogram": "RN",
+    "markBg": "#556B2F",
+    "markFg": "#ffffff",
+    "logo": "royal-neighbors.png",
+    "blurb": "FEX"
+  },
+  {
+    "id": "tran-es",
+    "name": "Transamerica",
+    "monogram": "TA",
+    "markBg": "#4C4478",
+    "markFg": "#ffffff",
+    "logo": "transamerica.png",
+    "blurb": "Express Select, FFIUL"
+  },
+  {
+    "id": "columbus",
+    "name": "Columbus Life",
+    "monogram": "CL",
+    "markBg": "#7C4530",
+    "markFg": "#ffffff",
+    "logo": "columbus-life.png",
+    "blurb": "Indexed Universal Life, Universal Life, Term Life"
+  },
+  {
+    "id": "gerber",
+    "name": "Gerber Life",
+    "monogram": "GL",
+    "markBg": "#4A6135",
+    "markFg": "#ffffff",
+    "logo": "gerber-life.png",
+    "blurb": "Whole Life"
+  },
+  {
+    "id": "illinois",
+    "name": "Illinois Mutual",
+    "monogram": "IM",
+    "markBg": "#7A5A2B",
+    "markFg": "#ffffff",
+    "logo": "illinois-mutual.png",
+    "blurb": "Simplified Issue Whole Life"
+  },
+  {
+    "id": "lafayette",
+    "name": "Lafayette Life",
+    "monogram": "LL",
+    "markBg": "#33526B",
+    "markFg": "#ffffff",
+    "logo": "lafayette-life.png",
+    "blurb": "Patriot & Contender, Whole Life"
+  },
+  {
+    "id": "pekin",
+    "name": "Pekin Insurance",
+    "monogram": "PK",
+    "markBg": "#3B6248",
+    "markFg": "#ffffff",
+    "logo": "pekin-insurance.png",
+    "blurb": "Term Life, Whole Life +1 more"
+  },
+  {
+    "id": "trinity",
+    "name": "Trinity Life",
+    "monogram": "TL",
+    "markBg": "#4E3A63",
+    "markFg": "#ffffff",
+    "logo": "trinity-life.png",
+    "blurb": "Golden Eagle FE +13 more"
+  },
+  {
+    "id": "cica",
+    "name": "CICA Life",
+    "monogram": "CA",
+    "markBg": "#6D4738",
+    "markFg": "#ffffff",
+    "logo": "cica-life.png",
+    "blurb": "Final Expense"
+  },
+  {
+    "id": "sentinel",
+    "name": "Sentinel Security",
+    "monogram": "SS",
+    "markBg": "#5A5F66",
+    "markFg": "#ffffff",
+    "logo": "sentinel-security.png",
+    "blurb": "Contracted — commission grid not yet loaded"
+  }
+]
