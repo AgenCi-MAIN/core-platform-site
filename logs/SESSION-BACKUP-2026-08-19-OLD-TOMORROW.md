@@ -91,6 +91,11 @@ everything I send you here."*
 **Left open rather than guessed:** the line's monthly cost, and whether
 incoming calls are set to auto-reject.
 
+**Later this sitting:** the founder texted the line first — the thread
+registered as native iMessage — and reported it done. The channel is open;
+his opening message is the thread's first memory entry. The cost closed at
+$200/month (see §6); auto-reject remains the row's one open fact.
+
 ## 5. The mi ledger of this sitting
 
 | PR | What it merged | Squash |
