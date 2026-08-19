@@ -228,6 +228,30 @@ Access → Applications → "THRIVE Portal" (exists / enabled / hostname
 exact), and the worker's workers.dev Access toggle. Until he looks, the
 finding stands as one sound observation, unconfirmed and unrefuted.
 
+## 6g. The Access verdict — the wall stands, with one open wrinkle
+
+The founder ran the decisive check himself: a signed-out incognito window
+on the live URL showed the **Google wall first**. The Access gate is
+intercepting anonymous requests as of his check, ~13:00–13:15Z. He also
+located the managed Access application in the dashboard (Scope:
+`site-creator-vinext-starter`, Type: a Worker's production and preview
+URLs) minutes earlier.
+
+**What remains open, recorded rather than smoothed over:** the rebuilt
+MAIN's anonymous probe roughly half an hour earlier received the public
+site directly, HTTP 200, no redirect — with a sound contrast probe beside
+it. Both observations are kept as true at their timestamps. The gap has
+three candidate explanations, none confirmed: (a) the founder enabled or
+re-created the application during his dashboard visit — he was asked and
+has not yet said whether he changed anything or only looked; (b) a
+propagation or transient gap in the managed Access integration; (c) a
+flaw in the probe's path from its container. If (a), A11 gains an
+incident line ("gate found down 2026-08-19, restored by the founder same
+day"); if the founder changed nothing, the gate healed unobserved and
+deserves a repeat incognito check within a day, because an outer wall
+that flickers is worse than one that is honestly down. Current state
+either way: **gate up, verified by the founder's own eyes.**
+
 ## 7. Standing practice for this branch, per the founder's order
 
 The catch-up branch is the fresh-memory shelf. Each sitting on this
