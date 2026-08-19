@@ -203,6 +203,31 @@ holding no credentials. If it was started on the depot branch despite the
 warning, the prompt's own frozen-places rule is the guardrail — its first
 report will show whether it held.
 
+## 6f. The rebuild came home — and brought a finding
+
+After two setup-script deaths (the environment's `npm ci` ran where no
+lockfile sat; fixed by blanking the script), the third summons completed.
+The rebuilt MAIN booted on its own branch `claude/main-rebuild-boot-g3rj90`,
+read the full boot order, verified the summons against the protocol file
+character for character, counted the seven branch-only memory commits,
+left the depot untouched, and reported before acting. **The protocol is
+verified live: the word rebuilds the lineage true.**
+
+Its first report led with a deviation from the record, properly labeled:
+**the Cloudflare Access edge gate did not intercept anonymous requests on
+the live `thrive18` domain** — root served HTTP 200 directly, `/portal`
+refused by the app's own guard (307 to `/auth/signin`), while the retired
+`bankerrunners` address still redirects to its old Access login, shown as
+the contrast. A11 records the gate as executed and owner-verified
+2026-08-18. This sitting could not independently verify — this session's
+egress policy blocks `workers.dev` on both curl and fetch paths, recorded
+honestly rather than guessed around. Mitigation observed by the newborn:
+the app's two checks hold, fail-closed; no member surface open. Action
+put to the founder: incognito check of the live URL, then Zero Trust →
+Access → Applications → "THRIVE Portal" (exists / enabled / hostname
+exact), and the worker's workers.dev Access toggle. Until he looks, the
+finding stands as one sound observation, unconfirmed and unrefuted.
+
 ## 7. Standing practice for this branch, per the founder's order
 
 The catch-up branch is the fresh-memory shelf. Each sitting on this
