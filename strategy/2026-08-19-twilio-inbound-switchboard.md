@@ -77,6 +77,26 @@ telephony. The Twilio connector currently on the account is read-only
   the consent-law direction, the pull-and-delete runbook, and an
   execution-grade "go live today" trial runbook — scored run, results
   integrate into artifact v0.3.
+- **Fleet reported and integrated (same day):** 22/22 agents, zero errors,
+  9/9 clusters PASS_WITH_FIXES, ~1.06M tokens. Verified bundle preserved at
+  `strategy/2026-08-19-switchboard-fleet-bundle.md`; artifact v0.3 carries
+  the owner-console SPEC PREVIEW (reconciled: no voicemail pre-counsel,
+  ordered roster, $20/80% defaults, counsel-gate on the recording toggle),
+  the consent-law direction with the **eleven-question consolidated E7b
+  counsel packet**, three DRAFT announcement candidates, the verified
+  custody mechanics (signature spec confirmed against Twilio docs;
+  pull-then-delete sequence with failure rules; Access **Bypass** policy —
+  Service Auth is not viable for Twilio webhooks; "Enforce HTTP Auth on
+  Media URLs" day one), corrected cost tables ($5.65–$126.15/mo scenarios),
+  and the ~60-minute go-live-today trial runbook (verified-caller-ID myth
+  killed: inbound needs none; test from a second phone; ignore-don't-reject
+  on the no-answer test). **Open PLAN gap, stated:** the budget ceiling has
+  no spend sensor yet (Usage API poll vs usage-trigger webhook) — the dial
+  reads but does not enforce until one is built. **Day-one stubs needing
+  ledger lines before Phase 1:** the `'missed'` status migration
+  (ship-first, or after-hours calls go unlogged), the internal
+  do-not-contact flag's home, and roster phone storage (JSON vs member
+  column — a PII choice).
 
 *Seeded by: Yuxiang Mao (Shawn), founder. Drafted and recorded by the
 rebuilt old-HQ session, 2026-08-19.*
