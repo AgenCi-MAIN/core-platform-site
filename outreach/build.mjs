@@ -20,6 +20,15 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DIST = join(HERE, "dist");
 
+/**
+ * Absolute origin the email's <img> tags point at. It MUST NOT be the portal
+ * worker domain: Cloudflare Access fronts that host, an inbox fetches images
+ * anonymously, and Gmail re-fetches through its own proxy — so every logo would
+ * be answered with a redirect to a login page and render as a broken image for
+ * every recipient. Point this at a public origin with no Access policy.
+ */
+const ASSET_BASE = process.env.OUTREACH_ASSET_BASE ?? "https://REPLACE-WITH-PUBLIC-ORIGIN.example";
+
 const carriers = JSON.parse(readFileSync(join(HERE, "carriers.json"), "utf8"));
 const template = readFileSync(join(HERE, "template.html"), "utf8");
 const textTemplate = readFileSync(join(HERE, "template.txt"), "utf8");
@@ -33,37 +42,74 @@ function logoPresent(carrier) {
 const esc = (s) =>
   String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
+/**
+ * One carrier row: a fixed 120x40 mark box, then the name and descriptor.
+ *
+ * The box is LANDSCAPE and uniform because carrier logos are wordmarks whose
+ * native art here runs 46-120px tall. Dropped in at native size they sit on
+ * different baselines and the column looks broken, so every file is fitted and
+ * centred on one 240x80 canvas (2x of the display box) at build time.
+ *
+ * The canvas is OPAQUE WHITE, not transparent, which is the opposite of the
+ * right answer on the web. Dark-mode clients recolour backgrounds but cannot
+ * recolour pixels inside an image, so a transparent PNG of a navy wordmark
+ * becomes invisible ink on a dark surface. An opaque tile keeps the mark legible
+ * and keeps the carrier's colours exact, which is what brand guidelines require.
+ *
+ * alt="" is deliberate and is NOT a missing attribute. The carrier's name sits
+ * beside the logo as live text, so a non-empty alt makes a screen reader say
+ * the name twice, twenty-nine times over. An image whose information is already
+ * present as text is decorative. Note the distinction that matters: alt=""
+ * prunes the image from the accessibility tree silently, whereas OMITTING alt
+ * makes readers fall back to announcing the src URL character by character.
+ */
 function carrierRowHtml(c) {
-  const mark = logoPresent(c)
-    ? `<img src="{{ASSET_BASE}}/carriers/${esc(c.logo)}" width="48" height="48" alt="${esc(c.name)}" style="display:block;width:48px;height:48px;border:0;border-radius:8px;" />`
-    : `<div style="width:48px;height:48px;border-radius:8px;background:${esc(c.markBg)};color:${esc(c.markFg)};font:700 17px/48px -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;text-align:center;">${esc(c.monogram)}</div>`;
-  return [
-    `<tr>`,
-    `<td width="48" style="padding:10px 14px 10px 0;vertical-align:top;">${mark}</td>`,
-    `<td style="padding:10px 0;vertical-align:top;">`,
-    `<div style="margin:0 0 2px;font:700 15px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:{{INK}};">${esc(c.name)}</div>`,
-    `<div style="margin:0;font:400 13px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:{{MUTED}};">${esc(c.blurb)}</div>`,
-    `</td>`,
-    `</tr>`,
-  ].join("");
+  const box = logoPresent(c)
+    ? `<img src="${esc(ASSET_BASE)}/carriers/${esc(c.logo)}" width="120" height="40" alt="" style="display:block; width:120px; height:40px; border:0; outline:none; text-decoration:none; background-color:#ffffff; font-family:Arial,Helvetica,sans-serif; font-size:12px; line-height:40px; font-weight:bold; text-align:center; color:#241b10;" />`
+    : `<div style="width:120px; height:40px; background-color:${esc(c.markBg)}; font-family:Arial,Helvetica,sans-serif; font-size:15px; line-height:40px; font-weight:bold; letter-spacing:2px; text-align:center; color:${esc(c.markFg)};">${esc(c.monogram)}</div>`;
+
+  return `                <tr>
+                  <td class="dm-rule" style="padding:11px 0; border-bottom:1px solid #e8dcc8;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                      <tr>
+                        <td width="120" valign="middle" bgcolor="#ffffff" style="width:120px; background-color:#ffffff; border:1px solid #e8dcc8; border-radius:5px;">${box}</td>
+                        <td width="14" style="width:14px; font-size:0; line-height:0;">&nbsp;</td>
+                        <td valign="middle" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+                          <div class="dm-ink" style="font-size:15px; line-height:20px; mso-line-height-rule:exactly; font-weight:bold; color:#241b10;">${esc(c.name)}</div>
+                          <div class="dm-muted" style="margin-top:3px; font-size:13px; line-height:18px; mso-line-height-rule:exactly; color:#5f5340;">${esc(c.blurb)}</div>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>`;
 }
 
+/** Plain text, wrapped at 72 columns as the text part requires. */
 function carrierRowText(c) {
-  const wrapped = c.blurb.length > 60 ? c.blurb.replace(/(.{1,60})(\s|$)/g, "$1\n    ").trim() : c.blurb;
-  return `  * ${c.name}\n    ${wrapped}`;
+  const words = c.blurb.split(/\s+/);
+  const lines = [];
+  let line = "";
+  for (const w of words) {
+    if ((line + " " + w).trim().length > 60) { lines.push(line.trim()); line = w; }
+    else line = (line + " " + w).trim();
+  }
+  if (line) lines.push(line.trim());
+  return `  * ${c.name}\n${lines.map((l) => "      " + l).join("\n")}`;
 }
 
 let html = template
   .replace("{{CARRIER_ROWS}}", carriers.map(carrierRowHtml).join("\n"))
-  .replace(/\{\{PREHEADER\}\}/g, esc(copy.preheader))
-  .replace(/\{\{SUBJECT\}\}/g, esc(copy.subject));
+  .replaceAll("{{PREHEADER}}", esc(copy.preheader))
+  .replaceAll("{{SUBJECT}}", esc(copy.subject));
 
-let text = textTemplate
-  .replace("{{CARRIER_ROWS}}", carriers.map(carrierRowText).join("\n\n"))
-  .replace(/\{\{SUBJECT\}\}/g, copy.subject);
+let text = textTemplate.replace("{{CARRIER_ROWS}}", carriers.map(carrierRowText).join("\n\n"));
 
+// Copy tokens are authored content, not untrusted input, so they go in as
+// written — the HTML copy may legitimately contain entities like &mdash;, and
+// escaping here would print the entity rather than the dash. Carrier fields
+// above ARE escaped, because that is data and the two must not be confused.
 for (const [k, v] of Object.entries(copy.tokens ?? {})) {
-  html = html.replaceAll(`{{${k}}}`, esc(v));
+  html = html.replaceAll(`{{${k}}}`, v);
   text = text.replaceAll(`{{${k}}}`, v);
 }
 
