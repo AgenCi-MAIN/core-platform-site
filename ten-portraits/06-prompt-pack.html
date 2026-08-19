@@ -1,0 +1,1062 @@
+<title>THRIVE Portrait Prompts</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap">
+
+<style>
+  :root {
+    --ink: #16142b;
+    --paper: #fffaf2;
+    --violet: #6d42e5;
+    --coral: #ff7062;
+    --gold: #f4bd4f;
+    --mint: #58c7a2;
+    --blue: #3d7edb;
+
+    --bg: var(--paper);
+    --fg: var(--ink);
+    --fg-muted: #4a475e;
+    --fg-faint: #7d7a8e;
+    --surface: #f0ebe3;
+    --surface-raised: #e8e2d9;
+    --border: #d4cfc6;
+    --border-faint: #e2ddd4;
+    --accent: var(--violet);
+    --accent-muted: #8b6de9;
+    --prompt-bg: #f7f3ec;
+    --prompt-border: #d9d3c8;
+    --copy-hover: #eae4db;
+    --tag-bg: #ede8e0;
+    --swatch-shadow: rgba(22,20,43,0.12);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e0d1a;
+      --fg: #e8e5f0;
+      --fg-muted: #a8a4b8;
+      --fg-faint: #6e6a80;
+      --surface: #1a1830;
+      --surface-raised: #242140;
+      --border: #2e2b48;
+      --border-faint: #232040;
+      --accent: #9b7aff;
+      --accent-muted: #7b5ce6;
+      --prompt-bg: #161428;
+      --prompt-border: #2a2744;
+      --copy-hover: #1e1c35;
+      --tag-bg: #1e1c35;
+      --swatch-shadow: rgba(0,0,0,0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e0d1a;
+    --fg: #e8e5f0;
+    --fg-muted: #a8a4b8;
+    --fg-faint: #6e6a80;
+    --surface: #1a1830;
+    --surface-raised: #242140;
+    --border: #2e2b48;
+    --border-faint: #232040;
+    --accent: #9b7aff;
+    --accent-muted: #7b5ce6;
+    --prompt-bg: #161428;
+    --prompt-border: #2a2744;
+    --copy-hover: #1e1c35;
+    --tag-bg: #1e1c35;
+    --swatch-shadow: rgba(0,0,0,0.4);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.65;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+
+  /* --- Header --- */
+  .header {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .header-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 12px;
+  }
+  .header h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(24px, 4vw, 34px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--fg);
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+  .header-sub {
+    font-size: 15px;
+    color: var(--fg-muted);
+    margin: 0 0 20px;
+    max-width: 60ch;
+  }
+  .header-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .meta-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--tag-bg);
+    color: var(--fg-muted);
+    padding: 3px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--border-faint);
+  }
+
+  /* --- Sections --- */
+  .section {
+    margin-bottom: 56px;
+  }
+  .section-rule {
+    width: 40px;
+    height: 2px;
+    background: var(--accent);
+    border: none;
+    margin: 0 0 16px;
+  }
+  .section h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--fg);
+    margin: 0 0 8px;
+    line-height: 1.3;
+  }
+  .section h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--fg);
+    margin: 24px 0 8px;
+  }
+  .section p {
+    color: var(--fg-muted);
+    margin: 0 0 14px;
+    max-width: 65ch;
+  }
+
+  /* --- Palette --- */
+  .palette-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 16px 0 8px;
+  }
+  .swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .swatch-color {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px var(--swatch-shadow);
+    border: 1px solid var(--border-faint);
+  }
+  .swatch-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--fg-faint);
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  /* --- Prompt blocks --- */
+  .prompt-block {
+    background: var(--prompt-bg);
+    border: 1px solid var(--prompt-border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin: 12px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.7;
+    color: var(--fg);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+    position: relative;
+  }
+  .prompt-block .token-locked {
+    color: var(--fg-muted);
+  }
+  .prompt-block .token-variable {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* --- Portrait cards --- */
+  .portrait-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 32px 0;
+    overflow: hidden;
+  }
+  .portrait-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border-faint);
+  }
+  .portrait-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--bg);
+    background: var(--accent);
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .portrait-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--fg);
+    margin: 0;
+    line-height: 1.3;
+  }
+  .portrait-accent-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-left: auto;
+    box-shadow: 0 0 0 2px var(--bg);
+  }
+  .portrait-body {
+    padding: 20px;
+  }
+  .portrait-meta {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 4px 16px;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .portrait-meta dt {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--fg-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding-top: 2px;
+  }
+  .portrait-meta dd {
+    margin: 0;
+    color: var(--fg-muted);
+    font-size: 13px;
+  }
+  .portrait-prompt {
+    background: var(--prompt-bg);
+    border: 1px solid var(--prompt-border);
+    border-radius: 5px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.75;
+    color: var(--fg);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-x: auto;
+  }
+  .portrait-prompt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--fg-faint);
+    margin: 0 0 6px;
+  }
+  .portrait-version {
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--fg-faint);
+  }
+
+  /* --- Tables --- */
+  .spec-table-wrap {
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  .spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .spec-table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-faint);
+    text-align: left;
+    padding: 8px 12px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  .spec-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-faint);
+    color: var(--fg-muted);
+    vertical-align: top;
+  }
+  .spec-table td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--fg);
+    white-space: nowrap;
+  }
+  .spec-table code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--tag-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+  .spec-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  /* --- Inline code --- */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+  }
+
+  /* --- Lists --- */
+  ul.clean {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0;
+  }
+  ul.clean li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 6px;
+    color: var(--fg-muted);
+    font-size: 14px;
+  }
+  ul.clean li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-muted);
+  }
+
+  /* --- Negative prompt --- */
+  .neg-prompt {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--coral);
+    border-radius: 0 6px 6px 0;
+    padding: 16px 18px;
+    margin: 16px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--fg);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* --- Footer --- */
+  .doc-footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-faint);
+    font-size: 12px;
+    color: var(--fg-faint);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  @media (max-width: 600px) {
+    .page { padding: 32px 16px 60px; }
+    .portrait-meta { grid-template-columns: 1fr; gap: 2px 0; }
+    .portrait-meta dt { margin-top: 8px; }
+    .palette-row { gap: 8px; }
+    .swatch-color { width: 40px; height: 40px; }
+  }
+</style>
+
+<div class="page">
+
+  <!-- ============================================================ -->
+  <!-- HEADER                                                        -->
+  <!-- ============================================================ -->
+  <header class="header">
+    <p class="header-eyebrow">Agent 06 / Prompt Engineer</p>
+    <h1>Ten Agents, Ten Portraits<br>Image Generation Prompt Pack</h1>
+    <p class="header-sub">
+      A complete, copy-pasteable set of prompts for generating ten
+      AI profile portraits for the THRIVE platform. Each prompt is
+      self-contained and ready for Midjourney, DALL-E, or Stable Diffusion.
+    </p>
+    <div class="header-meta">
+      <span class="meta-tag">v1.0</span>
+      <span class="meta-tag">1024 x 1024</span>
+      <span class="meta-tag">10 portraits</span>
+      <span class="meta-tag">2026-08-19</span>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- 0. PALETTE REFERENCE                                          -->
+  <!-- ============================================================ -->
+  <section class="section">
+    <hr class="section-rule">
+    <h2>Palette Reference</h2>
+    <p>
+      Seven named colors form the shared world. Every portrait draws from this
+      set. Accent assignment per portrait is listed in the variant table below.
+    </p>
+    <div class="palette-row">
+      <div class="swatch">
+        <div class="swatch-color" style="background:#6d42e5;"></div>
+        <span class="swatch-label">violet<br>#6d42e5</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#ff7062;"></div>
+        <span class="swatch-label">coral<br>#ff7062</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#f4bd4f;"></div>
+        <span class="swatch-label">gold<br>#f4bd4f</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#58c7a2;"></div>
+        <span class="swatch-label">mint<br>#58c7a2</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#3d7edb;"></div>
+        <span class="swatch-label">blue<br>#3d7edb</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#16142b;"></div>
+        <span class="swatch-label">ink<br>#16142b</span>
+      </div>
+      <div class="swatch">
+        <div class="swatch-color" style="background:#fffaf2; border-color:#ccc;"></div>
+        <span class="swatch-label">paper<br>#fffaf2</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 1. MASTER PROMPT TEMPLATE                                     -->
+  <!-- ============================================================ -->
+  <section class="section">
+    <hr class="section-rule">
+    <h2>1. Master Prompt Template</h2>
+    <p>
+      The base prompt that establishes every invariant: style, composition,
+      format, lighting, and quality. Bracketed tokens are the only elements
+      that change between portraits. Everything outside the brackets is locked.
+    </p>
+    <div class="prompt-block"><span class="token-locked">Portrait of a</span> <span class="token-variable">[GENDER_PRESENTATION]</span> <span class="token-locked">strategic operative, head and shoulders, facing</span> <span class="token-variable">[GAZE_DIRECTION]</span><span class="token-locked">, with</span> <span class="token-variable">[HAIR_DESCRIPTION]</span> <span class="token-locked">and</span> <span class="token-variable">[DISTINGUISHING_FEATURE]</span><span class="token-locked">. Wearing</span> <span class="token-variable">[OUTFIT]</span><span class="token-locked">.</span> <span class="token-variable">[ROLE_SIGNIFIER]</span><span class="token-locked">.
+
+Expression:</span> <span class="token-variable">[EXPRESSION]</span><span class="token-locked">.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle</span> <span class="token-variable">[BACKGROUND_ELEMENT]</span> <span class="token-locked">in</span> <span class="token-variable">[ACCENT_COLOR_NAME]</span> <span class="token-locked">(</span><span class="token-variable">[ACCENT_HEX]</span><span class="token-locked">) glowing softly behind the figure.
+
+Lighting: cinematic three-quarter key light from the</span> <span class="token-variable">[LIGHT_DIRECTION]</span><span class="token-locked">, warm fill from below, cool rim light separating the figure from the background. Subtle</span> <span class="token-variable">[ACCENT_COLOR_NAME]</span> <span class="token-locked">light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2),</span> <span class="token-variable">[ACCENT_COLOR_NAME]</span> <span class="token-locked">(</span><span class="token-variable">[ACCENT_HEX]</span><span class="token-locked">), and one muted secondary from {violet, coral, gold, mint, blue}. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</span></div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 2. VARIANT SYSTEM                                             -->
+  <!-- ============================================================ -->
+  <section class="section">
+    <hr class="section-rule">
+    <h2>2. Variant System</h2>
+    <p>
+      Each portrait varies across nine controllable dimensions. Every other
+      aspect of the prompt is locked to enforce visual cohesion across
+      the collection.
+    </p>
+
+    <h3>Variable tokens</h3>
+    <div class="spec-table-wrap">
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Controls</th>
+            <th>Constraint</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GENDER_PRESENTATION</code></td>
+            <td>Perceived gender of the figure</td>
+            <td>Balanced across the set: 5 male-presenting, 4 female-presenting, 1 androgynous</td>
+          </tr>
+          <tr>
+            <td><code>GAZE_DIRECTION</code></td>
+            <td>Where the eyes look</td>
+            <td>Mix of direct-to-viewer and three-quarter; no two adjacent portraits share direction</td>
+          </tr>
+          <tr>
+            <td><code>HAIR_DESCRIPTION</code></td>
+            <td>Hair style, length, color</td>
+            <td>Diverse across the set; no two identical</td>
+          </tr>
+          <tr>
+            <td><code>DISTINGUISHING_FEATURE</code></td>
+            <td>One memorable facial or accessory detail</td>
+            <td>Subtle, professional; no fantasy elements</td>
+          </tr>
+          <tr>
+            <td><code>OUTFIT</code></td>
+            <td>Clothing visible in frame</td>
+            <td>Variations on tactical-professional attire; all share the same world</td>
+          </tr>
+          <tr>
+            <td><code>ROLE_SIGNIFIER</code></td>
+            <td>One environmental or prop detail that connects to the role</td>
+            <td>Integrated naturally, never held up to camera</td>
+          </tr>
+          <tr>
+            <td><code>EXPRESSION</code></td>
+            <td>Emotional tone of the face</td>
+            <td>Range from focused to warm; no extremes</td>
+          </tr>
+          <tr>
+            <td><code>BACKGROUND_ELEMENT</code></td>
+            <td>Abstract motif behind the figure</td>
+            <td>Geometric, data-inspired, or atmospheric; always soft-focus</td>
+          </tr>
+          <tr>
+            <td><code>ACCENT_COLOR</code></td>
+            <td>Primary accent from the palette</td>
+            <td>Each of the five chromatic colors used exactly twice across the ten portraits</td>
+          </tr>
+          <tr>
+            <td><code>LIGHT_DIRECTION</code></td>
+            <td>Key light placement</td>
+            <td>Alternates left/right to prevent monotony</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Locked invariants</h3>
+    <ul class="clean">
+      <li>Square 1:1 composition, head-and-shoulders framing</li>
+      <li>Digital illustration style with painterly rendering</li>
+      <li>Dark indigo-black (#16142b) background base</li>
+      <li>Cinematic three-quarter lighting model</li>
+      <li>Matte skin finish, sharp eye detail</li>
+      <li>No text, logos, watermarks, UI overlays</li>
+      <li>No real-person likenesses</li>
+      <li>Professional, workplace-safe content</li>
+      <li>Shared fictional world (finance + AI intelligence)</li>
+    </ul>
+
+    <h3>Accent color distribution</h3>
+    <div class="spec-table-wrap">
+      <table class="spec-table">
+        <thead>
+          <tr><th>Color</th><th>Portraits</th></tr>
+        </thead>
+        <tbody>
+          <tr><td style="color:#6d42e5;">Violet</td><td>01 Mission Keeper, 06 Prompt Engineer</td></tr>
+          <tr><td style="color:#ff7062;">Coral</td><td>02 Originality Scout, 09 Quality Guardian</td></tr>
+          <tr><td style="color:#f4bd4f;">Gold</td><td>03 World Builder, 10 Release Archivist</td></tr>
+          <tr><td style="color:#58c7a2;">Mint</td><td>04 Art Director, 07 Image Maker</td></tr>
+          <tr><td style="color:#3d7edb;">Blue</td><td>05 Trait Architect, 08 Collection Curator</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 3. TEN INDIVIDUAL PROMPTS                                     -->
+  <!-- ============================================================ -->
+  <section class="section">
+    <hr class="section-rule">
+    <h2>3. Ten Individual Prompts</h2>
+    <p>
+      Each prompt is self-contained: it includes all invariants and its
+      unique trait variations. Copy any single prompt and use it directly
+      without referencing the template.
+    </p>
+
+    <!-- ========== PORTRAIT 01 ========== -->
+    <div class="portrait-card">
+      <div class="portrait-header">
+        <div class="portrait-number">01</div>
+        <h3 class="portrait-title">Mission Keeper</h3>
+        <div class="portrait-accent-dot" style="background:#6d42e5;"></div>
+      </div>
+      <div class="portrait-body">
+        <dl class="portrait-meta">
+          <dt>Accent</dt>    <dd>Violet (#6d42e5)</dd>
+          <dt>Presence</dt>  <dd>Male-presenting, East Asian, 40s</dd>
+          <dt>Concept</dt>   <dd>The strategist who holds the entire operation in his head. Calm authority, total awareness.</dd>
+        </dl>
+        <p class="portrait-prompt-label">Complete prompt</p>
+        <div class="portrait-prompt">Portrait of a male-presenting East Asian strategic operative in his 40s, head and shoulders, facing three-quarter left with eyes meeting the viewer directly. Close-cropped black hair with silver at the temples, and a thin scar crossing the left eyebrow. Wearing a dark navy mandarin-collar jacket over a charcoal tactical turtleneck, collar closed. A small enamel pin on the lapel — an abstract compass rose.
+
+Expression: calm, measured authority. The look of someone who already knows how this ends.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle concentric orbital lines in violet (#6d42e5) glowing softly behind the figure, suggesting a mission timeline or strategic overview.
+
+Lighting: cinematic three-quarter key light from the left, warm fill from below, cool rim light separating the figure from the background. Subtle violet light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2), violet (#6d42e5), and muted gold as a secondary. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</div>
+        <div class="portrait-version">v1.0 | Changelog: initial draft</div>
+      </div>
+    </div>
+
+    <!-- ========== PORTRAIT 02 ========== -->
+    <div class="portrait-card">
+      <div class="portrait-header">
+        <div class="portrait-number">02</div>
+        <h3 class="portrait-title">Originality Scout</h3>
+        <div class="portrait-accent-dot" style="background:#ff7062;"></div>
+      </div>
+      <div class="portrait-body">
+        <dl class="portrait-meta">
+          <dt>Accent</dt>    <dd>Coral (#ff7062)</dd>
+          <dt>Presence</dt>  <dd>Female-presenting, Black, late 20s</dd>
+          <dt>Concept</dt>   <dd>The one who spots the signal in the noise. Alert, restless intelligence, always scanning.</dd>
+        </dl>
+        <p class="portrait-prompt-label">Complete prompt</p>
+        <div class="portrait-prompt">Portrait of a female-presenting Black strategic operative in her late 20s, head and shoulders, facing slightly right with gaze directed past the viewer's shoulder as if tracking something just out of frame. Natural hair styled in a sculpted high-top fade with defined coils on top, and a small silver stud in the right nostril. Wearing a fitted slate-grey field jacket with an upturned collar over a dark crew-neck base layer.
+
+Expression: alert, searching. A faint narrowing of the eyes — she has seen something and is deciding whether it matters.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle scattered signal-burst shapes — irregular radiating lines like sonar pings — in coral (#ff7062) glowing softly behind the figure.
+
+Lighting: cinematic three-quarter key light from the right, warm fill from below, cool rim light separating the figure from the background. Subtle coral light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2), coral (#ff7062), and muted blue as a secondary. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</div>
+        <div class="portrait-version">v1.0 | Changelog: initial draft</div>
+      </div>
+    </div>
+
+    <!-- ========== PORTRAIT 03 ========== -->
+    <div class="portrait-card">
+      <div class="portrait-header">
+        <div class="portrait-number">03</div>
+        <h3 class="portrait-title">World Builder</h3>
+        <div class="portrait-accent-dot" style="background:#f4bd4f;"></div>
+      </div>
+      <div class="portrait-body">
+        <dl class="portrait-meta">
+          <dt>Accent</dt>    <dd>Gold (#f4bd4f)</dd>
+          <dt>Presence</dt>  <dd>Male-presenting, South Asian, mid 30s</dd>
+          <dt>Concept</dt>   <dd>The architect of the setting itself. Visionary, absorbed, constructing systems in his mind.</dd>
+        </dl>
+        <p class="portrait-prompt-label">Complete prompt</p>
+        <div class="portrait-prompt">Portrait of a male-presenting South Asian strategic operative in his mid 30s, head and shoulders, facing direct to camera with a slight downward tilt of the chin. Thick dark hair swept back loosely, and a neatly kept full beard. Wearing a rumpled dark bronze-brown field shirt with rolled sleeves visible at the shoulder, layered over a black thermal base. A mechanical wristwatch just visible at the edge of frame.
+
+Expression: absorbed, visionary. A half-smile of someone who can see the whole board and is pleased with the position.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle isometric grid structures — architectural wireframes of imagined spaces — in gold (#f4bd4f) glowing softly behind the figure.
+
+Lighting: cinematic three-quarter key light from the left, warm fill from below, cool rim light separating the figure from the background. Subtle gold light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2), gold (#f4bd4f), and muted violet as a secondary. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</div>
+        <div class="portrait-version">v1.0 | Changelog: initial draft</div>
+      </div>
+    </div>
+
+    <!-- ========== PORTRAIT 04 ========== -->
+    <div class="portrait-card">
+      <div class="portrait-header">
+        <div class="portrait-number">04</div>
+        <h3 class="portrait-title">Art Director</h3>
+        <div class="portrait-accent-dot" style="background:#58c7a2;"></div>
+      </div>
+      <div class="portrait-body">
+        <dl class="portrait-meta">
+          <dt>Accent</dt>    <dd>Mint (#58c7a2)</dd>
+          <dt>Presence</dt>  <dd>Female-presenting, Latina, early 30s</dd>
+          <dt>Concept</dt>   <dd>The eye of the operation. Precise aesthetic judgment, quiet confidence in what works and what does not.</dd>
+        </dl>
+        <p class="portrait-prompt-label">Complete prompt</p>
+        <div class="portrait-prompt">Portrait of a female-presenting Latina strategic operative in her early 30s, head and shoulders, facing three-quarter right with a direct, appraising gaze at the viewer. Dark brown hair pulled into a clean low bun at the nape, a few loose strands framing the face, and bold geometric earrings — angular, matte black. Wearing a structured charcoal blazer with a subtle sheen, over a black silk shell. The blazer's lapel is sharp and precise.
+
+Expression: evaluating, composed. The look of someone who can find the flaw in a perfect thing and knows exactly how to fix it.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle stacked horizontal composition guides — rule-of-thirds lines and golden-ratio spirals — in mint (#58c7a2) glowing softly behind the figure.
+
+Lighting: cinematic three-quarter key light from the right, warm fill from below, cool rim light separating the figure from the background. Subtle mint light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2), mint (#58c7a2), and muted coral as a secondary. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</div>
+        <div class="portrait-version">v1.0 | Changelog: initial draft</div>
+      </div>
+    </div>
+
+    <!-- ========== PORTRAIT 05 ========== -->
+    <div class="portrait-card">
+      <div class="portrait-header">
+        <div class="portrait-number">05</div>
+        <h3 class="portrait-title">Trait Architect</h3>
+        <div class="portrait-accent-dot" style="background:#3d7edb;"></div>
+      </div>
+      <div class="portrait-body">
+        <dl class="portrait-meta">
+          <dt>Accent</dt>    <dd>Blue (#3d7edb)</dd>
+          <dt>Presence</dt>  <dd>Androgynous-presenting, mixed ethnicity, late 20s</dd>
+          <dt>Concept</dt>   <dd>The one who decides what makes each character distinct. Analytical, precise, fascinated by systems of identity.</dd>
+        </dl>
+        <p class="portrait-prompt-label">Complete prompt</p>
+        <div class="portrait-prompt">Portrait of an androgynous-presenting mixed-ethnicity strategic operative in their late 20s, head and shoulders, facing direct to camera with a slight head tilt to the right. Platinum-dyed cropped hair with dark roots visible, sharp cheekbones, and thin wire-frame glasses with a blue-tinted lens. Wearing a high-collared dark graphite technical vest over a fitted black long-sleeve base, the collar zipped to the chin.
+
+Expression: analytical, quietly fascinated. The look of someone cataloguing details about you that you have not noticed about yourself.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle branching decision-tree diagrams — nodes and edges spreading outward — in blue (#3d7edb) glowing softly behind the figure.
+
+Lighting: cinematic three-quarter key light from the left, warm fill from below, cool rim light separating the figure from the background. Subtle blue light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2), blue (#3d7edb), and muted mint as a secondary. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</div>
+        <div class="portrait-version">v1.0 | Changelog: initial draft</div>
+      </div>
+    </div>
+
+    <!-- ========== PORTRAIT 06 ========== -->
+    <div class="portrait-card">
+      <div class="portrait-header">
+        <div class="portrait-number">06</div>
+        <h3 class="portrait-title">Prompt Engineer</h3>
+        <div class="portrait-accent-dot" style="background:#6d42e5;"></div>
+      </div>
+      <div class="portrait-body">
+        <dl class="portrait-meta">
+          <dt>Accent</dt>    <dd>Violet (#6d42e5)</dd>
+          <dt>Presence</dt>  <dd>Female-presenting, East European, mid 30s</dd>
+          <dt>Concept</dt>   <dd>The translator between intention and execution. Writes the words that make machines see. Thoughtful, exacting.</dd>
+        </dl>
+        <p class="portrait-prompt-label">Complete prompt</p>
+        <div class="portrait-prompt">Portrait of a female-presenting East European strategic operative in her mid 30s, head and shoulders, facing three-quarter left with eyes looking slightly down and to the side as if reading something carefully. Ash-blonde hair in a loose shoulder-length cut tucked behind one ear, and a faint constellation of freckles across the nose and cheekbones. Wearing a soft-structured dark plum wool overshirt, open at the collar, over a black ribbed top.
+
+Expression: thoughtful, precise. The concentrated focus of someone choosing the exact word from a dozen close alternatives.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle lines of flowing text-like marks — not legible words, but the rhythm of written language rendered as abstract calligraphy — in violet (#6d42e5) glowing softly behind the figure.
+
+Lighting: cinematic three-quarter key light from the left, warm fill from below, cool rim light separating the figure from the background. Subtle violet light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2), violet (#6d42e5), and muted gold as a secondary. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</div>
+        <div class="portrait-version">v1.0 | Changelog: initial draft</div>
+      </div>
+    </div>
+
+    <!-- ========== PORTRAIT 07 ========== -->
+    <div class="portrait-card">
+      <div class="portrait-header">
+        <div class="portrait-number">07</div>
+        <h3 class="portrait-title">Image Maker</h3>
+        <div class="portrait-accent-dot" style="background:#58c7a2;"></div>
+      </div>
+      <div class="portrait-body">
+        <dl class="portrait-meta">
+          <dt>Accent</dt>    <dd>Mint (#58c7a2)</dd>
+          <dt>Presence</dt>  <dd>Male-presenting, Middle Eastern, late 30s</dd>
+          <dt>Concept</dt>   <dd>The one who renders the vision into pixels. Hands-on, intense, lost in the craft of making.</dd>
+        </dl>
+        <p class="portrait-prompt-label">Complete prompt</p>
+        <div class="portrait-prompt">Portrait of a male-presenting Middle Eastern strategic operative in his late 30s, head and shoulders, facing slightly left with an intense direct gaze at the viewer. Dark wavy hair at medium length pushed back from the forehead, strong brow, and a short well-groomed beard. Wearing a dark olive-black canvas work jacket, slightly paint-stained at the cuff, over a faded black henley. A stylus or fine brush tucked behind one ear.
+
+Expression: intense, absorbed. The steady focus of someone whose hands know what to do before the thought is fully formed.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle overlapping rectangular frames and aperture shapes — suggesting viewfinders, crop marks, render boundaries — in mint (#58c7a2) glowing softly behind the figure.
+
+Lighting: cinematic three-quarter key light from the right, warm fill from below, cool rim light separating the figure from the background. Subtle mint light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2), mint (#58c7a2), and muted blue as a secondary. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</div>
+        <div class="portrait-version">v1.0 | Changelog: initial draft</div>
+      </div>
+    </div>
+
+    <!-- ========== PORTRAIT 08 ========== -->
+    <div class="portrait-card">
+      <div class="portrait-header">
+        <div class="portrait-number">08</div>
+        <h3 class="portrait-title">Collection Curator</h3>
+        <div class="portrait-accent-dot" style="background:#3d7edb;"></div>
+      </div>
+      <div class="portrait-body">
+        <dl class="portrait-meta">
+          <dt>Accent</dt>    <dd>Blue (#3d7edb)</dd>
+          <dt>Presence</dt>  <dd>Female-presenting, Southeast Asian, early 40s</dd>
+          <dt>Concept</dt>   <dd>The one who sees the set, not the pieces. Balances the whole, ensures nothing jars, nothing is missing.</dd>
+        </dl>
+        <p class="portrait-prompt-label">Complete prompt</p>
+        <div class="portrait-prompt">Portrait of a female-presenting Southeast Asian strategic operative in her early 40s, head and shoulders, facing three-quarter right with a composed, level gaze at the viewer. Straight black hair cut in a precise chin-length bob with a deep side part, and small pearl stud earrings. Wearing a tailored midnight-navy knit blazer with a clean shawl collar over a cream silk blouse, the collar of the blouse just visible.
+
+Expression: composed, discerning. The serene confidence of someone who can hold ten things in mind simultaneously and know which one is out of place.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle tessellated grid patterns — evenly spaced squares suggesting a gallery wall or contact sheet — in blue (#3d7edb) glowing softly behind the figure.
+
+Lighting: cinematic three-quarter key light from the left, warm fill from below, cool rim light separating the figure from the background. Subtle blue light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2), blue (#3d7edb), and muted gold as a secondary. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</div>
+        <div class="portrait-version">v1.0 | Changelog: initial draft</div>
+      </div>
+    </div>
+
+    <!-- ========== PORTRAIT 09 ========== -->
+    <div class="portrait-card">
+      <div class="portrait-header">
+        <div class="portrait-number">09</div>
+        <h3 class="portrait-title">Quality Guardian</h3>
+        <div class="portrait-accent-dot" style="background:#ff7062;"></div>
+      </div>
+      <div class="portrait-body">
+        <dl class="portrait-meta">
+          <dt>Accent</dt>    <dd>Coral (#ff7062)</dd>
+          <dt>Presence</dt>  <dd>Male-presenting, Northern European, late 40s</dd>
+          <dt>Concept</dt>   <dd>The gatekeeper. Nothing ships that this one has not inspected. Exacting, uncompromising, respected.</dd>
+        </dl>
+        <p class="portrait-prompt-label">Complete prompt</p>
+        <div class="portrait-prompt">Portrait of a male-presenting Northern European strategic operative in his late 40s, head and shoulders, facing direct to camera with a level, unflinching gaze. Short-cropped sandy hair going grey, deep-set pale eyes, and a strong jaw with visible stubble. Wearing a dark charcoal wool crew-neck sweater with a clean neckline, utilitarian and precise, no visible layers beneath. Reading glasses pushed up onto the forehead.
+
+Expression: skeptical, exacting. The look of someone who has found the defect you hoped no one would notice.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle diagnostic crosshair marks and alignment targets — calibration patterns from a print shop or optics lab — in coral (#ff7062) glowing softly behind the figure.
+
+Lighting: cinematic three-quarter key light from the right, warm fill from below, cool rim light separating the figure from the background. Subtle coral light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2), coral (#ff7062), and muted violet as a secondary. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</div>
+        <div class="portrait-version">v1.0 | Changelog: initial draft</div>
+      </div>
+    </div>
+
+    <!-- ========== PORTRAIT 10 ========== -->
+    <div class="portrait-card">
+      <div class="portrait-header">
+        <div class="portrait-number">10</div>
+        <h3 class="portrait-title">Release Archivist</h3>
+        <div class="portrait-accent-dot" style="background:#f4bd4f;"></div>
+      </div>
+      <div class="portrait-body">
+        <dl class="portrait-meta">
+          <dt>Accent</dt>    <dd>Gold (#f4bd4f)</dd>
+          <dt>Presence</dt>  <dd>Male-presenting, West African, mid 50s</dd>
+          <dt>Concept</dt>   <dd>The keeper of the record. Ensures nothing is lost, everything is catalogued, every version is traceable. Gravitas and patience.</dd>
+        </dl>
+        <p class="portrait-prompt-label">Complete prompt</p>
+        <div class="portrait-prompt">Portrait of a male-presenting West African strategic operative in his mid 50s, head and shoulders, facing three-quarter left with a warm, steady gaze at the viewer. Close-cropped grey hair and a neatly trimmed grey goatee, deep smile lines, and a calm, weathered dignity. Wearing a dark espresso-brown corduroy overshirt with a wide collar, open over a black turtleneck. A leather-banded analog watch on the left wrist, just entering the frame.
+
+Expression: patient, assured. The look of someone who has seen many things come and go and knows exactly which ones are worth preserving.
+
+Background: a dark, abstracted environment of deep indigo-black (#16142b) with subtle layered horizontal strata — sedimentary lines like geological records or archival shelving — in gold (#f4bd4f) glowing softly behind the figure.
+
+Lighting: cinematic three-quarter key light from the left, warm fill from below, cool rim light separating the figure from the background. Subtle gold light spill on the near cheekbone.
+
+Style: digital illustration with painterly rendering, visible brushwork in shadows, sharp detail on eyes and expression. Matte finish, no specular highlights on skin. Color palette restricted to ink (#16142b), paper (#fffaf2), gold (#f4bd4f), and muted blue as a secondary. Cohesive world: intelligence analysts in a fictional setting that merges global finance with AI systems.
+
+Format: square, 1024x1024. No text, no logos, no watermarks, no UI elements. No real celebrity or public-figure likenesses. Content safe for professional use.</div>
+        <div class="portrait-version">v1.0 | Changelog: initial draft</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 4. UNIVERSAL NEGATIVE PROMPT                                  -->
+  <!-- ============================================================ -->
+  <section class="section">
+    <hr class="section-rule">
+    <h2>4. Universal Negative Prompt</h2>
+    <p>
+      Apply this negative prompt to every generation. It covers quality
+      exclusions, content safety, and stylistic consistency. For Midjourney,
+      append with <code>--no</code>; for Stable Diffusion, use the negative
+      prompt field; for DALL-E, incorporate exclusions into the main prompt
+      text (DALL-E does not support a separate negative field).
+    </p>
+    <div class="neg-prompt">text, lettering, words, title, caption, subtitle, watermark, signature, artist signature, logo, brand mark, icon overlay, UI element, button, interface chrome, badge, stamp, copyright notice, metadata text, blurry, out of focus, soft focus, bokeh on face, motion blur, noise, grain, compression artifacts, jpeg artifacts, pixelated, low resolution, upscaled artifacts, deformed, disfigured, extra limbs, extra fingers, fused fingers, mutated hands, bad anatomy, bad proportions, cross-eyed, asymmetric eyes, uncanny valley, plastic skin, glossy skin, oily skin, specular highlights on skin, 3D render, CGI, video game screenshot, anime, manga, cartoon, chibi, caricature, photorealistic photograph, stock photo, selfie, webcam, fish-eye lens, extreme wide angle, celebrity likeness, real person, named individual, public figure, political figure, nudity, revealing clothing, suggestive pose, violence, gore, blood, weapons pointed at viewer, drugs, alcohol, smoking, offensive gesture, hate symbol, religious symbol, national flag, border, frame, vignette, split image, collage, multiple panels, before-and-after, side-by-side, tiled</div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 5. GENERATION PARAMETERS                                      -->
+  <!-- ============================================================ -->
+  <section class="section">
+    <hr class="section-rule">
+    <h2>5. Generation Parameters</h2>
+    <p>
+      Recommended settings by platform. These are starting points; adjust
+      guidance scale and steps based on early results.
+    </p>
+
+    <h3>Stable Diffusion (SDXL / SD 3.x)</h3>
+    <div class="spec-table-wrap">
+      <table class="spec-table">
+        <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Resolution</td><td>1024 x 1024</td><td>Native SDXL resolution</td></tr>
+          <tr><td>Guidance scale (CFG)</td><td>7.0 &ndash; 8.5</td><td>Higher values increase prompt adherence but risk rigidity; start at 7.5</td></tr>
+          <tr><td>Steps</td><td>30 &ndash; 50</td><td>40 is a solid default; diminishing returns past 50</td></tr>
+          <tr><td>Sampler</td><td>DPM++ 2M Karras</td><td>Good balance of speed and quality</td></tr>
+          <tr><td>Seed strategy</td><td>Random first pass; lock seed per portrait once a strong composition is found, then iterate on prompt text</td><td>Do not share seeds across portraits &mdash; each character needs its own spatial composition</td></tr>
+          <tr><td>Negative prompt</td><td>Use the universal negative prompt in Section 4</td><td>&mdash;</td></tr>
+          <tr><td>Batch size</td><td>4</td><td>Generate 4 candidates per portrait, select the strongest</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Midjourney (v6.x / v7)</h3>
+    <div class="spec-table-wrap">
+      <table class="spec-table">
+        <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Aspect ratio</td><td><code>--ar 1:1</code></td><td>Square format</td></tr>
+          <tr><td>Stylize</td><td><code>--s 250</code></td><td>Moderate stylization; lower for more literal prompt adherence</td></tr>
+          <tr><td>Quality</td><td><code>--q 1</code></td><td>Standard quality; use <code>--q 2</code> for final selects</td></tr>
+          <tr><td>Chaos</td><td><code>--c 10</code></td><td>Low chaos for consistency; raise to 25 if early results are too similar</td></tr>
+          <tr><td>Negative</td><td><code>--no</code> followed by key terms from Section 4</td><td>Midjourney's <code>--no</code> is less granular; prioritize: <code>--no text lettering watermark logo blurry anime 3d render photograph</code></td></tr>
+          <tr><td>Style reference</td><td>Use <code>--sref</code> with the first accepted portrait to anchor subsequent ones</td><td>Critical for collection consistency</td></tr>
+          <tr><td>Seed</td><td>Not user-controllable in the same way; rely on <code>--sref</code> for cohesion</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>DALL-E (3 / 4)</h3>
+    <div class="spec-table-wrap">
+      <table class="spec-table">
+        <thead><tr><th>Parameter</th><th>Value</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Size</td><td>1024 x 1024</td><td>Square format</td></tr>
+          <tr><td>Quality</td><td><code>hd</code></td><td>Use the high-detail setting for all portraits</td></tr>
+          <tr><td>Style</td><td><code>vivid</code></td><td>More dramatic lighting; switch to <code>natural</code> if results are overcooked</td></tr>
+          <tr><td>Negative prompt</td><td>Inline &mdash; DALL-E has no separate field; the exclusions in the main prompt's final paragraph serve this purpose</td><td>The prompts above already include inline exclusions</td></tr>
+          <tr><td>Seed strategy</td><td>Not supported; rely on careful prompt language for consistency</td><td>Generate 3&ndash;4 candidates per portrait</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Consistency strategy across the set</h3>
+    <ul class="clean">
+      <li>Generate Portrait 01 (Mission Keeper) first and iterate until it anchors the style</li>
+      <li>In Midjourney, use the accepted Portrait 01 as <code>--sref</code> for all subsequent portraits</li>
+      <li>In Stable Diffusion, lock the checkpoint model and LoRA stack after Portrait 01 is accepted</li>
+      <li>Maintain the same post-processing pipeline (if any) across all ten</li>
+      <li>Review all ten as a grid at 256px thumbnails before finalizing &mdash; inconsistencies are visible at small scale that disappear when viewing one at a time</li>
+      <li>If one portrait drifts from the set, regenerate it rather than post-processing it to match</li>
+    </ul>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- 6. VERSION CONTROL                                            -->
+  <!-- ============================================================ -->
+  <section class="section">
+    <hr class="section-rule">
+    <h2>6. Version Control</h2>
+    <p>
+      Each prompt carries a version tag and changelog field. Update these
+      whenever a prompt is modified, even for minor wording changes. The
+      version applies to the individual prompt, not the pack as a whole.
+    </p>
+
+    <div class="spec-table-wrap">
+      <table class="spec-table">
+        <thead>
+          <tr>
+            <th>Portrait</th>
+            <th>Role</th>
+            <th>Version</th>
+            <th>Changelog</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>01</td><td>Mission Keeper</td><td>v1.0</td><td>Initial draft</td></tr>
+          <tr><td>02</td><td>Originality Scout</td><td>v1.0</td><td>Initial draft</td></tr>
+          <tr><td>03</td><td>World Builder</td><td>v1.0</td><td>Initial draft</td></tr>
+          <tr><td>04</td><td>Art Director</td><td>v1.0</td><td>Initial draft</td></tr>
+          <tr><td>05</td><td>Trait Architect</td><td>v1.0</td><td>Initial draft</td></tr>
+          <tr><td>06</td><td>Prompt Engineer</td><td>v1.0</td><td>Initial draft</td></tr>
+          <tr><td>07</td><td>Image Maker</td><td>v1.0</td><td>Initial draft</td></tr>
+          <tr><td>08</td><td>Collection Curator</td><td>v1.0</td><td>Initial draft</td></tr>
+          <tr><td>09</td><td>Quality Guardian</td><td>v1.0</td><td>Initial draft</td></tr>
+          <tr><td>10</td><td>Release Archivist</td><td>v1.0</td><td>Initial draft</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Pack-level version</h3>
+    <dl class="portrait-meta">
+      <dt>Pack version</dt>  <dd>v1.0</dd>
+      <dt>Created</dt>       <dd>2026-08-19</dd>
+      <dt>Author</dt>        <dd>Agent 06 / Prompt Engineer</dd>
+      <dt>Status</dt>        <dd>Ready for generation</dd>
+    </dl>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- FOOTER                                                        -->
+  <!-- ============================================================ -->
+  <footer class="doc-footer">
+    Ten Agents, Ten Portraits &mdash; Prompt Pack v1.0 &mdash; Agent 06 / Prompt Engineer &mdash; 2026-08-19
+  </footer>
+
+</div>

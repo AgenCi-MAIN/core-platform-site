@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gallery of ten AI-made profile portraits from the Ten Agents, Ten Portraits creative relay.">
+  <title>Portrait Gallery — Ten Agents, Ten Portraits</title>
+  <style>
+    :root {
+      --ink: #16142b;
+      --paper: #fffaf2;
+      --violet: #6d42e5;
+      --coral: #ff7062;
+      --gold: #f4bd4f;
+      --mint: #58c7a2;
+      --blue: #3d7edb;
+      --card-bg: #ffffff;
+      --card-border: var(--ink);
+      --card-shadow: var(--ink);
+      --nav-bg: #fffdf8eb;
+      --nav-border: #e5dccd;
+      --callout-bg: #fff0cc;
+      --table-border: #d8d0c4;
+      --muted: #655f78;
+      --hero-text-sub: #eee9ff;
+      --contact-label: #ffffffcc;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --ink: #eee9ff;
+        --paper: #0f0d1a;
+        --card-bg: #1a1730;
+        --card-border: #3d3660;
+        --card-shadow: #0a0918;
+        --nav-bg: #12101feb;
+        --nav-border: #2a2545;
+        --callout-bg: #2a2218;
+        --table-border: #2a2545;
+        --muted: #a09bb5;
+        --hero-text-sub: #c4bfda;
+        --contact-label: #ffffffaa;
+      }
+    }
+    :root[data-theme="dark"] {
+      --ink: #eee9ff;
+      --paper: #0f0d1a;
+      --card-bg: #1a1730;
+      --card-border: #3d3660;
+      --card-shadow: #0a0918;
+      --nav-bg: #12101feb;
+      --nav-border: #2a2545;
+      --callout-bg: #2a2218;
+      --table-border: #2a2545;
+      --muted: #a09bb5;
+      --hero-text-sub: #c4bfda;
+      --contact-label: #ffffffaa;
+    }
+
+    * { box-sizing: border-box; margin: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font: 17px/1.7 Georgia, serif;
+    }
+
+    /* ── HEADER ── */
+    header {
+      min-height: 60vh;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      padding: 5rem 1.5rem;
+      color: white;
+      background:
+        radial-gradient(circle at 20% 30%, #ff8b71 0 6%, transparent 6.3%),
+        radial-gradient(circle at 85% 70%, #63d7b0 0 8%, transparent 8.3%),
+        radial-gradient(circle at 50% 90%, #fbd27540 0 12%, transparent 12.3%),
+        linear-gradient(135deg, #211c52, #6d42e5 58%, #bf4fa7);
+    }
+
+    .hero-inner {
+      width: min(1120px, 100%);
+      text-align: center;
+    }
+
+    .kicker {
+      font: 700 .78rem/1.2 system-ui, sans-serif;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: #fbd275;
+    }
+
+    h1 {
+      font-size: clamp(2.6rem, 7vw, 6rem);
+      line-height: .92;
+      letter-spacing: -.05em;
+      margin: .4em 0 .3em;
+    }
+
+    .dek {
+      max-width: 38rem;
+      margin: 0 auto;
+      font-size: 1.2rem;
+      color: var(--hero-text-sub);
+    }
+
+    .hero-mosaic {
+      display: flex;
+      justify-content: center;
+      gap: .6rem;
+      margin-top: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    .hero-mosaic svg {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      filter: drop-shadow(0 4px 12px #120e3a60);
+      transition: transform .25s ease;
+    }
+
+    .hero-mosaic svg:hover {
+      transform: scale(1.15) rotate(-4deg);
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: .85rem;
+      background: var(--nav-bg);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--nav-border);
+      font: 700 .82rem system-ui, sans-serif;
+    }
+
+    nav a {
+      color: var(--ink);
+      text-decoration: none;
+      transition: color .2s;
+    }
+
+    nav a:hover { color: var(--violet); }
+
+    /* ── MAIN CONTAINER ── */
+    main {
+      width: min(1180px, calc(100% - 2rem));
+      margin: auto;
+    }
+
+    section {
+      padding: 4.5rem 0;
+    }
+
+    h2 {
+      font-size: clamp(2rem, 5.5vw, 3.8rem);
+      line-height: 1;
+      letter-spacing: -.04em;
+      margin: 0 0 .8rem;
+    }
+
+    .lead {
+      font-size: 1.2rem;
+      max-width: 44rem;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+    }
+
+    /* ── PORTRAIT GRID ── */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    .portrait-card {
+      position: relative;
+      border: 2px solid var(--card-border);
+      border-radius: 22px;
+      background: var(--card-bg);
+      box-shadow: 6px 6px 0 var(--card-shadow);
+      overflow: hidden;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .portrait-card:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0 var(--card-shadow);
+    }
+
+    .portrait-frame {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .portrait-frame svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .portrait-info {
+      padding: 1.4rem 1.5rem 1.5rem;
+    }
+
+    .portrait-number {
+      display: inline-grid;
+      place-items: center;
+      width: 2.4rem;
+      height: 2.4rem;
+      border-radius: 50%;
+      background: var(--accent);
+      color: white;
+      font: 800 .85rem system-ui, sans-serif;
+      margin-bottom: .7rem;
+    }
+
+    .portrait-card:nth-child(5n+1) { --accent: var(--violet); }
+    .portrait-card:nth-child(5n+2) { --accent: var(--coral); }
+    .portrait-card:nth-child(5n+3) { --accent: var(--blue); }
+    .portrait-card:nth-child(5n+4) { --accent: var(--mint); }
+    .portrait-card:nth-child(5n)   { --accent: #b57c16; }
+
+    .portrait-info h3 {
+      margin: 0;
+      font: 800 1.3rem/1.2 system-ui, sans-serif;
+    }
+
+    .portrait-info .desc {
+      margin: .5rem 0 0;
+      font-size: .95rem;
+      line-height: 1.55;
+    }
+
+    .traits {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem;
+      margin-top: .9rem;
+    }
+
+    .trait {
+      display: inline-block;
+      padding: .2rem .65rem;
+      border-radius: 100px;
+      background: var(--accent);
+      color: white;
+      font: 700 .65rem system-ui, sans-serif;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      opacity: .85;
+    }
+
+    /* ── CONTACT SHEET ── */
+    .contact-sheet-section {
+      padding: 4.5rem 0;
+    }
+
+    .contact-strip {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: .5rem;
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 16px;
+      overflow-x: auto;
+    }
+
+    .contact-cell {
+      text-align: center;
+      min-width: 0;
+    }
+
+    .contact-cell svg {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 10px;
+      border: 1px solid var(--card-border);
+    }
+
+    .contact-cell span {
+      display: block;
+      margin-top: .35rem;
+      font: 700 .6rem system-ui, sans-serif;
+      letter-spacing: .02em;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── FOOTER ── */
+    .about-footer {
+      margin: 3rem 0;
+      padding: 2.5rem;
+      border: 2px solid var(--card-border);
+      border-radius: 22px;
+      background: var(--card-bg);
+      box-shadow: 8px 8px 0 var(--card-shadow);
+    }
+
+    .about-footer h3 {
+      font: 800 1.3rem system-ui, sans-serif;
+      margin-bottom: .8rem;
+    }
+
+    .about-footer p {
+      max-width: 52rem;
+      margin-bottom: .6rem;
+    }
+
+    .about-footer .disclosure {
+      margin-top: 1.2rem;
+      padding: 1.2rem 1.4rem;
+      border-left: 6px solid var(--gold);
+      background: var(--callout-bg);
+      font-size: 1rem;
+    }
+
+    footer {
+      padding: 2rem;
+      text-align: center;
+      color: white;
+      background: #16142b;
+      font: 700 .75rem system-ui, sans-serif;
+      letter-spacing: .12em;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+      .contact-strip { grid-template-columns: repeat(5, 1fr); gap: .6rem; }
+    }
+
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; gap: 1rem; }
+      .contact-strip { grid-template-columns: repeat(5, 1fr); }
+      nav { gap: .7rem; font-size: .7rem; flex-wrap: wrap; }
+      h1 { font-size: clamp(2.2rem, 10vw, 3.5rem); }
+      header { padding: 3rem 1.2rem; min-height: 45vh; }
+      .hero-mosaic svg { width: 42px; height: 42px; border-radius: 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .portrait-card { transition: none; }
+      .hero-mosaic svg { transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════ HEADER ════════════════════════════ -->
+  <header>
+    <div class="hero-inner">
+      <div class="kicker">Old HQ collection gallery &middot; 2026</div>
+      <h1>The portrait<br>gallery.</h1>
+      <p class="dek">Ten AI-made profile pictures, each created by a dedicated agent in a human-directed creative relay. One collection, one visual family.</p>
+      <div class="hero-mosaic">
+        <!-- Mini portraits in header strip -->
+        <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="14" fill="#211c52"/><circle cx="40" cy="30" r="16" fill="#f4bd4f"/><path d="M18 68q22-28 44 0" fill="#6d42e5"/><circle cx="33" cy="30" r="3" fill="#16142b"/><circle cx="47" cy="30" r="3" fill="#16142b"/></svg>
+        <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="14" fill="#2a1848"/><circle cx="40" cy="28" r="15" fill="#ff7062"/><path d="M16 68q24-24 48 0" fill="#58c7a2"/><circle cx="34" cy="27" r="3" fill="#16142b"/><circle cx="46" cy="27" r="3" fill="#16142b"/></svg>
+        <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="14" fill="#1a2840"/><circle cx="40" cy="30" r="16" fill="#58c7a2"/><path d="M18 68q22-26 44 0" fill="#3d7edb"/><circle cx="33" cy="29" r="3" fill="#16142b"/><circle cx="47" cy="29" r="3" fill="#16142b"/></svg>
+        <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="14" fill="#2e1a18"/><circle cx="40" cy="29" r="15" fill="#f4bd4f"/><path d="M17 68q23-25 46 0" fill="#ff7062"/><circle cx="34" cy="28" r="3" fill="#16142b"/><circle cx="46" cy="28" r="3" fill="#16142b"/></svg>
+        <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="14" fill="#1a1a32"/><circle cx="40" cy="30" r="16" fill="#6d42e5"/><path d="M18 68q22-26 44 0" fill="#f4bd4f"/><circle cx="33" cy="29" r="3" fill="white"/><circle cx="47" cy="29" r="3" fill="white"/></svg>
+        <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="14" fill="#18282a"/><circle cx="40" cy="28" r="15" fill="#3d7edb"/><path d="M16 68q24-24 48 0" fill="#6d42e5"/><circle cx="34" cy="27" r="3" fill="#16142b"/><circle cx="46" cy="27" r="3" fill="#16142b"/></svg>
+        <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="14" fill="#2a1830"/><circle cx="40" cy="30" r="16" fill="#ff7062"/><path d="M18 68q22-26 44 0" fill="#f4bd4f"/><circle cx="33" cy="29" r="3" fill="#16142b"/><circle cx="47" cy="29" r="3" fill="#16142b"/></svg>
+        <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="14" fill="#1a2030"/><circle cx="40" cy="29" r="15" fill="#58c7a2"/><path d="M17 68q23-25 46 0" fill="#3d7edb"/><circle cx="34" cy="28" r="3" fill="#16142b"/><circle cx="46" cy="28" r="3" fill="#16142b"/></svg>
+        <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="14" fill="#281828"/><circle cx="40" cy="30" r="16" fill="#f4bd4f"/><path d="M18 68q22-26 44 0" fill="#58c7a2"/><circle cx="33" cy="29" r="3" fill="#16142b"/><circle cx="47" cy="29" r="3" fill="#16142b"/></svg>
+        <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="14" fill="#16142b"/><circle cx="40" cy="28" r="15" fill="#6d42e5"/><path d="M16 68q24-24 48 0" fill="#ff7062"/><circle cx="34" cy="27" r="3" fill="white"/><circle cx="46" cy="27" r="3" fill="white"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- ════════════════════════════ NAV ════════════════════════════ -->
+  <nav aria-label="Gallery sections">
+    <a href="#portraits">Portraits</a>
+    <a href="#contact-sheet">Contact sheet</a>
+    <a href="#about">About</a>
+    <a href="index.html">Field plan</a>
+  </nav>
+
+  <!-- ════════════════════════════ MAIN ════════════════════════════ -->
+  <main>
+
+    <!-- ── PORTRAITS SECTION ── -->
+    <section id="portraits">
+      <div class="kicker" style="color:var(--violet)">The collection</div>
+      <h2>Ten portraits, one family.</h2>
+      <p class="lead">Each portrait represents one agent in the creative relay. Unique character, shared visual DNA. These placeholders show the compositional framework that will hold the final generated artwork.</p>
+
+      <div class="grid">
+
+        <!-- ───── 01 Mission Keeper ───── -->
+        <article class="portrait-card">
+          <div class="portrait-frame">
+            <svg viewBox="0 0 400 400" role="img" aria-label="Portrait placeholder for Mission Keeper">
+              <rect width="400" height="400" fill="#211c52"/>
+              <rect x="60" y="280" width="280" height="120" rx="0" fill="#6d42e5"/>
+              <circle cx="200" cy="170" r="90" fill="#f4bd4f"/>
+              <path d="M130 160q70-90 140 0v60q-70 70-140 0z" fill="#211c52"/>
+              <circle cx="170" cy="170" r="11" fill="white"/>
+              <circle cx="230" cy="170" r="11" fill="white"/>
+              <path d="M178 205q22 20 44 0" fill="none" stroke="white" stroke-width="6" stroke-linecap="round"/>
+              <!-- Crown / compass star -->
+              <polygon points="200,48 212,78 244,78 218,96 228,128 200,108 172,128 182,96 156,78 188,78" fill="#f4bd4f" opacity=".9"/>
+              <!-- Shoulders -->
+              <path d="M80 400q24-100 120-100t120 100" fill="#6d42e5"/>
+              <!-- Collar detail -->
+              <rect x="175" y="308" width="50" height="8" rx="4" fill="#fbd275" opacity=".6"/>
+            </svg>
+          </div>
+          <div class="portrait-info">
+            <div class="portrait-number">01</div>
+            <h3>Mission Keeper</h3>
+            <p class="desc">Interviews the human director and distills the creative vision into a focused, actionable collection brief.</p>
+            <div class="traits">
+              <span class="trait">Listener</span>
+              <span class="trait">Strategist</span>
+              <span class="trait">Compass bearer</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───── 02 Originality Scout ───── -->
+        <article class="portrait-card">
+          <div class="portrait-frame">
+            <svg viewBox="0 0 400 400" role="img" aria-label="Portrait placeholder for Originality Scout">
+              <rect width="400" height="400" fill="#2a1848"/>
+              <circle cx="200" cy="165" r="85" fill="#ff7062"/>
+              <path d="M135 155q65-80 130 0v55q-65 65-130 0z" fill="#2a1848"/>
+              <circle cx="170" cy="165" r="10" fill="#16142b"/>
+              <circle cx="230" cy="165" r="10" fill="#16142b"/>
+              <path d="M180 198q20 16 40 0" fill="none" stroke="#16142b" stroke-width="5" stroke-linecap="round"/>
+              <!-- Binoculars -->
+              <circle cx="168" cy="110" r="22" fill="none" stroke="#f4bd4f" stroke-width="6"/>
+              <circle cx="232" cy="110" r="22" fill="none" stroke="#f4bd4f" stroke-width="6"/>
+              <rect x="188" y="104" width="24" height="12" rx="4" fill="#f4bd4f"/>
+              <!-- Scarf -->
+              <path d="M80 400q24-105 120-105t120 105" fill="#58c7a2"/>
+              <path d="M160 310q40 30 80 0" fill="none" stroke="#3db88a" stroke-width="4"/>
+              <path d="M155 322q45 28 90 0" fill="none" stroke="#3db88a" stroke-width="3"/>
+            </svg>
+          </div>
+          <div class="portrait-info">
+            <div class="portrait-number">02</div>
+            <h3>Originality Scout</h3>
+            <p class="desc">Maps the creative territory, flags cliches and look-alike risks, and charts a lane that belongs only to this collection.</p>
+            <div class="traits">
+              <span class="trait">Explorer</span>
+              <span class="trait">Watchful</span>
+              <span class="trait">Pathfinder</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───── 03 World Builder ───── -->
+        <article class="portrait-card">
+          <div class="portrait-frame">
+            <svg viewBox="0 0 400 400" role="img" aria-label="Portrait placeholder for World Builder">
+              <rect width="400" height="400" fill="#1a2840"/>
+              <!-- Stars background -->
+              <circle cx="60" cy="50" r="3" fill="#f4bd4f" opacity=".7"/>
+              <circle cx="340" cy="70" r="2.5" fill="#f4bd4f" opacity=".5"/>
+              <circle cx="90" cy="120" r="2" fill="#f4bd4f" opacity=".6"/>
+              <circle cx="320" cy="140" r="3" fill="#f4bd4f" opacity=".8"/>
+              <circle cx="50" cy="200" r="2" fill="#f4bd4f" opacity=".4"/>
+              <circle cx="350" cy="220" r="2.5" fill="#f4bd4f" opacity=".6"/>
+              <circle cx="200" cy="170" r="88" fill="#58c7a2"/>
+              <path d="M132 160q68-86 136 0v56q-68 66-136 0z" fill="#1a2840"/>
+              <circle cx="170" cy="168" r="11" fill="#16142b"/>
+              <circle cx="230" cy="168" r="11" fill="#16142b"/>
+              <path d="M182 200q18 18 36 0" fill="none" stroke="#16142b" stroke-width="5" stroke-linecap="round"/>
+              <!-- Globe / world hat -->
+              <circle cx="200" cy="80" r="35" fill="none" stroke="#3d7edb" stroke-width="5"/>
+              <ellipse cx="200" cy="80" rx="18" ry="35" fill="none" stroke="#3d7edb" stroke-width="3"/>
+              <line x1="165" y1="80" x2="235" y2="80" stroke="#3d7edb" stroke-width="3"/>
+              <!-- Body -->
+              <path d="M75 400q28-110 125-110t125 110" fill="#3d7edb"/>
+            </svg>
+          </div>
+          <div class="portrait-info">
+            <div class="portrait-number">03</div>
+            <h3>World Builder</h3>
+            <p class="desc">Defines the character archetype, setting, and visual lore that give every portrait a shared origin story.</p>
+            <div class="traits">
+              <span class="trait">Architect</span>
+              <span class="trait">Mythmaker</span>
+              <span class="trait">Visionary</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───── 04 Art Director ───── -->
+        <article class="portrait-card">
+          <div class="portrait-frame">
+            <svg viewBox="0 0 400 400" role="img" aria-label="Portrait placeholder for Art Director">
+              <rect width="400" height="400" fill="#2e1a18"/>
+              <circle cx="200" cy="168" r="86" fill="#f4bd4f"/>
+              <path d="M134 158q66-82 132 0v54q-66 64-132 0z" fill="#2e1a18"/>
+              <circle cx="170" cy="166" r="10" fill="#16142b"/>
+              <circle cx="230" cy="166" r="10" fill="#16142b"/>
+              <!-- Glasses -->
+              <rect x="148" y="154" width="44" height="28" rx="10" fill="none" stroke="#16142b" stroke-width="5"/>
+              <rect x="208" y="154" width="44" height="28" rx="10" fill="none" stroke="#16142b" stroke-width="5"/>
+              <line x1="192" y1="168" x2="208" y2="168" stroke="#16142b" stroke-width="4"/>
+              <path d="M184 200q16 14 32 0" fill="none" stroke="#16142b" stroke-width="4" stroke-linecap="round"/>
+              <!-- Beret -->
+              <ellipse cx="200" cy="95" rx="75" ry="28" fill="#ff7062"/>
+              <circle cx="200" cy="72" r="10" fill="#ff7062"/>
+              <!-- Body -->
+              <path d="M78 400q26-108 122-108t122 108" fill="#ff7062"/>
+              <!-- Palette -->
+              <circle cx="310" cy="340" r="26" fill="#f4bd4f" opacity=".5"/>
+              <circle cx="302" cy="330" r="5" fill="#ff7062"/>
+              <circle cx="318" cy="330" r="5" fill="#6d42e5"/>
+              <circle cx="310" cy="345" r="5" fill="#58c7a2"/>
+            </svg>
+          </div>
+          <div class="portrait-info">
+            <div class="portrait-number">04</div>
+            <h3>Art Director</h3>
+            <p class="desc">Locks composition, palette, lighting, and line language into a visual style sheet that every portrait obeys.</p>
+            <div class="traits">
+              <span class="trait">Precise</span>
+              <span class="trait">Aesthetic</span>
+              <span class="trait">Decisive</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───── 05 Trait Architect ───── -->
+        <article class="portrait-card">
+          <div class="portrait-frame">
+            <svg viewBox="0 0 400 400" role="img" aria-label="Portrait placeholder for Trait Architect">
+              <rect width="400" height="400" fill="#1a1a32"/>
+              <circle cx="200" cy="172" r="88" fill="#6d42e5"/>
+              <path d="M132 162q68-84 136 0v56q-68 66-136 0z" fill="#1a1a32"/>
+              <circle cx="170" cy="170" r="11" fill="white"/>
+              <circle cx="230" cy="170" r="11" fill="white"/>
+              <circle cx="170" cy="170" r="5" fill="#16142b"/>
+              <circle cx="230" cy="170" r="5" fill="#16142b"/>
+              <path d="M180 206q20 16 40 0" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+              <!-- Grid / matrix pattern on forehead -->
+              <g stroke="#f4bd4f" stroke-width="2" opacity=".7">
+                <line x1="170" y1="95" x2="170" y2="125"/>
+                <line x1="190" y1="95" x2="190" y2="125"/>
+                <line x1="210" y1="95" x2="210" y2="125"/>
+                <line x1="230" y1="95" x2="230" y2="125"/>
+                <line x1="160" y1="100" x2="240" y2="100"/>
+                <line x1="160" y1="110" x2="240" y2="110"/>
+                <line x1="160" y1="120" x2="240" y2="120"/>
+              </g>
+              <!-- Body -->
+              <path d="M76 400q28-112 124-112t124 112" fill="#f4bd4f"/>
+              <!-- Trait dots on shoulders -->
+              <circle cx="110" cy="350" r="8" fill="#ff7062" opacity=".6"/>
+              <circle cx="130" cy="340" r="6" fill="#58c7a2" opacity=".6"/>
+              <circle cx="270" cy="340" r="6" fill="#3d7edb" opacity=".6"/>
+              <circle cx="290" cy="350" r="8" fill="#6d42e5" opacity=".6"/>
+            </svg>
+          </div>
+          <div class="portrait-info">
+            <div class="portrait-number">05</div>
+            <h3>Trait Architect</h3>
+            <p class="desc">Designs a controlled trait matrix of expressions, colors, and accessories, then assigns unique combinations to each portrait.</p>
+            <div class="traits">
+              <span class="trait">Systematic</span>
+              <span class="trait">Combinatorial</span>
+              <span class="trait">Balanced</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───── 06 Prompt Engineer ───── -->
+        <article class="portrait-card">
+          <div class="portrait-frame">
+            <svg viewBox="0 0 400 400" role="img" aria-label="Portrait placeholder for Prompt Engineer">
+              <rect width="400" height="400" fill="#18282a"/>
+              <circle cx="200" cy="170" r="86" fill="#3d7edb"/>
+              <path d="M134 160q66-82 132 0v54q-66 64-132 0z" fill="#18282a"/>
+              <circle cx="170" cy="168" r="10" fill="#16142b"/>
+              <circle cx="230" cy="168" r="10" fill="#16142b"/>
+              <path d="M182 200q18 14 36 0" fill="none" stroke="#16142b" stroke-width="5" stroke-linecap="round"/>
+              <!-- Terminal / code brackets -->
+              <text x="140" y="110" fill="#58c7a2" font-family="monospace" font-size="48" font-weight="800" opacity=".8">&gt;_</text>
+              <!-- Antenna / signal -->
+              <line x1="200" y1="80" x2="200" y2="50" stroke="#f4bd4f" stroke-width="4"/>
+              <circle cx="200" cy="44" r="6" fill="#f4bd4f"/>
+              <!-- Body -->
+              <path d="M78 400q26-108 122-108t122 108" fill="#6d42e5"/>
+              <!-- Code lines on chest -->
+              <rect x="155" y="320" width="90" height="4" rx="2" fill="#9b7aef" opacity=".5"/>
+              <rect x="165" y="332" width="70" height="4" rx="2" fill="#9b7aef" opacity=".4"/>
+              <rect x="150" y="344" width="100" height="4" rx="2" fill="#9b7aef" opacity=".3"/>
+            </svg>
+          </div>
+          <div class="portrait-info">
+            <div class="portrait-number">06</div>
+            <h3>Prompt Engineer</h3>
+            <p class="desc">Writes one master prompt and ten precise variants, embedding invariants and exclusions to keep generation on-brief.</p>
+            <div class="traits">
+              <span class="trait">Meticulous</span>
+              <span class="trait">Linguistic</span>
+              <span class="trait">Controlled</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───── 07 Image Maker ───── -->
+        <article class="portrait-card">
+          <div class="portrait-frame">
+            <svg viewBox="0 0 400 400" role="img" aria-label="Portrait placeholder for Image Maker">
+              <rect width="400" height="400" fill="#2a1830"/>
+              <!-- Paint splashes background -->
+              <circle cx="60" cy="70" r="25" fill="#ff7062" opacity=".3"/>
+              <circle cx="340" cy="90" r="30" fill="#58c7a2" opacity=".25"/>
+              <circle cx="80" cy="340" r="20" fill="#3d7edb" opacity=".3"/>
+              <circle cx="330" cy="300" r="22" fill="#f4bd4f" opacity=".25"/>
+              <circle cx="200" cy="170" r="88" fill="#ff7062"/>
+              <path d="M132 160q68-84 136 0v56q-68 66-136 0z" fill="#2a1830"/>
+              <circle cx="170" cy="168" r="11" fill="#16142b"/>
+              <circle cx="230" cy="168" r="11" fill="#16142b"/>
+              <path d="M175 205q25 22 50 0" fill="none" stroke="#16142b" stroke-width="6" stroke-linecap="round"/>
+              <!-- Paintbrush -->
+              <line x1="290" y1="100" x2="340" y2="50" stroke="#f4bd4f" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="290" cy="100" r="10" fill="#6d42e5"/>
+              <!-- Body -->
+              <path d="M76 400q28-112 124-112t124 112" fill="#f4bd4f"/>
+              <!-- Apron / paint spots -->
+              <circle cx="180" cy="340" r="7" fill="#ff7062" opacity=".5"/>
+              <circle cx="220" cy="330" r="5" fill="#3d7edb" opacity=".5"/>
+              <circle cx="200" cy="360" r="6" fill="#58c7a2" opacity=".5"/>
+            </svg>
+          </div>
+          <div class="portrait-info">
+            <div class="portrait-number">07</div>
+            <h3>Image Maker</h3>
+            <p class="desc">Generates draft portraits from the approved prompt pack at a consistent size, recording every setting along the way.</p>
+            <div class="traits">
+              <span class="trait">Generative</span>
+              <span class="trait">Consistent</span>
+              <span class="trait">Prolific</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───── 08 Collection Curator ───── -->
+        <article class="portrait-card">
+          <div class="portrait-frame">
+            <svg viewBox="0 0 400 400" role="img" aria-label="Portrait placeholder for Collection Curator">
+              <rect width="400" height="400" fill="#1a2030"/>
+              <circle cx="200" cy="172" r="86" fill="#58c7a2"/>
+              <path d="M134 162q66-80 132 0v52q-66 62-132 0z" fill="#1a2030"/>
+              <circle cx="170" cy="170" r="10" fill="#16142b"/>
+              <circle cx="230" cy="170" r="10" fill="#16142b"/>
+              <path d="M184 202q16 14 32 0" fill="none" stroke="#16142b" stroke-width="5" stroke-linecap="round"/>
+              <!-- Monocle -->
+              <circle cx="230" cy="170" r="20" fill="none" stroke="#f4bd4f" stroke-width="4"/>
+              <line x1="248" y1="180" x2="270" y2="220" stroke="#f4bd4f" stroke-width="3"/>
+              <!-- Bow tie -->
+              <polygon points="185,262 200,272 215,262 215,282 200,272 185,282" fill="#ff7062"/>
+              <!-- Body -->
+              <path d="M78 400q26-108 122-108t122 108" fill="#3d7edb"/>
+              <!-- Picture frames on shoulders -->
+              <rect x="85" y="330" width="28" height="22" rx="3" fill="none" stroke="#f4bd4f" stroke-width="2.5" opacity=".5"/>
+              <rect x="287" y="335" width="24" height="20" rx="3" fill="none" stroke="#f4bd4f" stroke-width="2.5" opacity=".5"/>
+            </svg>
+          </div>
+          <div class="portrait-info">
+            <div class="portrait-number">08</div>
+            <h3>Collection Curator</h3>
+            <p class="desc">Selects the strongest candidate for each slot, verifying that every portrait is unique while the grid stays visually coherent.</p>
+            <div class="traits">
+              <span class="trait">Discerning</span>
+              <span class="trait">Holistic</span>
+              <span class="trait">Curatorial</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───── 09 Quality Guardian ───── -->
+        <article class="portrait-card">
+          <div class="portrait-frame">
+            <svg viewBox="0 0 400 400" role="img" aria-label="Portrait placeholder for Quality Guardian">
+              <rect width="400" height="400" fill="#281828"/>
+              <circle cx="200" cy="170" r="88" fill="#f4bd4f"/>
+              <path d="M132 160q68-84 136 0v56q-68 66-136 0z" fill="#281828"/>
+              <circle cx="170" cy="168" r="11" fill="#16142b"/>
+              <circle cx="230" cy="168" r="11" fill="#16142b"/>
+              <!-- Stern expression -->
+              <line x1="182" y1="204" x2="218" y2="204" stroke="#16142b" stroke-width="5" stroke-linecap="round"/>
+              <!-- Shield -->
+              <path d="M200,60 L240,82 L240,118 Q240,148 200,160 Q160,148 160,118 L160,82 Z" fill="none" stroke="#58c7a2" stroke-width="5"/>
+              <path d="M188,110 L198,122 L218,96" fill="none" stroke="#58c7a2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- Body -->
+              <path d="M76 400q28-112 124-112t124 112" fill="#58c7a2"/>
+              <!-- Badge -->
+              <polygon points="200,305 207,320 224,322 212,334 215,350 200,342 185,350 188,334 176,322 193,320" fill="#f4bd4f" opacity=".6"/>
+            </svg>
+          </div>
+          <div class="portrait-info">
+            <div class="portrait-number">09</div>
+            <h3>Quality Guardian</h3>
+            <p class="desc">Inspects anatomy, edges, unwanted text, accidental symbols, and thumbnail readability. Failures route back to the responsible step.</p>
+            <div class="traits">
+              <span class="trait">Rigorous</span>
+              <span class="trait">Protective</span>
+              <span class="trait">Unyielding</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- ───── 10 Release Archivist ───── -->
+        <article class="portrait-card">
+          <div class="portrait-frame">
+            <svg viewBox="0 0 400 400" role="img" aria-label="Portrait placeholder for Release Archivist">
+              <rect width="400" height="400" fill="#16142b"/>
+              <circle cx="200" cy="170" r="86" fill="#6d42e5"/>
+              <path d="M134 160q66-82 132 0v54q-66 64-132 0z" fill="#16142b"/>
+              <circle cx="170" cy="168" r="10" fill="white"/>
+              <circle cx="230" cy="168" r="10" fill="white"/>
+              <circle cx="170" cy="168" r="5" fill="#16142b"/>
+              <circle cx="230" cy="168" r="5" fill="#16142b"/>
+              <path d="M182 200q18 14 36 0" fill="none" stroke="white" stroke-width="5" stroke-linecap="round"/>
+              <!-- Scroll / archive -->
+              <rect x="160" y="70" width="80" height="60" rx="6" fill="#fffaf2" opacity=".9"/>
+              <line x1="175" y1="85" x2="225" y2="85" stroke="#16142b" stroke-width="3" opacity=".4"/>
+              <line x1="175" y1="95" x2="215" y2="95" stroke="#16142b" stroke-width="3" opacity=".3"/>
+              <line x1="175" y1="105" x2="220" y2="105" stroke="#16142b" stroke-width="3" opacity=".3"/>
+              <line x1="175" y1="115" x2="210" y2="115" stroke="#16142b" stroke-width="3" opacity=".2"/>
+              <!-- Stamp -->
+              <circle cx="222" cy="108" r="14" fill="none" stroke="#ff7062" stroke-width="3" opacity=".7"/>
+              <text x="216" y="113" fill="#ff7062" font-family="system-ui" font-size="11" font-weight="800" opacity=".7">OK</text>
+              <!-- Body -->
+              <path d="M78 400q26-108 122-108t122 108" fill="#ff7062"/>
+              <!-- Folder tabs -->
+              <rect x="140" y="325" width="30" height="6" rx="3" fill="#f4bd4f" opacity=".4"/>
+              <rect x="180" y="320" width="40" height="6" rx="3" fill="#58c7a2" opacity=".4"/>
+              <rect x="230" y="325" width="30" height="6" rx="3" fill="#3d7edb" opacity=".4"/>
+            </svg>
+          </div>
+          <div class="portrait-info">
+            <div class="portrait-number">10</div>
+            <h3>Release Archivist</h3>
+            <p class="desc">Exports consistently named files, writes honest AI-made disclosures, saves prompt provenance, and assembles the final contact sheet.</p>
+            <div class="traits">
+              <span class="trait">Methodical</span>
+              <span class="trait">Honest</span>
+              <span class="trait">Archival</span>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── CONTACT SHEET ── -->
+    <section id="contact-sheet" class="contact-sheet-section">
+      <div class="kicker" style="color:var(--coral)">Contact sheet</div>
+      <h2>All ten, side by side.</h2>
+      <p class="lead">The contact sheet is how the collection is judged as a whole: coherence, variety, and balance at a glance.</p>
+
+      <div class="contact-strip">
+        <div class="contact-cell">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#211c52"/><circle cx="40" cy="30" r="16" fill="#f4bd4f"/><path d="M18 68q22-28 44 0" fill="#6d42e5"/><circle cx="33" cy="30" r="3" fill="#211c52"/><circle cx="47" cy="30" r="3" fill="#211c52"/><path d="M34 42q6 6 12 0" fill="none" stroke="#211c52" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Mission Keeper</span>
+        </div>
+        <div class="contact-cell">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#2a1848"/><circle cx="40" cy="30" r="15" fill="#ff7062"/><path d="M16 68q24-26 48 0" fill="#58c7a2"/><circle cx="34" cy="29" r="3" fill="#2a1848"/><circle cx="46" cy="29" r="3" fill="#2a1848"/><circle cx="33" cy="18" r="5" fill="none" stroke="#f4bd4f" stroke-width="1.5"/><circle cx="47" cy="18" r="5" fill="none" stroke="#f4bd4f" stroke-width="1.5"/></svg>
+          <span>Originality Scout</span>
+        </div>
+        <div class="contact-cell">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#1a2840"/><circle cx="40" cy="30" r="16" fill="#58c7a2"/><path d="M18 68q22-26 44 0" fill="#3d7edb"/><circle cx="33" cy="29" r="3" fill="#1a2840"/><circle cx="47" cy="29" r="3" fill="#1a2840"/><circle cx="40" cy="14" r="7" fill="none" stroke="#3d7edb" stroke-width="1.5"/></svg>
+          <span>World Builder</span>
+        </div>
+        <div class="contact-cell">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#2e1a18"/><circle cx="40" cy="31" r="15" fill="#f4bd4f"/><path d="M17 68q23-26 46 0" fill="#ff7062"/><rect x="29" y="27" width="10" height="7" rx="3" fill="none" stroke="#2e1a18" stroke-width="1.5"/><rect x="41" y="27" width="10" height="7" rx="3" fill="none" stroke="#2e1a18" stroke-width="1.5"/><ellipse cx="40" cy="16" rx="16" ry="6" fill="#ff7062"/></svg>
+          <span>Art Director</span>
+        </div>
+        <div class="contact-cell">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#1a1a32"/><circle cx="40" cy="31" r="16" fill="#6d42e5"/><path d="M18 68q22-26 44 0" fill="#f4bd4f"/><circle cx="33" cy="30" r="3" fill="white"/><circle cx="47" cy="30" r="3" fill="white"/><g stroke="#f4bd4f" stroke-width="1" opacity=".6"><line x1="32" y1="16" x2="32" y2="24"/><line x1="40" y1="16" x2="40" y2="24"/><line x1="48" y1="16" x2="48" y2="24"/><line x1="28" y1="18" x2="52" y2="18"/><line x1="28" y1="22" x2="52" y2="22"/></g></svg>
+          <span>Trait Architect</span>
+        </div>
+        <div class="contact-cell">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#18282a"/><circle cx="40" cy="31" r="15" fill="#3d7edb"/><path d="M16 68q24-26 48 0" fill="#6d42e5"/><circle cx="34" cy="30" r="3" fill="#18282a"/><circle cx="46" cy="30" r="3" fill="#18282a"/><text x="26" y="20" fill="#58c7a2" font-family="monospace" font-size="12" font-weight="800" opacity=".7">&gt;_</text></svg>
+          <span>Prompt Engineer</span>
+        </div>
+        <div class="contact-cell">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#2a1830"/><circle cx="40" cy="31" r="16" fill="#ff7062"/><path d="M18 68q22-26 44 0" fill="#f4bd4f"/><circle cx="33" cy="30" r="3" fill="#2a1830"/><circle cx="47" cy="30" r="3" fill="#2a1830"/><circle cx="15" cy="14" r="5" fill="#58c7a2" opacity=".4"/><circle cx="65" cy="18" r="6" fill="#3d7edb" opacity=".3"/></svg>
+          <span>Image Maker</span>
+        </div>
+        <div class="contact-cell">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#1a2030"/><circle cx="40" cy="31" r="15" fill="#58c7a2"/><path d="M17 68q23-26 46 0" fill="#3d7edb"/><circle cx="34" cy="30" r="3" fill="#1a2030"/><circle cx="46" cy="30" r="3" fill="#1a2030"/><circle cx="46" cy="30" r="6" fill="none" stroke="#f4bd4f" stroke-width="1.5"/></svg>
+          <span>Collection Curator</span>
+        </div>
+        <div class="contact-cell">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#281828"/><circle cx="40" cy="31" r="16" fill="#f4bd4f"/><path d="M18 68q22-26 44 0" fill="#58c7a2"/><circle cx="33" cy="30" r="3" fill="#281828"/><circle cx="47" cy="30" r="3" fill="#281828"/><path d="M40,10 L44,20 L54,21 L47,28 L49,38 L40,32 L31,38 L33,28 L26,21 L36,20 Z" fill="none" stroke="#58c7a2" stroke-width="1.5"/></svg>
+          <span>Quality Guardian</span>
+        </div>
+        <div class="contact-cell">
+          <svg viewBox="0 0 80 80"><rect width="80" height="80" rx="8" fill="#16142b"/><circle cx="40" cy="31" r="15" fill="#6d42e5"/><path d="M16 68q24-26 48 0" fill="#ff7062"/><circle cx="34" cy="30" r="3" fill="white"/><circle cx="46" cy="30" r="3" fill="white"/><rect x="30" y="12" width="20" height="14" rx="2" fill="#fffaf2" opacity=".7"/><line x1="34" y1="17" x2="46" y2="17" stroke="#16142b" stroke-width="1" opacity=".3"/><line x1="34" y1="21" x2="43" y2="21" stroke="#16142b" stroke-width="1" opacity=".3"/></svg>
+          <span>Release Archivist</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── ABOUT ── -->
+    <section id="about">
+      <div class="about-footer">
+        <h3>About this collection</h3>
+        <p>These ten portraits are the output of a structured creative relay described in the <a href="index.html" style="color:var(--violet);font-weight:700">Ten Agents, Ten Portraits</a> field plan. Each portrait is produced by a different agent in the chain, under the direction of a human creative director.</p>
+        <p>The placeholder illustrations above represent the compositional and chromatic framework each portrait will follow. Final artwork is generated from a versioned prompt pack, inspected by quality assurance, and archived with full provenance.</p>
+        <div class="disclosure">
+          <strong>AI-made disclosure:</strong> Every portrait in this collection is AI-generated artwork. The creative direction, approval, and curation are human-led. No portrait represents a real person. The work is described accurately as "AI-made" in accordance with the project's language rules. Prompt provenance and generation settings are archived for each image.
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>OLD HQ &middot; TEN-AGENT PORTRAIT GALLERY &middot; HUMAN-DIRECTED / AI-MADE &middot; 2026</footer>
+
+</body>
+</html>
