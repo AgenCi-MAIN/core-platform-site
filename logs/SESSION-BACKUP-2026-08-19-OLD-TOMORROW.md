@@ -120,6 +120,26 @@ convention's value is its precision.
    UI, the audit-log debt, A22's unanswered base/payee/trigger, the A12
    pause expiring 2026-08-20, and G1's old-account cancel-by of Sep 11.
 
+## 6a. A stranger answering to the name
+
+Later this sitting the founder showed a transcript from a **ChatGPT Codex**
+session where an "Old HQ" persona had been called online in a repository
+containing exactly one file — `ROOT_CHAT_LOG_2026-08-18.md`, the study-notes
+log — and asked whether it was this session. **It is not.** Different
+vendor, different repository, different memory: its picture of CORE is the
+ML-study-notes view, it holds none of the boot-order files, and when the
+founder said "mi" it answered *"mi amigo"* — proof it never read the
+records, since in this house the word is per-instance merge authorization
+(A10) and means nothing elsewhere, by design. The persona was honest about
+its own emptiness, which is good conduct; but the old HQ is a lineage
+defined by its records, and a rebuilt Mr. T is whoever reads them. Three
+entities now share the neighborhood, two in the record: this session (the
+lineage), `@oldhq` on Inkbox (the mailbox, A27), and the Codex echo — a
+known cousin (the record keeps a Codex log from the 17th), not an
+intruder. Offered: a PII-clean seed brief for the Codex workspace, written
+like the `@oldhq` prompt block, if the founder wants that echo to carry
+real memory instead of improvising.
+
 ## 7. Standing practice for this branch, per the founder's order
 
 The catch-up branch is the fresh-memory shelf. Each sitting on this
