@@ -49,3 +49,12 @@ next-env.d.ts
 # is real configuration and stays tracked; these are regenerated build output.
 /.openai/package-*/
 /.openai/*.tar.gz
+
+# design-sync: staged converter scripts, generated bundle, and machine state.
+# .design-sync/config.json, NOTES.md, conventions.md, previews/, and pkg/ are
+# durable (hand-authored) and stay tracked.
+/.ds-sync/
+/ds-bundle/
+/.design-sync/.cache/
+/.design-sync/learnings/
+/.design-sync/node_modules

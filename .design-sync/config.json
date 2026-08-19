@@ -1,0 +1,19 @@
+{
+  "projectId": "087bd4ca-0adc-4224-9941-b59f311802da",
+  "shape": "package",
+  "pkg": "thrive-brand-marks",
+  "globalName": "ThriveBrandMarks",
+  "entry": ".design-sync/pkg/index.tsx",
+  "cssEntry": "styles.css",
+  "componentSrcMap": {
+    "ThriveMark": "../../app/thrive-mark.tsx",
+    "RankMedallion": "../../app/rank-medallion.tsx",
+    "KeyGlyph": "../../app/key-glyph.tsx"
+  },
+  "dtsPropsFor": {
+    "ThriveMark": "size?: number; // px, both dimensions; default 22",
+    "RankMedallion": "metal: \"bronze\" | \"silver\" | \"gold\" | \"diamond\" | \"obsidian\" | \"steel\"; numeral: string; size?: number; // px, both dimensions; default 44\n  title?: string; // sets role=\"img\" + aria-label; omit for role=\"presentation\" + aria-hidden",
+    "KeyGlyph": "label?: string; // sets role=\"img\" + aria-label; omit for role=\"presentation\" + aria-hidden"
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}
