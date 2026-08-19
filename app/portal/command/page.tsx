@@ -550,6 +550,12 @@ export default async function FounderCommandCenter({
                 <i aria-hidden="true">{handoff.configured ? "↗" : "↓"}</i>
               </a>
             ))}
+            <Link className="fcc-launch" href="/portal/command/cloud">
+              <span>AI</span>
+              <strong>Cloud AI Command</strong>
+              <small>Multi-task agent orchestration</small>
+              <i aria-hidden="true">→</i>
+            </Link>
             <a
               className="fcc-launch"
               href="https://github.com/bankerrunners/core-platform-site"
@@ -733,6 +739,7 @@ export default async function FounderCommandCenter({
         </p>
 
         <nav className="fcc-thumb-dock" aria-label="Founder quick launcher">
+          <Link href="/portal/command/cloud"><span>AI</span><small>Cloud</small></Link>
           <a href="/go/hq"><span>HQ</span><small>Talk</small></a>
           <a href="/go/routines"><span>RT</span><small>Runs</small></a>
           <a href="/go/desk"><span>MT</span><small>Desk</small></a>

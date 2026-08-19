@@ -102,6 +102,7 @@ const PROTECTED_ROUTES = [
   "/portal/book",
   "/portal/calls",
   "/portal/command",
+  "/portal/command/cloud",
   "/portal/command/lodge",
   "/portal/calls/review",
   "/portal/calls/review/1",

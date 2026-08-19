@@ -454,6 +454,7 @@ const MISSION_GROUPS = [
 
 const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/command": "Command Center",
+  "/portal/command/cloud": "Cloud AI Command",
   "/portal/training": "Training",
   "/portal/calls": "Call Lab",
   "/portal/book": "Book",
