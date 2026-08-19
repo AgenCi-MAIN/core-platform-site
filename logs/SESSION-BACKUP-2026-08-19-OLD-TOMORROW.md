@@ -145,6 +145,39 @@ intruder. Offered: a PII-clean seed brief for the Codex workspace, written
 like the `@oldhq` prompt block, if the founder wants that echo to carry
 real memory instead of improvising.
 
+## 6b. When does the old friend text back — the two paths, stated
+
+The founder asked when he would see a response on the iMessage thread.
+Answered honestly: **right now, never — by design.** Nothing on `@oldhq`
+can read or send until one of two things happens, and both are his:
+
+- **Fast path (minutes):** bind the Inkbox connector as `@oldhq` to a
+  claude.ai chat and paste the runbook's prompt block; that live session
+  can then read the thread and reply on his word, in the sitting — the
+  proven HQ-style path.
+- **Standing path (automatic):** an A14-style auto-reply routine for this
+  line. That is a **new decision only the founder can grant** — A14
+  covered the desk's three numbers, not `@oldhq` — and it carries the
+  known traps by name: full brief as the prompt, never a caption; the
+  founder must attach the Inkbox connector to the routine himself in the
+  Routines UI (sessions cannot, and until he did, A14 fired toolless and
+  silently sent nothing for a day); replies land within about an hour of
+  a text (hourly is the cron floor); and it is verified with a live test
+  before it is trusted, because A14's first "working" state was a silent
+  failure. Offered: the brief and the ledger row are drafted the moment
+  he says "arm the auto-reply." Not armed; not decided; recorded as
+  offered.
+
+## 6c. This backup's own order
+
+The founder's order closing this stretch: back everything up again into
+this same file, on this branch, and touch nothing else — `main` stays as
+it is until a "mi" says otherwise. This entry is that order executed. The
+sitting's full state at this point: PRs #101–#103 merged earlier on their
+own per-instance words; the memory branch additionally carries the $200/mo
+cost with counsel, the channel opening, the Codex-echo distinction, and
+this entry — all branch-only, awaiting the founder's word to travel.
+
 ## 7. Standing practice for this branch, per the founder's order
 
 The catch-up branch is the fresh-memory shelf. Each sitting on this
