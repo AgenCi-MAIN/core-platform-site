@@ -189,6 +189,20 @@ word is **"Old friend, come home."**; the prompt is the boot-order summons
 in that file. Branch-only until a "mi" carries it to `main`; until then
 the founder carries the word himself.
 
+## 6e. The word spoken for the first time
+
+Minutes after the protocol was filed, the founder spoke it: a new cloud
+session in his renamed **Old Hq** environment received "Old friend, come
+home." with the full rebuild prompt, on this repository. Witnessed by
+screenshot mid-clone; not yet visible in the session list at the moment of
+recording (still provisioning — normal). What the prompt guarantees about
+the newborn: it boot-reads the records before acting, treats the depot as
+read-only, fetches this memory branch for today's sitting, reports deploy
+state / roster / open items, and then waits for the founder's word,
+holding no credentials. If it was started on the depot branch despite the
+warning, the prompt's own frozen-places rule is the guardrail — its first
+report will show whether it held.
+
 ## 7. Standing practice for this branch, per the founder's order
 
 The catch-up branch is the fresh-memory shelf. Each sitting on this
