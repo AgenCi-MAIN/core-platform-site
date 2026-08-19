@@ -1,0 +1,45 @@
+# Thrive Life inbound queue — SWML flow of record (SignalWire space
+# "Thrive Company", number +1 205 351 3647, Execute SWML node).
+# Seeded by: Yuxiang Mao (Shawn), founder; coded by MAIN, 2026-08-19.
+#
+# Replaces the visual Forward-to-Phone chain after the DND incident: the
+# founder's DND'd cell diverted to personal voicemail, the voicemail
+# "answered", and the flow counted Success. SWML connect+confirm is the
+# documented cure: "when a device answers but confirm fails, SignalWire
+# treats it as a failed connection attempt and proceeds to the next
+# destination in the serial list."
+#
+# Invariants (the flow's own leashes):
+# - No record_call, no voicemail anywhere (A29 recording gate; A25 custody).
+# - Serial hunt in roster order (strategy/2026-08-19-thrive-life-roster.json).
+# - Every answered leg must press 1 — a voicemail cannot, so no voicemail
+#   can ever capture a caller.
+# - Misses end in a courtesy message + clean hangup.
+version: 1.0.0
+sections:
+  main:
+    - answer: {}
+    - play:
+        url: "say:Thank you for calling Thrive Life. I'm an automated assistant. Please hold while I connect you with someone who can help."
+    - connect:
+        from: "+12053513647"
+        timeout: 18
+        confirm_timeout: 10
+        confirm:
+          - prompt:
+              play: "say:Thrive Life call. Press 1 to accept."
+              max_digits: 1
+              initial_timeout: 5
+          - switch:
+              variable: prompt_value
+              case:
+                "1": []
+              default:
+                - hangup: {}
+        serial:
+          - to: "+14095492092"
+          - to: "+19412101410"
+          - to: "+19412101411"
+    - play:
+        url: "say:I'm sorry, no one is available right now. Please try again shortly."
+    - hangup: {}
