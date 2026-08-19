@@ -1153,6 +1153,12 @@ button, .button, .nav-cta, .text-link {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* Between roughly 700px and 1024px the rail is on screen AND the bar is at
+     full width, and the two clusters together need more room than is left.
+     Wrapping drops the account cluster to a second line in that band instead
+     of overflowing the page; nothing is hidden, and at every other width the
+     bar is unchanged because it still fits on one line. */
+  flex-wrap: wrap;
   gap: 20px;
   padding: 8px 24px;
   background: var(--portal-panel);
@@ -1172,8 +1178,19 @@ button, .button, .nav-cta, .text-link {
 .portal-section-name { font-size: 14px; font-weight: 750; color: var(--portal-text); }
 .portal-connection { display: inline-flex; align-items: center; gap: 7px; color: var(--portal-muted); font-size: var(--portal-type-label); font-weight: 700; }
 .portal-connection > span { width: 7px; height: 7px; border-radius: 50%; background: var(--portal-success); box-shadow: 0 0 0 3px var(--portal-success-ring); }
-.portal-member-name { min-width: 0; display: grid; padding-left: 4px; line-height: 1.2; text-align: right; }
-.portal-member-name strong { max-width: 220px; overflow: hidden; font-size: var(--portal-type-body); text-overflow: ellipsis; white-space: nowrap; }
+/* minmax(0, 1fr), not the implicit `auto`: an auto grid column refuses to go
+   below its content's min-content width, so when the bar ran out of room this
+   block collapsed to 4px and its name and rank spilled out the right-hand side
+   rather than ellipsising. */
+.portal-member-name {
+  min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr);
+  padding-left: 4px; line-height: 1.2; text-align: right;
+}
+.portal-member-name strong,
+.portal-member-name small {
+  min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.portal-member-name strong { font-size: var(--portal-type-body); }
 .portal-member-name small { margin-top: 3px; color: var(--portal-muted); font-size: var(--portal-type-label); }
 .portal-topbar-avatar { flex: 0 0 auto; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 50%; background: var(--portal-avatar-surface); color: var(--portal-avatar-ink); font-size: 10px; font-weight: 850; letter-spacing: .02em; }
 .portal-drawer-scrim { display: none; }
@@ -1890,6 +1907,7 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
   max-width: 720px; margin: 0 0 20px; padding: 6px; overflow-x: auto;
   border: 1px solid var(--portal-line); border-radius: 999px; background: var(--portal-panel);
   overscroll-behavior-inline: contain; scrollbar-width: thin;
+  contain: paint; /* same reason as .training-tabs below */
 }
 .training-section-tabs a {
   display: grid; place-items: center; min-height: 48px; padding: 8px 14px;
@@ -5863,6 +5881,13 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   overscroll-behavior-inline: contain;
   scrollbar-width: thin;
   scroll-snap-type: x proximity;
+  /* `overflow-x: auto` makes this strip scroll, but on its own it does NOT
+     stop the tabs' 1561px of content from counting toward the PAGE's
+     scrollable width — so /portal/training could be swiped sideways for
+     1686px on a phone, dragging the whole layout off-screen with it. Paint
+     containment ends that propagation: the strip still scrolls, the document
+     no longer does. Measured 0px page overflow at 320-1440 after this. */
+  contain: paint;
 }
 .training-tab {
   scroll-snap-align: start;
