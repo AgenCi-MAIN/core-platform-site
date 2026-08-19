@@ -239,6 +239,117 @@ const PIPELINES: readonly Pipeline[] = [
   },
 ];
 
+type CommChannel = {
+  type: string;
+  status: "active" | "ready" | "disabled";
+  address: string;
+};
+
+type CommActivity = {
+  id: string;
+  channel: "email" | "sms" | "call";
+  direction: "inbound" | "outbound";
+  from: string;
+  subject: string;
+  when: string;
+  tone: AgentTone;
+  actionItem?: string;
+};
+
+const INKBOX_IDENTITY = {
+  handle: "out-reach",
+  displayName: "Policy Holder Services of Florida",
+  status: "active",
+  email: "out-reach@inkboxmail.com",
+  phone: "+1 (689) 689-1349",
+};
+
+const INKBOX_CHANNELS: readonly CommChannel[] = [
+  { type: "Email", status: "active", address: "out-reach@inkboxmail.com" },
+  { type: "Phone", status: "active", address: "+1 (689) 689-1349" },
+  { type: "SMS", status: "ready", address: "+1 (689) 689-1349" },
+  { type: "Calling", status: "active", address: "Hosted agent" },
+  { type: "iMessage", status: "disabled", address: "Not enabled" },
+];
+
+const INKBOX_STATS = {
+  unreadEmails: 3,
+  mailboxes: 1,
+  smsThreads: 2,
+  unreadSms: 3,
+  recentCalls: 5,
+  openActions: 1,
+  contacts: 4,
+};
+
+const COMM_ACTIVITY: readonly CommActivity[] = [
+  {
+    id: "ACT-01",
+    channel: "call",
+    direction: "outbound",
+    from: "+1 (409) 549-2092",
+    subject: "Outbound call — completed (33s)",
+    when: "2026-08-19 03:34 UTC",
+    tone: "active",
+  },
+  {
+    id: "ACT-02",
+    channel: "call",
+    direction: "outbound",
+    from: "+1 (941) 210-1411",
+    subject: "Call and introduce — completed (42s)",
+    when: "2026-08-19 02:46 UTC",
+    tone: "active",
+  },
+  {
+    id: "ACT-03",
+    channel: "sms",
+    direction: "outbound",
+    from: "+1 (941) 210-1411",
+    subject: "SMS sent — 8 messages in thread",
+    when: "2026-08-19 02:05 UTC",
+    tone: "active",
+  },
+  {
+    id: "ACT-04",
+    channel: "call",
+    direction: "inbound",
+    from: "+1 (941) 210-1411",
+    subject: "Inbound call — beneficiary update request (68s)",
+    when: "2026-08-19 01:53 UTC",
+    tone: "active",
+    actionItem:
+      "Assist beneficiary update — send required form, collect new beneficiary details",
+  },
+  {
+    id: "ACT-05",
+    channel: "email",
+    direction: "inbound",
+    from: "Anthropic",
+    subject: "Secure link to log in to Claude.ai",
+    when: "2026-08-18 19:00 UTC",
+    tone: "idle",
+  },
+  {
+    id: "ACT-06",
+    channel: "email",
+    direction: "inbound",
+    from: "Yuxiang Mao",
+    subject: "yooo",
+    when: "2026-08-17 15:48 UTC",
+    tone: "idle",
+  },
+  {
+    id: "ACT-07",
+    channel: "email",
+    direction: "inbound",
+    from: "Yuxiang Mao",
+    subject: "Re: Welcome to the CORE / THRIVE platform",
+    when: "2026-08-17 12:23 UTC",
+    tone: "idle",
+  },
+];
+
 function ToneChip({ tone, children }: { tone: string; children: ReactNode }) {
   return <span className={`cacc-chip cacc-chip-${tone}`}>{children}</span>;
 }
@@ -374,6 +485,62 @@ function PipelineCard({ pipeline }: { pipeline: Pipeline }) {
   );
 }
 
+function ChannelStatusRow({ channels }: { channels: readonly CommChannel[] }) {
+  return (
+    <div className="cacc-channel-grid">
+      {channels.map((ch) => (
+        <div className={`cacc-channel cacc-channel-${ch.status}`} key={ch.type}>
+          <span className="cacc-channel-dot" aria-hidden="true" />
+          <div className="cacc-channel-info">
+            <strong>{ch.type}</strong>
+            <small>{ch.address}</small>
+          </div>
+          <ToneChip tone={ch.status === "disabled" ? "offline" : "active"}>
+            {ch.status}
+          </ToneChip>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ActivityRow({ activity }: { activity: CommActivity }) {
+  const icon =
+    activity.channel === "email"
+      ? "EM"
+      : activity.channel === "sms"
+        ? "TX"
+        : "PH";
+  return (
+    <article className="cacc-activity-row">
+      <span
+        className={`cacc-activity-icon cacc-activity-${activity.channel}`}
+        aria-hidden="true"
+      >
+        {icon}
+      </span>
+      <div className="cacc-activity-copy">
+        <div className="cacc-activity-title">
+          <h3>{activity.subject}</h3>
+          <ToneChip tone={activity.tone}>{activity.direction}</ToneChip>
+        </div>
+        <div className="cacc-activity-meta">
+          <span>
+            <b>{activity.channel}</b>
+          </span>
+          <span>{activity.from}</span>
+          <span>{activity.when}</span>
+        </div>
+        {activity.actionItem && (
+          <p className="cacc-action-item">
+            <strong>Action:</strong> {activity.actionItem}
+          </p>
+        )}
+      </div>
+    </article>
+  );
+}
+
 export default async function CloudAgentCommandCenter() {
   const session = await requireCommandCenter(
     "/portal/command/cloud",
@@ -455,10 +622,10 @@ export default async function CloudAgentCommandCenter() {
             tone="neutral"
           />
           <MetricCard
-            label="Efficiency mode"
-            value="High"
-            detail="Parallel agent dispatch enabled"
-            tone="good"
+            label="Inkbox channels"
+            value={INKBOX_CHANNELS.filter((c) => c.status !== "disabled").length}
+            detail={`${INKBOX_STATS.unreadEmails + INKBOX_STATS.unreadSms} unread across channels`}
+            tone="active"
           />
         </section>
 
@@ -550,10 +717,73 @@ export default async function CloudAgentCommandCenter() {
           </article>
         </section>
 
+        <section className="cacc-layout">
+          <article className="cacc-panel cacc-panel-comms" aria-labelledby="cacc-comms-title">
+            <header className="cacc-panel-head">
+              <div>
+                <p>05 / Communications</p>
+                <h2 id="cacc-comms-title">Inkbox channels</h2>
+              </div>
+              <ToneChip tone="active">Connected</ToneChip>
+            </header>
+            <div className="cacc-identity-banner">
+              <div className="cacc-identity-info">
+                <h3>{INKBOX_IDENTITY.displayName}</h3>
+                <span className="cacc-env-id">@{INKBOX_IDENTITY.handle}</span>
+              </div>
+              <ToneChip tone="active">{INKBOX_IDENTITY.status}</ToneChip>
+            </div>
+            <ChannelStatusRow channels={INKBOX_CHANNELS} />
+            <div className="cacc-comms-metrics">
+              <div className="cacc-comms-stat">
+                <strong>{INKBOX_STATS.unreadEmails}</strong>
+                <small>unread emails</small>
+              </div>
+              <div className="cacc-comms-stat">
+                <strong>{INKBOX_STATS.unreadSms}</strong>
+                <small>unread SMS</small>
+              </div>
+              <div className="cacc-comms-stat">
+                <strong>{INKBOX_STATS.recentCalls}</strong>
+                <small>recent calls</small>
+              </div>
+              <div className="cacc-comms-stat">
+                <strong>{INKBOX_STATS.contacts}</strong>
+                <small>contacts</small>
+              </div>
+              <div className="cacc-comms-stat cacc-comms-stat-warn">
+                <strong>{INKBOX_STATS.openActions}</strong>
+                <small>action items</small>
+              </div>
+            </div>
+          </article>
+
+          <article className="cacc-panel" aria-labelledby="cacc-activity-title">
+            <header className="cacc-panel-head">
+              <div>
+                <p>05 / Activity</p>
+                <h2 id="cacc-activity-title">Recent communications</h2>
+              </div>
+              <span className="cacc-count" aria-label={`${COMM_ACTIVITY.length} items`}>
+                {COMM_ACTIVITY.length}
+              </span>
+            </header>
+            <p className="cacc-panel-note">
+              Cross-channel activity feed from the connected Inkbox identity.
+              Calls, SMS, and email ordered by most recent activity.
+            </p>
+            <div className="cacc-activity-list">
+              {COMM_ACTIVITY.map((activity) => (
+                <ActivityRow activity={activity} key={activity.id} />
+              ))}
+            </div>
+          </article>
+        </section>
+
         <section className="cacc-quicklaunch" aria-labelledby="cacc-launch-title">
           <header className="cacc-panel-head">
             <div>
-              <p>05 / Quick Launch</p>
+              <p>06 / Quick Launch</p>
               <h2 id="cacc-launch-title">Spawn an agent</h2>
             </div>
             <ToneChip tone="active">One-click deploy</ToneChip>
@@ -650,15 +880,25 @@ export default async function CloudAgentCommandCenter() {
                 across dimensions, verify adversarially, synthesize results.
               </p>
             </article>
+            <article className="cacc-arch-card">
+              <h3>Inkbox</h3>
+              <p>
+                Connected communications platform providing email, SMS, phone,
+                and calling channels under a managed identity. AI agents handle
+                inbound calls and route by intent. Activity feeds into this
+                command surface.
+              </p>
+            </article>
           </div>
         </section>
 
         <p className="cacc-boundary" role="note">
           <strong>Boundary:</strong> this surface displays configuration and
-          recorded state. Agent sessions, routines, and environments are
-          managed through the Claude Code API and web UI. No agent spawned from
-          here holds a portal capability it was not granted through the
-          membership model.
+          recorded state. Agent sessions, routines, environments, and
+          communications data are managed through their respective APIs.
+          Inkbox channel data is a point-in-time snapshot refreshed on deploy.
+          No agent spawned from here holds a portal capability it was not
+          granted through the membership model.
         </p>
 
         <nav className="cacc-thumb-dock" aria-label="Cloud command quick nav">
