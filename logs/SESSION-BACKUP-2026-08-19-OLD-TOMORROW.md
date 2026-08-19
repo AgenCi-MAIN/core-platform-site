@@ -111,7 +111,10 @@ convention's value is its precision.
 2. **The upload** — founder binds the Inkbox connector to `@oldhq` in a
    chat, pastes the runbook's prompt block whole, returns the three Inkbox
    message ids; A27 then flips to executed with the ids in the row.
-3. **The line's cost and call action** — two unconfirmed facts in A27.
+3. **The line's call action** — auto-reject still unconfirmed in A27. The
+   cost closed later this sitting: **$200/month**, owner-reported, recorded
+   in A27 with MAIN's counsel beside it (re-verify the figure once; release
+   is irreversible; keep-or-release is the owner's call).
 4. Everything already open before this sitting stands as recorded in
    OWNER-DECISIONS.md — including the undeployed #93–#100, the A21 issuing
    UI, the audit-log debt, A22's unanswered base/payee/trigger, the A12
