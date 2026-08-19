@@ -27,11 +27,13 @@ sections:
     - answer: {}
     - play:
         url: "say:Thank you for calling Thrive Life. I'm an automated assistant. Please hold while I connect you with someone who can help."
+        say_voice: "amazon.Joanna:neural:en-US"
     - connect:
         from: "+12053513647"
         confirm:
           - prompt:
               play: "say:Thrive Life call. Press 1 to accept."
+              say_voice: "amazon.Joanna:neural:en-US"
               max_digits: 1
               initial_timeout: 8
           - switch:
@@ -40,6 +42,7 @@ sections:
                 "1":
                   - play:
                       url: "say:Connecting you now."
+                      say_voice: "amazon.Joanna:neural:en-US"
               default:
                 - hangup: {}
         serial:
@@ -48,4 +51,5 @@ sections:
           - to: "+19412101411"
     - play:
         url: "say:I'm sorry, no one is available right now. Please try again shortly."
+        say_voice: "amazon.Joanna:neural:en-US"
     - hangup: {}
