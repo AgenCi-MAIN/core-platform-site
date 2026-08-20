@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Image from "next/image";
 
 const AGENTS = [
   {
@@ -220,16 +219,20 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
     <div className="ops-deck">
       <style>{`
         .ops-deck {
-          --ink: #17233a;
-          --muted: #526783;
-          --paper: #ffffff;
-          --violet: #285ecf;
-          --surface: #f5f8fd;
-          --border: #cbd9ec;
+          --ink: var(--portal-text);
+          --muted: var(--portal-muted);
+          --paper: var(--portal-panel);
+          --violet: var(--portal-accent);
+          --surface: var(--portal-raised);
+          --border: var(--portal-line);
+          --border-strong: var(--portal-line-strong);
+          --hover: var(--portal-hover);
+          --accent-strong: var(--portal-accent-strong);
+          --accent-ink: var(--portal-brand-ink);
           --radius: 18px;
           padding: clamp(8px, 1.5vw, 22px);
           border-radius: 24px;
-          background: linear-gradient(145deg, #f7faff 0%, #edf3fb 100%);
+          background: linear-gradient(145deg, var(--portal-raised) 0%, var(--portal-bg) 100%);
         }
 
         .ops-toolbar {
@@ -247,7 +250,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           padding: 10px 17px;
           border: 1px solid var(--border);
           border-radius: 999px;
-          background: rgba(255, 255, 255, 0.72);
+          background: var(--paper);
           color: var(--ink);
           font: 700 11px/1 system-ui, sans-serif;
           letter-spacing: 0.1em;
@@ -255,20 +258,20 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           cursor: pointer;
           transition: background 0.15s, border-color 0.15s;
         }
-        .ops-btn:hover { background: #e8f0fb; border-color: #9fb8d9; }
+        .ops-btn:hover { background: var(--hover); border-color: var(--border-strong); }
         .ops-btn:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
         .ops-btn-primary {
-          background: #22499b;
-          color: white;
-          border-color: #22499b;
+          background: var(--violet);
+          color: var(--accent-ink);
+          border-color: var(--violet);
         }
-        .ops-btn-primary:hover { background: #183a82; }
+        .ops-btn-primary:hover { background: var(--accent-strong); }
         .ops-btn-inkbox {
-          background: #163b85;
-          color: #ffffff;
-          border-color: #163b85;
+          background: var(--accent-strong);
+          color: var(--accent-ink);
+          border-color: var(--accent-strong);
         }
-        .ops-btn-inkbox:hover { background: #102f6c; }
+        .ops-btn-inkbox:hover { background: var(--violet); }
 
         .ops-grid {
           display: grid;
@@ -290,7 +293,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
         }
         .agent-card:hover {
           transform: translateY(-2px);
-          border-color: #aabfdb;
+          border-color: var(--border-strong);
           box-shadow: 0 14px 32px rgba(50, 81, 128, 0.12);
         }
         .agent-card:focus-visible {
@@ -313,7 +316,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           border-radius: 50%;
           overflow: hidden;
           margin-bottom: 16px;
-          border: 2px solid #ffffff;
+          border: 2px solid var(--paper);
           box-shadow: 0 0 0 1px var(--border), 0 5px 12px rgba(26, 52, 88, 0.14);
         }
         .agent-avatar img,
@@ -348,7 +351,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           padding: 7px 12px;
           border: 1px solid var(--border);
           border-radius: 999px;
-          background: #f8fbff;
+          background: var(--surface);
           color: var(--ink);
           font: 700 10px/1 system-ui, sans-serif;
           letter-spacing: 0.08em;
@@ -356,7 +359,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           cursor: pointer;
           transition: background 0.12s;
         }
-        .agent-card-action:hover { background: #e9f1fc; border-color: #a9bdd9; }
+        .agent-card-action:hover { background: var(--hover); border-color: var(--border-strong); }
         .agent-card-action:focus-visible { outline: 2px solid var(--violet); outline-offset: 1px; }
 
         .detail-panel {
@@ -374,7 +377,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           gap: 20px;
           padding: clamp(24px, 4vw, 42px);
           border-bottom: 1px solid var(--border);
-          background: linear-gradient(110deg, #ffffff, #f3f7ff);
+          background: linear-gradient(110deg, var(--paper), var(--surface));
         }
         .detail-avatar {
           position: relative;
@@ -382,7 +385,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           height: 86px;
           border-radius: 50%;
           overflow: hidden;
-          border: 3px solid white;
+          border: 3px solid var(--paper);
           box-shadow: 0 0 0 1px var(--border), 0 8px 18px rgba(26, 52, 88, 0.14);
           flex-shrink: 0;
         }
@@ -418,7 +421,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
         .detail-field {
           padding: 16px;
           background: var(--surface);
-          border: 1px solid #dbe6f4;
+          border: 1px solid var(--border);
           border-radius: 14px;
         }
         .detail-field-label {
@@ -482,7 +485,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           padding: 11px 13px;
           border: 1px solid var(--border);
           border-radius: 8px;
-          background: #f8fbff;
+          background: var(--surface);
           color: var(--ink);
           font: 400 14px/1.4 system-ui, sans-serif;
         }
@@ -528,7 +531,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
         .publish-modal-backdrop {
           position: fixed;
           inset: 0;
-          background: rgba(16, 35, 65, 0.44);
+          background: rgba(0, 0, 0, 0.62);
           display: grid;
           place-items: center;
           z-index: 100;
@@ -557,7 +560,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
         .publish-summary {
           padding: 18px;
           background: var(--surface);
-          border: 1px solid #dbe6f4;
+          border: 1px solid var(--border);
           border-radius: 14px;
           margin-bottom: 20px;
         }
@@ -611,12 +614,15 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
             >
               <div className="agent-card-stripe" style={{ background: agent.accent }} />
               <div className="agent-avatar">
-                <Image
+                {/* The worker serves these same-origin static assets directly; its Next image optimizer route is unavailable. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src={agent.portrait}
                   alt={`Fictional portrait for ${agent.name}, the ${agent.role}`}
                   width={128}
                   height={128}
-                  sizes="64px"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <p className="agent-card-name">{agent.name}</p>
@@ -648,12 +654,14 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
         <div className="detail-panel">
           <div className="detail-header">
             <div className="detail-avatar">
-              <Image
+              {/* The worker serves these same-origin static assets directly; its Next image optimizer route is unavailable. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={selected.portrait}
                 alt={`Fictional portrait for ${selected.name}, the ${selected.role}`}
                 width={172}
                 height={172}
-                sizes="86px"
+                decoding="async"
               />
             </div>
             <div className="detail-info">
