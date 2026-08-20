@@ -10,6 +10,8 @@ type AgentTone = "active" | "idle" | "scheduled" | "offline";
 
 type CloudEnvironment = {
   id: string;
+  /** Where this card goes when clicked. See LINKS below. */
+  href?: string;
   name: string;
   network: "full" | "restricted" | "none";
   tone: AgentTone;
@@ -21,6 +23,7 @@ type CloudEnvironment = {
 
 type AgentSession = {
   id: string;
+  href?: string;
   label: string;
   environment: string;
   model: string;
@@ -33,6 +36,7 @@ type AgentSession = {
 
 type Routine = {
   id: string;
+  href?: string;
   name: string;
   schedule: string;
   environment: string;
@@ -45,6 +49,7 @@ type Routine = {
 
 type Pipeline = {
   id: string;
+  href?: string;
   name: string;
   stages: number;
   active: number;
@@ -54,9 +59,49 @@ type Pipeline = {
   state: string;
 };
 
+/**
+ * Every destination this page can send you to, in one place.
+ *
+ * The rows on this page describe things that live somewhere ELSE — sessions
+ * and environments on claude.ai, routines, the Inkbox desk, the repo. A card
+ * that names one of those and cannot open it is a screenshot, so each card
+ * carries an href.
+ *
+ * Two rules kept these honest:
+ *
+ *   1. NO FABRICATED DEEP LINKS. Several rows here carry placeholder ids
+ *      (AGT-001, ENV-02) rather than real session ids, so there is no
+ *      per-item URL to build. Those link to the surface that lists the real
+ *      ones instead of to a guessed URL that would 404 — a link that lands
+ *      somewhere true and general beats one that looks specific and is wrong.
+ *   2. NOTHING ADDED TO THE ALLOWLIST. tel: and sms: are the phone's own
+ *      handlers, /go/* are the founder's existing gated redirects, and the
+ *      two external hosts are the ones this page already linked at its foot.
+ */
+const LINKS = {
+  /** The cloud surface that lists real environments and sessions. */
+  cloud: "https://claude.ai/code",
+  /** Founder-gated redirect that already exists. */
+  routines: "/go/routines",
+  /** Founder-gated Gmail compose to the desk. Already exists. */
+  desk: "/go/desk",
+  /** This session. Already linked at the foot of the page. */
+  hq: "/go/hq",
+  repo: "https://github.com/bankerrunners/core-platform-site",
+  pulls: "https://github.com/bankerrunners/core-platform-site/pulls",
+  security: "https://github.com/bankerrunners/core-platform-site/security",
+  /** The portal's own call records — where a call row actually resolves. */
+  calls: "/portal/calls",
+  audit: "/portal/audit",
+  /** The desk line. tel:/sms: hand off to the device, which is the point on a phone. */
+  deskTel: "tel:+16896891349",
+  deskSms: "sms:+16896891349",
+} as const;
+
 const ENVIRONMENTS: readonly CloudEnvironment[] = [
   {
     id: "ENV-01",
+    href: LINKS.cloud,
     name: "CORE Operations",
     network: "full",
     tone: "active",
@@ -68,6 +113,7 @@ const ENVIRONMENTS: readonly CloudEnvironment[] = [
   },
   {
     id: "ENV-02",
+    href: LINKS.cloud,
     name: "Agent Workforce",
     network: "full",
     tone: "idle",
@@ -79,6 +125,7 @@ const ENVIRONMENTS: readonly CloudEnvironment[] = [
   },
   {
     id: "ENV-03",
+    href: LINKS.cloud,
     name: "CI / Verification",
     network: "restricted",
     tone: "idle",
@@ -90,6 +137,7 @@ const ENVIRONMENTS: readonly CloudEnvironment[] = [
   },
   {
     id: "ENV-04",
+    href: LINKS.cloud,
     name: "Research & Analysis",
     network: "full",
     tone: "idle",
@@ -104,6 +152,7 @@ const ENVIRONMENTS: readonly CloudEnvironment[] = [
 const AGENT_SESSIONS: readonly AgentSession[] = [
   {
     id: "AGT-001",
+    href: LINKS.cloud,
     label: "Portal Feature Builder",
     environment: "CORE Operations",
     model: "claude-opus-4-6",
@@ -115,6 +164,7 @@ const AGENT_SESSIONS: readonly AgentSession[] = [
   },
   {
     id: "AGT-002",
+    href: LINKS.cloud,
     label: "PR Steward",
     environment: "Agent Workforce",
     model: "claude-sonnet-5",
@@ -126,6 +176,7 @@ const AGENT_SESSIONS: readonly AgentSession[] = [
   },
   {
     id: "AGT-003",
+    href: LINKS.cloud,
     label: "Security Reviewer",
     environment: "CI / Verification",
     model: "claude-opus-4-6",
@@ -137,6 +188,7 @@ const AGENT_SESSIONS: readonly AgentSession[] = [
   },
   {
     id: "AGT-004",
+    href: LINKS.cloud,
     label: "Morning Brief",
     environment: "Research & Analysis",
     model: "claude-sonnet-5",
@@ -151,6 +203,7 @@ const AGENT_SESSIONS: readonly AgentSession[] = [
 const ROUTINES: readonly Routine[] = [
   {
     id: "RTN-01",
+    href: LINKS.routines,
     name: "presence-probe",
     schedule: "0 */4 * * *",
     environment: "CORE Operations",
@@ -162,6 +215,7 @@ const ROUTINES: readonly Routine[] = [
   },
   {
     id: "RTN-02",
+    href: LINKS.routines,
     name: "test-gaps",
     schedule: "0 6 * * 1-5",
     environment: "CI / Verification",
@@ -173,6 +227,7 @@ const ROUTINES: readonly Routine[] = [
   },
   {
     id: "RTN-03",
+    href: LINKS.routines,
     name: "herald-outreach",
     schedule: "0 14 * * 1-5",
     environment: "Research & Analysis",
@@ -184,6 +239,7 @@ const ROUTINES: readonly Routine[] = [
   },
   {
     id: "RTN-04",
+    href: LINKS.routines,
     name: "deploy-watchdog",
     schedule: "*/30 * * * *",
     environment: "CI / Verification",
@@ -195,6 +251,7 @@ const ROUTINES: readonly Routine[] = [
   },
   {
     id: "RTN-05",
+    href: LINKS.routines,
     name: "pr-babysitter",
     schedule: "event-driven",
     environment: "Agent Workforce",
@@ -209,6 +266,7 @@ const ROUTINES: readonly Routine[] = [
 const PIPELINES: readonly Pipeline[] = [
   {
     id: "PL-01",
+    href: LINKS.pulls,
     name: "Feature → Review → Merge",
     stages: 4,
     active: 0,
@@ -219,6 +277,7 @@ const PIPELINES: readonly Pipeline[] = [
   },
   {
     id: "PL-02",
+    href: LINKS.security,
     name: "Security Audit Sweep",
     stages: 3,
     active: 0,
@@ -229,6 +288,7 @@ const PIPELINES: readonly Pipeline[] = [
   },
   {
     id: "PL-03",
+    href: LINKS.repo,
     name: "Multi-Repo Sync",
     stages: 2,
     active: 0,
@@ -241,12 +301,14 @@ const PIPELINES: readonly Pipeline[] = [
 
 type CommChannel = {
   type: string;
+  href?: string;
   status: "active" | "ready" | "disabled";
   address: string;
 };
 
 type CommActivity = {
   id: string;
+  href?: string;
   channel: "email" | "sms" | "call";
   direction: "inbound" | "outbound";
   from: string;
@@ -265,10 +327,12 @@ const INKBOX_IDENTITY = {
 };
 
 const INKBOX_CHANNELS: readonly CommChannel[] = [
-  { type: "Email", status: "active", address: "out-reach@inkboxmail.com" },
-  { type: "Phone", status: "active", address: "+1 (689) 689-1349" },
-  { type: "SMS", status: "ready", address: "+1 (689) 689-1349" },
-  { type: "Calling", status: "active", address: "Hosted agent" },
+  { type: "Email", status: "active", address: "out-reach@inkboxmail.com", href: LINKS.desk },
+  { type: "Phone", status: "active", address: "+1 (689) 689-1349", href: LINKS.deskTel },
+  { type: "SMS", status: "ready", address: "+1 (689) 689-1349", href: LINKS.deskSms },
+  { type: "Calling", status: "active", address: "Hosted agent", href: LINKS.deskTel },
+  // Deliberately no href. The channel is disabled, and a link that opens
+  // something which does not work is worse than a row that plainly says so.
   { type: "iMessage", status: "disabled", address: "Not enabled" },
 ];
 
@@ -285,6 +349,7 @@ const INKBOX_STATS = {
 const COMM_ACTIVITY: readonly CommActivity[] = [
   {
     id: "ACT-01",
+    href: LINKS.calls,
     channel: "call",
     direction: "outbound",
     from: "+1 (409) 549-2092",
@@ -294,6 +359,7 @@ const COMM_ACTIVITY: readonly CommActivity[] = [
   },
   {
     id: "ACT-02",
+    href: LINKS.calls,
     channel: "call",
     direction: "outbound",
     from: "+1 (941) 210-1411",
@@ -303,6 +369,7 @@ const COMM_ACTIVITY: readonly CommActivity[] = [
   },
   {
     id: "ACT-03",
+    href: LINKS.deskSms,
     channel: "sms",
     direction: "outbound",
     from: "+1 (941) 210-1411",
@@ -312,6 +379,7 @@ const COMM_ACTIVITY: readonly CommActivity[] = [
   },
   {
     id: "ACT-04",
+    href: LINKS.calls,
     channel: "call",
     direction: "inbound",
     from: "+1 (941) 210-1411",
@@ -323,6 +391,7 @@ const COMM_ACTIVITY: readonly CommActivity[] = [
   },
   {
     id: "ACT-05",
+    href: LINKS.desk,
     channel: "email",
     direction: "inbound",
     from: "Anthropic",
@@ -332,6 +401,7 @@ const COMM_ACTIVITY: readonly CommActivity[] = [
   },
   {
     id: "ACT-06",
+    href: LINKS.desk,
     channel: "email",
     direction: "inbound",
     from: "Yuxiang Mao",
@@ -341,6 +411,7 @@ const COMM_ACTIVITY: readonly CommActivity[] = [
   },
   {
     id: "ACT-07",
+    href: LINKS.desk,
     channel: "email",
     direction: "inbound",
     from: "Yuxiang Mao",
@@ -374,15 +445,61 @@ function MetricCard({
   );
 }
 
+/**
+ * Makes a whole card clickable without wrecking its accessible name.
+ *
+ * The obvious approach — wrap the entire <article> in an <a> — gives the link
+ * an accessible name built from every word inside it, so a screen reader
+ * announces the heading, the body, the four meta fields and the id as one
+ * enormous link. Instead the anchor sits on the heading, where the name is
+ * just the title, and a transparent ::after overlay stretches it across the
+ * card. Pointer users get the big target, keyboard and screen reader users get
+ * a sensible link, and there is exactly one tab stop per card either way.
+ *
+ * External hrefs open in a new tab with rel="noopener" — an unrelated host
+ * must never get a handle on this window. tel: and sms: are handed to the
+ * device rather than navigated, so they are plain anchors with no target.
+ */
+function CardLink({ href, children }: { href?: string; children: ReactNode }) {
+  if (!href) return <>{children}</>;
+
+  const isDeviceHandler = href.startsWith("tel:") || href.startsWith("sms:");
+  const isExternal = href.startsWith("http");
+
+  if (isDeviceHandler) {
+    return (
+      <a className="cacc-stretch" href={href}>
+        {children}
+      </a>
+    );
+  }
+  if (isExternal) {
+    return (
+      <a className="cacc-stretch" href={href} target="_blank" rel="noopener noreferrer">
+        {children}
+        <span className="cacc-external" aria-hidden="true">&#8599;</span>
+        <span className="sr-only"> (opens in a new tab)</span>
+      </a>
+    );
+  }
+  return (
+    <Link className="cacc-stretch" href={href}>
+      {children}
+    </Link>
+  );
+}
+
 function EnvironmentCard({ env }: { env: CloudEnvironment }) {
   return (
-    <article className="cacc-env-card" id={env.id.toLowerCase()}>
+    <article className={`cacc-env-card${env.href ? " cacc-linked" : ""}`} id={env.id.toLowerCase()}>
       <div className="cacc-env-head">
         <div className="cacc-env-icon">
           <span className={`cacc-env-dot cacc-env-dot-${env.tone}`} aria-hidden="true" />
         </div>
         <div className="cacc-env-title">
-          <h3>{env.name}</h3>
+          <h3>
+            <CardLink href={env.href}>{env.name}</CardLink>
+          </h3>
           <ToneChip tone={env.tone}>{env.state}</ToneChip>
         </div>
       </div>
@@ -405,13 +522,15 @@ function EnvironmentCard({ env }: { env: CloudEnvironment }) {
 
 function AgentRow({ agent }: { agent: AgentSession }) {
   return (
-    <article className="cacc-agent-row" id={agent.id.toLowerCase()}>
+    <article className={`cacc-agent-row${agent.href ? " cacc-linked" : ""}`} id={agent.id.toLowerCase()}>
       <div className="cacc-agent-dot-col">
         <span className={`cacc-env-dot cacc-env-dot-${agent.tone}`} aria-hidden="true" />
       </div>
       <div className="cacc-agent-copy">
         <div className="cacc-agent-title">
-          <h3>{agent.label}</h3>
+          <h3>
+            <CardLink href={agent.href}>{agent.label}</CardLink>
+          </h3>
           <ToneChip tone={agent.tone}>{agent.state}</ToneChip>
         </div>
         <p>{agent.task}</p>
@@ -434,11 +553,13 @@ function AgentRow({ agent }: { agent: AgentSession }) {
 
 function RoutineRow({ routine }: { routine: Routine }) {
   return (
-    <article className="cacc-routine-row" id={routine.id.toLowerCase()}>
+    <article className={`cacc-routine-row${routine.href ? " cacc-linked" : ""}`} id={routine.id.toLowerCase()}>
       <div className="cacc-routine-id">{routine.id}</div>
       <div className="cacc-routine-copy">
         <div className="cacc-routine-title">
-          <h3>{routine.name}</h3>
+          <h3>
+            <CardLink href={routine.href}>{routine.name}</CardLink>
+          </h3>
           <ToneChip tone={routine.tone}>{routine.state}</ToneChip>
         </div>
         <p>{routine.detail}</p>
@@ -466,9 +587,11 @@ function PipelineCard({ pipeline }: { pipeline: Pipeline }) {
   const pct = total > 0 ? Math.round((pipeline.completed / total) * 100) : 0;
 
   return (
-    <article className="cacc-pipeline-card">
+    <article className={`cacc-pipeline-card${pipeline.href ? " cacc-linked" : ""}`}>
       <div className="cacc-pipeline-head">
-        <h3>{pipeline.name}</h3>
+        <h3>
+          <CardLink href={pipeline.href}>{pipeline.name}</CardLink>
+        </h3>
         <ToneChip tone={pipeline.tone}>{pipeline.state}</ToneChip>
       </div>
       <div className="cacc-pipeline-bar">
@@ -489,10 +612,15 @@ function ChannelStatusRow({ channels }: { channels: readonly CommChannel[] }) {
   return (
     <div className="cacc-channel-grid">
       {channels.map((ch) => (
-        <div className={`cacc-channel cacc-channel-${ch.status}`} key={ch.type}>
+        <div
+          className={`cacc-channel cacc-channel-${ch.status}${ch.href ? " cacc-linked" : ""}`}
+          key={ch.type}
+        >
           <span className="cacc-channel-dot" aria-hidden="true" />
           <div className="cacc-channel-info">
-            <strong>{ch.type}</strong>
+            <strong>
+              <CardLink href={ch.href}>{ch.type}</CardLink>
+            </strong>
             <small>{ch.address}</small>
           </div>
           <ToneChip tone={ch.status === "disabled" ? "offline" : "active"}>
@@ -512,7 +640,7 @@ function ActivityRow({ activity }: { activity: CommActivity }) {
         ? "TX"
         : "PH";
   return (
-    <article className="cacc-activity-row">
+    <article className={`cacc-activity-row${activity.href ? " cacc-linked" : ""}`}>
       <span
         className={`cacc-activity-icon cacc-activity-${activity.channel}`}
         aria-hidden="true"
@@ -521,7 +649,9 @@ function ActivityRow({ activity }: { activity: CommActivity }) {
       </span>
       <div className="cacc-activity-copy">
         <div className="cacc-activity-title">
-          <h3>{activity.subject}</h3>
+          <h3>
+            <CardLink href={activity.href}>{activity.subject}</CardLink>
+          </h3>
           <ToneChip tone={activity.tone}>{activity.direction}</ToneChip>
         </div>
         <div className="cacc-activity-meta">
