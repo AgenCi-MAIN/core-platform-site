@@ -2079,3 +2079,60 @@ routing changed, and no call was placed. A fresh one-use founder `mi` is
 required to merge this branch. Deployment remains a separate explicit action
 after the merged-main gates pass; an authenticated heartbeat observation and
 controlled 3647 route test remain post-deploy acceptance checks.
+
+### 19u. Inbound browser-answer context failure repaired locally — 2026-08-20
+
+The availability-heartbeat repair was subsequently squash-merged and deployed
+as `main@185c9b6fafdcd7ef0e05efc5237e24b8aa1120e9`, Worker version
+`f1173dd7-d590-4ff8-a8fd-d388e50ade53`. A founder-controlled 3647 test then
+provided the first direct production evidence that the repaired presence path
+reached the browser: the floating Calls panel opened with an eight-second team
+hunt and exposed the Answer control. After Answer was selected, however, the
+panel stayed at **Claiming the call…**, the browser leg closed, and no two-way
+audio was established.
+
+**Root cause.** CORE had appended its parent call ID, stage, attempt, masked
+line, and masked caller metadata as query parameters on each SignalWire Fabric
+Subscriber Resource Address. SignalWire used the address to deliver the invite
+but did not preserve those application query parameters on the Browser SDK
+`Call`. All three visible fallbacks in the founder's evidence confirmed the
+loss: **AVAILABLE-TEAM HUNT**, **Called THRIVE line**, and **Caller number
+unavailable**. The client consequently tried to authorize the connected child
+browser leg with its SDK call ID and a fabricated default team context instead
+of the canonical parent D1 offer. The authenticated answer endpoint rejected
+that mismatch and the client correctly closed the leg, but its disconnect
+handler then overwrote the useful failure state with Available.
+
+**Local repair.** Clean isolated branch
+`codex/browser-inbound-answer-context-20260820`, based on exact deployed
+`main@185c9b6fafdcd7ef0e05efc5237e24b8aa1120e9`, now sends SignalWire the exact
+provider-issued Subscriber Resource Address without application metadata. On
+an incoming invite, the authenticated primary browser session asks CORE to
+resolve its newest active D1 offer. The server verifies the member's active
+assignment, exact unexpired Available browser session, active call, intended
+offer, stage, and attempt before returning only the canonical parent call ID
+and already-masked display values. An invite whose context cannot be resolved
+is rejected; Answer is never enabled for it. The connected event therefore
+claims the real D1 offer, and a claim-authorization failure remains visible
+after the provider closes the leg instead of being silently replaced by
+Available.
+
+**Verification.** The production-shaped Miniflare suite now covers resolution,
+wrong-browser refusal, exact Subscriber addresses, masked display context, a
+resolved browser answer, accepted-member ownership, connected status, call end,
+and return to Available. Focused inbound tests passed 6/6. The production build
+and complete repository suite passed 126/126; focused ESLint, `verify:build`,
+and `git diff --check` passed. The built client
+contained none of the scanned Voice credential, mobile-fallback,
+caller-encryption, machine-auth, or token-fixture markers. Repository-wide
+TypeScript emitted no diagnostic for a task-owned file and remains blocked only
+by the already-recorded, unrelated `services/core-agent-fleet`
+alias/dependency baseline.
+
+**Delivery boundary.** This is a verified local repair, not a live fix. The
+canonical checkout's unrelated Gallery work was not touched or absorbed. No
+D1 row, Worker secret, provider resource, Subscriber, number assignment, or
+routing rule was changed; neither 3647 nor 5118 was rerouted, and no call was
+placed. A fresh one-use founder `mi` is required to merge this branch.
+Deployment remains a separate explicit action after merged-main verification,
+followed by one controlled 3647 browser-answer smoke test.

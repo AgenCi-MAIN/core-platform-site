@@ -303,44 +303,64 @@ export function BrowserPhone({
     return { answeredElsewhere: false };
   }, []);
 
-  const receiveCall = useCallback((call: Call) => {
-    if (callRef.current && callRef.current.id === call.id) return;
-    const variables = call.userVariables ?? {};
-    const addressContext = addressVariables(call.to);
-    const providerCallId = stringVariable(variables.core_call_id)
-      ?? addressContext.get("core_call_id")
-      ?? call.id;
-    const stageValue = stringVariable(variables.core_stage) ?? addressContext.get("core_stage");
-    const stage = stageValue === "personal" ? "personal" : "team";
-    const rawAttempt = stringVariable(variables.core_attempt) ?? addressContext.get("core_attempt");
-    const attempt = rawAttempt && /^\d{1,4}$/.test(rawAttempt)
-      ? Math.max(1, Number.parseInt(rawAttempt, 10))
-      : 1;
-    const calledLine = stringVariable(variables.core_line)
-      ?? addressContext.get("core_line")
-      ?? "THRIVE line";
-    const callerMasked = stringVariable(variables.core_caller)
-      ?? addressContext.get("core_caller")
-      ?? "Caller number unavailable";
-    const nextContext: CallContext = {
-      providerCallId,
-      stage,
-      attempt,
-      calledLine,
-      callerMasked,
+  const resolveOfferContext = useCallback(async (): Promise<CallContext> => {
+    const response = await fetch("/portal/calls/offer-event", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "resolve",
+        browserSessionId: sessionIdRef.current,
+      }),
+    });
+    const body = (await safeJson(response)) as {
+      offer?: Partial<CallContext>;
+      error?: string;
     };
+    const offer = body.offer;
+    if (
+      !response.ok
+      || !offer
+      || typeof offer.providerCallId !== "string"
+      || (offer.stage !== "personal" && offer.stage !== "team")
+      || typeof offer.attempt !== "number"
+      || !Number.isSafeInteger(offer.attempt)
+      || offer.attempt < 1
+      || typeof offer.calledLine !== "string"
+      || typeof offer.callerMasked !== "string"
+    ) {
+      throw new Error(body.error ?? "The incoming call context could not be verified.");
+    }
+    return offer as CallContext;
+  }, []);
+
+  const receiveCall = useCallback(async (call: Call) => {
+    if (callRef.current) return;
+    // Reserve the SDK call immediately so repeated incomingCalls$ snapshots do
+    // not start parallel context lookups for the same offer.
     callRef.current = call;
+    let nextContext: CallContext;
+    try {
+      nextContext = await resolveOfferContext();
+    } catch (error) {
+      callRef.current = null;
+      try { call.reject(); } catch { /* the provider may already have advanced the hunt */ }
+      setPhase("error", friendlyError(error, "The incoming call context could not be verified."));
+      return;
+    }
+    if (callRef.current !== call || !["new", "ringing"].includes(call.status)) {
+      if (callRef.current === call) callRef.current = null;
+      return;
+    }
     connectedRef.current = false;
     contextRef.current = nextContext;
     setContext(nextContext);
     setSeconds(8);
-    setPhase("ringing", `${stage === "personal" ? "Your line" : "Team hunt"} · press 1 or Answer.`);
+    setPhase(
+      "ringing",
+      `${nextContext.stage === "personal" ? "Your line" : "Team hunt"} · press 1 or Answer.`,
+    );
     dispatchCallActivity(true);
     window.dispatchEvent(new CustomEvent(PHONE_PANEL_EVENT, { detail: { open: true } }));
-    void offerEvent("ringing", nextContext).catch(() => {
-      // Provider delivery remains live; an unrecorded offer is surfaced in the
-      // Calls workspace by the provider lifecycle callback if it arrives.
-    });
 
     const statusSubscription = call.status$.subscribe(async (status) => {
       if (status === "connected") {
@@ -376,7 +396,9 @@ export function BrowserPhone({
         contextRef.current = null;
         setContext(null);
         dispatchCallActivity(false);
-        if (phaseRef.current !== "answered_elsewhere") setPhase("available", "Available for the next call.");
+        if (!["answered_elsewhere", "error"].includes(phaseRef.current)) {
+          setPhase("available", "Available for the next call.");
+        }
       }
     });
     const streamSubscription = call.remoteStream$.subscribe((stream) => {
@@ -388,7 +410,7 @@ export function BrowserPhone({
       statusSubscription.unsubscribe();
       streamSubscription.unsubscribe();
     };
-  }, [offerEvent, setPhase]);
+  }, [offerEvent, resolveOfferContext, setPhase]);
 
   const becomeAvailable = useCallback(async () => {
     if (!bootstrap?.phoneEnabled || busyAction) return;
@@ -441,7 +463,7 @@ export function BrowserPhone({
       await client.connect();
       const incomingSubscription = client.session.incomingCalls$.subscribe((calls) => {
         const incoming = calls.find((item) => item.status === "ringing" || item.status === "new") ?? calls[0];
-        if (incoming) receiveCall(incoming);
+        if (incoming) void receiveCall(incoming);
       });
       subscriptionCleanups.push(() => incomingSubscription.unsubscribe());
       await client.register();
@@ -702,22 +724,6 @@ function acquireLeaseLock(): (() => void) | null {
 
 function dispatchCallActivity(active: boolean) {
   window.dispatchEvent(new CustomEvent(CALL_ACTIVITY_EVENT, { detail: { active } }));
-}
-
-function stringVariable(value: unknown): string | null {
-  return typeof value === "string" && value.trim() ? value.trim().slice(0, 200) : null;
-}
-
-function addressVariables(address: string | undefined): URLSearchParams {
-  if (!address) return new URLSearchParams();
-  try {
-    const parsed = new URL(address, "https://fabric.invalid");
-    return parsed.origin === "https://fabric.invalid"
-      ? parsed.searchParams
-      : new URLSearchParams();
-  } catch {
-    return new URLSearchParams();
-  }
 }
 
 function isEditingTarget(target: EventTarget | null): boolean {
