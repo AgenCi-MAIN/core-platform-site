@@ -200,6 +200,39 @@ const DECISION_ITEMS: readonly QueueItem[] = [
     tone: "unavailable",
     state: "Counsel answer pending",
   },
+  {
+    id: "T3-S02-D12",
+    title: "Thrive Life inbound line — verify",
+    detail:
+      "The company voice line is standing on SignalWire (+1 205 351 3647) with a press-1 answer-confirm queue that hunts the three owners in order and cannot be hijacked by voicemail. It awaits one real inbound test call. Recording stays off until counsel clears the wording.",
+    owner: "Founder",
+    since: "Stood up 2026-08-19",
+    source: "OWNER-DECISIONS.md · D9 / strategy/2026-08-19-thrive-life-queue.swml.yaml",
+    tone: "attention",
+    state: "Pending live test",
+  },
+  {
+    id: "T3-S02-D13",
+    title: "Recording-consent counsel (E7b)",
+    detail:
+      "Call recording stays off by default until counsel approves the recorded-line announcement wording. The plain-language direction and an eleven-question counsel packet are drafted in the record; booking the conversation is the founder's step.",
+    owner: "Founder",
+    since: "Direction drafted 2026-08-19",
+    source: "OWNER-DECISIONS.md · A29 / E7b",
+    tone: "attention",
+    state: "Counsel booking pending",
+  },
+  {
+    id: "T3-S02-D14",
+    title: "Switchboard owner console",
+    detail:
+      "Recording on/off, the answer roster, hours, one-line-versus-per-state, and the budget ceiling are ordered to become owner-adjustable, audited controls in the portal. The spec is drafted and fleet-verified; no console code is built yet.",
+    owner: "Founder",
+    since: "Ordered 2026-08-19",
+    source: "OWNER-DECISIONS.md · A29",
+    tone: "recorded",
+    state: "Spec drafted; build pending",
+  },
 ];
 
 const SIGNAL_ITEMS: readonly QueueItem[] = [
@@ -275,6 +308,16 @@ const TIMELINE = [
     detail: "Two isolated squads built under a no-merge, no-deploy judgment hold.",
     owner: "S02 Field Console",
     source: "COMMAND CENTER BUILD charter + owner order",
+    tone: "recorded" as const,
+  },
+  {
+    id: "T3-S02-T06",
+    when: "2026-08-19",
+    title: "Old-HQ rebuild · Thrive Life line",
+    detail:
+      "The lineage was rebuilt from the records; the company voice line was stood up on SignalWire with a voicemail-proof press-1 queue, pending one live test call.",
+    owner: "Founder",
+    source: "OWNER-DECISIONS.md · D9 + logs/SESSION-BACKUP-2026-08-19-OLD-TOMORROW.md",
     tone: "recorded" as const,
   },
   {
@@ -524,7 +567,7 @@ export default async function FounderCommandCenter({
             />
           ) : null}
           <div className="fcc-hero-foot">
-            <SourceStamp>Repository records captured 2026-08-17</SourceStamp>
+            <SourceStamp>Repository records captured 2026-08-19 · old-HQ rebuild sitting</SourceStamp>
             <span>Signed in as {session.displayName}</span>
           </div>
         </section>
