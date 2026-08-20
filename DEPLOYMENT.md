@@ -130,6 +130,85 @@ Secrets survive deploys; they only need setting again if they change.
    `Error 401: invalid_client` and cost a rebuild of the OAuth client. Copy
    credentials only from Google's own screen, with its copy button.
 
+## Post-deploy probes — the telephony ingest
+
+`/portal/calls/ingest` is the only path on this domain that Cloudflare Access
+does not protect (CORE_PLATFORM_RECORD.md § 10e, OWNER-DECISIONS D10).
+Everything else in this file can be checked from the deploy output; this cannot,
+because the bypass is Zero Trust console state and the refusal is worker code,
+and only a request from outside exercises both together. Run all five after
+any deploy that touches the route — **and after any change to an Access
+policy**, which is the case nothing else in the pipeline would notice.
+
+Use `curl.exe`, not `curl`: in PowerShell the bare name is an alias for
+`Invoke-WebRequest`, which does not take these flags and does not print the
+status line.
+
+```powershell
+$h = "https://site-creator-vinext-starter.thrive18.workers.dev"
+```
+
+- [ ] **POST with no credential → `401`, empty body.**
+      ```powershell
+      curl.exe -sS -i -X POST "$h/portal/calls/ingest" -d '{}'
+      ```
+      Expect `Content-Length: 0` — no JSON, no field name, no reason. A
+      refusal that explains itself tells an unauthenticated caller which half
+      of the credential to fix next.
+
+- [ ] **POST with a wrong secret of equal length → a byte-identical `401`.**
+      Send a credential the same length as the real one, and diff the whole
+      response against the probe above: status line, headers, body length. Any
+      difference distinguishes *no credential* from *wrong credential*, which
+      is the first rung of guessing the right one. The comparison behind it is
+      constant-time for the same reason — a response that differs only in
+      timing is the same oracle, more quietly.
+
+- [ ] **GET the ingest path → `405`, and never a `302` to
+      `cloudflareaccess.com`.**
+      ```powershell
+      curl.exe -sS -o NUL -w "%{http_code} %{redirect_url}`n" "$h/portal/calls/ingest"
+      ```
+      A `302` to `cloudflareaccess.com` means the bypass is not in place and
+      the carrier cannot reach the route at all — SignalWire keeps
+      answering calls and nothing records them. Anything that returns a body
+      means the path answers reads, which a write-only ingest has no business
+      doing.
+
+- [ ] **GET `/portal/calls` → `302` to `cloudflareaccess.com`.**
+      ```powershell
+      curl.exe -sS -o NUL -w "%{http_code} %{redirect_url}`n" "$h/portal/calls"
+      ```
+      This is the probe that proves the bypass did not widen. The transfer
+      inbox sits one path segment from the ingest route; if it answers
+      anonymously, the bypass is covering a prefix rather than a path.
+
+- [ ] **The same valid payload POSTed twice → exactly one row.**
+      Post a payload carrying a `transfer_id` you can recognise, twice, then
+      count it:
+      ```sql
+      SELECT COUNT(*) FROM dialer_transfers WHERE transfer_id = '<the id>';
+      ```
+      The answer is `1`. Carriers retry, and a retry must update the row, never
+      duplicate it. Run the query in the Cloudflare dashboard D1 console —
+      `wrangler d1 execute --remote` has failed on this account before (see
+      "How the database was provisioned"). Both deliveries should still appear
+      in `audit_events`: one row written, two arrivals recorded, because the
+      audit trail is the whole basis on which unattended traffic is later
+      trusted.
+
+**The bypass must be scoped to the exact path, and anything mounted beneath it
+inherits the bypass silently.** A policy on `/portal/calls/ingest` covers that
+path. A policy on `/portal/calls`, or one written with a trailing wildcard,
+hands the same anonymity to everything under it — including
+`/portal/calls/recording`, which serves call audio, and the review pages that
+render protected transfer context. Nothing announces that: a route added under
+a bypassed prefix six months from now is public from the moment it deploys,
+with no error, no log line, and no failing test unless someone wrote one to
+look. The probes above are the only thing that notices, which is why the
+fourth one — a gated path proving it is still gated — is not the
+optional one.
+
 ## Follow-ups
 
 - [x] **Rotate `SESSION_SECRET`.** Done 2026-08-14 — rotated after a candidate

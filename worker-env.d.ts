@@ -97,5 +97,38 @@ declare namespace Cloudflare {
      */
     TWILIO_ACCOUNT_SID?: string;
     TWILIO_AUTH_TOKEN?: string;
+
+    /**
+     * SignalWire — the carrier that POSTs call events to the ingest route
+     * (OWNER-DECISIONS D9). All five optional for the same reason as the
+     * rest: a deployment where telephony is not configured genuinely lacks
+     * them, and the route refuses the POST rather than crashing. Unconfigured
+     * must mean closed here, not open — this is the one path the edge does
+     * not protect.
+     *
+     * `SIGNALWIRE_INGEST_SECRET` is the credential the caller presents.
+     * `SIGNALWIRE_INGEST_SECRET_PREVIOUS` is the outgoing value during a
+     * rotation, accepted alongside it so the secret can change without a
+     * window where live calls are dropped; delete it once the carrier is
+     * confirmed sending the new one.
+     *
+     * `SIGNALWIRE_SIGNING_KEY` verifies the request signature, and
+     * `SIGNALWIRE_PUBLIC_ORIGIN` is the origin that signature was computed
+     * over. The origin is stated rather than read off the request because a
+     * proxied request can carry a host or scheme the signer never saw, and a
+     * signature recomputed over the wrong URL fails for a legitimate caller.
+     *
+     * `SIGNALWIRE_AGENT_MAP` maps carrier-side agent numbers to member email
+     * addresses. It is a secret rather than a D1 table on purpose: staff
+     * mobile numbers are personal data, and the database is exported and
+     * backed up (F2 already keeps those exports out of the repo because they
+     * hold member emails). Set with `wrangler secret put`, or `.dev.vars`
+     * locally. Never store any of these values in a file — only these names.
+     */
+    SIGNALWIRE_INGEST_SECRET?: string;
+    SIGNALWIRE_INGEST_SECRET_PREVIOUS?: string;
+    SIGNALWIRE_SIGNING_KEY?: string;
+    SIGNALWIRE_PUBLIC_ORIGIN?: string;
+    SIGNALWIRE_AGENT_MAP?: string;
   }
 }

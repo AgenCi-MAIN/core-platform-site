@@ -1,7 +1,9 @@
+import { env } from "cloudflare:workers";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { auditEvents, dialerTransfers } from "../../../db/schema";
 import { requireCapability } from "../access";
+import { SIGNALWIRE_SOURCE_SYSTEM } from "../calls/transfer-id";
 import { EmptyState, PortalPageIntro, PortalShell } from "../components";
 import { readFaultCopy, readRows } from "../read-guard";
 import { InboundAvailabilityControl } from "./availability-control";
@@ -37,16 +39,29 @@ export default async function InboundPage() {
 
   const { rows: availabilityRows, fault: availabilityFault } = await readRows("audit_events", () =>
     getDb()
-      .select({ reason: auditEvents.reason, occurredAt: auditEvents.occurredAt })
+      .select({
+        reason: auditEvents.reason,
+        decision: auditEvents.decision,
+        occurredAt: auditEvents.occurredAt,
+      })
       .from(auditEvents)
       .where(
         and(
           eq(auditEvents.action, "inbound.availability"),
-          eq(auditEvents.actorEmail, session.email),
-          eq(auditEvents.decision, "allow"),
+          // Compared case-insensitively, like the transfer reads below. The
+          // audit row holds the address as the session presented it, so an
+          // event written under a differently-cased spelling of the same
+          // account is invisible to an exact match — and an invisible "went
+          // offline" row leaves this page showing the member as available.
+          sql`lower(${auditEvents.actorEmail}) = ${email}`,
         ),
       )
-      .orderBy(desc(auditEvents.occurredAt))
+      // Refusals are read too. A denied availability change is part of this
+      // member's history, and filtering the row out would leave the older
+      // "available" event on top as though the refusal never happened.
+      // `id` breaks the tie: `occurred_at` has no sub-second resolution, so
+      // two toggles in the same second are otherwise ordered arbitrarily.
+      .orderBy(desc(auditEvents.occurredAt), desc(auditEvents.id))
       .limit(1),
   );
 
@@ -94,17 +109,62 @@ export default async function InboundPage() {
       .limit(10),
   );
 
+  // Evidence that the carrier is actually writing into CORE. Nothing on this
+  // page can interrogate the ingest route — it authenticates a carrier, not a
+  // member — so the table is the only witness available: a row proves an event
+  // arrived, and no rows proves nothing on its own.
+  const { rows: ingestRows, fault: ingestFault } = await readRows("dialer_transfers", () =>
+    getDb()
+      .select({
+        records: sql<number>`count(*)`,
+        latest: sql<string | null>`max(${dialerTransfers.receivedAt})`,
+      })
+      .from(dialerTransfers)
+      .where(eq(dialerTransfers.sourceSystem, SIGNALWIRE_SOURCE_SYSTEM)),
+  );
+
+  // The newest row decides, and only then is its reason read. Selecting the
+  // newest row that *said* "available" would report a member as ready long
+  // after they went offline, because that older row still exists. A refusal on
+  // top means the last change did not take, so the page declines to claim the
+  // member is available rather than showing whatever preceded it.
   const latestAvailability = availabilityRows[0];
-  const availability = latestAvailability?.reason === "available" ? "available" : "offline";
+  const availabilityRefused = latestAvailability?.decision === "deny";
+  const availability =
+    !availabilityRefused && latestAvailability?.reason === "available" ? "available" : "offline";
   const availabilityLabel = availabilityFault
     ? "Availability history could not be read"
-    : latestAvailability
-      ? `Last changed ${when(latestAvailability.occurredAt)}`
-      : "No saved availability preference yet";
+    : !latestAvailability
+      ? "No saved availability preference yet"
+      : availabilityRefused
+        ? `Last change was refused ${when(latestAvailability.occurredAt)} — shown offline rather than assumed ready`
+        : `Last changed ${when(latestAvailability.occurredAt)}`;
   const calls = ownTotals[0]?.calls ?? 0;
   const talkSeconds = ownTotals[0]?.seconds ?? 0;
   const waiting = queueTotals[0]?.calls ?? 0;
   const feedFault = recentFault ?? ownTotalsFault;
+
+  // Only the presence of the ingest credential is read, never its value: a
+  // secret must not reach a rendered page. Absent, the route has nothing to
+  // authenticate a carrier POST with, so no record can arrive through it —
+  // which is a different statement from "no calls came in", and the copy below
+  // keeps the two apart instead of collapsing them into one reassuring line.
+  const ingestCredentialed = Boolean(env.SIGNALWIRE_INGEST_SECRET);
+  const ingestRecords = ingestFault ? 0 : (ingestRows[0]?.records ?? 0);
+  const ingestSummary = ingestFault
+    ? "Whether any call record has reached CORE could not be read just now, so this page makes no claim either way."
+    : ingestRecords > 0
+      ? `Call records are arriving from SignalWire: ${ingestRecords} held in CORE, most recent ${when(ingestRows[0]?.latest ?? null)}.`
+      : ingestCredentialed
+        ? "The SignalWire ingest credential is set on this deployment and no call record has come through it yet."
+        : "The SignalWire ingest credential is not set on this deployment, so no call record can reach CORE until it is.";
+  const ingestStep = ingestFault
+    ? "could not be read"
+    : ingestRecords > 0
+      ? "receiving"
+      : ingestCredentialed
+        ? "awaiting the first call"
+        : "not configured";
 
   return (
     <PortalShell session={session} current={PATH} section="Inbound Calls">
@@ -113,7 +173,7 @@ export default async function InboundPage() {
         <PortalPageIntro
           eyebrow="Inbound operations"
           title={<>Take the next <em>live call</em>.</>}
-          subtitle="One agent-facing surface for readiness, queue visibility, and the inbound calls already attributed to you. The telephony feeds are real where data exists; write-side routing stays explicitly gated until the Retreaver/Twilio bridge is connected."
+          subtitle={`One agent-facing surface for readiness, queue visibility, and the inbound calls already attributed to you. ${ingestSummary} Routing is decided in the SignalWire console and not here: marking yourself available records your intent in CORE, and does not change which agent the carrier rings.`}
           compact
         />
 
@@ -138,7 +198,7 @@ export default async function InboundPage() {
               <article className="inbound-stat">
                 <span>Your talk time</span>
                 <strong>{ownTotalsFault ? "—" : duration(talkSeconds)}</strong>
-                <small>Computed from inbound transfer records only</small>
+                <small>{ownTotalsFault ? "Call totals could not be read" : "Computed from inbound transfer records only"}</small>
               </article>
             </div>
           </div>
@@ -146,18 +206,19 @@ export default async function InboundPage() {
           <aside className="inbound-bridge">
             <div className="inbound-bridge-head">
               <div>
-                <h2>Routing bridge</h2>
+                <h2>Where routing is decided</h2>
                 <p>
-                  CORE can read inbound transfer evidence today. The control plane that actually tells Retreaver or Twilio which agent should ring is not connected yet.
+                  CORE holds the record of a call; SignalWire decides who takes it. Which number answers, which agent rings, and in what order are all set in the SignalWire console, and nothing in this portal writes back to it.
                 </p>
               </div>
-              <span className="inbound-bridge-badge">Read-only</span>
+              <span className="inbound-bridge-badge">Records only</span>
             </div>
             <div className="inbound-flow" aria-label="Inbound routing path">
-              <div className="inbound-flow-row"><b>1</b><strong>Campaign / central number</strong><small>source</small></div>
-              <div className="inbound-flow-row"><b>2</b><strong>Retreaver / Twilio</strong><small>router</small></div>
-              <div className="inbound-flow-row"><b>3</b><strong>CORE availability</strong><small>saved</small></div>
-              <div className="inbound-flow-row"><b>4</b><strong>Agent delivery</strong><small>bridge pending</small></div>
+              <div className="inbound-flow-row"><b>1</b><strong>Campaign / central number</strong><small>caller dials</small></div>
+              <div className="inbound-flow-row"><b>2</b><strong>SignalWire</strong><small>chooses the agent</small></div>
+              <div className="inbound-flow-row"><b>3</b><strong>Agent phone</strong><small>carrier rings</small></div>
+              <div className="inbound-flow-row"><b>4</b><strong>CORE record</strong><small>{ingestStep}</small></div>
+              <div className="inbound-flow-row"><b>—</b><strong>Your CORE availability</strong><small>not consulted</small></div>
             </div>
           </aside>
         </div>
@@ -168,8 +229,11 @@ export default async function InboundPage() {
               <h2>Your inbound activity</h2>
               <p>Latest transfers attributed to your authenticated member record.</p>
             </div>
-            <span className={`portal-state portal-state-${recentCalls.length ? "live" : "pending"}`}>
-              {recentCalls.length ? "Feed active" : "Awaiting calls"}
+            {/* A failed read returns no rows, so the pill has to name the fault
+                itself — "Awaiting calls" over an unread table is a claim about
+                data nobody looked at. */}
+            <span className={`portal-state portal-state-${!feedFault && recentCalls.length ? "live" : "pending"}`}>
+              {feedFault ? "Feed unavailable" : recentCalls.length ? "Feed active" : "Awaiting calls"}
             </span>
           </div>
 
@@ -178,7 +242,7 @@ export default async function InboundPage() {
           ) : recentCalls.length === 0 ? (
             <EmptyState
               title="No inbound calls routed to you yet"
-              body="The feed is connected to CORE's transfer records and will populate when an inbound transfer is attributed to your member email. No sample calls are shown."
+              body={`This feed reads CORE's own transfer records, filtered to your member email, and fills in when the carrier attributes a call to you. ${ingestSummary} No sample calls are shown.`}
             />
           ) : (
             <div className="inbound-feed-list">
@@ -203,7 +267,7 @@ export default async function InboundPage() {
           )}
 
           <p className="inbound-source-note">
-            <strong>Routing boundary:</strong> marking yourself available is persisted in CORE, but it does not yet change carrier, Retreaver, or Twilio routing. That write-side integration needs credentials and an approved routing policy before it can be turned on.
+            <strong>Routing boundary:</strong> your availability is written to CORE&rsquo;s audit log and read back by this page. Nothing else reads it — SignalWire picks the agent from its own console and never asks CORE — so going available here does not put you in the rotation. Records flow the other way, from the carrier into CORE; sending availability back to it needs a ring-group write, each agent&rsquo;s number held as personal data, and an approved routing policy before it can be turned on.
           </p>
         </article>
       </main>

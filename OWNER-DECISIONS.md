@@ -89,6 +89,7 @@ an action) · 🔵 OPEN (still the owner's to decide)
 | D6 | Copilot — keep **Pro+**, cancel the duplicate Pro | ⏳ owner's click |
 | D7 | YouTube Music trial — cancel on Sep 13 | ⏳ reminder armed |
 | D8 | Two Slack Pro trials — decide before conversion | 🔵 |
+| D10 | **SignalWire adopted as the telephony carrier** (founder's decision, 2026-08-19). The carrier holds the numbers, answers, and hands the call to an agent's phone; CORE holds the record of what happened. **Routing configuration lives in the SignalWire console, not in CORE** — the dial plan, the ring groups and the transfer destinations are console state, so changing where a call goes is a console change and never a deploy. Nothing in this repository is the source of truth for routing, and no page here should be built as though it were. **CORE is the system of record for call records only:** the `dialer_transfers` row, its lifecycle and consent state, the recording in R2, and the review trail. The carrier writes those through exactly one route, `/portal/calls/ingest`, which is the only path for which an Access bypass is authorized — the edge stops protecting that path, so the route authenticates the caller itself (record § 10e; the post-deploy probes are in DEPLOYMENT.md). **The agent phone-to-email map lives in a Worker secret, `SIGNALWIRE_AGENT_MAP`, not a D1 table** — staff mobile numbers are personal data, and F2 already keeps D1 exports out of the repository because they hold member emails; putting every agent's cell number in the same export is precisely the widening that decision was taken to prevent. The E7 conditions travel with this build unchanged: no client-assertable consent, no re-POST overwrite of consent or recording fields, constant-time secret comparison, no identity echo on 401, every accept and reject audited. **Open, and deliberately not closed by this row: what happens to Inkbox.** D2 consolidated telephony on Inkbox, D3 paid for the plan, and two numbers are live on it today (`@out-reach` +1 689 689 1349, `@oldhq` +1 425 571 9282) — releasing an Inkbox number is irreversible. The founder adopted SignalWire; he has **not** said whether Inkbox is retired, kept for the desk's text and iMessage channels, or run alongside. Coexistence is undecided, and this row does not supersede D2 | ✅ **carrier adopted 2026-08-19** · 🔵 **coexistence with Inkbox (D2) undecided** |
 
 ## E. Partners (Ryan & Andrew Davidson)
 
@@ -127,6 +128,8 @@ an action) · 🔵 OPEN (still the owner's to decide)
 7. Oscar's sign-in address (A8) · Copilot cancel (D6) · Slack trials (D8)
 8. **Create the empty private repo `the-old-tomorrow-hq`** on GitHub, then say
    the word — the depot branch pushes there unchanged (F7)
+9. **Inkbox after SignalWire** — retire it, keep it for the desk's text and
+   iMessage channels, or run both. Numbers are irreversible once released (D10)
 
 ---
 

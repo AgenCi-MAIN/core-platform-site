@@ -1,8 +1,9 @@
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { getDb } from "../../db";
+import { appendAuditRow } from "../../db/audit";
+import { isMissingTableError } from "../../db/errors";
 import {
-  auditEvents,
   portalMembers,
   type MemberStatus,
   type PortalRole,
@@ -672,26 +673,17 @@ export type AuditInput = {
  * Append one audit row. Never throws: a logging failure must not become a
  * denial-of-service on the portal, but it is surfaced on the server console so
  * the gap is visible.
+ *
+ * The insert itself is `appendAuditRow`, which reports whether the row landed.
+ * That answer is deliberately discarded here. Every caller of this function is
+ * a guard deciding whether to render a page, and a member who is entitled to a
+ * page must still get it when the log is down — so the return type stays
+ * `void`, which is the honest shape for a caller that would ignore the outcome
+ * anyway. Callers that must fail closed on a dropped row use `appendAuditRow`
+ * directly.
  */
 export async function recordAudit(input: AuditInput): Promise<void> {
-  try {
-    const db = tryGetDb();
-    if (!db) return;
-
-    await db.insert(auditEvents).values({
-      action: input.action,
-      decision: input.decision,
-      reason: input.reason,
-      actorEmail: input.actorEmail ?? null,
-      actorSubjectId: input.actorSubjectId ?? null,
-      actorRole: input.actorRole ?? null,
-      resource: input.resource ?? null,
-      requestPath: input.requestPath ?? null,
-      detail: input.detail ?? null,
-    });
-  } catch (error) {
-    console.error("[portal] audit write failed", error);
-  }
+  await appendAuditRow(input);
 }
 
 export function capabilitiesForRole(role: PortalRole): readonly Capability[] {
@@ -722,22 +714,17 @@ function tryGetDb(): PortalDb | null {
 }
 
 /**
- * True when a query failed because the table does not exist — a bound database
- * whose migration has not been applied.
+ * True when a query failed because the table does not exist. Defined in
+ * `db/errors.ts` and re-exported here so existing importers keep working.
  *
- * Matched on the message because D1 and SQLite surface this as a plain error
- * with no stable code. The match is deliberately narrow: only a missing table
- * is treated as "not provisioned". A missing column, a constraint violation, or
- * a connection fault must not be swallowed by this.
+ * It moved because it is not an access decision. A machine endpoint that never
+ * resolves a session still has to classify the same error the same way, and
+ * importing it from this module would pull the whole server-only access model —
+ * `next/headers`, the D1 binding, the capability table — into a caller that
+ * needs one regex. Keep the re-export: dropping it would make every existing
+ * import a rewrite for no gain.
  */
-export function isMissingTableError(error: unknown): boolean {
-  const message =
-    error instanceof Error
-      ? `${error.message} ${String((error as { cause?: unknown }).cause ?? "")}`
-      : String(error);
-
-  return /no such table|does not exist|D1_ERROR.*no such table/i.test(message);
-}
+export { isMissingTableError };
 
 async function bindSubjectOnFirstSignIn(
   db: PortalDb,

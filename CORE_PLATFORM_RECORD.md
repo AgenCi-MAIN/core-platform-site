@@ -150,6 +150,11 @@ the old account for GitHub/Drive.
 | `GOOGLE_CLIENT_SECRET` | OAuth client secret, starts `GOCSPX-` |
 | `SESSION_SECRET` | Long random string signing session cookies |
 | `ANTHROPIC_API_KEY` | Powers the JARVIS Presence (member Q&A pet). Optional — absent means the Presence answers with an honest 503, nothing else breaks. Get one at console.anthropic.com, set with `npx wrangler secret put ANTHROPIC_API_KEY -c dist/server/wrangler.json`. |
+| `SIGNALWIRE_INGEST_SECRET` | The credential the carrier presents to `/portal/calls/ingest` (§ 10e, OWNER-DECISIONS D10). Absent means the route refuses every POST — unconfigured is closed, not open. |
+| `SIGNALWIRE_INGEST_SECRET_PREVIOUS` | The outgoing value during a rotation, accepted alongside the current one so the secret can change without a window where live calls are dropped. Delete it once the carrier is confirmed sending the new one. |
+| `SIGNALWIRE_SIGNING_KEY` | Verifies the carrier's request signature on that same route. |
+| `SIGNALWIRE_PUBLIC_ORIGIN` | The origin the signature was computed over. Not secret in the way the others are — it is a URL — but it is configured rather than read off the request, because a proxy can rewrite the host and a signature recomputed over the wrong URL fails for a legitimate caller. |
+| `SIGNALWIRE_AGENT_MAP` | Carrier-side agent numbers → member email addresses. A Worker secret rather than a D1 table, so staff mobile numbers stay out of the database and out of its exports (OWNER-DECISIONS F2). |
 
 **The Presence's isolation contract (governance, 2026-08-15).** The
 `pet.chat` capability was granted to every role: the Presence is the one
@@ -908,6 +913,62 @@ declined card is deliberately left unfixed, and it is understood that
 NumberBarn will eventually release the 850 number for non-payment —
 accepted, not an accident. If that number ever matters again, the payment
 method must be fixed before NumberBarn's grace window closes.
+
+## 10e. Telephony — SignalWire, and the one path the edge does not protect
+
+Recorded 2026-08-19, when the founder adopted **SignalWire** as the carrier
+(OWNER-DECISIONS D10). The division that decision draws is the whole design, so
+it is restated here: **SignalWire routes calls; CORE keeps the record.** The
+dial plan, the ring groups and the transfer destinations are console state on
+SignalWire's side — changing where a call goes is a console change, never a
+deploy, and nothing in this repository is the source of truth for routing. CORE
+is the system of record for call *records* only: the `dialer_transfers` row, its
+lifecycle and consent state, the recording in R2, and the review trail under
+`/portal/calls`.
+
+**The ingest route.** The carrier writes those rows through exactly one route,
+`POST /portal/calls/ingest` — the first write path into a table the portal
+has until now only ever read.
+
+**Exactly one path is public, and that is a standing constraint rather than an
+implementation detail.** Cloudflare Access fronts the whole domain, so an
+anonymous carrier POST is refused at the edge before the app runs — correct
+for every other route, and fatal for this one. The Access bypass that lets the
+carrier through is scoped to `/portal/calls/ingest` and to nothing else.
+Everything else under `/portal` keeps both checks: the edge gate, and the app's
+own session and membership resolution.
+
+Because the edge stops protecting that one path, the route authenticates its
+caller itself:
+
+- the presented credential is compared in constant time against
+  `SIGNALWIRE_INGEST_SECRET`, and against `SIGNALWIRE_INGEST_SECRET_PREVIOUS`
+  while a rotation is in flight;
+- the request signature is verified with `SIGNALWIRE_SIGNING_KEY` over
+  `SIGNALWIRE_PUBLIC_ORIGIN`;
+- a refusal is a 401 with an empty body — no field name, no reason, no echo
+  of what was sent. A refusal that explains itself tells an unauthenticated
+  caller which half of the credential to fix next;
+- every accept and every reject writes an `audit_events` row.
+
+**Identity still never comes from the payload.** The `agent_email` a carrier
+sends names who it *says* took the call; it is resolved against
+`portal_members`, and an address that resolves to no active member is recorded
+as unassigned. Nothing in a payload creates a member. That is the same rule as
+the retired `oai-authenticated-user-*` headers, applied to a different sender.
+The number-to-address map itself lives in `SIGNALWIRE_AGENT_MAP`, a Worker
+secret rather than a D1 table, because staff mobile numbers are personal data
+and F2 already keeps D1 exports out of the repository for holding less than
+that.
+
+Secret names are listed in § 3. No value appears here, and none ever should.
+
+**What this record cannot observe, stated plainly.** The Access bypass is
+console state in Zero Trust, not repository state. Nothing in this file can
+attest that it exists, that it is still scoped to the single path, or that no
+route has since been mounted beneath it and inherited the bypass silently. Only
+a probe can, and DEPLOYMENT.md carries the checklist — run it after any
+Access policy change, not only after a deploy.
 
 ## 11. Where things are
 

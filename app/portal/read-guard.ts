@@ -1,7 +1,8 @@
-import { isMissingTableError } from "./access";
+import { isMissingTableError } from "../../db/errors";
 
 /**
- * Reading a table after authorization has already succeeded.
+ * Touching a table after authorization has already succeeded — reading one
+ * here, and writing one in `writeRow` below.
  *
  * `resolvePortalAccess` goes to real trouble to fail closed when the database
  * is unreachable or unmigrated — but that protection covers `portal_members`
@@ -55,6 +56,48 @@ export async function readRows<Row>(
     // copy below, never the driver's message.
     console.error(`[portal] could not read ${label} (${fault}):`, error);
     return { rows: [], fault };
+  }
+}
+
+export type WriteResult<Value> =
+  | { ok: true; value: Value }
+  | { ok: false; fault: ReadFault };
+
+/**
+ * The same classification for a write, and a separate function on purpose.
+ *
+ * `readRows` answers a failed query with an empty array. That is right for a
+ * read — the page still renders, and the fault beside it stops the emptiness
+ * being read as "no records". It is ruinous for a write: there is no empty
+ * equivalent of an insert that did not happen, and a caller handed back a
+ * plausible-looking result has no way left to tell that nothing was stored.
+ *
+ * The caller that matters is the dialer webhook. A vendor retries on a failure
+ * response and stops retrying on a success one, so a handler that reports 200
+ * after a failed insert is not merely wrong for one request — it tells the only
+ * system holding a second copy of that transfer to discard it. The call record
+ * is then gone permanently, and the audit log shows a clean receipt for it.
+ *
+ * So the outcome is returned as a discriminated union the caller cannot read
+ * past: there is no `value` on the failing branch to reach for by accident.
+ * `ReadFault` is reused rather than duplicated because the two causes are the
+ * same two — an unmigrated table, or a database that did not answer — and the
+ * copy in `readFaultCopy` already explains both truthfully.
+ *
+ * `label` names the table for the server log and is never returned to the
+ * caller, for the reason it is never shown to a member: the driver's message
+ * describes the schema to whoever can trigger the failure.
+ */
+export async function writeRow<Value>(
+  label: string,
+  run: () => Promise<Value>,
+): Promise<WriteResult<Value>> {
+  try {
+    return { ok: true, value: await run() };
+  } catch (error) {
+    const fault: ReadFault = isMissingTableError(error) ? "not_provisioned" : "unavailable";
+    console.error(`[portal] could not write ${label} (${fault}):`, error);
+    return { ok: false, fault };
   }
 }
 

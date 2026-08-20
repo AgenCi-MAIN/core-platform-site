@@ -32,8 +32,8 @@ export function InboundAvailabilityControl({
       setStatus(payload.status);
       setMessage(
         payload.status === "available"
-          ? "Availability saved. You are marked ready in CORE."
-          : "Availability saved. You are marked offline in CORE.",
+          ? "Saved. You are marked ready in CORE; the carrier's rotation is unchanged."
+          : "Saved. You are marked offline in CORE; the carrier's rotation is unchanged.",
       );
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not save availability.");
@@ -53,7 +53,7 @@ export function InboundAvailabilityControl({
         </div>
         <strong>{available ? "Ready for inbound" : "Offline"}</strong>
         <p>
-          Save the status the routing bridge should use when Retreaver/Twilio write control is connected.
+          Recorded in CORE as your stated readiness and read back here. It is not sent to SignalWire — the carrier picks who rings from its own console — so this does not put you in or out of the rotation.
         </p>
         <small>{updatedLabel}</small>
       </div>
@@ -61,7 +61,7 @@ export function InboundAvailabilityControl({
         <button type="button" onClick={toggle} disabled={busy}>
           {busy ? "Saving…" : available ? "Go offline" : "Go available"}
         </button>
-        <span className="inbound-routing-caveat">Routing bridge: read-only</span>
+        <span className="inbound-routing-caveat">Not sent to the carrier</span>
       </div>
       {message ? <p className="inbound-save-message" role="status">{message}</p> : null}
     </section>
