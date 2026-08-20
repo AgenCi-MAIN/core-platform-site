@@ -56,7 +56,12 @@ export async function POST(request: Request): Promise<Response> {
     if (!existing[0] || existing[0].browserSessionId !== payload.browserSessionId) {
       return jsonNoStore({ error: "This tab is not the primary phone session." }, 409);
     }
-    if (action === "available" && new Date(existing[0].expiresAt).getTime() <= now.getTime()) {
+    if (
+      (action === "available" || action === "heartbeat")
+      && new Date(existing[0].expiresAt).getTime() <= now.getTime()
+    ) {
+      // Expiry removes this browser from the hunt. It must register again;
+      // accepting a late heartbeat here would silently resurrect a stale tab.
       return jsonNoStore(
         { error: "The phone registration expired. Register the browser again." },
         409,
