@@ -2184,3 +2184,61 @@ routing rule was changed; neither 3647 nor 5118 was rerouted, and no call was
 placed. A fresh one-use founder `mi` is required to merge this branch.
 Deployment remains a separate explicit action after merged-main verification,
 followed by one separately confirmed controlled 3647 browser call.
+
+### 19w. SignalWire External SWML call-context parser repaired locally — 2026-08-20
+
+After the signature repair in 19v was squash-merged and deployed as
+`main@21ce3fa2f8a8ba6971bd76215261c0240518714f`, the founder explicitly
+authorized one controlled 3647 browser test. The SignalWire Dashboard
+Click-to-Test action created Voice Segment
+`073d4803-1b93-4ac2-a370-d5209b217a9a`, reached CORE, and ended after one
+second when `/portal/calls/route` returned HTTP 503. CORE never created an
+inbound-call or browser-offer row, so the browser correctly remained
+Available. SignalWire retried the document fetch four times; CORE did not
+submit a second test.
+
+**What the test proved.** Production audit rows 29486–29489 independently
+verified both machine-authentication factors and recorded
+`secret_and_signature_verified` with the documented SWML JSON SHA-1 hex
+scheme. The reset signing key and the 19v signature repair therefore worked.
+The Dashboard test targeted a Call Fabric `/public/...` resource rather than
+placing a PSTN call to the 3647 DID; it proved the authenticated document-fetch
+path, not the number's public telephone routing.
+
+**Root cause.** SignalWire's current External Calling SWML webhook nests the
+provider identifier at `call.call_id`. The deployed normalizer accepted only
+the legacy `call.id`, a root `call_id`, or an internal variable, so the
+authentic request failed normalization before any D1 insert. The same official
+contract exposes phone-specific values as `call.from_number` and
+`call.to_number`, and identifies a connect- or transfer-created parent at
+`call.parent.call_id`. The prior production-shaped test fixture incorrectly
+used `call.id`, allowing the contract mismatch to pass locally.
+
+**Local repair.** Clean isolated branch
+`codex/signalwire-call-id-20260820`, based on exact
+`origin/main@21ce3fa2f8a8ba6971bd76215261c0240518714f`, now prefers the
+documented nested call ID, phone-number fields, and parent call ID while
+retaining the former shapes only as compatibility fallbacks. The regression
+fixture now uses the provider's real envelope. A missing provider ID fails
+closed before writing a call, and a browser-only `/public/...` Click-to-Test
+address is explicitly refused as a DID so it cannot be misrepresented as a
+3647 PSTN routing test.
+
+**Verification.** The focused inbound-browser suite passed 7/7. The production
+build and complete repository suite passed 128/128. `verify:build` reported the
+Worker safe to deploy with the intended D1 binding and seventeen client
+assets. Task-owned ESLint, `git diff --check`, and a diff scan for embedded
+HTTP user-info credentials passed. Repository-wide TypeScript remains blocked
+only by the already-recorded, unrelated `services/core-agent-fleet`
+alias/dependency baseline; no diagnostic names a task-owned file. An
+independent review checked the patch against SignalWire's current first-party
+inbound-call schema.
+
+**Delivery boundary.** This is a verified local repair, not production. The
+canonical checkout's unrelated Gallery work was not touched or absorbed. No
+D1 row, Worker secret, provider resource, Subscriber, number assignment, or
+routing rule was changed; 5118 was untouched. The one Dashboard test described
+above is the only call action in this repair. A fresh one-use founder `mi` is
+required to merge the branch. Deployment is a separate explicit action after
+merged-main verification, and a real 3647 PSTN browser-answer test requires a
+new action-time confirmation after deployment.
