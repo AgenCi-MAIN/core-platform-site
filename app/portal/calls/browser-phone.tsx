@@ -172,7 +172,7 @@ export function BrowserPhone({
     if (client) {
       try { await client.unregister(); } catch { /* already unregistered */ }
       try { await client.disconnect(); } catch { /* already disconnected */ }
-      client.destroy();
+      try { client.destroy(); } catch { /* partially initialized clients can have no session to destroy */ }
     }
     try { await postPresence("offline"); } catch { /* expiry is the second fail-closed path */ }
     releaseLockRef.current?.();
@@ -370,27 +370,31 @@ export function BrowserPhone({
       };
       const { SignalWire } = await import("@signalwire/js");
       const client = new SignalWire(credentials, {
+        skipConnection: true,
         skipRegister: true,
         persistSession: false,
         savePreferences: false,
         logLevel: "error",
       });
       clientRef.current = client;
-      const incomingSubscription = client.session.incomingCalls$.subscribe((calls) => {
-        const incoming = calls.find((item) => item.status === "ringing" || item.status === "new") ?? calls[0];
-        if (incoming) receiveCall(incoming);
-      });
+      const subscriptionCleanups: Array<() => void> = [];
       const connectionSubscription = client.isConnected$.subscribe((connected) => {
         if (!connected && ["available", "ringing", "connecting", "connected"].includes(phaseRef.current)) {
           void stopPhone("SignalWire disconnected. Press Available to register again.");
         }
       });
+      subscriptionCleanups.push(() => connectionSubscription.unsubscribe());
       const previousRelease = releaseLockRef.current;
       releaseLockRef.current = () => {
-        incomingSubscription.unsubscribe();
-        connectionSubscription.unsubscribe();
+        subscriptionCleanups.forEach((cleanup) => cleanup());
         previousRelease?.();
       };
+      await client.connect();
+      const incomingSubscription = client.session.incomingCalls$.subscribe((calls) => {
+        const incoming = calls.find((item) => item.status === "ringing" || item.status === "new") ?? calls[0];
+        if (incoming) receiveCall(incoming);
+      });
+      subscriptionCleanups.push(() => incomingSubscription.unsubscribe());
       await client.register();
       await postPresence("available");
       heartbeatFailuresRef.current = 0;

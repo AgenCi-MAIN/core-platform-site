@@ -720,3 +720,22 @@ test("the additive voice migration pins assignment, offer, and callback uniquene
   await insertTask();
   await assert.rejects(insertTask, /UNIQUE|constraint/i);
 });
+
+test("the browser phone connects before reading the session and cleanup cannot strand Registering", () => {
+  const source = readFileSync(join(ROOT, "app/portal/calls/browser-phone.tsx"), "utf8");
+  const constructorAt = source.indexOf("const client = new SignalWire(credentials");
+  const connectAt = source.indexOf("await client.connect()", constructorAt);
+  const sessionAt = source.indexOf("client.session.incomingCalls$", constructorAt);
+  const registerAt = source.indexOf("await client.register()", constructorAt);
+
+  assert.ok(constructorAt >= 0, "the SignalWire client is constructed in the browser phone");
+  assert.match(source.slice(constructorAt, connectAt), /skipConnection:\s*true/);
+  assert.ok(connectAt > constructorAt, "the deferred WebSocket connection is opened explicitly");
+  assert.ok(sessionAt > connectAt, "the session is read only after connection and authentication");
+  assert.ok(registerAt > sessionAt, "incoming-call observation is ready before the user registers online");
+  assert.match(
+    source,
+    /try\s*{\s*client\.destroy\(\);\s*}\s*catch\s*{[^}]*}/,
+    "a partially initialized SDK client cannot interrupt the error-state transition",
+  );
+});
