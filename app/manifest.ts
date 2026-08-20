@@ -67,7 +67,7 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "News",
         url: "/portal/announcements",
       },
-      { name: "Call review", short_name: "Calls", url: "/portal/calls" },
+      { name: "Calls", short_name: "Calls", url: "/portal/calls?tab=live" },
       { name: "Scripts", short_name: "Scripts", url: "/portal/scripts" },
       { name: "THRIVE Radio", short_name: "Radio", url: "/portal/music" },
     ],

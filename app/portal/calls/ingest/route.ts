@@ -12,6 +12,7 @@ import { resolveAgentEmail } from "../../signalwire/agent-map";
 import { normalizeSignalwireEvent } from "../../signalwire/event";
 import { authenticateSignalwireRequest } from "../../signalwire/ingest-auth";
 import { SIGNALWIRE_SOURCE_SYSTEM } from "../transfer-id";
+import { handleInboundVoiceLifecyclePayload } from "../inbound-lifecycle";
 
 export const dynamic = "force-dynamic";
 
@@ -212,6 +213,20 @@ export async function POST(request: Request) {
   } catch {
     await record("deny", "payload_unreadable");
     return new Response(null, { status: 400 });
+  }
+
+  // The same authenticated carrier door is the source of truth for both the
+  // established transfer inbox and the new browser-hunt lifecycle. The
+  // lifecycle handler consumes a payload only when its provider call id maps
+  // to an existing inbound_voice_calls row; everything else continues through
+  // the original transfer normalizer unchanged.
+  try {
+    if (await handleInboundVoiceLifecyclePayload(payload)) {
+      return new Response(null, { status: 204 });
+    }
+  } catch {
+    await record("deny", "inbound_lifecycle_unavailable");
+    return new Response(null, { status: 503 });
   }
 
   const event = normalizeSignalwireEvent(payload);

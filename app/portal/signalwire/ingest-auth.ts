@@ -85,6 +85,13 @@ const SIGNATURE_HEADER = "x-signalwire-signature";
 
 const AUDIT_ACTION = "signalwire.ingest.auth";
 
+export type SignalwireMachineAuthOptions = {
+  /** Literal path owned by the calling handler. Query strings are forbidden. */
+  path?: string;
+  /** Non-secret audit action for this one machine boundary. */
+  auditAction?: string;
+};
+
 export type IngestDenial =
   /** A required secret is unset, or the configured origin is unusable. */
   | { kind: "not_configured"; status: 503 }
@@ -139,7 +146,12 @@ type SignedRequest = {
  * Never throws. Every outcome, allow and deny alike, is written to
  * `audit_events` before it is returned.
  */
-export async function authenticateSignalwireRequest(request: SignedRequest): Promise<IngestAuth> {
+export async function authenticateSignalwireRequest(
+  request: SignedRequest,
+  options: SignalwireMachineAuthOptions = {},
+): Promise<IngestAuth> {
+  const expectedPath = options.path ?? INGEST_PATH;
+  const auditAction = options.auditAction ?? AUDIT_ACTION;
   // Recorded for forensics only. Unlike the signed URL below, this is read off
   // the request — which is safe precisely because nothing verifies against it.
   const requestPath = safePath(request);
@@ -147,39 +159,48 @@ export async function authenticateSignalwireRequest(request: SignedRequest): Pro
   const current = env.SIGNALWIRE_INGEST_SECRET;
   const previous = env.SIGNALWIRE_INGEST_SECRET_PREVIOUS;
   const signingKey = env.SIGNALWIRE_SIGNING_KEY;
-  const signedUrl = publicIngestUrl();
+  const signedUrl = publicMachineUrl(expectedPath);
+
+  if (!isLiteralMachinePath(expectedPath) || requestPath !== expectedPath) {
+    return deny(
+      { kind: "bad_signature", status: 403 },
+      requestPath,
+      null,
+      auditAction,
+    );
+  }
 
   // Unconfigured means closed. This is the one route Cloudflare Access does not
   // stand in front of — it has to admit an anonymous carrier — so a
   // half-provisioned deployment here is an open door onto the transfer table,
   // not a degraded page. Refuse before reading anything off the request.
   if (!current || !signingKey || !signedUrl) {
-    return deny({ kind: "not_configured", status: 503 }, requestPath, null);
+    return deny({ kind: "not_configured", status: 503 }, requestPath, null, auditAction);
   }
 
   const presented = readBasicSecret(request.headers.get("authorization"));
   if (presented === null) {
-    return deny({ kind: "no_credential", status: 401 }, requestPath, null);
+    return deny({ kind: "no_credential", status: 401 }, requestPath, null, auditAction);
   }
 
   const generation = await matchSecret(presented, current, previous);
   if (generation === null) {
-    return deny({ kind: "bad_credential", status: 403 }, requestPath, null);
+    return deny({ kind: "bad_credential", status: 403 }, requestPath, null, auditAction);
   }
 
   const presentedSignature = request.headers.get(SIGNATURE_HEADER);
   if (!presentedSignature) {
-    return deny({ kind: "no_signature", status: 403 }, requestPath, generation);
+    return deny({ kind: "no_signature", status: 403 }, requestPath, generation, auditAction);
   }
 
   const base = await signatureBase(request, signedUrl);
   if (base === null) {
-    return deny({ kind: "unverifiable_body", status: 403 }, requestPath, generation);
+    return deny({ kind: "unverifiable_body", status: 403 }, requestPath, generation, auditAction);
   }
 
   const digest = await matchSignature(presentedSignature, signingKey, base);
   if (digest === null) {
-    return deny({ kind: "bad_signature", status: 403 }, requestPath, generation);
+    return deny({ kind: "bad_signature", status: 403 }, requestPath, generation, auditAction);
   }
 
   // `appendAuditRow` reports rather than throws, and the report is load-bearing
@@ -189,7 +210,7 @@ export async function authenticateSignalwireRequest(request: SignedRequest): Pro
   // dialer_transfers with no record of what authorised it, so an unrecorded
   // allow becomes a denial and SignalWire retries.
   const recorded = await appendAuditRow({
-    action: AUDIT_ACTION,
+    action: auditAction,
     decision: "allow",
     reason: "secret_and_signature_verified",
     requestPath,
@@ -206,6 +227,7 @@ async function deny(
   denial: IngestDenial,
   requestPath: string,
   generation: SecretGeneration | null,
+  auditAction: string,
 ): Promise<IngestAuth> {
   // Deliberately carries neither the presented credential nor the signature. A
   // denial row is read by more people than the secret store is, and a rejected
@@ -213,7 +235,7 @@ async function deny(
   // is metadata, not material: it is what tells an operator a rotation has
   // finished and `SIGNALWIRE_INGEST_SECRET_PREVIOUS` can be deleted.
   await appendAuditRow({
-    action: AUDIT_ACTION,
+    action: auditAction,
     decision: "deny",
     reason: denial.kind,
     requestPath,
@@ -243,7 +265,7 @@ async function deny(
  * Returns null when the origin is unset or unparseable, which fails closed
  * rather than verifying against a malformed string.
  */
-function publicIngestUrl(): string | null {
+function publicMachineUrl(path: string): string | null {
   const configured = env.SIGNALWIRE_PUBLIC_ORIGIN?.trim();
   if (!configured) return null;
 
@@ -253,10 +275,14 @@ function publicIngestUrl(): string | null {
     // `url.origin` normalises away any path, query, or trailing slash that was
     // pasted in, so a stray character in the secret cannot silently break every
     // verification at once.
-    return `${url.origin}${INGEST_PATH}`;
+    return `${url.origin}${path}`;
   } catch {
     return null;
   }
+}
+
+function isLiteralMachinePath(value: string): boolean {
+  return value.startsWith("/portal/calls/") && !value.includes("?") && !value.includes("#");
 }
 
 /**

@@ -69,7 +69,7 @@ export function CollabDialer() {
         <article className="dialer-panel">
           <h2 id="dialer-title">Test the platform line</h2>
           <p>
-            SignalWire will call your approved private mobile ending in <strong>2092</strong> from {TELEPHONY_CONFIG.platformLine.display}. Answer and press 1; no customer is called.
+            SignalWire will call the approved private-mobile fallback from {TELEPHONY_CONFIG.platformLine.display}. Answer and press 1; no customer is called. The private number is intentionally not shown in portal HTML.
           </p>
           <button
             className="dialer-button secondary"

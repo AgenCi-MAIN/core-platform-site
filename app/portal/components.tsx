@@ -134,30 +134,13 @@ const NAV: readonly NavItem[] = [
   },
   {
     href: "/portal/calls",
-    label: "Call Lab",
-    capability: "calls.review",
+    label: "Calls",
+    capability: "calls.answer",
     icon: "calls",
     group: "Calls",
-    description: "Transferred call access and permissioned coaching review.",
+    description: "Live browser calls, history, voicemail, authorized review, and founder outbound calling.",
     state: "live",
-    stateLabel: "Beta ready",
-  },
-  {
-    href: "/portal/dialer",
-    label: "Collab Dialer",
-    capability: "calls.review",
-    icon: "dialer",
-    group: "Calls",
-    description: "Rings the founder's own line first, then connects the customer. Founder only.",
-    state: "live",
-    // The page guard tightened from `calls.review` to `requireFounder`. This
-    // flag has to move with it: the nav decides who is SHOWN the tile and the
-    // guard decides who may open it, so leaving them disagreeing hands every
-    // `calls.review` holder a live-looking link that bounces them to
-    // /portal/no-access and writes a `deny/founder_only` row under their name.
-    // A capability they were never granted should not read as one they lost.
-    founderOnly: true,
-    stateLabel: "Founder only",
+    stateLabel: "Voice workspace",
   },
   {
     href: "/portal/scripts",
@@ -369,7 +352,7 @@ const NAV_GROUPS = ["Workspace", "Calls", "Team", "API", "Administration"] as co
  * Administration render their label alone.
  */
 const NAV_GROUP_SUBTITLES: Partial<Record<(typeof NAV_GROUPS)[number], string>> = {
-  Calls: "Call review, scripts & coaching",
+  Calls: "Answer, follow up, review & coach",
   Team: "People, books & leadership",
   API: "External sources & trades",
 };
@@ -383,7 +366,6 @@ const MISSION_GROUPS = [
     routes: [
       "/portal/training",
       "/portal/calls",
-      "/portal/dialer",
       "/portal/book",
       "/portal/scripts",
       "/portal/team",
@@ -436,8 +418,7 @@ const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/command": "Command Center",
   "/portal/command/cloud": "Cloud AI Command",
   "/portal/training": "Training",
-  "/portal/calls": "Call Lab",
-  "/portal/dialer": "Collab Dialer",
+  "/portal/calls": "Calls",
   "/portal/book": "Book",
   "/portal/scripts": "Scripts",
   "/portal/team": "Team",

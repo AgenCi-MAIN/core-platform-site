@@ -158,6 +158,20 @@ export function PortalAudioDeck() {
     }
   }, [volume, muted]);
 
+  // Ringing or connected browser calls always win the headset. The radio is
+  // paused immediately and deliberately stays paused after the call; resuming
+  // requires a fresh member click so audio never surprises the employee.
+  useEffect(() => {
+    const pauseForCall = (event: Event) => {
+      const active = (event as CustomEvent<{ active?: boolean }>).detail?.active;
+      if (!active) return;
+      audioRef.current?.pause();
+      setPlaying(false);
+    };
+    window.addEventListener("thrive:call-activity", pauseForCall);
+    return () => window.removeEventListener("thrive:call-activity", pauseForCall);
+  }, []);
+
   const hasTracks = tracks.length > 0;
   const track = hasTracks ? tracks[index % tracks.length] : null;
 

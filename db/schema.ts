@@ -76,6 +76,49 @@ export type OutboundDialMode = (typeof OUTBOUND_DIAL_MODES)[number];
 export const OUTBOUND_DIAL_STATUSES = ["pending", "queued", "failed"] as const;
 export type OutboundDialStatus = (typeof OUTBOUND_DIAL_STATUSES)[number];
 
+export const VOICE_LINE_TYPES = ["personal", "shared"] as const;
+export type VoiceLineType = (typeof VOICE_LINE_TYPES)[number];
+
+export const VOICE_ASSIGNMENT_STATUSES = ["active", "suspended", "retired"] as const;
+export type VoiceAssignmentStatus = (typeof VOICE_ASSIGNMENT_STATUSES)[number];
+
+export const VOICE_PRESENCE_STATES = ["offline", "available", "busy"] as const;
+export type VoicePresenceState = (typeof VOICE_PRESENCE_STATES)[number];
+
+export const INBOUND_VOICE_STAGES = [
+  "received",
+  "personal",
+  "team",
+  "mobile",
+  "voicemail",
+  "complete",
+] as const;
+export type InboundVoiceStage = (typeof INBOUND_VOICE_STAGES)[number];
+
+export const INBOUND_VOICE_STATUSES = [
+  "received",
+  "offering",
+  "connected",
+  "completed",
+  "voicemail",
+  "failed",
+] as const;
+export type InboundVoiceStatus = (typeof INBOUND_VOICE_STATUSES)[number];
+
+export const VOICE_OFFER_STATUSES = [
+  "queued",
+  "ringing",
+  "answered",
+  "answered_elsewhere",
+  "missed",
+  "transfer_pending",
+  "sent_to_team",
+] as const;
+export type VoiceOfferStatus = (typeof VOICE_OFFER_STATUSES)[number];
+
+export const VOICE_CALLBACK_STATUSES = ["open", "claimed", "completed", "dismissed"] as const;
+export type VoiceCallbackStatus = (typeof VOICE_CALLBACK_STATUSES)[number];
+
 export const portalMembers = sqliteTable(
   "portal_members",
   {
@@ -251,6 +294,185 @@ export const outboundDialRequests = sqliteTable(
     check(
       "outbound_dial_requests_status_check",
       sql`${table.status} IN (${literalSet(OUTBOUND_DIAL_STATUSES)})`,
+    ),
+  ],
+);
+
+/**
+ * Server-only mapping between a CORE member and a SignalWire line/subscriber.
+ * Personal numbers are protected operational data; ordinary UI receives only
+ * a masked form. Subscriber references deliberately contain a stable member
+ * id rather than an email address.
+ */
+export const voiceNumberAssignments = sqliteTable(
+  "voice_number_assignments",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    memberId: integer("member_id").notNull().references(() => portalMembers.id),
+    lineType: text("line_type").$type<VoiceLineType>().notNull(),
+    e164Number: text("e164_number").notNull(),
+    providerNumberId: text("provider_number_id").notNull(),
+    providerSubscriberId: text("provider_subscriber_id").notNull(),
+    subscriberReference: text("subscriber_reference").notNull(),
+    subscriberAddress: text("subscriber_address").notNull(),
+    status: text("status").$type<VoiceAssignmentStatus>().notNull().default("active"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("voice_number_assignments_number_idx").on(table.e164Number),
+    uniqueIndex("voice_number_assignments_provider_idx").on(table.providerNumberId),
+    uniqueIndex("voice_number_assignments_provider_subscriber_idx").on(table.providerSubscriberId),
+    uniqueIndex("voice_number_assignments_subscriber_idx").on(table.subscriberReference),
+    index("voice_number_assignments_member_idx").on(table.memberId, table.status),
+    check(
+      "voice_number_assignments_line_type_check",
+      sql`${table.lineType} IN (${literalSet(VOICE_LINE_TYPES)})`,
+    ),
+    check(
+      "voice_number_assignments_status_check",
+      sql`${table.status} IN (${literalSet(VOICE_ASSIGNMENT_STATUSES)})`,
+    ),
+  ],
+);
+
+/** One primary, expiring browser registration per member. */
+export const voicePresence = sqliteTable(
+  "voice_presence",
+  {
+    memberId: integer("member_id").primaryKey().references(() => portalMembers.id),
+    browserSessionId: text("browser_session_id").notNull(),
+    readyState: text("ready_state").$type<VoicePresenceState>().notNull().default("offline"),
+    lastHeartbeatAt: text("last_heartbeat_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    expiresAt: text("expires_at").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("voice_presence_browser_session_idx").on(table.browserSessionId),
+    index("voice_presence_expiry_idx").on(table.readyState, table.expiresAt),
+    check(
+      "voice_presence_state_check",
+      sql`${table.readyState} IN (${literalSet(VOICE_PRESENCE_STATES)})`,
+    ),
+  ],
+);
+
+/**
+ * Carrier lifecycle record for an inbound call. Full caller numbers are never
+ * kept in plaintext; the optional cipher fields are populated only when an
+ * authorized callback workflow genuinely needs the number.
+ */
+export const inboundVoiceCalls = sqliteTable(
+  "inbound_voice_calls",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    providerCallId: text("provider_call_id").notNull(),
+    parentProviderCallId: text("parent_provider_call_id"),
+    /** Current child leg after a browser blind-transfer returns the caller to the hunt. */
+    activeProviderCallId: text("active_provider_call_id"),
+    lineType: text("line_type").$type<VoiceLineType>().notNull(),
+    calledNumberMasked: text("called_number_masked").notNull(),
+    callerNumberMasked: text("caller_number_masked").notNull(),
+    callerCiphertext: text("caller_ciphertext"),
+    callerCipherIv: text("caller_cipher_iv"),
+    callerCipherVersion: integer("caller_cipher_version"),
+    assignedMemberId: integer("assigned_member_id").references(() => portalMembers.id),
+    acceptedMemberId: integer("accepted_member_id").references(() => portalMembers.id),
+    routingStage: text("routing_stage").$type<InboundVoiceStage>().notNull().default("received"),
+    status: text("status").$type<InboundVoiceStatus>().notNull().default("received"),
+    startedAt: text("started_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    answeredAt: text("answered_at"),
+    endedAt: text("ended_at"),
+    disposition: text("disposition"),
+    voicemailState: text("voicemail_state"),
+    voicemailObjectKey: text("voicemail_object_key"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("inbound_voice_calls_provider_idx").on(table.providerCallId),
+    uniqueIndex("inbound_voice_calls_active_provider_idx").on(table.activeProviderCallId),
+    index("inbound_voice_calls_assigned_idx").on(table.assignedMemberId, table.startedAt),
+    index("inbound_voice_calls_accepted_idx").on(table.acceptedMemberId, table.startedAt),
+    index("inbound_voice_calls_status_idx").on(table.status, table.startedAt),
+    check(
+      "inbound_voice_calls_line_type_check",
+      sql`${table.lineType} IN (${literalSet(VOICE_LINE_TYPES)})`,
+    ),
+    check(
+      "inbound_voice_calls_stage_check",
+      sql`${table.routingStage} IN (${literalSet(INBOUND_VOICE_STAGES)})`,
+    ),
+    check(
+      "inbound_voice_calls_status_check",
+      sql`${table.status} IN (${literalSet(INBOUND_VOICE_STATUSES)})`,
+    ),
+    check(
+      "inbound_voice_calls_cipher_check",
+      sql`(${table.callerCiphertext} IS NULL AND ${table.callerCipherIv} IS NULL AND ${table.callerCipherVersion} IS NULL) OR (${table.callerCiphertext} IS NOT NULL AND ${table.callerCipherIv} IS NOT NULL AND ${table.callerCipherVersion} IS NOT NULL)`,
+    ),
+  ],
+);
+
+/** Idempotent per-member offers, including honest answered-elsewhere state. */
+export const voiceCallOffers = sqliteTable(
+  "voice_call_offers",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    voiceCallId: integer("voice_call_id").notNull().references(() => inboundVoiceCalls.id),
+    stage: text("stage").$type<InboundVoiceStage>().notNull(),
+    attempt: integer("attempt").notNull().default(1),
+    memberId: integer("member_id").notNull().references(() => portalMembers.id),
+    status: text("status").$type<VoiceOfferStatus>().notNull().default("queued"),
+    offeredAt: text("offered_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    resolvedAt: text("resolved_at"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("voice_call_offers_once_idx").on(
+      table.voiceCallId,
+      table.stage,
+      table.attempt,
+      table.memberId,
+    ),
+    index("voice_call_offers_member_idx").on(table.memberId, table.offeredAt),
+    check("voice_call_offers_attempt_check", sql`${table.attempt} > 0`),
+    check(
+      "voice_call_offers_stage_check",
+      sql`${table.stage} IN (${literalSet(INBOUND_VOICE_STAGES)})`,
+    ),
+    check(
+      "voice_call_offers_status_check",
+      sql`${table.status} IN (${literalSet(VOICE_OFFER_STATUSES)})`,
+    ),
+  ],
+);
+
+/** Voicemail follow-up work; one task at most per inbound call. */
+export const voiceCallbackTasks = sqliteTable(
+  "voice_callback_tasks",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    voiceCallId: integer("voice_call_id").notNull().references(() => inboundVoiceCalls.id),
+    assignedMemberId: integer("assigned_member_id").references(() => portalMembers.id),
+    claimedByMemberId: integer("claimed_by_member_id").references(() => portalMembers.id),
+    voicemailObjectKey: text("voicemail_object_key"),
+    status: text("status").$type<VoiceCallbackStatus>().notNull().default("open"),
+    dueAt: text("due_at").notNull(),
+    disposition: text("disposition"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    completedAt: text("completed_at"),
+  },
+  (table) => [
+    uniqueIndex("voice_callback_tasks_call_idx").on(table.voiceCallId),
+    index("voice_callback_tasks_assignee_idx").on(table.assignedMemberId, table.status, table.dueAt),
+    index("voice_callback_tasks_claimant_idx").on(table.claimedByMemberId, table.status),
+    check(
+      "voice_callback_tasks_status_check",
+      sql`${table.status} IN (${literalSet(VOICE_CALLBACK_STATUSES)})`,
     ),
   ],
 );

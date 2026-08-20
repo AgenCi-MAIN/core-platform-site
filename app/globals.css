@@ -6678,7 +6678,6 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   line-height: 0;
 }
 
-
 /* ============================================================
    PERSONAL COMMAND CENTER (PCC)
    Founder-only overview. The high-contrast command language borrows the
@@ -7072,3 +7071,121 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   .pcc-primary-action:hover,
   .pcc-launch:hover { transform: none; }
 }
+/* Global J.A.R.V.I.S. / Calls surface. Browser voice stays mounted while the
+   panel is closed so closing the bubble never lies about availability. */
+.presence-panel[hidden],
+.presence-jarvis-mode[hidden],
+.presence-calls-mode[hidden] { display: none !important; }
+.presence-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--portal-line);
+  background: color-mix(in srgb, var(--portal-raised) 90%, transparent);
+}
+.presence-tabs button {
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--portal-muted);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.presence-tabs button[aria-selected="true"] {
+  border-color: color-mix(in srgb, var(--presence-accent) 38%, var(--portal-line));
+  background: var(--presence-soft);
+  color: var(--portal-text);
+}
+.presence-tabs button:focus-visible,
+.browser-phone button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--presence-accent) 42%, transparent);
+  outline-offset: 2px;
+}
+.presence-call-state {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: var(--portal-subtle);
+}
+.presence-call-state-available,
+.presence-call-state-connected { background: #20b56b; box-shadow: 0 0 0 3px color-mix(in srgb, #20b56b 18%, transparent); }
+.presence-call-state-ringing,
+.presence-call-state-connecting { background: #f0b33a; box-shadow: 0 0 0 3px color-mix(in srgb, #f0b33a 18%, transparent); }
+.presence-toggle-call {
+  box-shadow: 0 0 0 5px color-mix(in srgb, #20b56b 22%, transparent), 0 12px 34px rgba(0,0,0,.34);
+  animation: browser-call-pulse 1.25s ease-in-out infinite;
+}
+@keyframes browser-call-pulse {
+  50% { box-shadow: 0 0 0 11px color-mix(in srgb, #20b56b 7%, transparent), 0 12px 34px rgba(0,0,0,.34); }
+}
+.browser-phone { display: grid; gap: 11px; padding: 12px; color: var(--portal-text); }
+.browser-phone-status-row { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.browser-phone-status-row strong { font-size: 12px; }
+.browser-phone-status-row small { margin-left: auto; color: var(--portal-muted); font-family: var(--portal-mono); font-size: 10px; }
+.browser-phone-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--portal-subtle); }
+.browser-phone-available .browser-phone-dot,
+.browser-phone-connected .browser-phone-dot { background: #20b56b; }
+.browser-phone-ringing .browser-phone-dot,
+.browser-phone-connecting .browser-phone-dot { background: #f0b33a; }
+.browser-phone-error .browser-phone-dot { background: var(--portal-danger, #c0392b); }
+.browser-phone-call {
+  display: grid;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--presence-accent) 35%, var(--portal-line));
+  border-radius: 14px;
+  padding: 14px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--presence-soft) 88%, transparent), var(--portal-raised));
+}
+.browser-phone-kicker { color: var(--presence-accent); font-size: 9px; font-weight: 950; letter-spacing: .11em; text-transform: uppercase; }
+.browser-phone-caller { font-family: var(--portal-mono); font-size: 1.28rem; letter-spacing: .02em; }
+.browser-phone-line { color: var(--portal-muted); font-size: 11px; }
+.browser-phone-timer {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  margin: 5px auto;
+  border: 2px solid #f0b33a;
+  border-radius: 50%;
+  color: var(--portal-text);
+  font: 900 1.15rem/1 var(--portal-mono);
+}
+.browser-phone button { min-height: 38px; border: 1px solid var(--portal-line); border-radius: 9px; background: var(--portal-raised); color: var(--portal-text); font: inherit; font-size: 11px; font-weight: 850; cursor: pointer; }
+.browser-phone button:hover:not(:disabled) { border-color: color-mix(in srgb, var(--presence-accent) 52%, var(--portal-line)); background: var(--portal-hover); }
+.browser-phone button:disabled { opacity: .48; cursor: not-allowed; }
+.browser-phone-answer,
+.browser-phone-available { border-color: #20b56b !important; background: #147d4c !important; color: #fff !important; font-size: 13px !important; }
+.browser-phone-answer span { display: inline-grid; place-items: center; min-width: 24px; min-height: 24px; margin-right: 5px; border-radius: 50%; background: rgba(255,255,255,.18); }
+.browser-phone-controls { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; margin-top: 7px; }
+.browser-phone-controls .browser-phone-end { grid-column: 1 / -1; border-color: color-mix(in srgb, var(--portal-danger, #c0392b) 70%, var(--portal-line)); color: #ffb3ad; }
+.browser-phone-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.browser-phone-keypad button { font-family: var(--portal-mono); font-size: 14px; }
+.browser-phone-message { min-height: 30px; margin: 0; color: var(--portal-muted); font-size: 11px; line-height: 1.45; }
+.browser-phone-boundary { margin: 0; padding-top: 9px; border-top: 1px solid var(--portal-line); color: var(--portal-subtle); font-size: 9.5px; line-height: 1.45; }
+
+/* Consolidated Calls workspace. */
+.calls-workspace { display: grid; gap: 18px; }
+.calls-tabs { display: flex; flex-wrap: wrap; gap: 7px; border-bottom: 1px solid var(--portal-line); padding-bottom: 10px; }
+.calls-tabs button { border: 1px solid var(--portal-line); border-radius: 999px; padding: 8px 13px; background: transparent; color: var(--portal-muted); font: inherit; font-size: 11px; font-weight: 850; cursor: pointer; }
+.calls-tabs button[aria-selected="true"], .calls-tabs button:hover { border-color: color-mix(in srgb, var(--portal-accent) 45%, var(--portal-line)); background: var(--portal-hover); color: var(--portal-text); }
+.calls-live-grid { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(260px,.6fr); gap: 14px; }
+.calls-ready-card { display: grid; gap: 10px; }
+.calls-ready-action { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
+.calls-ready-action button { min-height: 40px; border: 1px solid var(--portal-accent); border-radius: 10px; padding: 0 15px; background: var(--portal-accent); color: #fff; font: inherit; font-size: 11px; font-weight: 900; cursor: pointer; }
+.calls-task-list, .calls-history-list { display: grid; gap: 8px; }
+.calls-task, .calls-history-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 14px; align-items: center; border: 1px solid var(--portal-line); border-radius: 11px; padding: 11px 12px; background: var(--portal-raised); }
+.calls-task strong, .calls-history-row strong { font-size: 12px; }
+.calls-task small, .calls-history-row small { display: block; margin-top: 3px; color: var(--portal-muted); font-size: 10px; }
+.calls-task-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.calls-task-actions a, .calls-task-actions button { border: 1px solid var(--portal-line); border-radius: 8px; padding: 7px 9px; background: transparent; color: var(--portal-text); text-decoration: none; font: inherit; font-size: 10px; font-weight: 850; cursor: pointer; }
+.calls-outbound-panel:not([hidden]) { display: grid; gap: 14px; }
+@media (max-width: 780px) { .calls-live-grid { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .presence-toggle-call { animation: none; } }

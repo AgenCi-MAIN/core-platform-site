@@ -35,6 +35,10 @@ export const CAPABILITIES = [
   "portal.access",
   "dashboard.view.self",
   "book.view.self",
+  // Browser answering is intentionally broad across portal roles but remains
+  // inert without an active number/subscriber assignment. Capability + active
+  // membership + assignment + live primary-browser presence are all required.
+  "calls.answer",
   "calls.review",
   // Deleting a recording or a transcript is a SEPARATE power from reading one,
   // and it is deliberately held by roles that cannot read (admin) as well as
@@ -73,6 +77,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "portal.access",
     "dashboard.view.self",
     "book.view.self",
+    "calls.answer",
     "calls.review",
     "calls.review.self",
     "calls.recording.delete",
@@ -88,6 +93,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "portal.access",
     "dashboard.view.self",
     "book.view.self",
+    "calls.answer",
     "calls.review.self",
     "calls.recording.delete",
     "scripts.manage",
@@ -102,6 +108,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "portal.access",
     "dashboard.view.self",
     "book.view.self",
+    "calls.answer",
     "calls.review.self",
     "team.view",
     "leadership.view.all",
@@ -112,6 +119,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
   reviewer: [
     "portal.access",
     "dashboard.view.self",
+    "calls.answer",
     "scripts.manage",
     "team.view",
     "pet.chat",
@@ -120,10 +128,11 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "portal.access",
     "dashboard.view.self",
     "book.view.self",
+    "calls.answer",
     "calls.review.self",
     "pet.chat",
   ],
-  support: ["portal.access", "dashboard.view.self", "team.view", "pet.chat"],
+  support: ["portal.access", "dashboard.view.self", "calls.answer", "team.view", "pet.chat"],
 };
 
 /**
