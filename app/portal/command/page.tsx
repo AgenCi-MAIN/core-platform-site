@@ -1,7 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { JarvisCommandPrompt } from "../command-prompt";
-import { COMMAND_CENTER_EMAILS, isCommandCenterUnlocked, requireCommandCenter } from "../access";
+import {
+  COMMAND_CENTER_EMAILS,
+  isCommandCenterUnlocked,
+  isFounder,
+  requireCommandCenter,
+} from "../access";
 import { PASS_ATTEMPT_LIMIT, PASS_TTL_SECONDS } from "../command-pass";
 import { PortalShell } from "../components";
 import { TELEPHONY_CONFIG } from "../telephony-config";
@@ -525,6 +530,7 @@ export default async function FounderCommandCenter({
 }) {
   const session = await requireCommandCenter("/portal/command", "command.view");
   const params = await searchParams;
+  const founder = isFounder(session);
   // Only the founder can issue, so only the founder is shown the desk — and
   // the code is only ever rendered back to the person who just minted it.
   const canIssue = isCommandCenterUnlocked(session);
@@ -600,6 +606,14 @@ export default async function FounderCommandCenter({
               <small>Multi-task agent orchestration</small>
               <i aria-hidden="true">→</i>
             </Link>
+            {founder ? (
+              <Link className="fcc-launch" href="/portal/command/personal">
+                <span>PC</span>
+                <strong>Personal Command</strong>
+                <small>Founder-only private operating room</small>
+                <i aria-hidden="true">→</i>
+              </Link>
+            ) : null}
             <a
               className="fcc-launch"
               href="https://github.com/bankerrunners/core-platform-site"

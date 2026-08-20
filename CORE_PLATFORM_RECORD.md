@@ -1753,3 +1753,54 @@ dry-run passed before deployment. The local UI could not bypass the real
 Google session gate, so the authenticated page pixels were not independently
 rendered in this session; production source, build, alias, exact commit, live
 Worker response, and the protected console bridge were verified.
+
+### 19n. Founder-only Personal Command built locally — 2026-08-20
+
+The owner directed the Official App to turn the supplied portal references
+and SKY benchmark into a stronger personal command surface. This work was
+implemented in the canonical `C:\dev\core-platform-site` checkout on top of
+`b1ae1ca2e852b8d2033240457eb28535d0611687`. The concurrently delivered SKY
+and fleet-runtime work was preserved; it was not rewritten or attributed to
+this change.
+
+**Local implementation.** A new `/portal/command/personal` page provides a
+founder-focused control surface with a command handoff, founder focus cards,
+four operating lanes, the ten defined CORE fleet profiles, an explicit
+authority boundary, and responsive desktop/mobile navigation. Its launchers
+only hand off to existing protected CORE destinations; each destination keeps
+its own server-side authorization. The shared `/portal/command` page exposes
+the Personal Command launcher only when the current signed session is the
+founder.
+
+**Authorization and truth model.** The page guards itself with
+`requireFounder("/portal/command/personal", "command.personal.view")`, is
+force-dynamic, and is covered by no-store authorization tests. The retired
+founder identity, second owner, and named Command helper are denied the route.
+The ten fleet entries are labeled as defined AI roles rather than people or
+continuous staff. No live mailbox or operational count is inferred, and the
+surface adds no ability to send, dial, deploy, spend, approve, or alter an
+external system.
+
+**Reference handling.** The supplied HTML dashboards and screenshots were
+used only as layout and product-direction references. Their Gmail addresses,
+phone numbers, billing details, security notes, mailbox rows, and other
+private snapshot data were not copied into the application. SKY informed the
+clarity and command-center feel; this page remains an original CORE surface.
+
+**Verification evidence.** The focused TypeScript check and focused ESLint
+passed, the Next production build passed with the new route in its route
+table, 91/91 targeted authorization and rendered-output tests passed, the
+complete test command passed 120/120 tests, and `verify:build` produced a
+valid Worker bundle. The repository-wide TypeScript command remains blocked
+outside this page because the separately added `services/core-agent-fleet`
+sources are included by the root TypeScript configuration while their `@/`
+imports require that service's own alias mapping. The repository-wide lint
+command also remains blocked by the pre-existing unescaped apostrophe in
+`app/portal/quoter/quoter-tool.tsx` and generated/concurrent service output;
+the files changed for Personal Command pass their focused lint gate.
+
+**Delivery boundary.** This is verified local source only. No commit, push,
+site version, deployment, migration, call, message, credential change,
+membership change, or access-policy change was performed for Personal
+Command. The current public production URL must not be described as containing
+this page until an authorized deployment is completed and verified.

@@ -61,7 +61,6 @@ function sqlStatements(text) {
 const INIT_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0001_portal_init.sql"), "utf8"));
 const SEED_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0002_portal_seed_owner.sql"), "utf8"));
 const SEEDED_OWNER_EMAIL = "bankerrunners@gmail.com";
-const FOUNDER_EMAIL = "btcmao518@gmail.com";
 
 /**
  * Identity is asserted the same way production does it: a session cookie
@@ -518,7 +517,6 @@ test("a manager reads the roster and the audit log, but not the founder console"
 
     const roster = await portal.get("/portal/members", identity);
     assert.equal(roster.status, 200, "manager holds members.view");
-    const html = await roster.text();
     // Downline and self only (founder 2026-08-18). The seeded OWNER outranks a
     // manager, so the manager must NOT see that row — the assertion is
     // inverted from what it used to be, on purpose. An agent seeded below is
@@ -619,7 +617,13 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
     subject: "sub-second-command-owner",
     email: "second-command-owner@example.com",
   };
-  const guarded = ["/portal/command", "/go/hq", "/go/routines", "/go/desk"];
+  const guarded = [
+    "/portal/command",
+    "/portal/command/personal",
+    "/go/hq",
+    "/go/routines",
+    "/go/desk",
+  ];
 
   for (const pathname of guarded) {
     const denied = await portal.get(pathname, otherOwner);
@@ -655,6 +659,7 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
   // retract — exactly what access.ts's requireFounder comment warns about.
   const GATE_ACTIONS = {
     "/portal/command": ["command_only", "command.view"],
+    "/portal/command/personal": ["founder_only", "command.personal.view"],
     "/go/hq": ["founder_only", "go.hq"],
     "/go/routines": ["founder_only", "go.routines"],
     "/go/desk": ["founder_only", "go.desk"],
@@ -704,7 +709,26 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
   assert.match(html, /No simulated HQ/);
   assert.match(html, /5c9ed9eb/);
   assert.match(html, /no independent live comparison/i);
+  assert.match(
+    html,
+    /href="\/portal\/command\/personal"/,
+    "the founder's shared Command Center must expose the private-room handoff",
+  );
   assert.doesNotMatch(html, /Build phase|>NOW</, "T3 state must stay a dated package snapshot");
+
+  const personal = await portal.get("/portal/command/personal", founder);
+  assert.equal(personal.status, 200, "the migrated founder opens Personal Command");
+  assert.match(
+    personal.headers.get("cache-control") ?? "",
+    /no-store/i,
+    "founder-personal output must not be stored by an intermediary",
+  );
+  const personalHtml = await personal.text();
+  assert.match(personalHtml, /data-private-surface="command-personal-v1"/);
+  assert.match(personalHtml, /Your command,/);
+  assert.match(personalHtml, /Ten-seat fleet/);
+  assert.match(personalHtml, /Private view does not mean unlimited authority/);
+  assert.doesNotMatch(personalHtml, /oldhq@inkboxmail\.com|eye@inkboxmail\.com/);
 
   const hq = await portal.get("/go/hq?session=caller-controlled", founder);
   assert.equal(hq.status, 307);
@@ -811,7 +835,11 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
   }
 
   // The helper's grant must not have leaked toward the founder-only pages.
-  for (const pathname of ["/portal/audit", "/portal/investigator"]) {
+  for (const pathname of [
+    "/portal/audit",
+    "/portal/investigator",
+    "/portal/command/personal",
+  ]) {
     const sealed = await portal.get(pathname, helper);
     assert.equal(
       sealed.status,
@@ -819,6 +847,7 @@ test("the Command Center answers its named allowlist; every /go handoff answers 
       `${pathname} must refuse the Command Center helper — it stays founder-only`,
     );
     assert.match(sealed.headers.get("location") ?? "", /\/portal\/no-access$/);
+    assert.equal(await sealed.text(), "", `${pathname} must emit no protected body to the helper`);
   }
 });
 

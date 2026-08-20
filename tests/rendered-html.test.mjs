@@ -103,6 +103,7 @@ const PROTECTED_ROUTES = [
   "/portal/calls",
   "/portal/command",
   "/portal/command/cloud",
+  "/portal/command/personal",
   "/portal/command/lodge",
   "/portal/calls/review",
   "/portal/calls/review/1",
@@ -392,6 +393,47 @@ test("every portal page except no-access declares exactly one server guard", asy
     failures,
     [],
     `portal pages missing one unambiguous guard: ${failures.join(", ")}`,
+  );
+});
+
+test("Personal Command stays behind the founder identity gate and its launcher matches that boundary", async () => {
+  const page = await readFile(
+    new URL("../app/portal/command/personal/page.tsx", import.meta.url),
+    "utf8",
+  );
+  const command = await readFile(
+    new URL("../app/portal/command/page.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(page, /export const dynamic = "force-dynamic"/);
+  assert.match(page, /export const revalidate = 0/);
+  assert.match(
+    page,
+    /requireFounder\(\s*"\/portal\/command\/personal"\s*,\s*"command\.personal\.view"\s*,?\s*\)/,
+    "the personal room must use the founder identity gate and its truthful audit action",
+  );
+  assert.doesNotMatch(page, /requireCommandCenter\(/);
+  assert.doesNotMatch(page, /requireCapability\(/);
+  assert.doesNotMatch(page, /^\s*["']use client["'];?/m);
+  assert.match(page, /data-private-surface="command-personal-v1"/);
+  assert.match(page, /Your command,/);
+  assert.match(page, /Ten-seat fleet/);
+  assert.doesNotMatch(
+    page,
+    /@inkboxmail\.com|@pm\.me|\+1\s*\(\d{3}\)/,
+    "snapshot contact details must not be copied into the Personal Command source",
+  );
+
+  assert.match(
+    command,
+    /const founder = isFounder\(session\)/,
+    "the launcher must derive visibility from the founder identity, not a role or lodge state",
+  );
+  assert.match(
+    command,
+    /\{founder \? \([\s\S]*?href="\/portal\/command\/personal"[\s\S]*?<strong>Personal Command<\/strong>[\s\S]*?\) : null\}/,
+    "only the founder should receive the Personal Command launcher link",
   );
 });
 
@@ -1079,6 +1121,7 @@ test("restricted data never reaches a public client chunk", async () => {
     // their presence in immutable assets would bypass every route guard.
     "session_01W4UZQ4izQyBNT2HEd9D9PK",
     "T3-S02-D01",
+    "command-personal-v1",
     ...trainingMarkers,
   ];
 
