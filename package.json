@@ -9,7 +9,7 @@
     "dev": "vite",
     "build": "vinext build",
     "start": "vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/portal-authorization.test.mjs tests/budget.test.mjs tests/twilio-transfer.test.mjs",
+    "test": "npm run build && node --test tests/rendered-html.test.mjs tests/portal-authorization.test.mjs tests/budget.test.mjs tests/twilio-transfer.test.mjs tests/signalwire-ingest.test.mjs",
     "verify:build": "node scripts/verify-build.mjs",
     "deploy": "npm test && node scripts/verify-build.mjs && wrangler deploy -c dist/server/wrangler.json",
     "deploy:commission": "wrangler pages deploy commission-site --project-name thrive-commission --branch main --commit-dirty=true",
