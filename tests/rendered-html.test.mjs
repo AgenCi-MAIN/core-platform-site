@@ -1749,3 +1749,61 @@ test("no surface can be swiped sideways off the screen", async () => {
     "the top bar must wrap rather than push its account cluster past the viewport",
   );
 });
+
+test("every link on the Cloud Command Center goes somewhere that exists", async () => {
+  // The page is a directory of things that live elsewhere — environments and
+  // sessions on claude.ai, routines, the Inkbox desk, the repo. Its cards are
+  // only worth anything if they open those things, so each carries an href.
+  //
+  // The failure this guards is SILENT. Rename or delete /go/routines and the
+  // card still renders, still looks clickable, and lands on a 404 — nothing
+  // throws, no test fails, and it is found by a person clicking it. So the
+  // internal destinations are checked against the filesystem here.
+  //
+  // Deep links are deliberately absent: several rows carry placeholder ids
+  // (AGT-001, ENV-02) rather than real session ids, so there is no per-item
+  // URL to build and none is invented. They point at the surface that lists
+  // the real ones instead.
+  const page = await readFile(
+    new URL("../app/portal/command/cloud/page.tsx", import.meta.url),
+    "utf8",
+  );
+
+  const block = page.match(/const LINKS = \{[\s\S]*?\} as const;/)?.[0];
+  assert.ok(block, "the LINKS table must stay in one place, not scatter through the file");
+
+  const targets = [...block.matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(targets.length >= 8, "expected the full set of destinations");
+
+  const internal = targets.filter((t) => t.startsWith("/"));
+  assert.ok(internal.length >= 5, "expected several in-portal destinations");
+
+  for (const target of internal) {
+    const path = target.split("#")[0];
+    const asRoute = new URL(`../app${path}/route.ts`, import.meta.url);
+    const asPage = new URL(`../app${path}/page.tsx`, import.meta.url);
+    const exists = await readFile(asRoute, "utf8").then(
+      () => true,
+      () => readFile(asPage, "utf8").then(() => true, () => false),
+    );
+    assert.ok(exists, `${target} is linked from the Cloud Command Center but has no route`);
+  }
+
+  // Anything leaving the portal must not hand the new tab a handle on this
+  // window. rel="noopener" is the whole of that protection.
+  const external = targets.filter((t) => t.startsWith("http"));
+  assert.ok(external.length >= 2, "expected external destinations");
+  assert.match(
+    page,
+    /target="_blank"[\s\S]{0,120}rel="noopener noreferrer"/,
+    "external links must open with rel=noopener noreferrer",
+  );
+
+  // A disabled channel gets no link — an opener for something switched off is
+  // worse than a row that plainly says it is off.
+  assert.match(
+    page,
+    /\{ type: "iMessage", status: "disabled", address: "Not enabled" \}/,
+    "the disabled iMessage channel must stay unlinked",
+  );
+});
