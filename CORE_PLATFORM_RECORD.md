@@ -1631,3 +1631,71 @@ provides a durable request ledger and duplicate-call limiter.
 transferred into Sites secrets, the D1 migration has not been applied to the
 hosted database, the source has not been published, and no portal-originated
 test call has succeeded. Local implementation is not a deployment.
+### 19l. Ten-agent durable memory and empty-response repair — 2026-08-20
+
+The owner directed that all ten Operations Deck personalities receive a full
+CORE memory update after Lumen twice accepted and persisted a request but
+returned only: “I could not produce a useful response. No external action was
+taken.” The runtime defect and the memory update were handled together in the
+separate `core-agent-fleet` service; the production CORE portal Worker was not
+changed.
+
+**Source and deployment provenance.** The local service directory in the
+isolated `codex/ten-agent-fleet` worktree was unexpectedly empty. The exact 33
+source/config files used by the live build were recovered from the dated
+`C:\Users\k2547\OneDrive\Desktop\FLEET` build snapshot and restored into
+`services/core-agent-fleet`; every recovered file matched its source snapshot
+by SHA-256 before editing. The worktree remained at
+`eb54b0bfb726d06c5b9efffa8e79dbba57154eb1`. No Git stage, commit, push, PR, or
+merge was performed, and `services/` remains untracked.
+
+**Root cause and repair.** The fleet used the reasoning model
+`@cf/zai-org/glm-4.7-flash` through `workers-ai-provider` with a 700-token
+maximum. Reasoning is enabled by default for that model, so a call could
+consume its budget without emitting final text; the prior adapter treated the
+empty string as a successful ready turn. Fleet Worker `0.2.1` now:
+
+- disables model reasoning/thinking for this draft-only surface;
+- makes at most two bounded generation attempts;
+- allows 2,800 final-output tokens with a 55-second call timeout;
+- records safe empty-output observability without logging prompts;
+- returns a truthful persona-specific failure only after both attempts; and
+- marks repeated empty output `degraded` with `empty_model_output` instead of
+  reporting a false ready state.
+
+**Durable institutional memory.** Each agent now has an
+`institutional_memory` SQLite record plus state fields for version and update
+time. Memory version `core-2026-08-20.1` contains the shared CORE baseline and
+one distinct role overlay. The baseline covers evidence-status rules,
+J.A.R.V.I.S. identity and human authority, current portal/fleet boundaries,
+the CORE operating loop and verified-signal concept, commission variables and
+the corrected 39,200 residual calculation, prototype Levels 1–5, call and
+policy-replacement safety limits, design direction, the owner keyword Narb,
+and the ten-seat handoff contract. Proposed builder/equity and replacement
+logic remain explicitly unverified rather than being invented as policy.
+
+An authenticated, idempotent `POST /api/fleet` bridge now invokes the compiled
+fleet bootstrap without exposing the Worker secret. The same memory version
+was synchronized and read back from all ten Durable Objects. Final status
+showed `10/10 ready`, Worker `0.2.1`, and memory
+`core-2026-08-20.1` for Vestal, Recon, Terraform, Meridian, Lattice, Cipher,
+Lumen, Index, Assay, and Ledger.
+
+**Verification evidence.** Generated Worker types, Worker TypeScript,
+9/9 Vitest checks, Wrangler dry-run, console TypeScript, ESLint, and the Next
+production build all passed. Cloudflare deployment
+`2f5f1ab7-ddd2-4f9d-b4c7-d8b85afe1bc3` is at 100%. Protected Vercel preview
+deployment `dpl_BiWZqU8LfKp6keP6YzezEJEQ22D9` is ready at
+`https://core-agent-fleet-console-g6xacm4i8-thrive18.vercel.app`.
+
+The exact Lumen request from the failed console turn was replayed through that
+protected preview. The final answer was 9,623 characters, contained all ten
+named design briefs through Ledger, did not use the empty-output fallback, and
+returned Lumen `ready`, Worker `0.2.1`, memory
+`core-2026-08-20.1`, durable turn 5.
+
+**Capability boundary retained.** Lumen can now reliably produce visual
+concepts, complete generation briefs, and asset specifications. This Worker
+still has zero external tools and did not render ten image files. Image
+generation requires a separately connected and governed image tool; Inkbox
+identity mapping still does not authorize outbound channel action.

@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "core-agent-fleet",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-20",
+  "compatibility_flags": ["nodejs_compat"],
+  "ai": { "binding": "AI" },
+  "durable_objects": {
+    "bindings": [
+      { "name": "CoreAgent", "class_name": "CoreAgent" }
+    ]
+  },
+  "exports": {
+    "CoreAgent": { "type": "durable-object", "storage": "sqlite" }
+  },
+  "triggers": {
+    "crons": ["*/15 * * * *"]
+  },
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.1 }
+  },
+  "vars": {
+    "FLEET_MODEL": "@cf/zai-org/glm-4.7-flash",
+    "FLEET_VERSION": "0.2.2"
+  }
+}
