@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 
 const AGENTS = [
   {
@@ -10,6 +11,7 @@ const AGENTS = [
     title: "The one who carries the fire between stations",
     accent: "#7C3AED",
     monogram: "V",
+    portrait: "/agents/vestal.png",
     gender: "Male-presenting, East Asian, 40s",
     expression: "Calm, measured authority",
     outfit: "Dark navy mandarin-collar jacket over charcoal tactical turtleneck",
@@ -25,6 +27,7 @@ const AGENTS = [
     title: "The one who returns with what no one sent for",
     accent: "#F97066",
     monogram: "R",
+    portrait: "/agents/recon.png",
     gender: "Female-presenting, Black, late 20s",
     expression: "Alert, searching",
     outfit: "Fitted slate-grey field jacket, dark crew-neck base",
@@ -40,6 +43,7 @@ const AGENTS = [
     title: "The one who raises ground where there was none",
     accent: "#34D399",
     monogram: "T",
+    portrait: "/agents/terraform.png",
     gender: "Male-presenting, South Asian, mid 30s",
     expression: "Absorbed, visionary",
     outfit: "Rumpled dark bronze-brown field shirt, black thermal base",
@@ -55,6 +59,7 @@ const AGENTS = [
     title: "The one who draws the line everything aligns to",
     accent: "#F59E0B",
     monogram: "M",
+    portrait: "/agents/meridian.png",
     gender: "Female-presenting, Latina, early 30s",
     expression: "Evaluating, composed",
     outfit: "Structured charcoal blazer with sheen, black silk shell",
@@ -70,6 +75,7 @@ const AGENTS = [
     title: "The one who decides what holds and what bends",
     accent: "#3B82F6",
     monogram: "L",
+    portrait: "/agents/lattice.png",
     gender: "Androgynous-presenting, mixed ethnicity, late 20s",
     expression: "Analytical, quietly fascinated",
     outfit: "High-collared dark graphite technical vest, black long-sleeve",
@@ -85,6 +91,7 @@ const AGENTS = [
     title: "The one who speaks so the machine understands",
     accent: "#1E1B4B",
     monogram: "C",
+    portrait: "/agents/cipher.png",
     gender: "Female-presenting, East European, mid 30s",
     expression: "Thoughtful, precise",
     outfit: "Soft-structured dark plum wool overshirt, black ribbed top",
@@ -100,6 +107,7 @@ const AGENTS = [
     title: "The one who pulls shape from the signal",
     accent: "#F59E0B",
     monogram: "Lu",
+    portrait: "/agents/lumen.png",
     gender: "Male-presenting, Middle Eastern, late 30s",
     expression: "Intense, absorbed",
     outfit: "Dark olive-black canvas work jacket, faded black henley",
@@ -115,6 +123,7 @@ const AGENTS = [
     title: "The one who knows where every piece belongs",
     accent: "#7C3AED",
     monogram: "I",
+    portrait: "/agents/index.png",
     gender: "Female-presenting, Southeast Asian, early 40s",
     expression: "Composed, discerning",
     outfit: "Tailored midnight-navy knit blazer, cream silk blouse",
@@ -130,6 +139,7 @@ const AGENTS = [
     title: "The one who holds the line no one sees",
     accent: "#F97066",
     monogram: "A",
+    portrait: "/agents/assay.png",
     gender: "Male-presenting, Northern European, late 40s",
     expression: "Skeptical, exacting",
     outfit: "Dark charcoal wool crew-neck sweater",
@@ -145,6 +155,7 @@ const AGENTS = [
     title: "The one who seals the record and turns the key",
     accent: "#F59E0B",
     monogram: "Le",
+    portrait: "/agents/ledger.png",
     gender: "Male-presenting, West African, mid 50s",
     expression: "Patient, assured",
     outfit: "Dark espresso-brown corduroy overshirt, black turtleneck",
@@ -209,67 +220,78 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
     <div className="ops-deck">
       <style>{`
         .ops-deck {
-          --ink: var(--portal-text, #16142b);
-          --paper: var(--portal-panel, #fffaf2);
-          --violet: var(--portal-accent, #6d42e5);
-          --surface: var(--portal-soft, rgba(22, 20, 43, 0.04));
-          --border: var(--portal-line, rgba(22, 20, 43, 0.12));
-          --radius: 12px;
+          --ink: #17233a;
+          --muted: #526783;
+          --paper: #ffffff;
+          --violet: #285ecf;
+          --surface: #f5f8fd;
+          --border: #cbd9ec;
+          --radius: 18px;
+          padding: clamp(8px, 1.5vw, 22px);
+          border-radius: 24px;
+          background: linear-gradient(145deg, #f7faff 0%, #edf3fb 100%);
         }
 
         .ops-toolbar {
           display: flex;
-          gap: 8px;
-          margin-bottom: 24px;
+          gap: 10px;
+          margin: 0 auto 32px;
+          max-width: 1280px;
           flex-wrap: wrap;
         }
         .ops-btn {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          padding: 8px 16px;
+          min-height: 42px;
+          padding: 10px 17px;
           border: 1px solid var(--border);
-          border-radius: var(--radius);
-          background: var(--surface);
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.72);
           color: var(--ink);
-          font: 600 13px/1 system-ui, sans-serif;
+          font: 700 11px/1 system-ui, sans-serif;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
           cursor: pointer;
           transition: background 0.15s, border-color 0.15s;
         }
-        .ops-btn:hover { background: var(--border); }
+        .ops-btn:hover { background: #e8f0fb; border-color: #9fb8d9; }
         .ops-btn:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
         .ops-btn-primary {
-          background: var(--violet);
+          background: #22499b;
           color: white;
-          border-color: var(--violet);
+          border-color: #22499b;
         }
-        .ops-btn-primary:hover { background: #5b2fd0; }
+        .ops-btn-primary:hover { background: #183a82; }
         .ops-btn-inkbox {
-          background: #0f172a;
-          color: #38bdf8;
-          border-color: #1e293b;
+          background: #163b85;
+          color: #ffffff;
+          border-color: #163b85;
         }
-        .ops-btn-inkbox:hover { background: #1e293b; }
+        .ops-btn-inkbox:hover { background: #102f6c; }
 
         .ops-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-          gap: 16px;
-          margin-bottom: 32px;
+          grid-template-columns: repeat(auto-fill, minmax(278px, 1fr));
+          gap: clamp(18px, 2vw, 28px);
+          max-width: 1280px;
+          margin: 0 auto 36px;
         }
 
         .agent-card {
           position: relative;
-          padding: 20px;
+          min-height: 286px;
+          padding: 26px;
           border: 1px solid var(--border);
           border-radius: var(--radius);
-          background: var(--surface);
+          background: var(--paper);
           cursor: pointer;
           transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
         }
         .agent-card:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 24px rgba(22, 20, 43, 0.1);
+          border-color: #aabfdb;
+          box-shadow: 0 14px 32px rgba(50, 81, 128, 0.12);
         }
         .agent-card:focus-visible {
           outline: 2px solid var(--violet);
@@ -280,108 +302,124 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           top: 0;
           left: 0;
           right: 0;
-          height: 3px;
+          height: 4px;
           border-radius: var(--radius) var(--radius) 0 0;
         }
 
         .agent-avatar {
-          width: 48px;
-          height: 48px;
+          position: relative;
+          width: 64px;
+          height: 64px;
           border-radius: 50%;
-          display: grid;
-          place-items: center;
-          font: 700 16px/1 system-ui, sans-serif;
-          color: white;
-          margin-bottom: 12px;
+          overflow: hidden;
+          margin-bottom: 16px;
+          border: 2px solid #ffffff;
+          box-shadow: 0 0 0 1px var(--border), 0 5px 12px rgba(26, 52, 88, 0.14);
+        }
+        .agent-avatar img,
+        .detail-avatar img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
         .agent-card-name {
-          font: 700 16px/1.2 system-ui, sans-serif;
+          font: 750 18px/1.15 system-ui, sans-serif;
           color: var(--ink);
           margin: 0 0 4px;
         }
         .agent-card-role {
-          font: 500 12px/1.4 system-ui, sans-serif;
-          color: var(--ink);
-          opacity: 0.6;
-          margin: 0 0 8px;
+          font: 650 11px/1.4 system-ui, sans-serif;
+          color: var(--muted);
+          letter-spacing: 0.07em;
+          text-transform: uppercase;
+          margin: 0 0 12px;
         }
         .agent-card-title {
-          font: italic 13px/1.4 Georgia, serif;
+          font: italic 16px/1.45 Georgia, serif;
           margin: 0;
         }
         .agent-card-actions {
           display: flex;
-          gap: 6px;
-          margin-top: 14px;
+          gap: 8px;
+          margin-top: 20px;
         }
         .agent-card-action {
-          padding: 5px 10px;
+          min-height: 34px;
+          padding: 7px 12px;
           border: 1px solid var(--border);
-          border-radius: 6px;
-          background: transparent;
+          border-radius: 999px;
+          background: #f8fbff;
           color: var(--ink);
-          font: 500 11px/1 system-ui, sans-serif;
+          font: 700 10px/1 system-ui, sans-serif;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
           cursor: pointer;
           transition: background 0.12s;
         }
-        .agent-card-action:hover { background: var(--border); }
+        .agent-card-action:hover { background: #e9f1fc; border-color: #a9bdd9; }
         .agent-card-action:focus-visible { outline: 2px solid var(--violet); outline-offset: 1px; }
 
         .detail-panel {
           border: 1px solid var(--border);
-          border-radius: var(--radius);
+          border-radius: 22px;
           overflow: hidden;
-          margin-bottom: 24px;
+          max-width: 1080px;
+          margin: 0 auto 32px;
+          background: var(--paper);
+          box-shadow: 0 16px 36px rgba(50, 81, 128, 0.1);
         }
         .detail-header {
           display: flex;
           align-items: center;
-          gap: 16px;
-          padding: 24px;
+          gap: 20px;
+          padding: clamp(24px, 4vw, 42px);
           border-bottom: 1px solid var(--border);
+          background: linear-gradient(110deg, #ffffff, #f3f7ff);
         }
         .detail-avatar {
-          width: 64px;
-          height: 64px;
+          position: relative;
+          width: 86px;
+          height: 86px;
           border-radius: 50%;
-          display: grid;
-          place-items: center;
-          font: 700 22px/1 system-ui, sans-serif;
-          color: white;
+          overflow: hidden;
+          border: 3px solid white;
+          box-shadow: 0 0 0 1px var(--border), 0 8px 18px rgba(26, 52, 88, 0.14);
           flex-shrink: 0;
         }
         .detail-info h2 {
-          font: 700 24px/1.2 system-ui, sans-serif;
+          font: 750 clamp(24px, 3vw, 32px)/1.12 system-ui, sans-serif;
           color: var(--ink);
           margin: 0 0 4px;
         }
         .detail-info p {
-          font: 500 14px/1.4 system-ui, sans-serif;
-          color: var(--ink);
-          opacity: 0.6;
+          font: 700 11px/1.4 system-ui, sans-serif;
+          color: var(--muted);
+          letter-spacing: 0.09em;
+          text-transform: uppercase;
           margin: 0;
         }
         .detail-body {
-          padding: 24px;
+          padding: clamp(24px, 4vw, 42px);
         }
         .detail-quote {
-          font: italic 18px/1.5 Georgia, serif;
+          font: italic 20px/1.5 Georgia, serif;
           color: var(--ink);
           opacity: 0.8;
-          margin: 0 0 24px;
-          padding-left: 16px;
-          border-left: 3px solid var(--violet);
+          margin: 0 0 30px;
+          padding-left: 20px;
+          border-left: 4px solid var(--violet);
         }
         .detail-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-          gap: 16px;
-          margin-bottom: 24px;
+          grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+          gap: 18px;
+          margin-bottom: 30px;
         }
         .detail-field {
-          padding: 12px;
+          padding: 16px;
           background: var(--surface);
-          border-radius: 8px;
+          border: 1px solid #dbe6f4;
+          border-radius: 14px;
         }
         .detail-field-label {
           font: 600 10px/1 system-ui, sans-serif;
@@ -404,9 +442,12 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
 
         .builder-form {
           border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 24px;
-          margin-bottom: 24px;
+          border-radius: 22px;
+          padding: clamp(24px, 4vw, 42px);
+          max-width: 900px;
+          margin: 0 auto 32px;
+          background: var(--paper);
+          box-shadow: 0 16px 36px rgba(50, 81, 128, 0.1);
         }
         .builder-form h2 {
           font: 700 20px/1.2 system-ui, sans-serif;
@@ -438,10 +479,10 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           opacity: 0.6;
         }
         .builder-input {
-          padding: 8px 12px;
+          padding: 11px 13px;
           border: 1px solid var(--border);
           border-radius: 8px;
-          background: var(--surface);
+          background: #f8fbff;
           color: var(--ink);
           font: 400 14px/1.4 system-ui, sans-serif;
         }
@@ -487,7 +528,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
         .publish-modal-backdrop {
           position: fixed;
           inset: 0;
-          background: rgba(22, 20, 43, 0.6);
+          background: rgba(16, 35, 65, 0.44);
           display: grid;
           place-items: center;
           z-index: 100;
@@ -496,11 +537,11 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
         .publish-modal {
           background: var(--paper);
           border: 1px solid var(--border);
-          border-radius: 16px;
-          padding: 32px;
+          border-radius: 22px;
+          padding: clamp(24px, 5vw, 38px);
           max-width: 480px;
           width: 100%;
-          box-shadow: 0 24px 48px rgba(22, 20, 43, 0.2);
+          box-shadow: 0 24px 54px rgba(16, 35, 65, 0.24);
         }
         .publish-modal h3 {
           font: 700 20px/1.2 system-ui, sans-serif;
@@ -514,9 +555,10 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           margin: 0 0 24px;
         }
         .publish-summary {
-          padding: 16px;
+          padding: 18px;
           background: var(--surface);
-          border-radius: 8px;
+          border: 1px solid #dbe6f4;
+          border-radius: 14px;
           margin-bottom: 20px;
         }
         .publish-summary dt {
@@ -568,8 +610,14 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
               aria-label={`View ${agent.name} — ${agent.role}`}
             >
               <div className="agent-card-stripe" style={{ background: agent.accent }} />
-              <div className="agent-avatar" style={{ background: agent.accent }}>
-                {agent.monogram}
+              <div className="agent-avatar">
+                <Image
+                  src={agent.portrait}
+                  alt={`Fictional portrait for ${agent.name}, the ${agent.role}`}
+                  width={128}
+                  height={128}
+                  sizes="64px"
+                />
               </div>
               <p className="agent-card-name">{agent.name}</p>
               <p className="agent-card-role">{agent.id} · {agent.role}</p>
@@ -599,8 +647,14 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
       {view === "detail" && selected && (
         <div className="detail-panel">
           <div className="detail-header">
-            <div className="detail-avatar" style={{ background: selected.accent }}>
-              {selected.monogram}
+            <div className="detail-avatar">
+              <Image
+                src={selected.portrait}
+                alt={`Fictional portrait for ${selected.name}, the ${selected.role}`}
+                width={172}
+                height={172}
+                sizes="86px"
+              />
             </div>
             <div className="detail-info">
               <h2>{selected.name}</h2>
@@ -782,7 +836,8 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
           <div className="publish-modal" role="dialog" aria-label="Publish to Inkbox">
             <h3>Publish to Inkbox</h3>
             <p>
-              This will open Inkbox with your agent identity ready to go.
+              This opens Inkbox in a new tab. It does not create or publish an
+              identity from this portal.
             </p>
             <dl className="publish-summary">
               <dt>Agent</dt>
@@ -798,12 +853,12 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
               </button>
               <a
                 className="ops-btn ops-btn-inkbox"
-                href="https://inkbox.me"
+                href="https://inkbox.ai/"
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setPublishedAgent(null)}
               >
-                Open Inkbox →
+                Continue to Inkbox →
               </a>
             </div>
           </div>
