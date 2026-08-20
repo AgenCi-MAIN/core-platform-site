@@ -359,6 +359,51 @@ test("production-shaped inbound flow enforces entitlement, races, team return, a
     body: { action: "available", browserSessionId: aliceSession },
   });
   assert.equal(readyAliceAgain.status, 200);
+  const beforeHeartbeat = await voice.db
+    .prepare("SELECT last_heartbeat_at, expires_at FROM voice_presence WHERE member_id = ?")
+    .bind(aliceId)
+    .first();
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  const heartbeatAlice = await voice.memberFetch("/portal/calls/presence", alice, {
+    method: "POST",
+    body: { action: "heartbeat", browserSessionId: aliceSession },
+  });
+  assert.equal(heartbeatAlice.status, 200);
+  const afterHeartbeat = await voice.db
+    .prepare("SELECT last_heartbeat_at, expires_at FROM voice_presence WHERE member_id = ?")
+    .bind(aliceId)
+    .first();
+  assert.ok(
+    Date.parse(afterHeartbeat.last_heartbeat_at) > Date.parse(beforeHeartbeat.last_heartbeat_at),
+    "a live browser heartbeat advances the server acknowledgement time",
+  );
+  assert.ok(
+    Date.parse(afterHeartbeat.expires_at) > Date.parse(beforeHeartbeat.expires_at),
+    "a live browser heartbeat advances the D1 eligibility expiry",
+  );
+  await voice.db
+    .prepare("UPDATE voice_presence SET expires_at = '2020-01-01T00:00:00.000Z' WHERE member_id = ?")
+    .bind(aliceId)
+    .run();
+  const expiredHeartbeat = await voice.memberFetch("/portal/calls/presence", alice, {
+    method: "POST",
+    body: { action: "heartbeat", browserSessionId: aliceSession },
+  });
+  assert.equal(expiredHeartbeat.status, 409, "an expired tab cannot resurrect itself with a late heartbeat");
+  const registerAliceAfterExpiry = await voice.memberFetch("/portal/calls/session", alice, {
+    method: "POST",
+    body: {
+      browserSessionId: aliceSession,
+      fingerprint: "A".repeat(43),
+      purpose: "register",
+    },
+  });
+  assert.equal(registerAliceAfterExpiry.status, 200);
+  const readyAliceAfterExpiry = await voice.memberFetch("/portal/calls/presence", alice, {
+    method: "POST",
+    body: { action: "available", browserSessionId: aliceSession },
+  });
+  assert.equal(readyAliceAfterExpiry.status, 200);
   await voice.setPresence(staleId, "cccccccc-cccc-4ccc-8ccc-cccccccccccc", "available", "2020-01-01T00:00:00.000Z");
   await voice.setPresence(suspendedId, "dddddddd-dddd-4ddd-8ddd-dddddddddddd", "available", "2099-01-01T00:00:00.000Z");
 
@@ -749,5 +794,37 @@ test("the browser phone waits for SDK user initialization before connecting and 
     source,
     /try\s*{\s*client\.destroy\(\);\s*}\s*catch\s*{[^}]*}/,
     "a partially initialized SDK client cannot interrupt the error-state transition",
+  );
+});
+
+test("the browser phone starts heartbeats after Available and fails stale UI closed", () => {
+  const source = readFileSync(join(ROOT, "app/portal/calls/browser-phone.tsx"), "utf8");
+  const heartbeatAt = source.indexOf('await postPresence("heartbeat")');
+  const effectStart = source.lastIndexOf("  useEffect(() => {", heartbeatAt);
+  const effectEnd = source.indexOf("\n  useEffect(() => {", heartbeatAt);
+  const heartbeatEffect = source.slice(effectStart, effectEnd);
+
+  assert.ok(heartbeatAt > 0 && effectStart >= 0 && effectEnd > heartbeatAt, "the heartbeat effect exists");
+  assert.match(source, /const phoneEligible = isPhoneEligible\(phase\);/);
+  assert.match(heartbeatEffect, /if \(!phoneEligible \|\| !bootstrap\?\.heartbeatMs\) return;/);
+  assert.doesNotMatch(
+    heartbeatEffect,
+    /if \(!releaseLockRef\.current/,
+    "effect activation must follow reactive phone eligibility, not a ref mutation that cannot rerender it",
+  );
+  assert.match(heartbeatEffect, /armPresenceExpiry\(/, "the visible state has a server-expiry watchdog");
+  assert.match(
+    heartbeatEffect,
+    /\[[^\]]*phoneEligible[^\]]*\]/,
+    "entering Available reruns the effect and starts the interval",
+  );
+
+  const availablePost = source.indexOf('const availablePresence = await postPresence("available")');
+  const availablePhase = source.indexOf('setPhase("available"', availablePost);
+  assert.ok(availablePost > 0 && availablePhase > availablePost, "availability is persisted before it is displayed");
+  assert.match(
+    source.slice(availablePost, availablePhase),
+    /presenceExpiresAtRef\.current = availablePresence\.expiresAt/,
+    "the client watchdog starts from the expiry acknowledged by the server",
   );
 });

@@ -2031,3 +2031,51 @@ No provider resource, D1 row, Worker secret, number route, 5118 behavior, or
 call was changed. The exact one-use founder keyword `mi` is required before
 this branch can merge; production deployment remains a separate explicit
 action after merged-main verification.
+
+### 19t. Post-deployment availability heartbeat repaired locally — 2026-08-20
+
+The SignalWire user-initialization repair recorded in 19s was subsequently
+squash-merged and deployed as
+`main@06988d2e31d49e3a740a00cdf043d6e947826a38`, Worker version
+`b9ca5dc3-9f75-425e-8e09-5e31e4cbe20a`. After that deployment, the founder's
+browser reached **Available** on the protected 3647 assignment, but a provider
+test still announced that nobody was available.
+
+**Production evidence and root cause.** A read-only D1 inspection after the
+founder's hard restart showed member 8 authorized as Available at
+`2026-08-20T19:47:01.087Z`, with that same value as the only heartbeat and an
+expiry of `2026-08-20T19:47:46.087Z`. At `2026-08-20 19:48:05` the row was
+already ineligible while the browser still displayed Available. The client
+heartbeat effect had executed before the primary-tab lock existed, returned,
+and never reran: the lock lived only in a ref, whose later mutation does not
+rerender React. A second server defect allowed an already expired tab to renew
+itself if a delayed heartbeat eventually arrived. The same read-only check
+found no inbound call, call offer, or `calls.route` audit row from the provider
+test, so that test is not evidence that the authenticated CORE route ran.
+
+**Local repair.** Isolated branch
+`codex/browser-phone-heartbeat-20260820`, based on exact deployed
+`origin/main@06988d2e31d49e3a740a00cdf043d6e947826a38`, now activates the
+15-second heartbeat from the reactive phone-eligible state after Available is
+persisted. Successful acknowledgements advance the tracked D1 expiry, and a
+client watchdog takes the phone Offline if that eligibility is not renewed.
+The server refuses a heartbeat after expiry, preventing a stale or throttled
+tab from silently re-entering the hunt without a fresh registration.
+
+**Verification.** The regression failed on the prior source in both expected
+places: the client effect was not reactive and an expired heartbeat returned
+200 instead of 409. After the repair, the focused production-shaped Miniflare
+and client-lifecycle checks passed 2/2. The production build and complete suite
+passed 125/125; `verify:build` reported the Worker safe to deploy. Task-owned
+ESLint and TypeScript checks passed, `git diff --check` passed, and the built
+client contained the expiry guard without any scanned Voice credential name,
+subscriber-token fixture, private Space hostname, or encryption-key marker.
+Repository-wide TypeScript and lint remain blocked only by the separately
+recorded fleet alias/dependency baseline and the existing Quoter apostrophe.
+
+**Delivery boundary.** This is a verified local repair, not production. No D1
+row was mutated, no secret or provider resource changed, neither 3647 nor 5118
+routing changed, and no call was placed. A fresh one-use founder `mi` is
+required to merge this branch. Deployment remains a separate explicit action
+after the merged-main gates pass; an authenticated heartbeat observation and
+controlled 3647 route test remain post-deploy acceptance checks.

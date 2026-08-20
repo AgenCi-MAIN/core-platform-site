@@ -32,7 +32,13 @@ type Bootstrap = {
   setupState: string;
   personalNumber?: string | null;
   heartbeatMs?: number;
+  presenceTtlMs?: number;
   presence?: { state?: string };
+  error?: string;
+};
+
+type PresenceResponse = {
+  expiresAt?: string;
   error?: string;
 };
 
@@ -84,6 +90,8 @@ export function BrowserPhone({
   const transferringRef = useRef(false);
   const callStatusCleanupRef = useRef<(() => void) | null>(null);
   const heartbeatFailuresRef = useRef(0);
+  const presenceExpiresAtRef = useRef<string | null>(null);
+  const phoneEligible = isPhoneEligible(phase);
 
   const setPhase = useCallback((next: PhonePhase, nextMessage?: string) => {
     phaseRef.current = next;
@@ -153,10 +161,11 @@ export function BrowserPhone({
       body: JSON.stringify({ action, browserSessionId: sessionIdRef.current }),
       keepalive: action === "offline",
     });
+    const body = (await safeJson(response)) as PresenceResponse;
     if (!response.ok) {
-      const body = (await safeJson(response)) as { error?: string };
       throw new Error(body.error ?? "Presence update failed.");
     }
+    return body;
   }, []);
 
   const stopPhone = useCallback(async (reason = "Phone is offline.") => {
@@ -179,6 +188,7 @@ export function BrowserPhone({
     releaseLockRef.current = null;
     connectedRef.current = false;
     transferringRef.current = false;
+    presenceExpiresAtRef.current = null;
     contextRef.current = null;
     setContext(null);
     setMuted(false);
@@ -210,21 +220,59 @@ export function BrowserPhone({
   }, [stopPhone]);
 
   useEffect(() => {
-    if (!releaseLockRef.current || !bootstrap?.heartbeatMs) return;
-    const timer = window.setInterval(async () => {
-      if (!["available", "ringing", "connecting", "connected"].includes(phaseRef.current)) return;
+    // The lock is stored in a ref, so acquiring it cannot activate an effect.
+    // The rendered phone phase is the reactive boundary that starts renewals.
+    if (!phoneEligible || !bootstrap?.heartbeatMs) return;
+    const heartbeatMs = bootstrap.heartbeatMs;
+    const presenceTtlMs = bootstrap.presenceTtlMs;
+    let stopped = false;
+    let heartbeatInFlight = false;
+    let heartbeatTimer: number | null = null;
+    let expiryTimer: number | null = null;
+
+    const stopForExpiredPresence = () => {
+      if (stopped) return;
+      stopped = true;
+      if (heartbeatTimer !== null) window.clearInterval(heartbeatTimer);
+      void stopPhone("The ready heartbeat expired. Press Available to register again.");
+    };
+    const armPresenceExpiry = (expiresAt?: string | null) => {
+      if (expiryTimer !== null) window.clearTimeout(expiryTimer);
+      const parsedExpiry = expiresAt ? Date.parse(expiresAt) : Number.NaN;
+      const fallbackTtl = presenceTtlMs ?? heartbeatMs * 3;
+      const remaining = Number.isFinite(parsedExpiry)
+        ? Math.max(0, parsedExpiry - Date.now())
+        : fallbackTtl;
+      expiryTimer = window.setTimeout(stopForExpiredPresence, remaining);
+    };
+    const sendHeartbeat = async () => {
+      if (stopped || heartbeatInFlight || !releaseLockRef.current) return;
+      heartbeatInFlight = true;
       try {
-        await postPresence("heartbeat");
+        const heartbeatPresence = await postPresence("heartbeat");
+        if (stopped) return;
+        presenceExpiresAtRef.current = heartbeatPresence.expiresAt ?? null;
         heartbeatFailuresRef.current = 0;
+        armPresenceExpiry(heartbeatPresence.expiresAt);
       } catch {
+        if (stopped) return;
         heartbeatFailuresRef.current += 1;
         if (heartbeatFailuresRef.current >= 2) {
-          void stopPhone("The ready heartbeat expired. Press Available to register again.");
+          stopForExpiredPresence();
         }
+      } finally {
+        heartbeatInFlight = false;
       }
-    }, bootstrap.heartbeatMs);
-    return () => window.clearInterval(timer);
-  }, [bootstrap?.heartbeatMs, postPresence, stopPhone]);
+    };
+
+    armPresenceExpiry(presenceExpiresAtRef.current);
+    heartbeatTimer = window.setInterval(() => void sendHeartbeat(), heartbeatMs);
+    return () => {
+      stopped = true;
+      if (heartbeatTimer !== null) window.clearInterval(heartbeatTimer);
+      if (expiryTimer !== null) window.clearTimeout(expiryTimer);
+    };
+  }, [bootstrap?.heartbeatMs, bootstrap?.presenceTtlMs, phoneEligible, postPresence, stopPhone]);
 
   useEffect(() => {
     if (phase !== "ringing") return;
@@ -397,7 +445,8 @@ export function BrowserPhone({
       });
       subscriptionCleanups.push(() => incomingSubscription.unsubscribe());
       await client.register();
-      await postPresence("available");
+      const availablePresence = await postPresence("available");
+      presenceExpiresAtRef.current = availablePresence.expiresAt ?? null;
       heartbeatFailuresRef.current = 0;
       setPhase("available", `Ready on ${bootstrap.personalNumber ?? "your THRIVE line"}. Keep this tab open.`);
     } catch (error) {
@@ -674,6 +723,10 @@ function addressVariables(address: string | undefined): URLSearchParams {
 function isEditingTarget(target: EventTarget | null): boolean {
   return target instanceof HTMLElement
     && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+}
+
+function isPhoneEligible(phase: PhonePhase): boolean {
+  return ["available", "ringing", "connecting", "connected"].includes(phase);
 }
 
 function phaseLabel(phase: PhonePhase): string {
