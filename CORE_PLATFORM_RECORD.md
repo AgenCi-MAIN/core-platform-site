@@ -1699,3 +1699,57 @@ concepts, complete generation briefs, and asset specifications. This Worker
 still has zero external tools and did not render ten image files. Image
 generation requires a separately connected and governed image tool; Inkbox
 identity mapping still does not authorize outbound channel action.
+
+### 19m. SKY fleet count corrected and ten-agent runtime connected — 2026-08-20
+
+The owner reported that `https://skyisblue.space/fleet` showed one connected
+identity despite the previously established ten-agent runtime and directed
+the necessary updates to `main`.
+
+**Root cause.** SKY's `/fleet` page was only an Inkbox identity registry. Its
+single connected count meant that `@eye` was the only identity observed by
+SKY's read-only Inkbox key; it did not inspect the separate Cloudflare
+Durable Object runtime. The page therefore displayed a true Inkbox fact under
+language that was too easy to interpret as the runtime-agent count.
+
+**Repair.** SKY now calls the protected `core-agent-fleet` status endpoint
+server-side with a dedicated secret and shows the two systems separately:
+
+- runtime connected is the number of authenticated Durable Object status rows
+  actually returned, with ready, working, and degraded shown independently;
+- Inkbox reads remains one and provisioned Inkbox identities remains ten; and
+- an unavailable Worker fails closed rather than displaying the expected ten
+  as if they had been reached.
+
+The Worker probe path was also repaired so a successful probe clears a stale
+degraded state and stale error. Worker version `0.2.2` was uploaded in
+Cloudflare code deployment `8b4634be-83f9-45dc-aa08-ba7d8592b731`; the final
+secret-change deployment is `6b9bb41d-072e-4ca1-b3fe-d25575750353` at 100%.
+The shared bearer secret was rotated and synchronized across Cloudflare, the
+SKY Vercel project, and the protected fleet-console Vercel project. No secret
+value was logged or committed.
+
+**Verified runtime state.** An authenticated probe and follow-up status read
+returned all ten personas — Vestal, Recon, Terraform, Meridian, Lattice,
+Cipher, Lumen, Index, Assay, and Ledger — with `10 ready`, `0 working`, and
+`0 degraded`. Every row reported Worker `0.2.2` and memory
+`core-2026-08-20.1`. The public health endpoint independently reported
+`agentCount: 10`, `version: 0.2.2`, and `tools: 0`.
+
+**Source and deployment evidence.** The runtime service and durable record
+were signed and pushed to canonical CORE `main` at
+`d65d0189040916a13935b914d3918064f84bcc25`. SKY was signed and pushed to
+`main` at `6c423bf5242e06c887a7f658eb052acbefa13313`. Its Vercel production
+deployment `dpl_Bw2jcKEbr8fWQNwCPFBkfwdBpuns` is ready, aliases
+`skyisblue.space`, and reports the exact same Git SHA and `main` ref. The
+protected fleet-console preview
+`dpl_G2MYTtAD6nWZpDBXXTEmaWS4FEL4` is also ready; its protected `/api/fleet`
+returned the same 10/10 ready state.
+
+**Verification gates.** SKY typecheck, lint, 110/110 tests, and the Next
+production build passed. Fleet console typecheck, lint, and production build
+passed. Worker generated types, strict TypeScript, 10/10 tests, and Wrangler
+dry-run passed before deployment. The local UI could not bypass the real
+Google session gate, so the authenticated page pixels were not independently
+rendered in this session; production source, build, alias, exact commit, live
+Worker response, and the protected console bridge were verified.
