@@ -1946,7 +1946,9 @@ registration, explicitly awaits `connect()`, subscribes to incoming calls only
 after the authenticated session exists, and then calls `register()`. Subscription
 cleanup is installed before connection begins, and destruction of a partially
 initialized client is non-throwing so the panel can always leave Registering
-and show an honest retryable error.
+and show an honest retryable error. The Outbound tab's stale setup sentence was
+also corrected: it now describes the dedicated server-only Voice credential as
+the active boundary instead of claiming that creating it is still pending.
 
 **Verification.** Focused ESLint passed. The production build passed; the full
 suite passed 124/124, including a new source-ordering and cleanup regression.

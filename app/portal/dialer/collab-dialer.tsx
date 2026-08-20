@@ -116,7 +116,7 @@ export function CollabDialer() {
       <ul className="dialer-rules" aria-label="Dialer controls">
         <li><b>✓</b><span>Founder-only server action; browser code never receives a Project ID or API token.</span></li>
         <li><b>✓</b><span>One accepted request per 30 seconds; no recording, transcription, voicemail, or AI agent.</span></li>
-        <li><b>✓</b><span>New Voice-only credential required. The existing active, over-scoped Shawn token is not reused.</span></li>
+          <li><b>✓</b><span>Dedicated Voice-only credential stays server-side. The existing active, over-scoped Shawn token is not reused.</span></li>
       </ul>
     </section>
   );
