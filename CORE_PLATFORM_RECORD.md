@@ -155,6 +155,10 @@ the old account for GitHub/Drive.
 | `SIGNALWIRE_SIGNING_KEY` | Verifies the carrier's request signature on that same route. |
 | `SIGNALWIRE_PUBLIC_ORIGIN` | The origin the signature was computed over. Not secret in the way the others are — it is a URL — but it is configured rather than read off the request, because a proxy can rewrite the host and a signature recomputed over the wrong URL fails for a legitimate caller. |
 | `SIGNALWIRE_AGENT_MAP` | Carrier-side agent numbers → member email addresses. A Worker secret rather than a D1 table, so staff mobile numbers stay out of the database and out of its exports (OWNER-DECISIONS F2). |
+| `SIGNALWIRE_DIALER_SPACE_URL` | The SignalWire Space host used only by the founder-controlled outbound route. It is configured rather than accepted from the browser. |
+| `SIGNALWIRE_DIALER_PROJECT_ID` | The SignalWire Project intentionally shared by the CORE platform dialer. An identifier rather than a secret, but kept in hosted runtime configuration so a project move does not require a source edit. |
+| `SIGNALWIRE_DIALER_TOKEN` | Dedicated outbound token. It must belong to the configured Project and have Voice permission only. Never reuse a browser-stored or broadly scoped token. |
+| `SIGNALWIRE_DIALER_AGENT_NUMBER` | The private mobile CORE rings before any customer. It is a Worker secret and is never sent to the browser, written to D1, or copied into the audit trail. |
 
 **The Presence's isolation contract (governance, 2026-08-15).** The
 `pet.chat` capability was granted to every role: the Presence is the one
@@ -1555,3 +1559,75 @@ the only kind that counts.
 sent nothing; its next scheduled pass is 2026-08-18T13:32Z. Until an outbound
 brief appears in the thread, the daily 8:30 text remains a routine that has
 never delivered.
+
+### 19j. SignalWire number-role update — 2026-08-20
+
+The founder supplied the current phone-number roles for the Thrive Company
+SignalWire space:
+
+- `+12053515158` / +1 (205) 351-5158 — outbound dialer caller ID.
+- `+12053515118` / +1 (205) 351-5118 — main customer-facing inbound and
+  transfer line.
+
+The non-secret CORE configuration, Command page, Inbound page, and recorded
+SWML/roster plan now use those identifiers. The older +1 (205) 351-3647 entry
+remains in D9/D10 as history and is superseded for the active plan by D11.
+
+**Not yet claimed live:** SignalWire redirected the supplied number-management
+URL to its sign-in screen in this session. Until an authorized user signs in,
+the live number ownership, inbound Resource assignment, outbound caller-ID
+permission, and deployed SWML cannot be inspected or changed. No test call was
+placed.
+
+The portal's previous Collab Dialer was also found to be non-operational: it
+stored a project API token in browser local storage, checked a token endpoint,
+and then simulated a call with a local timer without invoking a voice SDK. That
+credential form and false live-call claim were removed. Browser dialing stays
+held offline until a server-side, capability-scoped session broker and a real
+SignalWire voice client are implemented and verified.
+
+### 19k. SignalWire live inspection and server dialer build — 2026-08-20
+
+This entry supersedes 19j's unverified console assumptions without rewriting
+that earlier state.
+
+**Live SignalWire state verified in the founder's signed-in Space.** The Space
+is `thrive-company.signalwire.com`, the current Project is the one shown by the
+Space dashboard, and the three owned lines are now labeled:
+
+- `+12053515118` — **Thrive Life Main**, the public inbound line.
+- `+12053513647` — **Thrive Life Dial Line**, the bridge identity used by the
+  inbound queue when it rings the founder.
+- `+12053515158` — **CORE Platform Line**, the caller ID reserved for calls
+  initiated by the CORE website.
+
+The live `thrive-life-queue` SWML resource was simplified to one approved
+private destination, uses 3647 as its bridge `from` value, requires press 1,
+and has no recording, voicemail, transcription, or AI answering. SignalWire
+confirmed the resource deployment and update timestamp. Its browser
+Click-to-Test frame ended at 00:00 without ringing the private mobile, so this
+record does **not** call the external ring verified; a real inbound call to
+5118 remains the proof.
+
+**Credential correction.** The existing token named `Shawn` cannot be treated
+as an unused dialer token: SignalWire showed recent use, and its edit page
+showed every available permission enabled. It was not displayed, copied,
+renamed, narrowed, deleted, or repurposed. The outbound portal requires a new
+dedicated `CORE_DIALER` token with Voice permission only. A separate token
+isolates revocation and audit identity but does not create separate carrier
+throughput: SignalWire documents the default voice limit across the Space, so
+the portal also reserves no more than one request per 30-second D1 bucket.
+
+**Portal implementation state.** The working tree now contains a real
+founder-only server originate route using SignalWire's outbound REST API with
+inline SWML. The route rings the private mobile first, requires press 1 before
+any customer leg, presents 5158 as the caller ID, blocks CORE-owned numbers as
+customer destinations, keeps the project token server-side, stores only masked
+destination metadata, and leaves recording off. A separate test mode rings
+only the private mobile and never calls a customer. `outbound_dial_requests`
+provides a durable request ledger and duplicate-call limiter.
+
+**Not yet live at this entry:** the Voice-only token has not been created and
+transferred into Sites secrets, the D1 migration has not been applied to the
+hosted database, the source has not been published, and no portal-originated
+test call has succeeded. Local implementation is not a deployment.

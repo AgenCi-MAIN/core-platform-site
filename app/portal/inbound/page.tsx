@@ -6,6 +6,7 @@ import { requireCapability } from "../access";
 import { SIGNALWIRE_SOURCE_SYSTEM } from "../calls/transfer-id";
 import { EmptyState, PortalPageIntro, PortalShell } from "../components";
 import { readFaultCopy, readRows } from "../read-guard";
+import { TELEPHONY_CONFIG } from "../telephony-config";
 import { InboundAvailabilityControl } from "./availability-control";
 
 export const dynamic = "force-dynamic";
@@ -214,7 +215,7 @@ export default async function InboundPage() {
               <span className="inbound-bridge-badge">Records only</span>
             </div>
             <div className="inbound-flow" aria-label="Inbound routing path">
-              <div className="inbound-flow-row"><b>1</b><strong>Campaign / central number</strong><small>caller dials</small></div>
+              <div className="inbound-flow-row"><b>1</b><strong>{TELEPHONY_CONFIG.mainNumber.display}</strong><small>main inbound / transfer line</small></div>
               <div className="inbound-flow-row"><b>2</b><strong>Carrier</strong><small>SignalWire console, or the Twilio-compatible roster</small></div>
               <div className="inbound-flow-row"><b>3</b><strong>Agent phone</strong><small>carrier rings</small></div>
               <div className="inbound-flow-row"><b>4</b><strong>CORE record</strong><small>{ingestStep}</small></div>
@@ -308,6 +309,10 @@ export default async function InboundPage() {
               ))}
             </div>
           )}
+
+          <p className="inbound-source-note">
+            <strong>Number roles:</strong> {TELEPHONY_CONFIG.mainNumber.display} is the main inbound line; {TELEPHONY_CONFIG.bridgeLine.display} is its bridge identity; and {TELEPHONY_CONFIG.platformLine.display} is the CORE website caller ID. SignalWire remains the live routing source of truth.
+          </p>
 
           <p className="inbound-source-note">
             <strong>Routing boundary:</strong> your availability is written to CORE&rsquo;s audit log and read back by this page. Nothing else reads it &mdash; neither routing path asks CORE who is free. SignalWire picks the agent from its own console, and the Twilio-compatible webhook rings a fixed roster held in Worker configuration &mdash; so going available here does not put you in the rotation. Records flow the other way, from the carrier into CORE; sending availability back to it needs a ring-group write, each agent&rsquo;s number held as personal data, and an approved routing policy before it can be turned on.

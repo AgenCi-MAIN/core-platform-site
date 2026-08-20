@@ -1,51 +1,32 @@
 {
   "_record": [
-    "Thrive Life inbound routing — roster of record (SignalWire space",
-    "'Thrive Company', number +1 205 351 3647, Call Flow 'Thrive Life').",
-    "Seeded by: Yuxiang Mao (Shawn), founder — uploaded as seats.json this",
-    "sitting; corrected and recorded by MAIN, 2026-08-19.",
-    "",
-    "Corrections from the uploaded draft, both explained in the session:",
-    "1. Seat 1 read +12053513647 — the inbound line ITSELF, a forwarding",
-    "   loop. Replaced with the founder's verified cell; roster is the",
-    "   three owners' verified numbers from the record (A14).",
-    "2. no_answer was voicemail+transcribe. DEFERRED, per the founder's own",
-    "   signed rules: A25 (call audio never rests outside the Cloudflare",
-    "   account — SignalWire voicemail storage has no custody path until",
-    "   the Phase 1/2 webhook ships) and the E7b counsel gate on",
-    "   transcription. Today: courtesy message + hangup; missed calls show",
-    "   in the SignalWire call log. Voicemail returns with the custody",
-    "   webhook; transcription returns with counsel's word."
+    "Thrive Life SignalWire number roles and one-destination inbound queue.",
+    "Live console state inspected and simplified on 2026-08-20.",
+    "The full personal destination remains here only because this is the historical live-routing artifact; new application code reads it exclusively from the SIGNALWIRE_DIALER_AGENT_NUMBER Worker secret."
   ],
-  "flow": "thrive-life-inbound",
   "platform": "signalwire",
-  "inbound_number": "+12053513647",
+  "space": "Thrive Company",
+  "public_inbound_number": "+12053515118",
+  "inbound_bridge_number": "+12053513647",
+  "core_platform_outbound_number": "+12053515158",
+  "inbound_resource": "thrive-life-queue",
   "timezone": "America/Chicago",
-  "strategy": "sequential",
-  "ring_seconds": 18,
-  "caller_id_mode": "line_number",
-  "caller_id_note": "Draft asked for 'original'; passing the caller's number as caller ID is carrier-restricted. The line's own 205 number is used; the caller's real number stays in the call log.",
-  "greeting": {
-    "enabled": true,
-    "voice": "polly.Joanna",
-    "text": "Thank you for calling Thrive Life. I'm an automated assistant. Please hold while I connect you with someone who can help."
+  "strategy": "single_approved_destination_with_press_1_confirmation",
+  "ring_seconds": 25,
+  "destination": {
+    "name": "Shawn (founder)",
+    "number": "+14095492092",
+    "enabled": true
   },
-  "no_answer": {
-    "action": "courtesy_message_then_hangup",
-    "voice": "polly.Joanna",
-    "text": "I'm sorry, no one is available right now. Please try again shortly.",
-    "voicemail": "deferred until the A25 custody webhook ships",
-    "transcribe": "deferred until counsel (E7b, packet Q7/Q9)"
+  "verification": {
+    "resource_deployed": true,
+    "real_inbound_call_passed": false,
+    "click_to_test_result": "ended_at_00_00_without_ringing_mobile"
   },
-  "seats": [
-    { "order": 1, "name": "Shawn (founder)", "number": "+14095492092", "enabled": true, "notes": "verified number of record (A14)" },
-    { "order": 2, "name": "Ryan Davidson", "number": "+19412101410", "enabled": true, "notes": "verified number of record (A14)" },
-    { "order": 3, "name": "Andrew Davidson", "number": "+19412101411", "enabled": true, "notes": "verified number of record (A14)" }
-  ],
-  "seats_note": "Seats 4-20 from the draft were empty and are omitted; adding staff seats beyond the owners is a roster decision that lands in the ledger, and at 20+ seats this stops being a call flow and becomes the queue/ACD build (Phase 3).",
   "forbidden_on_this_flow": [
-    "Start Call Recording node (A29 - recording OFF until counsel clears wording)",
-    "Voicemail Recording node (A25 - no custody path yet)",
-    "AI Agent node (the D4 wound - no un-briefed voice AI on a THRIVE line)"
+    "recording",
+    "voicemail recording",
+    "transcription",
+    "AI answering"
   ]
 }

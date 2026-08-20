@@ -70,6 +70,12 @@ export type DialerTransferStatus = (typeof DIALER_TRANSFER_STATUSES)[number];
 export const CALL_CONSENT_STATUSES = ["pending", "verified", "restricted"] as const;
 export type CallConsentStatus = (typeof CALL_CONSENT_STATUSES)[number];
 
+export const OUTBOUND_DIAL_MODES = ["agent_test", "customer"] as const;
+export type OutboundDialMode = (typeof OUTBOUND_DIAL_MODES)[number];
+
+export const OUTBOUND_DIAL_STATUSES = ["pending", "queued", "failed"] as const;
+export type OutboundDialStatus = (typeof OUTBOUND_DIAL_STATUSES)[number];
+
 export const portalMembers = sqliteTable(
   "portal_members",
   {
@@ -202,6 +208,49 @@ export const dialerTransfers = sqliteTable(
     check(
       "dialer_transfers_duration_check",
       sql`${table.durationSeconds} IS NULL OR ${table.durationSeconds} >= 0`,
+    ),
+  ],
+);
+
+/**
+ * Founder-authorized calls placed by the CORE portal through SignalWire.
+ *
+ * Only masked destination metadata is retained. The full destination exists
+ * transiently in the server-side request sent to SignalWire and is never
+ * written to D1, the audit log, source code, or browser storage.
+ *
+ * `rateBucket` is a 30-second UTC bucket with a unique index. Inserting the
+ * request before contacting SignalWire makes accidental double-clicks race on
+ * the database rather than create two billable calls. This limit is stricter
+ * than SignalWire's documented 1 CPS Space limit; it protects CORE's own
+ * caller, but it does not pretend to coordinate unrelated apps in the Space.
+ */
+export const outboundDialRequests = sqliteTable(
+  "outbound_dial_requests",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    requestId: text("request_id").notNull(),
+    actorEmail: text("actor_email").notNull(),
+    mode: text("mode").$type<OutboundDialMode>().notNull(),
+    destinationMasked: text("destination_masked"),
+    rateBucket: integer("rate_bucket").notNull(),
+    status: text("status").$type<OutboundDialStatus>().notNull().default("pending"),
+    externalCallId: text("external_call_id"),
+    failureCode: text("failure_code"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("outbound_dial_requests_request_idx").on(table.requestId),
+    uniqueIndex("outbound_dial_requests_rate_bucket_idx").on(table.rateBucket),
+    index("outbound_dial_requests_actor_idx").on(table.actorEmail, table.createdAt),
+    check(
+      "outbound_dial_requests_mode_check",
+      sql`${table.mode} IN (${literalSet(OUTBOUND_DIAL_MODES)})`,
+    ),
+    check(
+      "outbound_dial_requests_status_check",
+      sql`${table.status} IN (${literalSet(OUTBOUND_DIAL_STATUSES)})`,
     ),
   ],
 );

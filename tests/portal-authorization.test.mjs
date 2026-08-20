@@ -240,7 +240,7 @@ test("a seeded owner signs in, binds their subject, and is audited", async () =>
   }
 });
 
-test("active members see Shawn's pinned 2.0.0 announcement", async (t) => {
+test("active members see the pinned Switchboard announcement", async (t) => {
   const portal = await startPortal();
   t.after(portal.dispose);
 
@@ -253,8 +253,11 @@ test("active members see Shawn's pinned 2.0.0 announcement", async (t) => {
   const dashboard = await portal.get("/portal", member);
   assert.equal(dashboard.status, 200);
   const dashboardHtml = await dashboard.text();
-  assert.match(dashboardHtml, /What 2\.0\.0 is/);
-  assert.match(dashboardHtml, /href="\/portal\/announcements#what-2-0-0-is"/);
+  assert.match(dashboardHtml, /Switchboard[^<]*where we stand/);
+  assert.match(
+    dashboardHtml,
+    /href="\/portal\/announcements#switchboard-where-we-stand"/,
+  );
 
   const response = await portal.get("/portal/announcements", member);
   assert.equal(response.status, 200);
@@ -262,14 +265,14 @@ test("active members see Shawn's pinned 2.0.0 announcement", async (t) => {
   // React may place empty hydration comments between adjacent text segments;
   // compare what the member sees, not those invisible transport markers.
   const visibleHtml = html.replaceAll("<!-- -->", "");
-  assert.match(html, /id="what-2-0-0-is"/);
-  assert.match(visibleHtml, /Posted by Shawn/);
-  assert.match(visibleHtml, /version number jumps from 0\.1\.0 to 2\.0\.0/);
-  assert.match(visibleHtml, /<strong>plus a working AI staff<\/strong>/);
+  assert.match(html, /id="switchboard-where-we-stand"/);
+  assert.match(visibleHtml, /Posted by J\.A\.R\.V\.I\.S\./);
+  assert.match(visibleHtml, /A plan of record now exists for taking live inbound/);
+  assert.match(visibleHtml, /Phase 1[^<]*a call reaches a human/);
   assert.equal(
     (html.match(/aria-label="Pinned announcement"/g) ?? []).length,
     1,
-    "the new release must be the single pinned announcement",
+    "Switchboard must be the single pinned announcement",
   );
 });
 
@@ -562,6 +565,19 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
     const auditDenied = await portal.get("/portal/audit", otherOwner);
     assert.equal(auditDenied.status, 307, "a non-founder owner cannot read the audit log");
 
+    // Same rule, and the one with a bill attached: the dialer originates calls
+    // through SignalWire, so a second owner holding every capability —
+    // `calls.review` included — is still refused. This is pinned because the
+    // page moved from `requireCapability("calls.review")` to `requireFounder`,
+    // and nothing else in the suite would notice it moving back.
+    const dialerDenied = await portal.get("/portal/dialer", otherOwner);
+    assert.equal(dialerDenied.status, 307, "a non-founder owner cannot open the dialer");
+    assert.match(
+      dialerDenied.headers.get("location") ?? "",
+      /\/portal\/no-access$/,
+      "the dialer refusal routes to the explanation page",
+    );
+
     // Migration completed 2026-08-17: the founder is btcmao518@gmail.com. It
     // must be BOTH a member (granted in the live DB via db/sql/0003) and in
     // FOUNDER_EMAILS — mirror that here.
@@ -571,6 +587,8 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
     assert.equal(ok.status, 200, "the founder identity is admitted");
     const auditOk = await portal.get("/portal/audit", founder);
     assert.equal(auditOk.status, 200, "the founder reads the audit log");
+    const dialerOk = await portal.get("/portal/dialer", founder);
+    assert.equal(dialerOk.status, 200, "the founder opens the dialer");
 
     // The RETIRED founder identity (the seeded owner, Google account locked
     // 2026-08-17) keeps its owner membership for the historical record but
@@ -2651,9 +2669,19 @@ test("the dashboard mission map carries every lane and respects capability filte
   for (const lane of ["Operating Floor", "Signal &amp; Intelligence", "Economics Lab", "Governance Layer"]) {
     assert.match(ownerMap, new RegExp(lane), `lane "${lane}" missing from the mission map`);
   }
-  for (const label of ["Leaderboard", "My Stats", "Commissions", "Contracting", "Quoter", "Collab Dialer"]) {
+  for (const label of ["Leaderboard", "My Stats", "Commissions", "Contracting", "Quoter"]) {
     assert.match(ownerMap, new RegExp(`>${label}<`), `"${label}" missing from the owner's mission map`);
   }
+  // The Collab Dialer places billable calls and is founder-gated. It used to be
+  // asserted present here, which certified a dead link: an owner holding
+  // `calls.review` saw the tile and `requireFounder` turned them away. The
+  // absence is the assertion now — a tile that cannot be opened must not be
+  // shown, or the mission map is advertising access the portal will refuse.
+  assert.doesNotMatch(
+    ownerMap,
+    />Collab Dialer</,
+    "a non-founder owner must not be offered the founder-only dialer",
+  );
   // External tools render as hard anchors that leave the app in a new tab —
   // asserted inside the map slice, so the sidebar's identical anchor cannot
   // satisfy it.
@@ -3000,5 +3028,103 @@ test("the Presence is sent no tools, and no URL it could fetch", async (t) => {
     JSON.stringify(body),
     /https?:\/\//,
     "the Presence prompt carries a URL — the contract promises no URLs the model can fetch",
+  );
+});
+
+/**
+ * The outbound dialer route — `/portal/dialer/originate`.
+ *
+ * This is the only route in the portal that spends money and dials a real
+ * person, and it is structurally invisible to both completeness nets in
+ * `rendered-html.test.mjs`: the guard regex there matches literal
+ * `requireCapability(` / `requireFounder(` / `requireCommandCenter(` calls, and
+ * this route guards with `resolvePortalAccess(PATH)` followed by an explicit
+ * `isFounder(session)` branch. The second net walks `page.tsx` files only, and
+ * this is a route handler. So nothing in the suite would notice that branch
+ * being reordered, weakened, or deleted — which is the same blind spot the raw
+ * audio endpoint was given its own test for.
+ *
+ * Every case below runs with the dialer UNCONFIGURED, which is the state the
+ * repository ships in. That is not a limitation: the config read happens last
+ * on purpose, so an unconfigured deployment still refuses an anonymous or
+ * non-founder caller on identity rather than on missing credentials, and these
+ * assertions would fail if that order ever inverted.
+ */
+test("the outbound dialer refuses everyone but the founder, before it can bill", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  const ORIGINATE = "http://localhost/portal/dialer/originate";
+  const dial = (identity, body = { mode: "agent_test" }, over = {}) =>
+    portal.mf.dispatchFetch(ORIGINATE, {
+      method: "POST",
+      body: typeof body === "string" ? body : JSON.stringify(body),
+      redirect: "manual",
+      headers: {
+        "content-type": "application/json",
+        origin: "http://localhost",
+        ...identityHeaders(identity),
+        ...(over.headers ?? {}),
+      },
+    });
+
+  // Anonymous: refused on identity, before the route reads anything else.
+  const anon = await dial(null);
+  assert.equal(anon.status, 401, "an anonymous caller cannot reach the dialer");
+
+  // Suspended: membership is what fails, not the session.
+  await portal.addMember("benched-dialer@example.com", "owner", "suspended");
+  const suspended = await dial({ subject: "sub-benched-dialer", email: "benched-dialer@example.com" });
+  assert.equal(suspended.status, 403, "a suspended member cannot dial");
+
+  // An active owner holding every capability — `calls.review` included — is
+  // still refused. This is the assertion that pins the page's move from
+  // `requireCapability("calls.review")` to founder-only.
+  await portal.addMember("dialer-owner@example.com", "owner");
+  const owner = { subject: "sub-dialer-owner", email: "dialer-owner@example.com" };
+  const ownerRes = await dial(owner);
+  assert.equal(ownerRes.status, 403, "a non-founder owner cannot originate a call");
+
+  const rows = await portal.audit();
+  assert.ok(
+    rows.some((r) => r.reason === "founder_only" && r.decision === "deny"),
+    "the refusal is audited by name, not silently dropped",
+  );
+
+  // The founder from here on. Must be both a member and in FOUNDER_EMAILS.
+  await portal.addMember("btcmao518@gmail.com", "owner");
+  const founder = { subject: "sub-founder-dialer", email: "btcmao518@gmail.com" };
+
+  // Cross-origin POST with a valid session cookie is the CSRF shape: a page on
+  // another origin submitting to this one while the browser attaches the
+  // cookie. The Origin check is what stops it, so it is pinned separately from
+  // the identity checks above.
+  const noOrigin = await portal.mf.dispatchFetch(ORIGINATE, {
+    method: "POST",
+    body: JSON.stringify({ mode: "agent_test" }),
+    redirect: "manual",
+    headers: { "content-type": "application/json", ...identityHeaders(founder) },
+  });
+  assert.equal(noOrigin.status, 403, "a request with no Origin is refused");
+
+  const foreign = await dial(founder, { mode: "agent_test" }, {
+    headers: { origin: "https://attacker.example" },
+  });
+  assert.equal(foreign.status, 403, "a cross-origin request is refused even with a valid session");
+
+  // A CORE platform number as the customer destination would have the platform
+  // call itself. Refused before the credential is even read.
+  const selfDial = await dial(founder, { mode: "customer", destination: "+12053515118" });
+  assert.equal(selfDial.status, 400, "a CORE platform number cannot be the destination");
+
+  // Finally, an entirely valid founder request on an unconfigured deployment:
+  // honest 503, audited, and no call placed.
+  const unconfigured = await dial(founder, { mode: "agent_test" });
+  assert.equal(unconfigured.status, 503, "an unconfigured dialer fails closed rather than dialling");
+
+  const after = await portal.audit();
+  assert.ok(
+    after.some((r) => r.reason === "dialer_not_configured" && r.decision === "deny"),
+    "the unconfigured refusal is recorded too",
   );
 });

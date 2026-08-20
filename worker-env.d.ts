@@ -132,6 +132,27 @@ declare namespace Cloudflare {
     SIGNALWIRE_AGENT_MAP?: string;
 
     /**
+     * Founder-only CORE click-to-call.
+     *
+     * These are separate from the ingest credentials above. The outbound
+     * token must belong to the intended SignalWire Project and carry Voice
+     * permission only. Missing any value keeps the originate route closed.
+     *
+     * The dial destination is read from `SIGNALWIRE_DIALER_AGENT_NUMBER` and
+     * from nowhere else at runtime — no source file, no bundle, no browser
+     * storage. That is the rule this code keeps, and it is narrower than
+     * "the number exists only here": the founder's line is currently written
+     * out in five tracked documents (the operating record and four strategy
+     * files) from before this route existed. Removing it from those is a
+     * separate decision and the founder's to make; until he makes it, do not
+     * write a comment that says the secret is the only copy.
+     */
+    SIGNALWIRE_DIALER_SPACE_URL?: string;
+    SIGNALWIRE_DIALER_PROJECT_ID?: string;
+    SIGNALWIRE_DIALER_TOKEN?: string;
+    SIGNALWIRE_DIALER_AGENT_NUMBER?: string;
+
+    /**
      * Twilio inbound voice webhook (app/hooks/twilio/voice/route.ts) — the
      * Switchboard transfer system, Phase 1. Both optional for the same reason
      * as the rest: absent, the webhook fails closed (503) rather than
