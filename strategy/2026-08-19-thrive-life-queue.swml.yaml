@@ -1,26 +1,17 @@
-# Thrive Life inbound queue — SWML flow of record (SignalWire space
-# "Thrive Company", number +1 205 351 3647, assigned as an SWML Script
-# resource "thrive-life-queue"). Seeded by: Yuxiang Mao (Shawn), founder;
-# coded by MAIN, 2026-08-19.
+# Thrive Life inbound queue — live SignalWire resource snapshot.
 #
-# Purpose: serial hunt through the owner seats that a voicemail cannot
-# hijack. connect+confirm — every answered leg must press 1; a voicemail
-# cannot press, so "confirm fails -> next serial destination" (documented
-# behavior) skips it. Cure for the DND incident (a DND'd cell diverted to
-# voicemail, voicemail "answered", the whole call bridged to it).
+# Number roles:
+# - +1 205 351 5118: public inbound line assigned to this resource.
+# - +1 205 351 3647: bridge caller ID used when the queue rings the owner.
+# - +1 205 351 5158: CORE website outbound identity; not used by this queue.
 #
-# STATUS: PENDING LIVE VERIFICATION. The first inline-confirm cut bridged
-# without screening; corrected here (the press-1 branch now plays instead
-# of being empty). SignalWire publishes no full press-1 confirm example, so
-# this must be proven by a REAL inbound call (not the browser Test tool,
-# which does not exercise confirm on external legs) and, if it fails, read
-# from the call Logs/Debugger. Do not record as working until a live call
-# screens correctly.
+# Status: deployed in SignalWire 2026-08-20; external ring still unverified.
+# SignalWire showed the updated resource and Last Update timestamp, but its
+# Click-to-Test frame ended at 00:00 and did not ring the private mobile. Do not
+# mark the inbound path working until a real call to 5118 reaches the mobile.
 #
-# Invariants (the flow's own leashes):
-# - No record_call, no voicemail anywhere (A29 recording gate; A25 custody).
-# - Serial hunt in roster order (strategy/2026-08-19-thrive-life-roster.json).
-# - Misses end in a courtesy message + clean hangup.
+# No recording, voicemail, transcription, or AI answering is enabled.
+---
 version: 1.0.0
 sections:
   main:
@@ -30,26 +21,30 @@ sections:
         say_voice: "amazon.Joanna:neural:en-US"
     - connect:
         from: "+12053513647"
+        timeout: 25
         confirm:
           - prompt:
-              play: "say:Thrive Life call. Press 1 to accept."
+              play:
+                - say: "Call for Thrive Life. Press 1 to accept."
+                - silence: 2
+                - say: "Press 1 to accept this call."
+                - silence: 2
+                - say: "Last chance. Press 1 to accept."
               say_voice: "amazon.Joanna:neural:en-US"
               max_digits: 1
-              initial_timeout: 8
-          - switch:
-              variable: prompt_value
-              case:
-                "1":
-                  - play:
-                      url: "say:Connecting you now."
-                      say_voice: "amazon.Joanna:neural:en-US"
-              default:
-                - hangup: {}
+          - cond:
+              - when: "vars.prompt_value != '1'"
+                then:
+                  - hangup: {}
+          - play:
+              url: "say:Connecting you now."
+              say_voice: "amazon.Joanna:neural:en-US"
         serial:
           - to: "+14095492092"
-          - to: "+19412101410"
-          - to: "+19412101411"
-    - play:
-        url: "say:I'm sorry, no one is available right now. Please try again shortly."
-        say_voice: "amazon.Joanna:neural:en-US"
-    - hangup: {}
+    - cond:
+        - when: "vars.connect_result != 'connected'"
+          then:
+            - play:
+                url: "say:I'm sorry, no one is available right now. Please try again shortly."
+                say_voice: "amazon.Joanna:neural:en-US"
+            - hangup: {}

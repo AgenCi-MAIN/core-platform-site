@@ -14,6 +14,14 @@ const isCodexSeatbeltSandbox = process.env.CODEX_SANDBOX === "seatbelt";
 const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_flags: ["nodejs_compat"],
+  // Agent tracing is built on Workers traces. Keep the setting in the source
+  // config so builds consistently emit it into dist/server/wrangler.json.
+  observability: {
+    enabled: true,
+    traces: {
+      enabled: true,
+    },
+  },
   d1_databases: d1
     ? [
         {

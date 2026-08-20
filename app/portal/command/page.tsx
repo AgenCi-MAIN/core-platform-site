@@ -4,6 +4,7 @@ import { JarvisCommandPrompt } from "../command-prompt";
 import { COMMAND_CENTER_EMAILS, isCommandCenterUnlocked, requireCommandCenter } from "../access";
 import { PASS_ATTEMPT_LIMIT, PASS_TTL_SECONDS } from "../command-pass";
 import { PortalShell } from "../components";
+import { TELEPHONY_CONFIG } from "../telephony-config";
 
 export const dynamic = "force-dynamic";
 
@@ -204,7 +205,7 @@ const DECISION_ITEMS: readonly QueueItem[] = [
     id: "T3-S02-D12",
     title: "Thrive Life inbound line — verify",
     detail:
-      "The company voice line is standing on SignalWire (+1 205 351 3647) with a press-1 answer-confirm queue that hunts the three owners in order and cannot be hijacked by voicemail. It awaits one real inbound test call. Recording stays off until counsel clears the wording.",
+      `The approved main inbound and customer-transfer line is ${TELEPHONY_CONFIG.mainNumber.display}; the approved CORE website caller ID is ${TELEPHONY_CONFIG.platformLine.display}; and ${TELEPHONY_CONFIG.bridgeLine.display} is the inbound bridge line. The press-1 SignalWire queue is deployed, but a real inbound call still has to prove the external ring. Recording stays off until counsel clears the wording.`,
     owner: "Founder",
     since: "Stood up 2026-08-19",
     source: "OWNER-DECISIONS.md · D9 / strategy/2026-08-19-thrive-life-queue.swml.yaml",

@@ -15,6 +15,8 @@ const AGENTS = [
     outfit: "Dark navy mandarin-collar jacket over charcoal tactical turtleneck",
     background: "Concentric orbital lines — mission timeline",
     signifier: "Abstract compass-rose enamel pin",
+    inbox: "oldhq@inkboxmail.com",
+    commandSeat: "Memory steward",
   },
   {
     id: "02",
@@ -28,6 +30,8 @@ const AGENTS = [
     outfit: "Fitted slate-grey field jacket, dark crew-neck base",
     background: "Scattered signal-burst shapes — sonar pings",
     signifier: "Silver stud in right nostril",
+    inbox: "a9-signal@inkboxmail.com",
+    commandSeat: "Fleet signal logger",
   },
   {
     id: "03",
@@ -41,6 +45,8 @@ const AGENTS = [
     outfit: "Rumpled dark bronze-brown field shirt, black thermal base",
     background: "Isometric grid structures — architectural wireframes",
     signifier: "Mechanical wristwatch at frame edge",
+    inbox: "a1-portfolio@inkboxmail.com",
+    commandSeat: "Portal feature builder",
   },
   {
     id: "04",
@@ -54,6 +60,8 @@ const AGENTS = [
     outfit: "Structured charcoal blazer with sheen, black silk shell",
     background: "Composition guides — rule-of-thirds and golden-ratio spirals",
     signifier: "Bold geometric matte-black earrings",
+    inbox: "a4-desk@inkboxmail.com",
+    commandSeat: "Morning brief desk",
   },
   {
     id: "05",
@@ -67,6 +75,8 @@ const AGENTS = [
     outfit: "High-collared dark graphite technical vest, black long-sleeve",
     background: "Branching decision-tree diagrams",
     signifier: "Wire-frame glasses with blue-tinted lens",
+    inbox: "a6-triage@inkboxmail.com",
+    commandSeat: "Fleet triage analyst",
   },
   {
     id: "06",
@@ -80,6 +90,8 @@ const AGENTS = [
     outfit: "Soft-structured dark plum wool overshirt, black ribbed top",
     background: "Flowing text-like marks — abstract calligraphy",
     signifier: "Constellation of freckles across cheekbones",
+    inbox: "a7-actions@inkboxmail.com",
+    commandSeat: "Fleet action runner",
   },
   {
     id: "07",
@@ -93,6 +105,8 @@ const AGENTS = [
     outfit: "Dark olive-black canvas work jacket, faded black henley",
     background: "Overlapping rectangular frames — viewfinders and crop marks",
     signifier: "Stylus tucked behind one ear",
+    inbox: "a5-intake@inkboxmail.com",
+    commandSeat: "Fleet intake analyst",
   },
   {
     id: "08",
@@ -106,6 +120,8 @@ const AGENTS = [
     outfit: "Tailored midnight-navy knit blazer, cream silk blouse",
     background: "Tessellated grid patterns — gallery wall",
     signifier: "Pearl stud earrings",
+    inbox: "a2-operations@inkboxmail.com",
+    commandSeat: "PR steward",
   },
   {
     id: "09",
@@ -119,6 +135,8 @@ const AGENTS = [
     outfit: "Dark charcoal wool crew-neck sweater",
     background: "Diagnostic crosshair marks — calibration patterns",
     signifier: "Reading glasses pushed onto forehead",
+    inbox: "a3-security@inkboxmail.com",
+    commandSeat: "Security reviewer",
   },
   {
     id: "10",
@@ -132,6 +150,8 @@ const AGENTS = [
     outfit: "Dark espresso-brown corduroy overshirt, black turtleneck",
     background: "Layered horizontal strata — archival shelving",
     signifier: "Leather-banded analog watch",
+    inbox: "a8-quality@inkboxmail.com",
+    commandSeat: "Fleet quality gate",
   },
 ] as const;
 
@@ -609,6 +629,14 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
               <div className="detail-field">
                 <p className="detail-field-label">Signifier</p>
                 <p className="detail-field-value">{selected.signifier}</p>
+              </div>
+              <div className="detail-field">
+                <p className="detail-field-label">Inkbox inbox</p>
+                <p className="detail-field-value">{selected.inbox}</p>
+              </div>
+              <div className="detail-field">
+                <p className="detail-field-label">Command seat</p>
+                <p className="detail-field-value">{selected.commandSeat}</p>
               </div>
               <div className="detail-field">
                 <p className="detail-field-label">Accent</p>

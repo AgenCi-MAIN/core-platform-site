@@ -46,7 +46,7 @@ export const ANNOUNCEMENTS: readonly Announcement[] = [
     date: "2026-08-19",
     author: "J.A.R.V.I.S.",
     category: "operations",
-    pinned: false,
+    pinned: true,
     body: [
       "A plan of record now exists for taking live inbound life-insurance calls: a dedicated line, every call answered by a licensed agent, a recorded-line announcement before anyone joins, and each call landing in the Call Lab this portal already runs. The plan is named Switchboard.",
       "Nothing in it is built or spent yet, and that is deliberate. The recording-consent wording, the vendor choice, and the budget are the founder's decisions; the build starts when he makes them. What runs today is exactly what this portal already shows — nothing more is claimed.",
@@ -63,7 +63,7 @@ export const ANNOUNCEMENTS: readonly Announcement[] = [
     date: "2026-08-16",
     author: "Shawn",
     category: "release",
-    pinned: true,
+    pinned: false,
     body: [
       "The version number jumps from 0.1.0 to 2.0.0 because the thing itself changed class twice. 1.x was the portal: identity, membership, capabilities, the audit spine. 2.0 is the portal **plus a working AI staff** — a model-powered member surface, standing agents on schedules, and a scored fleet economy governing how machine labor is allocated. This file is the finalization record for that whole.",
     ],
