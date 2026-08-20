@@ -389,6 +389,7 @@ export function BrowserPhone({
         subscriptionCleanups.forEach((cleanup) => cleanup());
         previousRelease?.();
       };
+      await waitForSignalWireUser(client);
       await client.connect();
       const incomingSubscription = client.session.incomingCalls$.subscribe((calls) => {
         const incoming = calls.find((item) => item.status === "ringing" || item.status === "new") ?? calls[0];
@@ -572,6 +573,43 @@ async function requestCredential(
     throw new Error(body.error ?? "A device-bound SignalWire token was not issued.");
   }
   return { token: body.token, expiry_at: body.expiresAt };
+}
+
+async function waitForSignalWireUser(
+  client: SignalWireClient,
+  timeoutMs = 10_000,
+): Promise<void> {
+  if (client.user) return;
+
+  await new Promise<void>((resolve, reject) => {
+    let settled = false;
+    let userSubscription: { unsubscribe(): void } | null = null;
+    let errorSubscription: { unsubscribe(): void } | null = null;
+
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      queueMicrotask(() => {
+        userSubscription?.unsubscribe();
+        errorSubscription?.unsubscribe();
+      });
+    };
+    const finish = (callback: () => void) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      callback();
+    };
+    const timeout = window.setTimeout(() => {
+      finish(() => reject(new Error("SignalWire browser phone initialization timed out.")));
+    }, timeoutMs);
+
+    userSubscription = client.user$.subscribe((user) => {
+      if (user) finish(resolve);
+    });
+    errorSubscription = client.errors$.subscribe((error) => {
+      finish(() => reject(error));
+    });
+  });
 }
 
 async function acquirePrimaryLock(): Promise<(() => void) | null> {

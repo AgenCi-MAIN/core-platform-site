@@ -721,18 +721,30 @@ test("the additive voice migration pins assignment, offer, and callback uniquene
   await assert.rejects(insertTask, /UNIQUE|constraint/i);
 });
 
-test("the browser phone connects before reading the session and cleanup cannot strand Registering", () => {
+test("the browser phone waits for SDK user initialization before connecting and cleanup cannot strand Registering", () => {
   const source = readFileSync(join(ROOT, "app/portal/calls/browser-phone.tsx"), "utf8");
   const constructorAt = source.indexOf("const client = new SignalWire(credentials");
+  const waitForUserAt = source.indexOf("await waitForSignalWireUser(client)", constructorAt);
   const connectAt = source.indexOf("await client.connect()", constructorAt);
   const sessionAt = source.indexOf("client.session.incomingCalls$", constructorAt);
   const registerAt = source.indexOf("await client.register()", constructorAt);
 
   assert.ok(constructorAt >= 0, "the SignalWire client is constructed in the browser phone");
-  assert.match(source.slice(constructorAt, connectAt), /skipConnection:\s*true/);
-  assert.ok(connectAt > constructorAt, "the deferred WebSocket connection is opened explicitly");
+  assert.match(source.slice(constructorAt, waitForUserAt), /skipConnection:\s*true/);
+  assert.ok(waitForUserAt > constructorAt, "the SDK user observable resolves after async credential initialization");
+  assert.ok(connectAt > waitForUserAt, "the deferred WebSocket connection opens only after the SDK user exists");
   assert.ok(sessionAt > connectAt, "the session is read only after connection and authentication");
   assert.ok(registerAt > sessionAt, "incoming-call observation is ready before the user registers online");
+  assert.match(
+    source,
+    /client\.user\$\.subscribe\(\(user\)\s*=>\s*{\s*if \(user\) finish\(resolve\);\s*}\)/,
+    "the startup gate waits on the SDK's public user observable",
+  );
+  assert.match(
+    source,
+    /client\.errors\$\.subscribe\(\(error\)\s*=>\s*{\s*finish\(\(\) => reject\(error\)\);\s*}\)/,
+    "SDK authentication errors reject the startup gate instead of hanging",
+  );
   assert.match(
     source,
     /try\s*{\s*client\.destroy\(\);\s*}\s*catch\s*{[^}]*}/,

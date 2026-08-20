@@ -451,4 +451,21 @@ optional one.
   rounds, the Training tabs, the Leadership Playbook, and the rail density
   work (#79, #81, #87, #91).
 
+- 2026-08-20: **version `9147c300-97dc-44dc-a3cf-154636207ae4`** - deployed
+  from the clean isolated worktree at exact merged
+  `main@38606f86c2825cb758f563246ba96aa349fa775a`, after PR #114 fixed the
+  SignalWire browser-phone registration lifecycle. The repository-required
+  `npm run deploy` chain rebuilt the Worker, passed 124/124 tests, passed the
+  deployment preflight, and activated the version at 100% on
+  `site-creator-vinext-starter.thrive18.workers.dev`. Bindings remained
+  `env.DB` to `site-creator-d1` and `env.CALL_RECORDINGS` to `site-creator-r2`;
+  startup time was 22 ms. Post-deploy probes returned 200 for the public root
+  and 307 sign-in redirects for `/portal` and `/portal/calls`. Existing secret
+  names remained present without exposing their values. No migration, secret
+  update, provider-routing change, purchase, or call was performed. Previous
+  rollback version: `e4433197-df69-4b7c-a406-0fd2e7b396e3`.
+
+  Documentation status: recorded locally on
+  `codex/deploy-log-browser-phone-20260820`; not yet merged and requiring a new
+  one-use founder `mi`.
 
