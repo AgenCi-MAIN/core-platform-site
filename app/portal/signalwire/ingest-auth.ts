@@ -1,5 +1,9 @@
 import { env } from "cloudflare:workers";
 import { appendAuditRow } from "../../../db/audit";
+import {
+  computeSignalwireWebhookSignature,
+  type SignalwireWebhookSignatureScheme,
+} from "./webhook-signature";
 
 /**
  * SERVER-ONLY authentication for the one route SignalWire calls with no human
@@ -53,24 +57,14 @@ import { appendAuditRow } from "../../../db/audit";
  * Credentials space — a different secret from the API token used for outbound
  * REST calls. `SIGNALWIRE_SIGNING_KEY` holds it.
  *
- * Signature input is the public webhook URL followed by the body, and the body
- * is appended differently depending on how it was sent. A form post appends
- * each field as name immediately followed by value in sorted field-name order;
- * a JSON post appends the raw bytes as received. Both are HMAC'd under the
- * signing key and base64-encoded. Anything else is refused: a body whose
- * construction is undocumented cannot be verified, and unverifiable is a
- * denial, never a pass.
- *
- * One honest gap, handled by failing closed rather than by guessing. SignalWire
- * publishes only "a digital HMAC security key" and never names the digest. The
- * scheme they forked is HMAC-SHA1/base64, so that is expected first; HMAC-SHA256
- * over the identical base string is accepted too, because the docs do not pin
- * the variant and a carrier-side move to the stronger digest would otherwise
- * reject every live call at once. Accepting either costs nothing — a forger
- * still has to hold the signing key to produce either, so the accepted set
- * grows from one value to two out of 2^160 and 2^256. HMAC over SHA-1 is not
- * weakened by the SHA-1 collision results; those attack the bare hash, not the
- * keyed construction.
+ * Signature input is the full public webhook URL followed by the body, and the
+ * body is appended differently depending on how it was sent. SignalWire's
+ * current server SDK defines two schemes. SWML/RELAY JSON appends the exact raw
+ * UTF-8 body and renders HMAC-SHA1 as lowercase hexadecimal. Compatibility form
+ * callbacks append each field name immediately followed by its value in sorted
+ * field-name order and render HMAC-SHA1 as base64. Anything else is refused: a
+ * body whose construction is undocumented cannot be verified, and
+ * unverifiable is a denial, never a pass.
  */
 
 /**
@@ -103,7 +97,7 @@ export type IngestDenial =
   | { kind: "no_signature"; status: 403 }
   /** The body could not be read, or its content type has no documented construction. */
   | { kind: "unverifiable_body"; status: 403 }
-  /** A signature was presented and verified under neither digest. */
+  /** A signature was presented but did not match its documented body scheme. */
   | { kind: "bad_signature"; status: 403 }
   /** Both factors passed but the audit row did not land. */
   | { kind: "not_recorded"; status: 503 };
@@ -111,11 +105,8 @@ export type IngestDenial =
 /** Which shared secret the caller presented. Watched during a rotation. */
 export type SecretGeneration = "current" | "previous";
 
-/** Which digest the signature verified under. See the docblock's honest gap. */
-export type SignatureDigest = "sha1" | "sha256";
-
 export type IngestAuth =
-  | { ok: true; secret: SecretGeneration; signature: SignatureDigest }
+  | { ok: true; secret: SecretGeneration; signature: SignalwireWebhookSignatureScheme }
   | { ok: false; denial: IngestDenial };
 
 /**
@@ -193,13 +184,13 @@ export async function authenticateSignalwireRequest(
     return deny({ kind: "no_signature", status: 403 }, requestPath, generation, auditAction);
   }
 
-  const base = await signatureBase(request, signedUrl);
-  if (base === null) {
+  const signatureInput = await buildSignatureInput(request, signedUrl);
+  if (signatureInput === null) {
     return deny({ kind: "unverifiable_body", status: 403 }, requestPath, generation, auditAction);
   }
 
-  const digest = await matchSignature(presentedSignature, signingKey, base);
-  if (digest === null) {
+  const signatureScheme = await matchSignature(presentedSignature, signingKey, signatureInput);
+  if (signatureScheme === null) {
     return deny({ kind: "bad_signature", status: 403 }, requestPath, generation, auditAction);
   }
 
@@ -214,13 +205,13 @@ export async function authenticateSignalwireRequest(
     decision: "allow",
     reason: "secret_and_signature_verified",
     requestPath,
-    detail: `secret=${generation} signature=${digest}`,
+    detail: `secret=${generation} signature=${signatureScheme}`,
   });
   if (!recorded) {
     return { ok: false, denial: { kind: "not_recorded", status: 503 } };
   }
 
-  return { ok: true, secret: generation, signature: digest };
+  return { ok: true, secret: generation, signature: signatureScheme };
 }
 
 async function deny(
@@ -293,7 +284,15 @@ function isLiteralMachinePath(value: string): boolean {
  * so a single request has exactly one valid signature. Trying every shape until
  * one matched would widen what counts as authentic for no benefit.
  */
-async function signatureBase(request: SignedRequest, signedUrl: string): Promise<string | null> {
+type SignatureInput = {
+  message: string;
+  scheme: SignalwireWebhookSignatureScheme;
+};
+
+async function buildSignatureInput(
+  request: SignedRequest,
+  signedUrl: string,
+): Promise<SignatureInput | null> {
   let raw: string;
   try {
     raw = await request.text();
@@ -307,16 +306,24 @@ async function signatureBase(request: SignedRequest, signedUrl: string): Promise
     // The raw bytes as received. Re-serialising parsed JSON would change key
     // order and whitespace, and the signature covers the document that was
     // actually sent, not an equivalent one.
-    return `${signedUrl}${raw}`;
+    return {
+      message: `${signedUrl}${raw}`,
+      scheme: "swml-json-sha1-hex",
+    };
   }
 
   if (contentType.includes("application/x-www-form-urlencoded")) {
     // Field name immediately followed by its value, in sorted name order — the
     // construction SignalWire inherited from Twilio.
-    const params = new URLSearchParams(raw);
-    return [...params.keys()]
-      .sort()
-      .reduce((accumulated, name) => `${accumulated}${name}${params.get(name) ?? ""}`, signedUrl);
+    const entries = [...new URLSearchParams(raw).entries()];
+    entries.sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0));
+    return {
+      message: entries.reduce(
+        (accumulated, [name, value]) => `${accumulated}${name}${value}`,
+        signedUrl,
+      ),
+      scheme: "compat-form-sha1-base64",
+    };
   }
 
   return null;
@@ -371,37 +378,18 @@ async function matchSecret(
   return null;
 }
 
-/** The digest a valid signature verified under, or null if neither did. */
+/** The documented scheme a valid signature verified under, or null if it did not. */
 async function matchSignature(
   presented: string,
   signingKey: string,
-  base: string,
-): Promise<SignatureDigest | null> {
-  const [sha1, sha256] = await Promise.all([
-    sign(signingKey, base, "SHA-1"),
-    sign(signingKey, base, "SHA-256"),
-  ]);
-
-  if (await digestsMatch(presented, sha1)) return "sha1";
-  if (await digestsMatch(presented, sha256)) return "sha256";
-  return null;
-}
-
-/** HMAC of `base` under `key`, base64-encoded, as the signature header carries it. */
-async function sign(key: string, base: string, hash: "SHA-1" | "SHA-256"): Promise<string> {
-  const encoder = new TextEncoder();
-  const imported = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(key),
-    { name: "HMAC", hash },
-    false,
-    ["sign"],
+  input: SignatureInput,
+): Promise<SignalwireWebhookSignatureScheme | null> {
+  const expected = await computeSignalwireWebhookSignature(
+    signingKey,
+    input.message,
+    input.scheme,
   );
-  const mac = new Uint8Array(await crypto.subtle.sign("HMAC", imported, encoder.encode(base)));
-
-  let binary = "";
-  for (const byte of mac) binary += String.fromCharCode(byte);
-  return btoa(binary);
+  return (await digestsMatch(presented, expected)) ? input.scheme : null;
 }
 
 /**

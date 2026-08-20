@@ -108,10 +108,12 @@ const CALL_ID = "b8f1c2d4-0000-4000-8000-000000000001";
  */
 function baseFor(params, origin = SIGNED_URL) {
   const p = new URLSearchParams(params);
-  return [...p.keys()].sort().reduce((acc, name) => `${acc}${name}${p.get(name) ?? ""}`, origin);
+  return [...p.entries()]
+    .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+    .reduce((acc, [name, value]) => `${acc}${name}${value}`, origin);
 }
 
-function signatureFor(key, base, hash = "sha256") {
+function signatureFor(key, base, hash = "sha1") {
   return createHmac(hash, key).update(base, "utf8").digest("base64");
 }
 
@@ -218,6 +220,10 @@ test("neither factor alone is enough", async (t) => {
     await w.post(event(), { signature: signatureFor("wrong-key", baseFor(event())) }),
     "secret but forged signature",
   );
+  await assertOpaqueRefusal(
+    await w.post(event(), { signature: signatureFor(SIGNING_KEY, baseFor(event()), "sha256") }),
+    "undocumented SHA-256 form signature",
+  );
 
   assert.deepEqual(await w.transfers(), [], "no refused request reaches the transfer table");
 });
@@ -256,6 +262,17 @@ test("a valid event writes one row, masked, with CORE's own keys", async (t) => 
     !JSON.stringify(row).includes("9415551234"),
     "the unmasked caller number must not appear anywhere on the row",
   );
+});
+
+test("repeated Compatibility form fields retain submission order in the signature", async (t) => {
+  const w = await startIngest();
+  t.after(w.dispose);
+
+  const repeated = new URLSearchParams(event());
+  repeated.append("Tag", "first");
+  repeated.append("Tag", "second");
+  assertAccepted(await w.post(repeated), "a signed event with repeated fields");
+  assert.equal((await w.transfers()).length, 1);
 });
 
 test("the payload cannot assert consent, a recording, an agent, or its transfer id", async (t) => {

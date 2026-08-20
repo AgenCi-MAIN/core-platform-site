@@ -2136,3 +2136,51 @@ routing rule was changed; neither 3647 nor 5118 was rerouted, and no call was
 placed. A fresh one-use founder `mi` is required to merge this branch.
 Deployment remains a separate explicit action after merged-main verification,
 followed by one controlled 3647 browser-answer smoke test.
+
+### 19v. SignalWire SWML webhook signature encoding repaired locally — 2026-08-20
+
+After the founder reset the browser to one primary CORE tab and returned the
+protected 3647 assignment to **Available**, a read-only production inspection
+confirmed member 8 had a live heartbeat and was hunt-eligible. The preceding
+provider test had reached `/portal/calls/route` sixteen times, and every request
+matched the current HTTP Basic secret but was denied as `bad_signature`. No
+CORE inbound-call row, browser offer, voicemail callback task, or successful
+route audit was created, so the provider-side fallback was reached before CORE
+could return its browser hunt.
+
+**Root cause.** SignalWire's documented SWML/JSON scheme sends lowercase
+hexadecimal HMAC-SHA1 over the exact configured public URL plus the exact raw
+JSON body. CORE instead rendered its HMAC-SHA1 as base64 and also accepted an
+undocumented base64 SHA-256 alternative. A valid forty-character provider
+signature therefore could not equal CORE's twenty-eight-character base64
+value, even with the correct signing key, URL, and request body. The separate
+Compatibility form scheme remains HMAC-SHA1 rendered as base64 over sorted
+form fields, including repeated values in submission order.
+
+**Local repair.** Clean isolated branch
+`codex/signalwire-signature-hex-20260820`, based on exact
+`origin/main@c5d33a31699c0a9e88d6232c1702af2472edb19a`, now selects one typed
+signature scheme from the request content type. SWML/JSON verifies lowercase
+hexadecimal HMAC-SHA1 over the configured URL and untouched raw body;
+Compatibility form callbacks verify base64 HMAC-SHA1 over their documented
+sorted field construction. The current/previous Basic-secret rotation,
+configured-origin boundary, literal path check, constant-time comparison,
+opaque external denial, and fail-closed audit requirement remain intact. The
+speculative SHA-256/base64 acceptance was removed.
+
+**Verification.** SignalWire's official SWML signature vector is pinned in the
+regression suite. Focused authentication and inbound-browser checks passed
+19/19. The production build passed, the complete repository suite passed
+128/128, and `verify:build` reported the Worker safe to deploy with the
+intended D1 binding and seventeen client assets. Task-owned ESLint and
+`git diff --check` passed. The built client contained none of the scanned Voice
+secret names or signing-key fixtures. Repository-wide lint remains blocked
+only by the existing unrelated Quoter apostrophe plus five fleet warnings.
+
+**Delivery boundary.** This is a verified local repair, not production. The
+canonical checkout's unrelated Gallery work was not touched or absorbed. No
+D1 row, Worker secret, provider resource, Subscriber, number assignment, or
+routing rule was changed; neither 3647 nor 5118 was rerouted, and no call was
+placed. A fresh one-use founder `mi` is required to merge this branch.
+Deployment remains a separate explicit action after merged-main verification,
+followed by one separately confirmed controlled 3647 browser call.
