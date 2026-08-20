@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { Miniflare } from "miniflare";
 import { buildInboundRoutePlan } from "../app/portal/calls/route/route-plan.ts";
+import { computeSignalwireWebhookSignature } from "../app/portal/signalwire/webhook-signature.ts";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SERVER_DIR = join(ROOT, "dist/server");
@@ -61,7 +62,7 @@ const INIT_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0001_portal_init.
 const VOICE_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0011_inbound_browser_voice.sql"), "utf8"));
 
 function machineSignature(path, raw) {
-  return createHmac("sha256", SIGNING_KEY).update(`${ORIGIN}${path}${raw}`, "utf8").digest("base64");
+  return createHmac("sha1", SIGNING_KEY).update(`${ORIGIN}${path}${raw}`, "utf8").digest("hex");
 }
 
 function basic(secret = MACHINE_SECRET) {
@@ -216,6 +217,15 @@ function allTargets(connect) {
   if (connect.to) return [connect.to];
   return (connect.parallel ?? []).map((item) => item.to);
 }
+
+test("SignalWire's official SWML JSON signature vector remains pinned", async () => {
+  const signature = await computeSignalwireWebhookSignature(
+    "PSKtest1234567890abcdef",
+    'https://example.ngrok.io/webhook{"event":"call.state","params":{"call_id":"abc-123","state":"answered"}}',
+    "swml-json-sha1-hex",
+  );
+  assert.equal(signature, "c3c08c1fefaf9ee198a100d5906765a6f394bf0f");
+});
 
 test("the route plan is an 8s/8s/20s hunt and records only announced voicemail", () => {
   const plan = buildInboundRoutePlan({
@@ -420,6 +430,15 @@ test("production-shaped inbound flow enforces entitlement, races, team return, a
   });
   assert.equal(badSignature.status, 401);
   assert.equal(await badSignature.text(), "");
+  const legacyPayload = routeEvent("legacy-encoded-call", MAIN_NUMBER);
+  const legacyRaw = JSON.stringify(legacyPayload);
+  const legacyBase = `${ORIGIN}/portal/calls/route${legacyRaw}`;
+  const legacyBase64 = createHmac("sha1", SIGNING_KEY).update(legacyBase, "utf8").digest("base64");
+  const legacyResponse = await voice.machinePost("/portal/calls/route", legacyPayload, {
+    signature: legacyBase64,
+  });
+  assert.equal(legacyResponse.status, 401, "the former Base64 SWML encoding remains closed");
+  assert.equal(await legacyResponse.text(), "");
   assert.equal((await voice.db.prepare("SELECT COUNT(*) AS count FROM inbound_voice_calls").first()).count, 0);
 
   const personalCallId = "personal-call-001";
