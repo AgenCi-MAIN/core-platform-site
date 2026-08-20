@@ -37,9 +37,6 @@ export function buildInboundRoutePlan(input: InboundRoutePlan): SwmlDocument {
         input.callerId,
         8,
         input.lifecycleUrl,
-        input.personalAttempt ?? 1,
-        input,
-        "personal",
       ),
     );
   }
@@ -51,9 +48,6 @@ export function buildInboundRoutePlan(input: InboundRoutePlan): SwmlDocument {
         input.callerId,
         8,
         input.lifecycleUrl,
-        input.teamAttempt,
-        input,
-        "team",
       ),
     );
   }
@@ -122,11 +116,14 @@ function connectStage(
   from: string,
   timeout: number,
   lifecycleUrl: string,
-  attempt: number,
-  input: InboundRoutePlan,
-  stage: "personal" | "team",
 ): Record<string, unknown> {
-  const destinations = targets.map((to) => ({ to: withContext(to, input, stage, attempt) }));
+  // A Fabric Resource Address is an opaque provider identifier. SignalWire can
+  // ring an address that carries a query string, but the Browser SDK does not
+  // promise to preserve those parameters on the incoming Call. CORE resolves
+  // the offer context from its authenticated D1 offer row instead (see
+  // /portal/calls/offer-event action=resolve), so the provider receives the
+  // exact address it issued for the Subscriber.
+  const destinations = targets.map((to) => ({ to }));
   return {
     connect: {
       ...(destinations.length === 1 ? { to: destinations[0].to } : { parallel: destinations }),
@@ -148,21 +145,4 @@ function connectedResult(): Array<Record<string, unknown>> {
       then: [{ hangup: {} }],
     },
   ];
-}
-
-function withContext(
-  address: string,
-  input: InboundRoutePlan,
-  stage: "personal" | "team",
-  attempt: number,
-) {
-  const separator = address.includes("?") ? "&" : "?";
-  const params = new URLSearchParams({
-    core_call_id: input.callId,
-    core_stage: stage,
-    core_attempt: String(attempt),
-    core_line: input.calledLineMasked,
-    core_caller: input.callerMasked,
-  });
-  return `${address}${separator}${params.toString()}`;
 }

@@ -236,10 +236,12 @@ test("the route plan is an 8s/8s/20s hunt and records only announced voicemail",
   });
   const connects = connectSteps(plan);
   assert.equal(connects[0].timeout, 8);
-  assert.match(connects[0].to, /core-member-1/);
-  const personalContext = new URL(connects[0].to, "https://fabric.invalid").searchParams;
-  assert.equal(personalContext.get("core_caller"), "***-***-0142");
-  assert.equal(personalContext.get("core_line"), "***-***-0101");
+  assert.equal(connects[0].to, "/private/core-member-1");
+  assert.deepEqual(
+    connects[1].parallel.map((target) => target.to),
+    ["/private/core-member-2", "/private/core-member-3"],
+    "the provider-issued Subscriber addresses are not decorated with lossy query metadata",
+  );
   assert.equal(connects[1].timeout, 8);
   assert.equal(connects[1].parallel.length, 2);
   assert.equal(connects[2].timeout, 20);
@@ -455,11 +457,84 @@ test("production-shaped inbound flow enforces entitlement, races, team return, a
   assert.equal(callRow.caller_number_masked, "***-***-0142");
   assert.notEqual(callRow.caller_ciphertext, CALLER);
   assert.ok(callRow.caller_ciphertext && callRow.caller_cipher_iv);
+  const resolvedPersonalOffer = await voice.memberFetch("/portal/calls/offer-event", alice, {
+    method: "POST",
+    body: { action: "resolve", browserSessionId: aliceSession },
+  });
+  assert.equal(resolvedPersonalOffer.status, 200);
+  assert.deepEqual((await resolvedPersonalOffer.json()).offer, {
+    providerCallId: personalCallId,
+    stage: "personal",
+    attempt: 1,
+    calledLine: "***-***-0101",
+    callerMasked: "***-***-0142",
+  });
+  assert.equal(
+    (await voice.db
+      .prepare("SELECT status FROM voice_call_offers WHERE voice_call_id = ? AND member_id = ? AND stage = 'personal'")
+      .bind(callRow.id, aliceId)
+      .first()).status,
+    "ringing",
+    "resolving an authenticated browser invite marks only its real D1 offer ringing",
+  );
+  const wrongBrowserResolve = await voice.memberFetch("/portal/calls/offer-event", alice, {
+    method: "POST",
+    body: { action: "resolve", browserSessionId: crypto.randomUUID() },
+  });
+  assert.equal(wrongBrowserResolve.status, 409);
   const replay = await voice.machinePost("/portal/calls/route", routeEvent(personalCallId, "+12055550101"));
   assert.equal(replay.status, 200);
   assert.equal(
     (await voice.db.prepare("SELECT COUNT(*) AS count FROM inbound_voice_calls WHERE provider_call_id = ?").bind(personalCallId).first()).count,
     1,
+  );
+
+  const resolvedAnswerCallId = "resolved-answer-call-001";
+  const resolvedAnswerRoute = await voice.machinePost(
+    "/portal/calls/route",
+    routeEvent(resolvedAnswerCallId, "+12055550101"),
+  );
+  assert.equal(resolvedAnswerRoute.status, 200);
+  const resolvedAnswerOffer = await voice.memberFetch("/portal/calls/offer-event", alice, {
+    method: "POST",
+    body: { action: "resolve", browserSessionId: aliceSession },
+  });
+  assert.equal(resolvedAnswerOffer.status, 200);
+  const resolvedAnswerContext = (await resolvedAnswerOffer.json()).offer;
+  assert.equal(resolvedAnswerContext.providerCallId, resolvedAnswerCallId);
+  const resolvedAnswer = await voice.memberFetch("/portal/calls/offer-event", alice, {
+    method: "POST",
+    body: {
+      action: "answered",
+      providerCallId: resolvedAnswerContext.providerCallId,
+      stage: resolvedAnswerContext.stage,
+      attempt: resolvedAnswerContext.attempt,
+      browserSessionId: aliceSession,
+    },
+  });
+  assert.equal(resolvedAnswer.status, 200, "the canonical resolved context authorizes the connected browser leg");
+  const resolvedCallRow = await voice.db
+    .prepare("SELECT status, accepted_member_id FROM inbound_voice_calls WHERE provider_call_id = ?")
+    .bind(resolvedAnswerCallId)
+    .first();
+  assert.deepEqual(
+    { status: resolvedCallRow.status, acceptedMemberId: resolvedCallRow.accepted_member_id },
+    { status: "connected", acceptedMemberId: aliceId },
+  );
+  const resolvedEnd = await voice.memberFetch("/portal/calls/offer-event", alice, {
+    method: "POST",
+    body: {
+      action: "ended",
+      providerCallId: resolvedAnswerContext.providerCallId,
+      stage: resolvedAnswerContext.stage,
+      attempt: resolvedAnswerContext.attempt,
+      browserSessionId: aliceSession,
+    },
+  });
+  assert.equal(resolvedEnd.status, 200);
+  assert.equal(
+    (await voice.db.prepare("SELECT ready_state FROM voice_presence WHERE member_id = ?").bind(aliceId).first()).ready_state,
+    "available",
   );
 
   await voice.db.prepare("UPDATE voice_presence SET expires_at = '2020-01-01T00:00:00.000Z' WHERE member_id = ?").bind(aliceId).run();
@@ -543,8 +618,11 @@ test("production-shaped inbound flow enforces entitlement, races, team return, a
   const teamTargets = allTargets(connectSteps(teamPlan)[0]);
   assert.ok(teamTargets.some((target) => target.includes(`core-member-${loserId}`)));
   assert.ok(teamTargets.every((target) => !target.includes(`core-member-${winnerId}`)));
-  assert.match(teamTargets[0], new RegExp(`core_call_id=${raceCallId}`));
-  assert.match(teamTargets[0], /core_attempt=2/);
+  assert.doesNotMatch(
+    teamTargets[0],
+    /core_(?:call_id|stage|attempt|line|caller)=/,
+    "team return also keeps routing context out of the provider Subscriber address",
+  );
   const afterTeamRoute = await voice.db
     .prepare("SELECT active_provider_call_id, accepted_member_id, routing_stage, status FROM inbound_voice_calls WHERE id = ?")
     .bind(wonCall.id)
@@ -826,5 +904,18 @@ test("the browser phone starts heartbeats after Available and fails stale UI clo
     source.slice(availablePost, availablePhase),
     /presenceExpiresAtRef\.current = availablePresence\.expiresAt/,
     "the client watchdog starts from the expiry acknowledged by the server",
+  );
+});
+
+test("the browser phone resolves provider-stripped invite context before allowing Answer", () => {
+  const source = readFileSync(join(ROOT, "app/portal/calls/browser-phone.tsx"), "utf8");
+  assert.match(source, /action:\s*"resolve"/);
+  assert.match(source, /nextContext\s*=\s*await resolveOfferContext\(\)/);
+  assert.match(source, /try \{ call\.reject\(\); \}/);
+  assert.doesNotMatch(source, /addressVariables\(call\.to\)/);
+  assert.match(
+    source,
+    /!\["answered_elsewhere",\s*"error"\]\.includes\(phaseRef\.current\)/,
+    "an authorization error must remain visible after the provider closes the leg",
   );
 });
