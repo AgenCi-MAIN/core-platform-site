@@ -287,8 +287,6 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
         }
         .agent-card-title {
           font: italic 13px/1.4 Georgia, serif;
-          color: var(--ink);
-          opacity: 0.7;
           margin: 0;
         }
         .agent-card-actions {
@@ -555,7 +553,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
               </div>
               <p className="agent-card-name">{agent.name}</p>
               <p className="agent-card-role">{agent.id} · {agent.role}</p>
-              <p className="agent-card-title">{agent.title}</p>
+              <p className="agent-card-title" style={{ color: agent.accent === "#1E1B4B" ? "#8B85C1" : agent.accent }}>{agent.title}</p>
               <div className="agent-card-actions">
                 <button
                   className="agent-card-action"
@@ -723,7 +721,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
                     <p className="agent-card-name">{builder.name}</p>
                     <p className="agent-card-role">{builder.role || "Custom agent"}</p>
                     {builder.title && (
-                      <p className="agent-card-title">{builder.title}</p>
+                      <p className="agent-card-title" style={{ color: builder.accent }}>{builder.title}</p>
                     )}
                   </div>
                 </div>
