@@ -206,7 +206,20 @@ async function startVoice() {
 }
 
 function routeEvent(callId, to, over = {}) {
-  return { call: { id: callId, from: CALLER, to, ...over } };
+  return {
+    call: {
+      call_id: callId,
+      type: "phone",
+      from: CALLER,
+      to,
+      from_number: CALLER,
+      to_number: to,
+      ...over,
+    },
+    vars: {},
+    envs: {},
+    params: {},
+  };
 }
 
 function connectSteps(document) {
@@ -441,6 +454,38 @@ test("production-shaped inbound flow enforces entitlement, races, team return, a
   assert.equal(await legacyResponse.text(), "");
   assert.equal((await voice.db.prepare("SELECT COUNT(*) AS count FROM inbound_voice_calls").first()).count, 0);
 
+  const missingProviderId = await voice.machinePost("/portal/calls/route", {
+    call: { from_number: CALLER, to_number: "+12055550101" },
+  });
+  assert.equal(missingProviderId.status, 503, "a signed SWML fetch without call.call_id fails closed");
+  assert.equal(
+    (await voice.db.prepare("SELECT COUNT(*) AS count FROM inbound_voice_calls").first()).count,
+    0,
+    "an invalid provider payload cannot create a call record",
+  );
+
+  const fabricAddressTest = await voice.machinePost("/portal/calls/route", {
+    call: {
+      call_id: "fabric-click-test-001",
+      type: "webrtc",
+      from: "sip:browser-test@example.invalid",
+      to: "/public/core-inbound-router-3647",
+    },
+    vars: {},
+    envs: {},
+    params: {},
+  });
+  assert.equal(
+    fabricAddressTest.status,
+    400,
+    "a Click-to-Test Fabric address cannot be misrepresented as a PSTN DID",
+  );
+  assert.equal(
+    (await voice.db.prepare("SELECT COUNT(*) AS count FROM inbound_voice_calls").first()).count,
+    0,
+    "a Fabric-only resource test cannot create a DID call record",
+  );
+
   const personalCallId = "personal-call-001";
   const personal = await voice.machinePost(
     "/portal/calls/route",
@@ -630,7 +675,11 @@ test("production-shaped inbound flow enforces entitlement, races, team return, a
   const childCallId = "team-transfer-child-001";
   const teamRoute = await voice.machinePost(
     "/portal/calls/route",
-    routeEvent(childCallId, TEAM_HUNT, { parent_id: raceCallId }),
+    routeEvent(childCallId, TEAM_HUNT, {
+      type: "webrtc",
+      to_number: null,
+      parent: { call_id: raceCallId },
+    }),
   );
   assert.equal(teamRoute.status, 200);
   const teamPlan = await teamRoute.json();

@@ -331,14 +331,18 @@ export async function POST(request: Request): Promise<Response> {
 function normalizeRouteInput(value: unknown): RouteInput | null {
   const object = asObject(value);
   const call = asObject(object?.call);
+  const parentCall = asObject(call?.parent);
   const vars = asObject(object?.vars);
-  const callId = firstString(call?.id, object?.call_id, vars?.core_call_id);
+  // SignalWire's External SWML fetch nests the provider ID at
+  // `call.call_id`. Keep `call.id` as a compatibility fallback for older
+  // fixtures and explicitly constructed internal requests.
+  const callId = firstString(call?.call_id, call?.id, object?.call_id, vars?.core_call_id);
   if (!callId || !/^[A-Za-z0-9._:-]{4,200}$/.test(callId)) return null;
   return {
     callId,
-    parentCallId: firstString(call?.parent_id, object?.parent_call_id),
-    from: firstString(call?.from, object?.from, object?.From),
-    to: firstString(call?.to, object?.to, object?.To),
+    parentCallId: firstString(parentCall?.call_id, call?.parent_id, object?.parent_call_id),
+    from: firstString(call?.from_number, call?.from, object?.from, object?.From),
+    to: firstString(call?.to_number, call?.to, object?.to, object?.To),
   };
 }
 
