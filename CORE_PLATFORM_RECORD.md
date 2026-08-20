@@ -1920,3 +1920,46 @@ deterministically assign five numbers, test personal DIDs first, then change
 and test the shared main line. Rollback is configuration-first to the existing
 private-mobile route; the schema stays dormant and numbers are retained unless
 separately authorized for release.
+
+### 19q. Browser-phone registration failure isolated and repaired locally — 2026-08-20
+
+The founder reported that microphone access was enabled but the floating Calls
+panel remained indefinitely at **Registering**. Live inspection separated the
+layers before changing code: browser microphone acquisition succeeded, the
+active member had the protected 3647 assignment, and—after the Worker team-hunt
+configuration was corrected to the approved public-address form—the
+authenticated session and bootstrap endpoints both returned 200. No call was
+placed and the 5118 route was not changed.
+
+**Root cause.** The client constructed `@signalwire/js@4.0.0-rc.2` and read
+`client.session.incomingCalls$` before the deferred SignalWire connection had
+opened and authenticated the session. That setup exception entered cleanup,
+where `client.destroy()` could throw again against the partially initialized
+SDK client. The second exception interrupted the UI error transition and left
+the panel displaying **Registering**, which made a post-permission SDK failure
+look like a microphone problem.
+
+**Local repair.** Isolated branch
+`codex/browser-phone-registration-20260820`, based on
+`main@cd96e872ad13106cf394746d4a9c808dedfc2b67`, now defers both connection and
+registration, explicitly awaits `connect()`, subscribes to incoming calls only
+after the authenticated session exists, and then calls `register()`. Subscription
+cleanup is installed before connection begins, and destruction of a partially
+initialized client is non-throwing so the panel can always leave Registering
+and show an honest retryable error.
+
+**Verification.** Focused ESLint passed. The production build passed; the full
+suite passed 124/124, including a new source-ordering and cleanup regression.
+`verify:build` passed against the production D1 and R2 bindings. The built
+client contained none of the scanned Voice secret names, subscriber-token test
+fixture, private Space hostname, or encryption-key marker. Repository-wide
+TypeScript remains blocked only by the already-recorded, unrelated
+`services/core-agent-fleet` alias/dependency baseline; the production build and
+task-owned checks compile the phone change successfully.
+
+**Delivery boundary.** This is a verified local repair, not yet production.
+The canonical checkout's unrelated Gallery work was not touched or absorbed.
+No merge, deployment, provider routing change, number purchase, token
+revocation, or test call was performed. The exact one-use founder keyword `mi`
+is still required for this branch's merge; deployment remains a separate
+authorized action after the merged-main gates pass.
