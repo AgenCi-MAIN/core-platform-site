@@ -21,6 +21,18 @@
 # - No record_call, no voicemail anywhere (A29 recording gate; A25 custody).
 # - Serial hunt in roster order (strategy/2026-08-19-thrive-life-roster.json).
 # - Misses end in a courtesy message + clean hangup.
+#
+# 2026-08-20 addition (owner choice "b" — safe after-hours message-taker):
+# no AI receptionist. When every seat misses (the after-hours case), the
+# flow plays a disclosed message and texts the founder the caller's number
+# (${call.from}, from caller ID). No recording, no voicemail, no PII beyond
+# the number, no path for the flow to discuss insurance. Delivery caveat:
+# US A2P SMS from a long code may require 10DLC registration; if the notice
+# text does not arrive, the missed call still lands in the SignalWire call
+# log. Capturing a spoken name was declined here (speech-to-text is
+# imperfect and risks PII; voicemail reopens A25) — the number alone
+# enables the callback.
+
 version: 1.0.0
 sections:
   main:
@@ -50,6 +62,10 @@ sections:
           - to: "+19412101410"
           - to: "+19412101411"
     - play:
-        url: "say:I'm sorry, no one is available right now. Please try again shortly."
+        url: "say:You've reached Thrive Life, and no one is available right now. We already have your number, and a team member will call you back the next business day. Please note this message line does not give insurance quotes or advice. Thank you for calling."
         say_voice: "amazon.Joanna:neural:en-US"
+    - send_sms:
+        from_number: "+12053513647"
+        to_number: "+14095492092"
+        body: "Thrive Life - missed call, call back: ${call.from}. Auto-notice (no answer / after hours). No advice given."
     - hangup: {}
