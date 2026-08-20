@@ -9,6 +9,11 @@ export type RecordingObject = {
 
 type RecordingBucket = {
   get(key: string): Promise<RecordingObject | null>;
+  put(
+    key: string,
+    value: ReadableStream | ArrayBuffer | ArrayBufferView,
+    options?: { httpMetadata?: { contentType?: string }; customMetadata?: Record<string, string> },
+  ): Promise<unknown>;
 };
 
 export function getCallRecordingsBucket(): RecordingBucket | null {

@@ -153,6 +153,20 @@ declare namespace Cloudflare {
     SIGNALWIRE_DIALER_AGENT_NUMBER?: string;
 
     /**
+     * Inbound browser voice. These values are all server-only. The API token
+     * is a dedicated SignalWire Voice-scoped token; subscriber access tokens
+     * minted from it are short-lived and are never persisted. The fallback
+     * mobile and encryption key must never be rendered, logged, or bundled.
+     */
+    SIGNALWIRE_VOICE_SPACE_URL?: string;
+    SIGNALWIRE_VOICE_PROJECT_ID?: string;
+    SIGNALWIRE_VOICE_API_TOKEN?: string;
+    SIGNALWIRE_PRIVATE_MOBILE_NUMBER?: string;
+    SIGNALWIRE_TEAM_HUNT_ADDRESS?: string;
+    SIGNALWIRE_MAIN_NUMBER?: string;
+    SIGNALWIRE_CALLER_ENCRYPTION_KEY?: string;
+
+    /**
      * Twilio inbound voice webhook (app/hooks/twilio/voice/route.ts) — the
      * Switchboard transfer system, Phase 1. Both optional for the same reason
      * as the rest: absent, the webhook fails closed (503) rather than

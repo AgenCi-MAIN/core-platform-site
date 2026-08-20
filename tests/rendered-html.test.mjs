@@ -112,6 +112,7 @@ const PROTECTED_ROUTES = [
   "/portal/gallery",
   "/portal/commission/document",
   "/portal/investigator",
+  "/portal/inbound",
   "/portal/leadership",
   "/portal/leaderboard",
   "/portal/leadtech",
@@ -1765,6 +1766,7 @@ test("no surface can be swiped sideways off the screen", async () => {
   // 900, 1024, 1100, 1280 and 1440 after the fix, with the tab strip still
   // scrolling horizontally at every one of them.
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  const navigationUpgrade = await readFile(new URL("../app/portal/navigation-upgrade.tsx", import.meta.url), "utf8");
 
   const tabStrip = css.match(/\.training-tabs \{[^}]*\}/s)?.[0] ?? "";
   assert.match(
@@ -1792,5 +1794,16 @@ test("no surface can be swiped sideways off the screen", async () => {
     topbar,
     /flex-wrap:\s*wrap/,
     "the top bar must wrap rather than push its account cluster past the viewport",
+  );
+  assert.match(topbar, /position:\s*sticky/);
+  assert.match(topbar, /top:\s*0/);
+  assert.match(navigationUpgrade, /thrive-account-call-stack/);
+  assert.match(navigationUpgrade, /thrive-topbar-call-control/);
+  assert.match(navigationUpgrade, /thrive:phone-panel/);
+  assert.match(navigationUpgrade, /thrive:phone-state/);
+  assert.match(
+    navigationUpgrade,
+    /@media\(max-width:620px\)\{\.thrive-account-call-stack\{min-width:44px;width:44px\}/,
+    "the persistent Calls control must collapse to one 44px touch target rather than leave the viewport",
   );
 });

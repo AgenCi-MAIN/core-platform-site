@@ -8,6 +8,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
+import { BrowserPhone } from "./calls/browser-phone";
 
 /**
  * The JARVIS Presence — the portal's talking pet.
@@ -94,6 +95,8 @@ function PresenceFace({ size = 40 }: { size?: number }) {
 
 export function PortalPresence() {
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"jarvis" | "calls">("jarvis");
+  const [phonePhase, setPhonePhase] = useState("loading");
   const [lines, setLines] = useState<Line[]>([]);
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(false);
@@ -160,12 +163,22 @@ export function PortalPresence() {
       const detail = (event as CustomEvent<{ question?: string }>).detail;
       const prepared = detail?.question?.trim().slice(0, 400) ?? "";
       setOpen(true);
+      setMode("jarvis");
       if (prepared) setQuestion(prepared);
       window.setTimeout(() => inputRef.current?.focus(), 0);
     };
 
     window.addEventListener(JARVIS_PROMPT_EVENT, openFromCommand);
     return () => window.removeEventListener(JARVIS_PROMPT_EVENT, openFromCommand);
+  }, []);
+
+  useEffect(() => {
+    const openCalls = () => {
+      setMode("calls");
+      setOpen(true);
+    };
+    window.addEventListener("thrive:phone-panel", openCalls);
+    return () => window.removeEventListener("thrive:phone-panel", openCalls);
   }, []);
 
   function beginDrag(event: ReactPointerEvent<HTMLElement>, source: DragSource) {
@@ -188,6 +201,23 @@ export function PortalPresence() {
     };
     event.currentTarget.setPointerCapture(event.pointerId);
     setDragging(true);
+  }
+
+  function moveModeFocus(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    const tabs = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+    const current = tabs.indexOf(document.activeElement as HTMLButtonElement);
+    if (current < 0 || tabs.length === 0) return;
+    event.preventDefault();
+    const next = event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? tabs.length - 1
+        : (current + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    const nextMode = tabs[next]?.dataset.presenceMode;
+    if (nextMode !== 'jarvis' && nextMode !== 'calls') return;
+    setMode(nextMode);
+    tabs[next].focus();
   }
 
   function moveDrag(event: ReactPointerEvent<HTMLElement>) {
@@ -283,12 +313,12 @@ export function PortalPresence() {
       className={`presence${dragging ? " presence-dragging" : ""}`}
       style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0)` }}
     >
-      {open ? (
-        <section
+      <section
           className="presence-panel"
           role="dialog"
           aria-labelledby="presence-title"
-          aria-describedby="presence-fine"
+          aria-describedby={mode === "jarvis" ? "presence-fine" : "browser-phone-boundary"}
+          hidden={!open}
         >
           <header className="presence-head">
             <button
@@ -314,8 +344,8 @@ export function PortalPresence() {
             </button>
             <PresenceFace size={26} />
             <div className="presence-head-copy">
-              <strong id="presence-title">J.A.R.V.I.S. Presence</strong>
-              <small>Ask about THRIVE and this portal</small>
+              <strong id="presence-title">{mode === "jarvis" ? "J.A.R.V.I.S. Presence" : "THRIVE Calls"}</strong>
+              <small>{mode === "jarvis" ? "Ask about THRIVE and this portal" : "Browser phone · primary tab only"}</small>
             </div>
             <button
               type="button"
@@ -327,6 +357,34 @@ export function PortalPresence() {
             </button>
           </header>
 
+          <div className="presence-tabs" role="tablist" aria-label="J.A.R.V.I.S. panel modes" onKeyDown={moveModeFocus}>
+            <button
+              type="button"
+              role="tab"
+              id="presence-tab-jarvis"
+              data-presence-mode="jarvis"
+              aria-selected={mode === "jarvis"}
+              aria-controls="presence-panel-jarvis"
+              tabIndex={mode === "jarvis" ? 0 : -1}
+              onClick={() => setMode("jarvis")}
+            >
+              J.A.R.V.I.S.
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="presence-tab-calls"
+              data-presence-mode="calls"
+              aria-selected={mode === "calls"}
+              aria-controls="presence-panel-calls"
+              tabIndex={mode === "calls" ? 0 : -1}
+              onClick={() => setMode("calls")}
+            >
+              Calls <span className={`presence-call-state presence-call-state-${phonePhase}`} aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="presence-jarvis-mode" id="presence-panel-jarvis" role="tabpanel" aria-labelledby="presence-tab-jarvis" hidden={mode !== "jarvis"}>
           <div className="presence-log" ref={logRef} aria-live="polite">
             {lines.length === 0 ? (
               <p className="presence-line presence-line-presence">
@@ -382,16 +440,19 @@ export function PortalPresence() {
             Presence endpoint; conversations are logged to the portal audit
             trail.
           </p>
+          </div>
+          <div className="presence-calls-mode" id="presence-panel-calls" role="tabpanel" aria-labelledby="presence-tab-calls" hidden={mode !== "calls"}>
+            <BrowserPhone onPhase={setPhonePhase} panelActive={open && mode === "calls"} />
+          </div>
           <span className="sr-only" id="presence-drag-help">
             Use the arrow keys to nudge the assistant. Hold Shift for larger steps.
           </span>
         </section>
-      ) : null}
 
       <button
         ref={toggleRef}
         type="button"
-        className={`presence-toggle${open ? " presence-toggle-open" : ""}`}
+        className={`presence-toggle${open ? " presence-toggle-open" : ""}${["ringing", "connecting", "connected"].includes(phonePhase) ? " presence-toggle-call" : ""}`}
         onPointerDown={(event) => beginDrag(event, "toggle")}
         onPointerMove={moveDrag}
         onPointerUp={endDrag}
@@ -404,8 +465,8 @@ export function PortalPresence() {
           setOpen((v) => !v);
         }}
         aria-expanded={open}
-        aria-label={open ? "Close the JARVIS Presence" : "Open the JARVIS Presence"}
-        title="JARVIS Presence"
+        aria-label={open ? "Close the JARVIS and Calls panel" : "Open the JARVIS and Calls panel"}
+        title="JARVIS and Calls"
       >
         <PresenceFace />
       </button>

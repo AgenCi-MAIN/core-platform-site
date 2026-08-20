@@ -586,7 +586,14 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
     const auditOk = await portal.get("/portal/audit", founder);
     assert.equal(auditOk.status, 200, "the founder reads the audit log");
     const dialerOk = await portal.get("/portal/dialer", founder);
-    assert.equal(dialerOk.status, 200, "the founder opens the dialer");
+    assert.equal(dialerOk.status, 307, "the founder's old dialer bookmark redirects into Calls");
+    assert.match(dialerOk.headers.get("location") ?? "", /\/portal\/calls\?tab=outbound$/);
+    const callsOk = await portal.get("/portal/calls?tab=outbound", founder);
+    assert.equal(callsOk.status, 200, "the founder opens the consolidated Calls workspace");
+    const callsHtml = await callsOk.text();
+    assert.match(callsHtml, />Outbound</);
+    assert.match(callsHtml, /Collab Dialer/);
+    assert.doesNotMatch(callsHtml, /href="\/portal\/(?:inbound|dialer)"/, "the sidebar exposes one Calls destination, not three competing links");
 
     // The RETIRED founder identity (the seeded owner, Google account locked
     // 2026-08-17) keeps its owner membership for the historical record but
@@ -886,6 +893,7 @@ test("Dialer Beta lists transferred calls and gates protected recording playback
     assert.match(html, /transfer-test-001/);
     assert.match(html, /Review call/);
     assert.match(html, /Open recording/);
+    assert.doesNotMatch(html, /Collab Dialer/, "a non-founder reviewer is not sent the outbound dialer surface");
 
     const review = await portal.get("/portal/calls/review/1", reviewer);
     assert.equal(review.status, 200);

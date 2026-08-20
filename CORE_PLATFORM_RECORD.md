@@ -1851,3 +1851,72 @@ migration, secret change, provider configuration change, or new call was
 performed. The exact founder `mi` merge authorization remains required before
 the branch can be merged; deployment and a controlled private-mobile test are
 separate subsequent actions.
+### 19p. Automatic inbound browser calling implementation staged — 2026-08-20
+
+The founder approved a same-day inbound calling design for the five active
+CORE accounts: personal business numbers, the existing Thrive Life main line,
+8-second browser stages, the existing private-mobile fallback with telephone
+DTMF `1`, final announced voicemail, a global Calls mode in the J.A.R.V.I.S.
+eye, and one consolidated `/portal/calls` workspace.
+
+**Repository boundary.** Work was isolated from the canonical worktree's
+unrelated Personal Command changes in
+`C:\dev\core-platform-inbound-calls`, branch
+`codex/inbound-calls-20260820`. It originated at the required base
+`b1ae1ca2e852b8d2033240457eb28535d0611687` and, after the founder supplied
+the one-use merge keyword, was transplanted without Gallery history onto
+current `main` at `662612070cee1f7125c4b7cfd377cbe40cbb1daa`. This entry
+records a verified implementation artifact, not a live release. The keyword
+authorizes the squash merge only. Deployment, D1 mutation, secret upload,
+provider provisioning, purchasing, routing changes, and live calls each remain
+separate production actions requiring their own explicit authorization and
+verified gate evidence.
+
+**Implemented locally.** The branch adds the five-table forward-only D1 voice
+migration, the authenticated bootstrap/session/presence/offer/team-return/task
+interfaces, Basic-plus-HMAC SignalWire lifecycle/routing/voicemail callbacks,
+masked and optionally AES-GCM-encrypted caller storage, exact provider
+Subscriber ID/address validation, atomic first-answer-wins offers, two-phase
+Send to Team, final-voicemail-only recording into protected R2, and
+exactly-once callback tasks. The floating eye now has J.A.R.V.I.S. and Calls
+modes; employees must explicitly become Available; only one primary tab
+registers; keyboard `1` is scoped to an incoming offer; the THRIVE Radio pauses
+for a call and does not resume itself. The expanded Account Balance control now
+has a Calls launcher and honest phone-state indicator immediately beneath it in
+the sticky top bar, keeping the browser phone reachable throughout the portal.
+`/portal/inbound` redirects to the Live tab. The three former call destinations
+are now one: Call Lab stays within Calls, the founder-only Collab Dialer is the
+Outbound tab, and `/portal/dialer` preserves old founder bookmarks by
+redirecting to that tab. The sidebar exposes only the single Calls destination;
+the outbound server action remains founder-only and employees receive neither
+the tab nor the dialer surface.
+
+**Verified local evidence.** Production build passed. The full suite passed
+122/122, including a production-shaped Miniflare call flow that exercises
+personal and shared hunts, stale/unavailable exclusion, simultaneous answer
+races, provider-confirmed team return, mobile and voicemail progression,
+callback idempotency/claim/playback, self-versus-founder visibility,
+Subscriber-token denial, opaque Basic/HMAC failures, caller encryption and
+masking, and D1 uniqueness. Task-owned ESLint and TypeScript checks passed;
+build preflight passed; built client assets contained none of the scanned
+SignalWire secret names, private Space hostname, dummy token values, private
+mobile marker, or encryption-key name.
+
+**Still pending and not claimed.** No production migration ran. No secret was
+uploaded. No Subscriber or personal DID was created or purchased. The live
+checkout total was not displayed or reverified, so the $20/month fixed-cost
+gate has not been satisfied. No Cloudflare Access bypass was added for the new
+exact machine paths. No personal number or `+12053515118` routing changed. No
+browser audio, mobile fallback, voicemail, callback task, or rollback was
+smoke-tested against production. The implementation and post-gate sequence are
+recorded without secret values in `INBOUND_CALLING_RELEASE.md`.
+
+**Release order retained.** Use `mi` to merge the verified branch into current
+`main`, then rerun the full gates on the merged revision. After separate
+production authorization: apply the additive D1 migration, upload server-only
+secrets, create/fetch Subscribers and their provider-returned exact audio
+addresses, recheck checkout and stop above the $20 fixed ceiling, purchase and
+deterministically assign five numbers, test personal DIDs first, then change
+and test the shared main line. Rollback is configuration-first to the existing
+private-mobile route; the schema stays dormant and numbers are retained unless
+separately authorized for release.
