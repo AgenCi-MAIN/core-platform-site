@@ -1992,3 +1992,42 @@ number release, or live/test call occurred as part of this deployment.
 This entry is a local documentation follow-up on
 `codex/deploy-log-browser-phone-20260820`; it is not yet merged. A fresh
 one-use founder `mi` is required to merge the record update.
+
+### 19s. Post-deployment SDK user-initialization race repaired locally - 2026-08-20
+
+After the deployment recorded above, the founder retried **Available** on the
+production Calls panel. The account and protected 3647 assignment loaded, but
+the panel returned Offline with the exact SDK error **Unexpected Error at Error
+fetching user information**. The screenshot established that this was no
+longer the prior indefinite Registering state and no longer a microphone-
+permission failure.
+
+**Root cause.** With `skipConnection: true`, `@signalwire/js@4.0.0-rc.2`
+returns its client from the constructor before its asynchronous credential
+resolution and `User` initialization have completed. CORE immediately called
+`client.connect()`. The SDK therefore raced its own `user$` initialization and
+wrapped the missing/not-yet-fetched user as **Error fetching user
+information**.
+
+**Local repair.** Clean isolated branch
+`codex/browser-phone-init-race-20260820`, based on exact deployed
+`main@38606f86c2825cb758f563246ba96aa349fa775a`, now waits on the SDK's public
+`user$` readiness signal before calling `connect()`. The gate listens to the
+SDK error stream and has a ten-second timeout so credential or initialization
+failures become an honest retryable error instead of an unbounded wait. The
+existing order remains: user ready, connect, subscribe to incoming calls, then
+register.
+
+**Verification.** Focused inbound tests passed 4/4. Focused ESLint and the
+production build passed. The complete repository suite passed 124/124 and
+`verify:build` passed. The built client contains the new readiness guard and
+none of the scanned server-only Voice configuration names. Repository-wide
+TypeScript remains blocked only by the already-recorded, unrelated
+`services/core-agent-fleet` alias/dependency baseline; the production build
+compiled the changed browser phone successfully.
+
+**Delivery boundary.** This is a verified local repair, not a live fix yet.
+No provider resource, D1 row, Worker secret, number route, 5118 behavior, or
+call was changed. The exact one-use founder keyword `mi` is required before
+this branch can merge; production deployment remains a separate explicit
+action after merged-main verification.
