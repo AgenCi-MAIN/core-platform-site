@@ -189,26 +189,12 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
     <div className="ops-deck">
       <style>{`
         .ops-deck {
-          --ink: #16142b;
-          --paper: #fffaf2;
-          --violet: #6d42e5;
-          --surface: rgba(22, 20, 43, 0.04);
-          --border: rgba(22, 20, 43, 0.12);
+          --ink: var(--portal-text, #16142b);
+          --paper: var(--portal-panel, #fffaf2);
+          --violet: var(--portal-accent, #6d42e5);
+          --surface: var(--portal-soft, rgba(22, 20, 43, 0.04));
+          --border: var(--portal-line, rgba(22, 20, 43, 0.12));
           --radius: 12px;
-        }
-        @media (prefers-color-scheme: dark) {
-          :root:not([data-theme="light"]) .ops-deck {
-            --ink: #eee9ff;
-            --paper: #0f0d1a;
-            --surface: rgba(238, 233, 255, 0.06);
-            --border: rgba(238, 233, 255, 0.12);
-          }
-        }
-        :root[data-theme="dark"] .ops-deck {
-          --ink: #eee9ff;
-          --paper: #0f0d1a;
-          --surface: rgba(238, 233, 255, 0.06);
-          --border: rgba(238, 233, 255, 0.12);
         }
 
         .ops-toolbar {

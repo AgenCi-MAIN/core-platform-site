@@ -121,6 +121,7 @@ const PROTECTED_ROUTES = [
   "/portal/members",
   "/portal/pay-rates",
   "/portal/music",
+  "/portal/quoter",
   "/portal/scripts",
   "/portal/shop",
   "/portal/team",

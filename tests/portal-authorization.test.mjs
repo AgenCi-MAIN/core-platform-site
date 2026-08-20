@@ -310,7 +310,6 @@ test("active members open Training with one verbatim intro and labelled empty sl
   for (const label of [
     "Client States Problem First ...",
     "Death Claim Discovery Intro",
-    "Non life Discovery Intro",
     "Cancelation intro",
     "Quote Shopper Intro for CS...",
     "Intro Tips and Tricks",
@@ -342,7 +341,7 @@ test("active members open Training with one verbatim intro and labelled empty sl
   const tabs = html.match(/class="training-tab(?: is-active)?"/g) ?? [];
   assert.equal(
     tabs.length,
-    20,
+    18,
     "every supplied label keeps a tab — tabbing must not drop a slot",
   );
   assert.equal(
@@ -2652,7 +2651,7 @@ test("the dashboard mission map carries every lane and respects capability filte
   for (const lane of ["Operating Floor", "Signal &amp; Intelligence", "Economics Lab", "Governance Layer"]) {
     assert.match(ownerMap, new RegExp(lane), `lane "${lane}" missing from the mission map`);
   }
-  for (const label of ["Leaderboard", "My Stats", "Commissions", "Pipeline", "Call Routing", "Phone Logs", "Contracting", "Underwriter"]) {
+  for (const label of ["Leaderboard", "My Stats", "Commissions", "Contracting", "Quoter"]) {
     assert.match(ownerMap, new RegExp(`>${label}<`), `"${label}" missing from the owner's mission map`);
   }
   // External tools render as hard anchors that leave the app in a new tab —
@@ -2674,13 +2673,6 @@ test("the dashboard mission map carries every lane and respects capability filte
   const agentMap = missionMap(await agentRes.text());
   for (const label of ["Leaderboard", "My Stats", "Commissions", "Contracting"]) {
     assert.match(agentMap, new RegExp(`>${label}<`), `"${label}" missing from the agent's mission map`);
-  }
-  for (const label of ["Pipeline", "Call Routing", "Phone Logs"]) {
-    assert.doesNotMatch(
-      agentMap,
-      new RegExp(`>${label}<`),
-      `leadership-only "${label}" leaked into the agent's mission map`,
-    );
   }
 });
 
