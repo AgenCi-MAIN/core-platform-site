@@ -88,8 +88,10 @@ whatever `dist/` last held, and that failure is silent — it cost days once.
 
 The test suite is the safety net for the access model — anonymous refusal on
 every guarded route, subject binding and conflict, identity ambiguity, suspended
-members, per-role capability enforcement, recording consent gating, and session
-forgery. Run it before pushing anything that touches auth.
+members, per-role capability enforcement, recording consent gating, session
+forgery, and the carrier ingest route — the one path Cloudflare Access does not
+front, so the only place an anonymous request reaches application code. Run it
+before pushing anything that touches auth.
 
 ## Environment notes
 
