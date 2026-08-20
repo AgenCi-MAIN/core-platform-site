@@ -2651,7 +2651,7 @@ test("the dashboard mission map carries every lane and respects capability filte
   for (const lane of ["Operating Floor", "Signal &amp; Intelligence", "Economics Lab", "Governance Layer"]) {
     assert.match(ownerMap, new RegExp(lane), `lane "${lane}" missing from the mission map`);
   }
-  for (const label of ["Leaderboard", "My Stats", "Commissions", "Contracting", "Quoter"]) {
+  for (const label of ["Leaderboard", "My Stats", "Commissions", "Contracting", "Quoter", "Collab Dialer"]) {
     assert.match(ownerMap, new RegExp(`>${label}<`), `"${label}" missing from the owner's mission map`);
   }
   // External tools render as hard anchors that leave the app in a new tab —

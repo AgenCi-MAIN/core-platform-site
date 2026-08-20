@@ -43,6 +43,7 @@ type PortalIconName =
   | "members"
   | "audit"
   | "gallery"
+  | "dialer"
   | "signout";
 
 type NavItem = {
@@ -140,6 +141,16 @@ const NAV: readonly NavItem[] = [
     description: "Transferred call access and permissioned coaching review.",
     state: "live",
     stateLabel: "Beta ready",
+  },
+  {
+    href: "/portal/dialer",
+    label: "Collab Dialer",
+    capability: "calls.review",
+    icon: "dialer",
+    group: "Calls",
+    description: "SignalWire-powered softphone — dial, receive, and conference from the portal.",
+    state: "live",
+    stateLabel: "Beta",
   },
   {
     href: "/portal/scripts",
@@ -365,6 +376,7 @@ const MISSION_GROUPS = [
     routes: [
       "/portal/training",
       "/portal/calls",
+      "/portal/dialer",
       "/portal/book",
       "/portal/scripts",
       "/portal/team",
@@ -418,6 +430,7 @@ const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/command/cloud": "Cloud AI Command",
   "/portal/training": "Training",
   "/portal/calls": "Call Lab",
+  "/portal/dialer": "Collab Dialer",
   "/portal/book": "Book",
   "/portal/scripts": "Scripts",
   "/portal/team": "Team",
@@ -1145,6 +1158,18 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <rect x="3.5" y="3.5" width="17" height="17" rx="2" />
       <circle cx="12" cy="11" r="3.5" />
       <path d="M7.5 18.5c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
+    </>
+  ),
+  dialer: (
+    <>
+      <rect x="5" y="3" width="14" height="18" rx="2" />
+      <circle cx="9" cy="11" r="1" />
+      <circle cx="12" cy="11" r="1" />
+      <circle cx="15" cy="11" r="1" />
+      <circle cx="9" cy="14" r="1" />
+      <circle cx="12" cy="14" r="1" />
+      <circle cx="15" cy="14" r="1" />
+      <rect x="8" y="6" width="8" height="2.5" rx="0.5" />
     </>
   ),
   signout: (
