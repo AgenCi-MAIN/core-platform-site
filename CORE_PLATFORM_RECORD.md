@@ -1965,3 +1965,30 @@ No merge, deployment, provider routing change, number purchase, token
 revocation, or test call was performed. The exact one-use founder keyword `mi`
 is still required for this branch's merge; deployment remains a separate
 authorized action after the merged-main gates pass.
+
+### 19r. Browser-phone registration repair deployed - 2026-08-20
+
+The founder separately authorized production deployment after PR #114 was
+squash-merged. The release ran from the clean isolated worktree at exact merged
+`main@38606f86c2825cb758f563246ba96aa349fa775a`; the canonical checkout's
+unrelated Gallery edits were not included or altered.
+
+The repository-required `npm run deploy` chain rebuilt the Worker, passed the
+complete 124/124 test suite, passed `verify:build`, and deployed Worker version
+`9147c300-97dc-44dc-a3cf-154636207ae4` at 100% to
+`https://site-creator-vinext-starter.thrive18.workers.dev`. The deploy reported
+the intended `site-creator-d1` binding, the `site-creator-r2` recording bucket,
+and a 22 ms Worker startup time. A post-deploy deployment-list read confirmed
+the new version at 100%; the immediately preceding version retained for
+rollback is `e4433197-df69-4b7c-a406-0fd2e7b396e3`.
+
+Post-deploy anonymous probes returned 200 for the public root and 307 sign-in
+redirects for both `/portal` and `/portal/calls`, preserving the application
+access boundary. Existing Google, session, outbound-dialer, and browser-phone
+secret names remained present in Cloudflare without displaying their values.
+No D1 mutation, secret update, SignalWire routing change, number purchase,
+number release, or live/test call occurred as part of this deployment.
+
+This entry is a local documentation follow-up on
+`codex/deploy-log-browser-phone-20260820`; it is not yet merged. A fresh
+one-use founder `mi` is required to merge the record update.
