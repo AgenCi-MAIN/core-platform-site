@@ -59,21 +59,22 @@ export function buildInboundRoutePlan(input: InboundRoutePlan): SwmlDocument {
         from: input.callerId,
         timeout: 20,
         answer_on_bridge: true,
-        confirm_timeout: 8,
+        // SWML `confirm` semantics: the callee leg is ACCEPTED when the confirm
+        // script runs to completion and REJECTED when it hangs up. There is no
+        // `return` method inside confirm — SignalWire logs
+        // `Unknown method "confirm.return"` and drops the leg after ~1s.
+        confirm_timeout: 30,
         confirm: [
           {
             prompt: {
               play: "say:THRIVE incoming call. Press 1 to accept.",
               max_digits: 1,
-              initial_timeout: 5,
-              digit_timeout: 2,
+              initial_timeout: 8,
+              digit_timeout: 3,
             },
           },
           {
-            cond: [
-              { when: "prompt_value == '1'", then: [{ return: 1 }] },
-              { else: [{ return: 0 }] },
-            ],
+            cond: [{ when: "prompt_value != '1'", then: [{ hangup: {} }] }],
           },
         ],
         status_url: input.lifecycleUrl,

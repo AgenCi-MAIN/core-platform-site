@@ -2242,3 +2242,121 @@ above is the only call action in this repair. A fresh one-use founder `mi` is
 required to merge the branch. Deployment is a separate explicit action after
 merged-main verification, and a real 3647 PSTN browser-answer test requires a
 new action-time confirmation after deployment.
+
+### 19x. Inbound confirm script and browser-hunt presence repaired locally — 2026-08-20
+
+After 19w was squash-merged and deployed as `main@1724c9c` (#118), the
+founder placed five real PSTN calls from `+14099982860` to 3647 between
+22:20:21 and 22:24:11 UTC (Voice Segments `94d25af5`, `f9acc021`, `27c70061`,
+`a541c8da`, `3d64212f`). Every call authenticated and `/portal/calls/route`
+returned HTTP 200 with both machine factors verified, so 19v and 19w held.
+No call reached a browser, the private mobile, or voicemail. The founder
+supplied the SignalWire Dashboard and `/portal/calls/bootstrap` evidence and
+asked that it be verified against the code rather than re-diagnosed; this
+entry records that verification and the resulting local repair.
+
+**What the evidence proved.** On each call SignalWire logged
+`calling.script.warning` / `relay_script_method_undefined` with message
+`Unknown method "confirm.return"` and ended the call after one second with no
+child leg. The returned SWML had no personal or team connect stage: `main[0]`
+was already the private-mobile fallback. Bootstrap showed `inbound_voice_calls`
+rows 1–5 at `stage: "personal"`, `status: "offering"`, `offerStatus: null`,
+i.e. zero `voice_call_offers` rows, so the eligibility query found no
+available, unexpired `voice_presence` row at route time even though the
+founder believed the portal was Available. Live observation afterwards showed
+the 19t heartbeat renewing correctly while one Calls tab stayed mounted and
+foregrounded, and two UI states were screenshotted: "Calls are already
+registered in another primary CORE tab." and "This browser was not offered an
+active call."
+
+**Root causes.** Three defects, all confirmed in the code at `main@1724c9c`.
+First, `app/portal/calls/route/route-plan.ts` built the mobile-fallback
+`confirm` script as a `cond` whose branches executed `{ return: 1 }` /
+`{ return: 0 }`. SWML has no `return` method inside `confirm`; the callee leg
+is accepted when the confirm script runs to completion and rejected when it
+hangs up, which is the shape the working legacy `thrive-life-queue` script
+uses. That invalid method killed every inbound call regardless of presence,
+and the 8-second `confirm_timeout` would have aborted screening even with
+correct syntax. Second, `app/portal/calls/browser-phone.tsx` subscribed to
+`client.session.incomingCalls$` with `?? calls[0]`; because that stream
+replays its snapshot on (re)subscribe, an already-finished call was handed to
+`receiveCall`, `resolveOfferContext()` received the 409 "not offered an active
+call", the phase was set to `error`, and the heartbeat effect — gated on
+`phoneEligible`, which excludes `error` — stopped. `voice_presence` expired 45
+seconds later while the SDK stayed registered and the panel still looked
+registered, so the next real call found no eligible browser. Third, the same
+component generated `browserSessionId` with `useRef(crypto.randomUUID())`, so
+any React remount requested `/portal/calls/session` under a new id while the
+previous presence row was unexpired, and the server correctly refused with
+the "another primary CORE tab" 409.
+
+**Local repair.** Branch `claude/inbound-call-browser-routing-fix`, based on
+exact `main@1724c9c`. The fallback `confirm` is now
+`prompt` (`max_digits` 1, `initial_timeout` 8, `digit_timeout` 3) followed by
+`cond: [{ when: "prompt_value != '1'", then: [{ hangup: {} }] }]`, with
+`confirm_timeout` raised from 8 to 30; no `return` appears anywhere under
+`confirm`. In `browser-phone.tsx` the `?? calls[0]` fallback is deleted so
+only a `ringing`/`new` invite reaches `receiveCall`; `resolveOfferContext` is
+retried three times about one second apart while the invite is still
+offered; on final failure the invite is rejected with `call.reject()` and the
+phase stays `available` with a non-fatal notice, so the heartbeat never stops
+on this path; a reserved call that has already ended no longer blocks the
+next invite. `browserSessionId` is read from `sessionStorage`
+(`core.calls.browserSessionId`) with an SSR-safe, try/catch-guarded,
+in-memory fallback, so remounts in the same tab reuse the id while a genuine
+second tab is still refused; the server-side 409 is unchanged. Two regression
+tests were added to `tests/signalwire-inbound-browser.test.mjs`: one walks the
+built SWML and asserts no `return` key exists under any `confirm`, pins the
+exact prompt and cond shape, and requires an explicit `hangup` reject path;
+the other asserts the personal and team connect stages precede the mobile
+fallback when targets exist and that the fallback waits at least 30 seconds
+for confirmation. Both fail on `main@1724c9c` (`return` present,
+`confirm_timeout 8 must be >= 30`) and pass after the repair.
+
+**Verified, not guessed.** SignalWire's `connect` reference documents
+`connect_result` and `return_value` as the same output value (`connected` |
+`failed`), with `result` accepting a cond array, so the existing
+`return_value == 'connected'` result branch is valid and unchanged. The
+`connect.to` reference documents only the bare Resource Address form
+(`/public/test_room`); `?channel=audio` is shown only on the Subscribers
+platform page as a dial-time variant and is neither promised nor refused for
+SWML `connect`, so the stored `?channel=audio` address was left as is and is
+flagged for one live test. `status_url` and `call_state_url` are `connect`
+properties posting `calling.call.connect` / `calling.call.state`, and
+`record.status_url` posts `calling.call.record`, so `/portal/calls/ingest`
+and `/portal/calls/voicemail` must both be reachable anonymously; the
+repository documents an Access bypass only for `/portal/calls/ingest`
+(DEPLOYMENT.md, record §10e) while INBOUND_CALLING_RELEASE.md requires all
+three exact paths, and nothing in the repository can attest the Zero Trust
+state. Chrome's intensive timer throttling aligns chained timers to one
+minute after five hidden minutes, which exceeds the 45-second presence TTL;
+the proposed fix (not implemented) is a longer TTL with route-time enforcement
+as the only gate plus an immediate `available` re-register on
+`visibilitychange`, with a Web Worker timer as the heavier alternative.
+
+**Verification.** The route-plan module compiled under `tsc --strict` and,
+exercised directly, emitted no `return` under `confirm`, `confirm_timeout`
+30, and the pinned prompt/cond shape. `git diff --check` passed, an
+independent review of the full diff found no TypeScript, hooks, or ESLint
+defects and one race (a dead reserved call blocking the next invite) which
+was fixed. The repository's own `npm run lint`, `npm run typecheck`,
+`npm test`, and `npm run verify:build` could not be executed in the sandbox
+where this repair was written: the package registry refused every tarball
+fetch (HTTP 403) and `node_modules` could not be installed, and the session's
+git proxy refused a push to the repository. Those four commands must be run
+and their real output pasted by the founder or the next agent before any
+merge; this entry does not claim they passed.
+
+**Delivery boundary.** This is a local repair, not production. No D1 row,
+Worker secret, provider resource, Subscriber, number assignment, Access
+policy, or routing rule was changed; neither 3647, 5158, nor 5118 was
+rerouted. `telephony-config.ts` and the Outbound-tab cards were not edited
+because the number roles are unresolved: the founder states 3647 is his
+personal dialer line and 5158 the company main line, while the code,
+OWNER-DECISIONS D11/D12, records 19j/19k, and the live Space label 5118 as
+the main line, 3647 as the queue bridge caller ID, and 5158 as the outbound
+caller ID. `SIGNALWIRE_MAIN_NUMBER` was neither read nor changed; the value
+the founder wants there, the caller ID to present on the mobile fallback,
+and the legacy queue's `from: +12053513647` (a Dashboard change) are open
+founder decisions recorded in the PR. A fresh one-use founder `mi` is
+required to merge.

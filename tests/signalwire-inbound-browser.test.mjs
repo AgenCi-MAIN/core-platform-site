@@ -280,6 +280,94 @@ test("the route plan is an 8s/8s/20s hunt and records only announced voicemail",
   assert.doesNotMatch(JSON.stringify(plan), /record_call|transcrib|ai_agent/i);
 });
 
+function collectKeysUnder(value, targetKey, inside = false, found = new Set()) {
+  if (Array.isArray(value)) {
+    for (const item of value) collectKeysUnder(item, targetKey, inside, found);
+  } else if (value && typeof value === "object") {
+    for (const [key, child] of Object.entries(value)) {
+      if (inside && key === targetKey) found.add(key);
+      collectKeysUnder(child, targetKey, inside || key === "confirm", found);
+    }
+  }
+  return found;
+}
+
+function planWithTargets(overrides = {}) {
+  return buildInboundRoutePlan({
+    callId: "plan-call-confirm",
+    callerId: "+12055550101",
+    callerMasked: "***-***-0142",
+    calledLineMasked: "***-***-0101",
+    personalTarget: { memberId: 1, address: "/private/core-member-1" },
+    personalAttempt: 1,
+    teamTargets: [
+      { memberId: 2, address: "/private/core-member-2" },
+      { memberId: 3, address: "/private/core-member-3" },
+    ],
+    teamAttempt: 1,
+    fallbackNumber: MOBILE_FALLBACK,
+    lifecycleUrl: "https://signalwire:secret@example.test/portal/calls/ingest",
+    voicemailStatusUrl: "https://signalwire:secret@example.test/portal/calls/voicemail",
+    ...overrides,
+  });
+}
+
+test("the mobile fallback confirm script never uses the nonexistent SWML confirm.return method", () => {
+  const plan = planWithTargets();
+  const connects = connectSteps(plan);
+  const fallback = connects.at(-1);
+  assert.equal(fallback.to, MOBILE_FALLBACK);
+  assert.ok(Array.isArray(fallback.confirm), "confirm is an inline array of SWML methods");
+
+  // SignalWire accepts the callee leg when the confirm script runs to
+  // completion and rejects it on hangup. `return` is not a method there:
+  // the provider logs `Unknown method "confirm.return"` and kills the leg.
+  assert.deepEqual(
+    [...collectKeysUnder(plan, "return")],
+    [],
+    "no `return` key may appear anywhere under a confirm script",
+  );
+  assert.match(JSON.stringify(fallback.confirm), /Press 1 to accept/);
+  const hangups = JSON.stringify(fallback.confirm).match(/"hangup"/g) ?? [];
+  assert.ok(hangups.length >= 1, "the reject path is an explicit hangup");
+  assert.match(JSON.stringify(fallback.confirm), /prompt_value != '1'/);
+  assert.deepEqual(fallback.confirm[0].prompt, {
+    play: "say:THRIVE incoming call. Press 1 to accept.",
+    max_digits: 1,
+    initial_timeout: 8,
+    digit_timeout: 3,
+  });
+  assert.deepEqual(fallback.confirm[1], {
+    cond: [{ when: "prompt_value != '1'", then: [{ hangup: {} }] }],
+  });
+});
+
+test("with personal and team targets both browser stages ring before the mobile fallback, which waits >= 30s for confirmation", () => {
+  const plan = planWithTargets();
+  const connects = connectSteps(plan);
+  assert.equal(connects.length, 3);
+  assert.equal(connects[0].to, "/private/core-member-1", "personal stage first");
+  assert.deepEqual(
+    allTargets(connects[1]),
+    ["/private/core-member-2", "/private/core-member-3"],
+    "team stage second",
+  );
+  assert.equal(connects[2].to, MOBILE_FALLBACK, "mobile fallback last");
+  assert.ok(connects[2].confirm_timeout >= 30, `confirm_timeout ${connects[2].confirm_timeout} must be >= 30`);
+  assert.equal(connects[0].confirm, undefined);
+  assert.equal(connects[1].confirm, undefined);
+
+  const personalOnly = connectSteps(planWithTargets({ teamTargets: [] }));
+  assert.equal(personalOnly.length, 2);
+  assert.equal(personalOnly[0].to, "/private/core-member-1");
+  assert.equal(personalOnly[1].to, MOBILE_FALLBACK);
+
+  const teamOnly = connectSteps(planWithTargets({ personalTarget: null }));
+  assert.equal(teamOnly.length, 2);
+  assert.deepEqual(allTargets(teamOnly[0]), ["/private/core-member-2", "/private/core-member-3"]);
+  assert.equal(teamOnly[1].to, MOBILE_FALLBACK);
+});
+
 test("production-shaped inbound flow enforces entitlement, races, team return, and voicemail idempotency", async (t) => {
   const voice = await startVoice();
   t.after(voice.dispose);

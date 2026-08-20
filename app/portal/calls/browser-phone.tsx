@@ -59,6 +59,14 @@ type Snapshot = {
 
 const CHANNEL = "core-browser-phone-v1";
 const LOCK_NAME = "core-browser-phone-primary-v1";
+const BROWSER_SESSION_KEY = "core.calls.browserSessionId";
+const OFFER_RESOLVE_ATTEMPTS = 3;
+const OFFER_RESOLVE_RETRY_MS = 1_000;
+
+// In-memory fallback for the per-tab browser session id. Only assigned from
+// readBrowserSessionId(), which runs during render on the client, so the
+// module body itself never touches window or storage.
+let memoryBrowserSessionId: string | null = null;
 const CALL_ACTIVITY_EVENT = "thrive:call-activity";
 const PHONE_PANEL_EVENT = "thrive:phone-panel";
 
@@ -82,7 +90,12 @@ export function BrowserPhone({
   const contextRef = useRef<CallContext | null>(null);
   const callRef = useRef<Call | null>(null);
   const clientRef = useRef<SignalWireClient | null>(null);
-  const sessionIdRef = useRef(crypto.randomUUID());
+  // The id must survive React remounts (navigation, StrictMode, the floating
+  // panel unmounting): a fresh id per mount asks /portal/calls/session under a
+  // new browserSessionId while the previous voice_presence row is unexpired,
+  // and the server correctly answers 409. sessionStorage is per-tab, which is
+  // exactly the "primary tab" identity the server is tracking.
+  const sessionIdRef = useRef(readBrowserSessionId());
   const releaseLockRef = useRef<(() => void) | null>(null);
   const channelRef = useRef<BroadcastChannel | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -334,17 +347,44 @@ export function BrowserPhone({
   }, []);
 
   const receiveCall = useCallback(async (call: Call) => {
-    if (callRef.current) return;
+    const reserved = callRef.current;
+    if (reserved === call) return;
+    // A reserved call that already ended (for example one that died during
+    // the resolve retry window) must not block the next invite.
+    if (reserved && !["disconnected", "destroyed", "failed"].includes(reserved.status)) return;
     // Reserve the SDK call immediately so repeated incomingCalls$ snapshots do
     // not start parallel context lookups for the same offer.
     callRef.current = call;
-    let nextContext: CallContext;
-    try {
-      nextContext = await resolveOfferContext();
-    } catch (error) {
-      callRef.current = null;
-      try { call.reject(); } catch { /* the provider may already have advanced the hunt */ }
-      setPhase("error", friendlyError(error, "The incoming call context could not be verified."));
+    const stillOffered = () => callRef.current === call && ["new", "ringing"].includes(call.status);
+    let nextContext: CallContext | null = null;
+    let lastError: unknown = null;
+    // The offer row can land a beat after the SDK invite, so a failed resolve
+    // is retried briefly. A failure here must never be terminal for the phone:
+    // the phase stays eligible so the presence heartbeat keeps running.
+    for (let attempt = 1; attempt <= OFFER_RESOLVE_ATTEMPTS && !nextContext; attempt += 1) {
+      try {
+        nextContext = await resolveOfferContext();
+      } catch (error) {
+        lastError = error;
+        if (!stillOffered()) break;
+        if (attempt < OFFER_RESOLVE_ATTEMPTS) {
+          await new Promise<void>((resolve) => window.setTimeout(resolve, OFFER_RESOLVE_RETRY_MS));
+        }
+      }
+      if (!stillOffered()) break;
+    }
+    if (!nextContext) {
+      if (callRef.current === call) callRef.current = null;
+      if (!["disconnected", "destroyed", "failed"].includes(call.status)) {
+        try { call.reject(); } catch { /* the provider may already have advanced the hunt */ }
+      }
+      // Non-fatal: the invite is declined and the phone stays registered.
+      if (phaseRef.current === "available") {
+        setPhase(
+          "available",
+          `${friendlyError(lastError, "The incoming call context could not be verified.")} The call was declined; still available for the next call.`,
+        );
+      }
       return;
     }
     if (callRef.current !== call || !["new", "ringing"].includes(call.status)) {
@@ -462,7 +502,10 @@ export function BrowserPhone({
       await waitForSignalWireUser(client);
       await client.connect();
       const incomingSubscription = client.session.incomingCalls$.subscribe((calls) => {
-        const incoming = calls.find((item) => item.status === "ringing" || item.status === "new") ?? calls[0];
+        // incomingCalls$ is a replayed snapshot, so it can carry already-finished
+        // calls on (re)subscribe. Only a live invite is ever handed to receiveCall;
+        // when none is ringing there is nothing to do.
+        const incoming = calls.find((item) => item.status === "ringing" || item.status === "new");
         if (incoming) void receiveCall(incoming);
       });
       subscriptionCleanups.push(() => incomingSubscription.unsubscribe());
@@ -627,6 +670,30 @@ export function BrowserPhone({
       <p className="browser-phone-boundary" id="browser-phone-boundary">Headset audio only. Live calls are not recorded, transcribed, or joined by AI.</p>
     </div>
   );
+}
+
+function readBrowserSessionId(): string {
+  // Server render: the id is only ever sent from browser effects and handlers,
+  // so a throwaway value is fine and nothing is memoized in the worker module.
+  if (typeof window === "undefined") return crypto.randomUUID();
+  if (memoryBrowserSessionId) return memoryBrowserSessionId;
+  // sessionStorage can throw (storage blocked, private windows); every access
+  // is guarded so the fallback is an in-memory id that is stable for this page.
+  try {
+    if (window.sessionStorage) {
+      const stored = window.sessionStorage.getItem(BROWSER_SESSION_KEY);
+      if (stored && /^[0-9a-f-]{36}$/i.test(stored)) {
+        memoryBrowserSessionId = stored;
+        return stored;
+      }
+      const fresh = crypto.randomUUID();
+      window.sessionStorage.setItem(BROWSER_SESSION_KEY, fresh);
+      memoryBrowserSessionId = fresh;
+      return fresh;
+    }
+  } catch { /* fall through to the in-memory id */ }
+  memoryBrowserSessionId = crypto.randomUUID();
+  return memoryBrowserSessionId;
 }
 
 async function requestCredential(
