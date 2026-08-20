@@ -2,12 +2,13 @@ import { env } from "cloudflare:workers";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { auditEvents, dialerTransfers } from "../../../db/schema";
-import { requireCapability } from "../access";
+import { can, isFounder, requireCapability } from "../access";
 import { SIGNALWIRE_SOURCE_SYSTEM } from "../calls/transfer-id";
 import { EmptyState, PortalPageIntro, PortalShell } from "../components";
 import { readFaultCopy, readRows } from "../read-guard";
 import { TELEPHONY_CONFIG } from "../telephony-config";
 import { InboundAvailabilityControl } from "./availability-control";
+import { InboundGateLinks, InboundVision } from "./inbound-vision";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,8 @@ export default async function InboundPage() {
   // use reaches this page from the authenticated portal navigation.
   const session = await requireCapability("dashboard.view.self", "/portal");
   const email = session.email.toLowerCase();
+const canReviewCalls = can(session, "calls.review");
+const founder = isFounder(session);
 
   const { rows: availabilityRows, fault: availabilityFault } = await readRows("audit_events", () =>
     getDb()
@@ -318,6 +321,9 @@ export default async function InboundPage() {
             <strong>Routing boundary:</strong> your availability is written to CORE&rsquo;s audit log and read back by this page. Nothing else reads it &mdash; neither routing path asks CORE who is free. SignalWire picks the agent from its own console, and the Twilio-compatible webhook rings a fixed roster held in Worker configuration &mdash; so going available here does not put you in the rotation. Records flow the other way, from the carrier into CORE; sending availability back to it needs a ring-group write, each agent&rsquo;s number held as personal data, and an approved routing policy before it can be turned on.
           </p>
         </article>
+
+        <InboundGateLinks canReviewCalls={canReviewCalls} isFounder={founder} />
+        <InboundVision />
       </main>
     </PortalShell>
   );
