@@ -80,9 +80,6 @@ export const INTRODUCTION_SLOTS: readonly TrainingSlot[] = [
     body: DEATH_CLAIM_DISCOVERY_INTRO_BODY,
     source: "Owner-supplied document, transcribed from screenshots 2026-08-18",
   },
-  { id: "non-life-discovery-intro", label: "Non life Discovery Intro", purpose:
-      "The caller's product is not life insurance. Separates the call from the life-policy path early.",
-    state: "not_loaded" },
   {
     id: "cancelation-intro",
     label: "Cancelation intro",
@@ -173,9 +170,6 @@ export const CALL_ANGLE_SLOTS: readonly TrainingSlot[] = [
     state: "approved",
     body: QUOTE_SHOPPER_ANGLE_BODY,
     source: "Owner-supplied document my_script_3.docx, 2026-08-18" },
-  { id: "non-life-insurance-extension-angle", label: "Non Life Insurance Extension Angle", purpose:
-      "The caller's non-life policy is the entry point. Covers activating a death benefit alongside coverage they already hold.",
-    state: "not_loaded" },
   { id: "three-option-close", label: "Three Option Close", purpose:
       "Coverage selection mid-application, where three priced options are put in front of the caller.",
     state: "approved",

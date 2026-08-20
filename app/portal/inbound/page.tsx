@@ -208,20 +208,63 @@ export default async function InboundPage() {
               <div>
                 <h2>Where routing is decided</h2>
                 <p>
-                  CORE holds the record of a call; SignalWire decides who takes it. Which number answers, which agent rings, and in what order are all set in the SignalWire console, and nothing in this portal writes back to it.
+                  CORE holds the record of a call; the carrier decides who takes it. Which number answers, which agent rings, and in what order live in the carrier&rsquo;s configuration &mdash; the SignalWire console, or the dial roster set on the Worker &mdash; and nothing in this portal writes back to either.
                 </p>
               </div>
               <span className="inbound-bridge-badge">Records only</span>
             </div>
             <div className="inbound-flow" aria-label="Inbound routing path">
               <div className="inbound-flow-row"><b>1</b><strong>Campaign / central number</strong><small>caller dials</small></div>
-              <div className="inbound-flow-row"><b>2</b><strong>SignalWire</strong><small>chooses the agent</small></div>
+              <div className="inbound-flow-row"><b>2</b><strong>Carrier</strong><small>SignalWire console, or the Twilio-compatible roster</small></div>
               <div className="inbound-flow-row"><b>3</b><strong>Agent phone</strong><small>carrier rings</small></div>
               <div className="inbound-flow-row"><b>4</b><strong>CORE record</strong><small>{ingestStep}</small></div>
               <div className="inbound-flow-row"><b>—</b><strong>Your CORE availability</strong><small>not consulted</small></div>
             </div>
           </aside>
         </div>
+
+        {/* What it actually takes to make the carrier seam live. This card
+            used to promise the opposite of what shipped — that CORE would hold
+            SignalWire API credentials and check availability before routing a
+            call. D10 settled the direction the other way: the carrier routes,
+            CORE records. A page that told the founder to paste an API token
+            into a Command Center screen that does not exist would send him
+            looking for it, so the steps below are the real four, and the badge
+            reads deployment state rather than asserting a fixed one. */}
+        <article className="portal-card" style={{ marginBottom: 18 }}>
+          <div className="inbound-bridge-head">
+            <div>
+              <h2>SignalWire integration</h2>
+              <p>
+                One route, <code>/portal/calls/ingest</code>, accepts call records from the carrier and writes them to CORE.
+                The trust runs inward only: SignalWire POSTs here and CORE stores what happened.
+                CORE holds no SignalWire API credential and places no call, so nothing on this page can change routing.
+              </p>
+            </div>
+            <span className="inbound-bridge-badge">
+              {ingestFault
+                ? "State unknown"
+                : ingestRecords > 0
+                  ? "Receiving"
+                  : ingestCredentialed
+                    ? "Armed, no calls yet"
+                    : "Not configured"}
+            </span>
+          </div>
+
+          <div className="inbound-flow" aria-label="What makes the ingest route live">
+            <div className="inbound-flow-row"><b>1</b><strong>Worker secrets</strong><small>ingest secret &amp; signing key{ingestCredentialed ? " — set" : " — not set"}</small></div>
+            <div className="inbound-flow-row"><b>2</b><strong>Public origin</strong><small>the origin the signature is computed over</small></div>
+            <div className="inbound-flow-row"><b>3</b><strong>Access bypass</strong><small>path-scoped, so the carrier can reach the route</small></div>
+            <div className="inbound-flow-row"><b>4</b><strong>Carrier webhook</strong><small>SignalWire posts each call event</small></div>
+          </div>
+
+          <p className="inbound-source-note" style={{ marginTop: 14 }}>
+            <strong>Next step:</strong> these are console and Worker actions, not page actions &mdash; there is no screen here that accepts a credential, by design.
+            Until the secrets exist the route refuses every POST, so an unconfigured deployment is closed rather than open.
+            Step 3 is the one that needs a decision: it removes the edge&rsquo;s protection from this single path, which is why the route authenticates each request itself.
+          </p>
+        </article>
 
         <article className="portal-card inbound-feed">
           <div className="inbound-feed-head">
@@ -267,7 +310,7 @@ export default async function InboundPage() {
           )}
 
           <p className="inbound-source-note">
-            <strong>Routing boundary:</strong> your availability is written to CORE&rsquo;s audit log and read back by this page. Nothing else reads it — SignalWire picks the agent from its own console and never asks CORE — so going available here does not put you in the rotation. Records flow the other way, from the carrier into CORE; sending availability back to it needs a ring-group write, each agent&rsquo;s number held as personal data, and an approved routing policy before it can be turned on.
+            <strong>Routing boundary:</strong> your availability is written to CORE&rsquo;s audit log and read back by this page. Nothing else reads it &mdash; neither routing path asks CORE who is free. SignalWire picks the agent from its own console, and the Twilio-compatible webhook rings a fixed roster held in Worker configuration &mdash; so going available here does not put you in the rotation. Records flow the other way, from the carrier into CORE; sending availability back to it needs a ring-group write, each agent&rsquo;s number held as personal data, and an approved routing policy before it can be turned on.
           </p>
         </article>
       </main>

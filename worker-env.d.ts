@@ -100,7 +100,7 @@ declare namespace Cloudflare {
 
     /**
      * SignalWire — the carrier that POSTs call events to the ingest route
-     * (OWNER-DECISIONS D9). All five optional for the same reason as the
+     * (OWNER-DECISIONS D10). All five optional for the same reason as the
      * rest: a deployment where telephony is not configured genuinely lacks
      * them, and the route refuses the POST rather than crashing. Unconfigured
      * must mean closed here, not open — this is the one path the edge does
@@ -130,5 +130,29 @@ declare namespace Cloudflare {
     SIGNALWIRE_SIGNING_KEY?: string;
     SIGNALWIRE_PUBLIC_ORIGIN?: string;
     SIGNALWIRE_AGENT_MAP?: string;
+
+    /**
+     * Twilio inbound voice webhook (app/hooks/twilio/voice/route.ts) — the
+     * Switchboard transfer system, Phase 1. Both optional for the same reason
+     * as the rest: absent, the webhook fails closed (503) rather than
+     * answering an unverifiable request.
+     *
+     * `TWILIO_WEBHOOK_VOICE_URL` is the EXACT public URL Twilio is configured
+     * to call (e.g. `https://<host>/hooks/twilio/voice`). It is signed as-is
+     * to verify `X-Twilio-Signature`, and is a stored setting rather than a
+     * value rebuilt from request headers on purpose — the never-trust-headers
+     * rule. Not a secret (it is a public URL), but set the same way.
+     *
+     * `TWILIO_DIAL_TARGETS` is the dial roster: comma/space-separated E.164
+     * numbers (e.g. `+1XXXXXXXXXX,+1YYYYYYYYYY`). All ring at once; first to
+     * answer takes the call. Deliberately NOT committed to the repo — personal
+     * numbers are member-adjacent data (F2) — so it lives only in the Worker
+     * config. Empty/unset makes the line fail-safe to a courtesy greeting.
+     *
+     * `TWILIO_AUTH_TOKEN` above is reused to verify the signature; it is the
+     * one secret of the three. Never store its value in any file — only names.
+     */
+    TWILIO_WEBHOOK_VOICE_URL?: string;
+    TWILIO_DIAL_TARGETS?: string;
   }
 }

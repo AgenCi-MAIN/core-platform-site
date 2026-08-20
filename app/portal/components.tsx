@@ -32,13 +32,9 @@ type PortalIconName =
   | "training"
   | "book"
   | "calls"
-  | "leadtech"
-  | "retreaver"
-  | "twilio"
   | "leaderboard"
   | "stats"
   | "surelc"
-  | "underwriter"
   | "reagan"
   | "toolbox"
   | "scripts"
@@ -47,6 +43,7 @@ type PortalIconName =
   | "members"
   | "audit"
   | "gallery"
+  | "dialer"
   | "signout";
 
 type NavItem = {
@@ -146,34 +143,14 @@ const NAV: readonly NavItem[] = [
     stateLabel: "Beta ready",
   },
   {
-    href: "/portal/leadtech",
-    label: "LeadTech",
-    capability: "leadership.view.all",
-    icon: "leadtech",
-    group: "API",
-    description: "LeadTech contacts and pipeline, rendered natively inside CORE.",
+    href: "/portal/dialer",
+    label: "Collab Dialer",
+    capability: "calls.review",
+    icon: "dialer",
+    group: "Calls",
+    description: "SignalWire-powered softphone — dial, receive, and conference from the portal.",
     state: "live",
-    stateLabel: "Leadership",
-  },
-  {
-    href: "/portal/retreaver",
-    label: "Retreaver",
-    capability: "leadership.view.all",
-    icon: "retreaver",
-    group: "API",
-    description: "Ad campaign to central number to agent — inbound call routing, read-only.",
-    state: "live",
-    stateLabel: "Leadership",
-  },
-  {
-    href: "/portal/twilio",
-    label: "Twilio",
-    capability: "leadership.view.all",
-    icon: "twilio",
-    group: "API",
-    description: "Central numbers and the inbound call log, read-only.",
-    state: "live",
-    stateLabel: "Leadership",
+    stateLabel: "Beta",
   },
   {
     href: "/portal/scripts",
@@ -272,27 +249,14 @@ const NAV: readonly NavItem[] = [
     stateLabel: "Priced menu",
   },
   {
-    href: "https://app.insurancetoolkits.com/fex/quoter",
+    href: "/portal/quoter",
     label: "Quoter",
     capability: "book.view.self",
     icon: "quoter",
     group: "API",
-    description: "Final expense quoting via InsuranceToolkits. Opens in a new tab; sign in there separately.",
+    description: "Final expense quoting and underwriting — quote inline without leaving CORE.",
     state: "live",
-    stateLabel: "External tool",
-    external: true,
-  },
-  {
-    href: "https://app.insurancetoolkits.com",
-    label: "AI Underwriter",
-    capability: "book.view.self",
-    icon: "underwriter",
-    group: "API",
-    description:
-      "InsuranceToolkits' underwriting helper — advisory only, never a quote or a decision. Opens in a new tab; sign in there separately.",
-    state: "live",
-    stateLabel: "External tool",
-    external: true,
+    stateLabel: "Beta",
   },
   // Three SureLC upline instances, each the owner's exact link (2026-08-18).
   // One entry per upline per PLATFORM-MAP rule 2 — never a shared page.
@@ -412,6 +376,7 @@ const MISSION_GROUPS = [
     routes: [
       "/portal/training",
       "/portal/calls",
+      "/portal/dialer",
       "/portal/book",
       "/portal/scripts",
       "/portal/team",
@@ -428,9 +393,6 @@ const MISSION_GROUPS = [
       "/portal/library",
       "/portal/announcements",
       "/portal/leadership",
-      "/portal/leadtech",
-      "/portal/retreaver",
-      "/portal/twilio",
       "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
     ],
   },
@@ -443,8 +405,7 @@ const MISSION_GROUPS = [
       "/portal/shop",
       "/portal/pay-rates",
       "/portal/commission",
-      "https://app.insurancetoolkits.com/fex/quoter",
-      "https://app.insurancetoolkits.com",
+      "/portal/quoter",
       "/portal/tools",
     ],
   },
@@ -469,6 +430,7 @@ const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/command/cloud": "Cloud AI Command",
   "/portal/training": "Training",
   "/portal/calls": "Call Lab",
+  "/portal/dialer": "Collab Dialer",
   "/portal/book": "Book",
   "/portal/scripts": "Scripts",
   "/portal/team": "Team",
@@ -478,8 +440,7 @@ const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/shop": "Exchange",
   "/portal/pay-rates": "Pay Rates",
   "/portal/commission": "Commissions",
-  "https://app.insurancetoolkits.com/fex/quoter": "Quoter",
-  "https://app.insurancetoolkits.com": "Underwriter",
+  "/portal/quoter": "Quoter",
   "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D505&gaId=505&client_id=surecrmweb&response_type=code":
     "Contracting",
   "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount": "Reagan AI",
@@ -488,9 +449,6 @@ const MISSION_LABELS: Readonly<Record<string, string>> = {
   "/portal/audit": "Audit",
   "/portal/leaderboard": "Leaderboard",
   "/portal/stats": "My Stats",
-  "/portal/leadtech": "Pipeline",
-  "/portal/retreaver": "Call Routing",
-  "/portal/twilio": "Phone Logs",
 };
 
 export async function PortalShell({
@@ -814,13 +772,6 @@ function PortalSidebarContent({
       </div>
 
       <div className="portal-sidebar-account">
-        <span className="portal-account-avatar" aria-hidden="true">
-          {initials(session.displayName)}
-        </span>
-        <span className="portal-account-copy">
-          <strong>{session.displayName}</strong>
-          <small>{ROLE_LABELS[session.role]}</small>
-        </span>
         {/* Deliberately a plain <a>, never <Link>: Link may prefetch its
             target, and prefetching /auth/signout would sign the member out
             for merely rendering the sidebar. */}
@@ -1092,29 +1043,6 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
   calls: (
     <path d="M5.5 4h3l1.5 4-2 1.6a12.5 12.5 0 0 0 6.4 6.4L16 14l4 1.5v3A1.5 1.5 0 0 1 18.4 20C10.9 19.4 4.6 13.1 4 5.6A1.5 1.5 0 0 1 5.5 4z" />
   ),
-  // Funnel — the pipeline.
-  leadtech: (
-    <path d="M4 5h16l-6.2 7.2v6.3l-3.6 1.8v-8.1L4 5z" />
-  ),
-  // One inbound line splitting to two — the call router. Three nodes, not
-  // four: at the sidebar's 17px render size denser geometry smudges.
-  retreaver: (
-    <>
-      <circle cx="5" cy="12" r="2.6" />
-      <circle cx="19" cy="5" r="2.6" />
-      <circle cx="19" cy="19" r="2.6" />
-      <path d="M7.3 10.9 16.7 6.1M7.3 13.1l9.4 4.8" />
-    </>
-  ),
-  // Antenna mast with waves — the phone line. Arc radius kept tight so the
-  // wave bulge survives the 24→17px downscale instead of reading as bars.
-  twilio: (
-    <>
-      <path d="M12 10.5V20.5M9 20.5h6" />
-      <circle cx="12" cy="8.5" r="2" />
-      <path d="M8.5 5a4.6 4.6 0 0 0 0 7M15.5 5a4.6 4.6 0 0 1 0 7" />
-    </>
-  ),
   // Podium — the leaderboard.
   leaderboard: (
     <>
@@ -1137,13 +1065,6 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <path d="M13.5 3.5V7h4" />
       <path d="M4 19.5c1.6-2.6 3-2.6 3.6-.6.5 1.7 1.6 1.7 2.6-.6.8-1.8 1.8-1.8 2.6 0" />
       <path d="M15.5 19.5h5" />
-    </>
-  ),
-  // Umbrella — the underwriter.
-  underwriter: (
-    <>
-      <path d="M3.5 12a8.5 8.5 0 0 1 17 0z" />
-      <path d="M12 3.5V12M12 12v6a2 2 0 0 0 4 0" />
     </>
   ),
   // Target with an outbound arrow — the lead portal.
@@ -1237,6 +1158,18 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <rect x="3.5" y="3.5" width="17" height="17" rx="2" />
       <circle cx="12" cy="11" r="3.5" />
       <path d="M7.5 18.5c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
+    </>
+  ),
+  dialer: (
+    <>
+      <rect x="5" y="3" width="14" height="18" rx="2" />
+      <circle cx="9" cy="11" r="1" />
+      <circle cx="12" cy="11" r="1" />
+      <circle cx="15" cy="11" r="1" />
+      <circle cx="9" cy="14" r="1" />
+      <circle cx="12" cy="14" r="1" />
+      <circle cx="15" cy="14" r="1" />
+      <rect x="8" y="6" width="8" height="2.5" rx="0.5" />
     </>
   ),
   signout: (

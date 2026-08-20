@@ -189,26 +189,12 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
     <div className="ops-deck">
       <style>{`
         .ops-deck {
-          --ink: #16142b;
-          --paper: #fffaf2;
-          --violet: #6d42e5;
-          --surface: rgba(22, 20, 43, 0.04);
-          --border: rgba(22, 20, 43, 0.12);
+          --ink: var(--portal-text, #16142b);
+          --paper: var(--portal-panel, #fffaf2);
+          --violet: var(--portal-accent, #6d42e5);
+          --surface: var(--portal-soft, rgba(22, 20, 43, 0.04));
+          --border: var(--portal-line, rgba(22, 20, 43, 0.12));
           --radius: 12px;
-        }
-        @media (prefers-color-scheme: dark) {
-          :root:not([data-theme="light"]) .ops-deck {
-            --ink: #eee9ff;
-            --paper: #0f0d1a;
-            --surface: rgba(238, 233, 255, 0.06);
-            --border: rgba(238, 233, 255, 0.12);
-          }
-        }
-        :root[data-theme="dark"] .ops-deck {
-          --ink: #eee9ff;
-          --paper: #0f0d1a;
-          --surface: rgba(238, 233, 255, 0.06);
-          --border: rgba(238, 233, 255, 0.12);
         }
 
         .ops-toolbar {
@@ -301,8 +287,6 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
         }
         .agent-card-title {
           font: italic 13px/1.4 Georgia, serif;
-          color: var(--ink);
-          opacity: 0.7;
           margin: 0;
         }
         .agent-card-actions {
@@ -569,7 +553,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
               </div>
               <p className="agent-card-name">{agent.name}</p>
               <p className="agent-card-role">{agent.id} · {agent.role}</p>
-              <p className="agent-card-title">{agent.title}</p>
+              <p className="agent-card-title" style={{ color: agent.accent === "#1E1B4B" ? "#8B85C1" : agent.accent }}>{agent.title}</p>
               <div className="agent-card-actions">
                 <button
                   className="agent-card-action"
@@ -737,7 +721,7 @@ export function OperationsDeck({ session }: { session: { name: string; email: st
                     <p className="agent-card-name">{builder.name}</p>
                     <p className="agent-card-role">{builder.role || "Custom agent"}</p>
                     {builder.title && (
-                      <p className="agent-card-title">{builder.title}</p>
+                      <p className="agent-card-title" style={{ color: builder.accent }}>{builder.title}</p>
                     )}
                   </div>
                 </div>

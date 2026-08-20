@@ -33,6 +33,30 @@ export const ANNOUNCEMENT_CATEGORY_LABELS: Record<Announcement["category"], stri
 };
 
 export const ANNOUNCEMENTS: readonly Announcement[] = [
+  /**
+   * System-authored at the founder's order, 2026-08-19 ("Record the artifact
+   * switchboard where we stand into the little short leadership announcement
+   * on the portal"). Authored as J.A.R.V.I.S. per the jarvis-introduction
+   * precedent — the content rule above forbids putting words in the owner's
+   * mouth, so the system speaks in its own name and says only what is true.
+   */
+  {
+    id: "switchboard-where-we-stand",
+    title: "Switchboard — where we stand",
+    date: "2026-08-19",
+    author: "J.A.R.V.I.S.",
+    category: "operations",
+    pinned: false,
+    body: [
+      "A plan of record now exists for taking live inbound life-insurance calls: a dedicated line, every call answered by a licensed agent, a recorded-line announcement before anyone joins, and each call landing in the Call Lab this portal already runs. The plan is named Switchboard.",
+      "Nothing in it is built or spent yet, and that is deliberate. The recording-consent wording, the vendor choice, and the budget are the founder's decisions; the build starts when he makes them. What runs today is exactly what this portal already shows — nothing more is claimed.",
+    ],
+    roadmap: [
+      "Phase 1 — a call reaches a human: line live, calls answered and logged. No recording.",
+      "Phase 2 — recording on, behind the consent announcement, with the retention machinery built first.",
+      "Phase 3 — state-aware routing, in-account transcription, call metrics on the dashboard.",
+    ],
+  },
   {
     id: "what-2-0-0-is",
     title: "What 2.0.0 is",
