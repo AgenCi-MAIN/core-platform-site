@@ -1804,3 +1804,50 @@ site version, deployment, migration, call, message, credential change,
 membership change, or access-policy change was performed for Personal
 Command. The current public production URL must not be described as containing
 this page until an authorized deployment is completed and verified.
+
+### 19o. Outbound dialer SWML warning repaired locally — 2026-08-20
+
+The founder reported that the Collab Dialer still did not complete its private
+mobile test. SignalWire's live call record showed that the outbound PSTN leg
+was created, rang, and answered, but then generated a script warning and ended
+after five seconds. This isolates the failure to post-answer call control: the
+provider credential, caller ID, destination, and PSTN origination had already
+succeeded.
+
+**Root cause.** `buildAgentTestPlan()` and `buildCustomerPlan()` supplied
+`prompt.play` as an array of `{ say: ... }` and `{ silence: ... }` objects.
+SignalWire's current SWML `prompt` contract accepts a playable string or array
+of playable strings, such as `say:...` and `silence:2`. The provider accepted
+the outer Calling API request but rejected the invalid inline SWML when the
+answered leg tried to execute it. The old unit tests asserted only that the
+request contained the intended words and omitted recording; they did not pin
+the provider's required prompt shape.
+
+**Local repair.** A dialer-only branch from current `main` now:
+
+- emits documented `prompt.play` string arrays;
+- evaluates DTMF with a documented `switch` on `prompt_value`;
+- fails closed when no `1` is received and states that the customer was not
+  called;
+- uses a direct `connect.to` for the single customer leg; and
+- removes the unverified voice override so the provider's supported default
+  voice is used.
+
+No recording, transcription, AI participation, credential handling, caller-ID
+selection, private-number storage, authorization, audit, or rate-limit rule was
+changed.
+
+**Verification.** The focused outbound suite passed 7/7, including exact
+assertions that every prompt entry is a string and that only the `1` branch can
+reach `connect`. Focused lint and whitespace checks passed. The production
+build and the complete repository suite passed 120/120. The root TypeScript
+command remains blocked only by the separately recorded
+`services/core-agent-fleet` alias/dependency baseline; the changed dialer file
+passes focused lint and is exercised by the production build.
+
+**Delivery boundary.** This is a verified local fix on
+`codex/dialer-swml-fix-20260820`, not a live repair. No merge, deployment,
+migration, secret change, provider configuration change, or new call was
+performed. The exact founder `mi` merge authorization remains required before
+the branch can be merged; deployment and a controlled private-mobile test are
+separate subsequent actions.

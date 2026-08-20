@@ -94,28 +94,34 @@ function buildAgentTestPlan(): Array<Record<string, unknown>> {
     {
       prompt: {
         play: [
-          { say: "CORE platform line test. Press 1 to confirm you received this call." },
-          { silence: 2 },
-          { say: "Press 1 to confirm." },
+          "say:CORE platform line test. Press 1 to confirm you received this call.",
+          "silence:2",
+          "say:Press 1 to confirm.",
         ],
-        say_voice: "amazon.Joanna:neural:en-US",
         max_digits: 1,
+        initial_timeout: 7,
       },
     },
     {
-      cond: [
-        {
-          when: "vars.prompt_value == '1'",
-          then: [
+      switch: {
+        variable: "prompt_value",
+        case: {
+          "1": [
             {
               play: {
                 url: "say:The CORE platform line is connected correctly.",
-                say_voice: "amazon.Joanna:neural:en-US",
               },
             },
           ],
         },
-      ],
+        default: [
+          {
+            play: {
+              url: "say:I did not receive one. This test will now end.",
+            },
+          },
+        ],
+      },
     },
     { hangup: {} },
   ];
@@ -126,33 +132,40 @@ function buildCustomerPlan(destination: string, callerId: string): Array<Record<
     {
       prompt: {
         play: [
-          { say: "CORE dialer. Press 1 to connect the customer call." },
-          { silence: 2 },
-          { say: "Press 1 to continue." },
+          "say:CORE dialer. Press 1 to connect the customer call.",
+          "silence:2",
+          "say:Press 1 to continue.",
         ],
-        say_voice: "amazon.Joanna:neural:en-US",
         max_digits: 1,
+        initial_timeout: 7,
       },
     },
     {
-      cond: [
-        {
-          when: "vars.prompt_value != '1'",
-          then: [{ hangup: {} }],
+      switch: {
+        variable: "prompt_value",
+        case: {
+          "1": [
+            {
+              play: {
+                url: "say:Connecting the customer now.",
+              },
+            },
+            {
+              connect: {
+                from: callerId,
+                to: destination,
+                timeout: 30,
+              },
+            },
+          ],
         },
-      ],
-    },
-    {
-      play: {
-        url: "say:Connecting the customer now.",
-        say_voice: "amazon.Joanna:neural:en-US",
-      },
-    },
-    {
-      connect: {
-        from: callerId,
-        timeout: 30,
-        serial: [{ to: destination }],
+        default: [
+          {
+            play: {
+              url: "say:I did not receive one. The customer was not called.",
+            },
+          },
+        ],
       },
     },
     { hangup: {} },

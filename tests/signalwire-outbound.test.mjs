@@ -61,6 +61,20 @@ test("agent test rings only the private destination from the CORE platform line"
   assert.equal(request.params.from, "+12053515158");
   assert.equal(request.params.caller_id, "+12053515158");
   assert.equal(request.params.to, "+14095550123");
+  const [prompt, confirmation] = request.params.swml.sections.main;
+  assert.deepEqual(prompt.prompt.play, [
+    "say:CORE platform line test. Press 1 to confirm you received this call.",
+    "silence:2",
+    "say:Press 1 to confirm.",
+  ]);
+  assert.equal(confirmation.switch.variable, "prompt_value");
+  assert.ok(confirmation.switch.case["1"]);
+  assert.ok(confirmation.switch.default);
+  assert.equal(
+    prompt.prompt.play.every((entry) => typeof entry === "string"),
+    true,
+    "SignalWire prompt.play accepts strings, not {say}/{silence} objects",
+  );
   assert.doesNotMatch(JSON.stringify(request), /"connect":/);
   assert.doesNotMatch(JSON.stringify(request), /record|transcrib|ai_agent/i);
 });
@@ -73,11 +87,21 @@ test("customer mode rings the owner first and connects only after press 1", () =
     mode: "customer",
   });
   const document = JSON.stringify(request);
+  const [prompt, confirmation] = request.params.swml.sections.main;
+  const accepted = confirmation.switch.case["1"];
+  const connect = accepted.find((step) => step.connect)?.connect;
 
   assert.equal(request.params.to, "+14095550123");
-  assert.match(document, /vars\.prompt_value != '1'/);
-  assert.match(document, /"from":"\+12053515158"/);
-  assert.match(document, /"to":"\+12055550123"/);
+  assert.equal(confirmation.switch.variable, "prompt_value");
+  assert.deepEqual(prompt.prompt.play, [
+    "say:CORE dialer. Press 1 to connect the customer call.",
+    "silence:2",
+    "say:Press 1 to continue.",
+  ]);
+  assert.equal(connect.from, "+12053515158");
+  assert.equal(connect.to, "+12055550123");
+  assert.equal(connect.timeout, 30);
+  assert.ok(confirmation.switch.default, "no-input and non-1 input must fail closed");
   assert.doesNotMatch(document, /record|transcrib|ai_agent/i);
 });
 
