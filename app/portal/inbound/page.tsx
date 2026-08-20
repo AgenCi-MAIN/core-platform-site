@@ -155,12 +155,39 @@ export default async function InboundPage() {
             </div>
             <div className="inbound-flow" aria-label="Inbound routing path">
               <div className="inbound-flow-row"><b>1</b><strong>Campaign / central number</strong><small>source</small></div>
-              <div className="inbound-flow-row"><b>2</b><strong>Retreaver / Twilio</strong><small>router</small></div>
+              <div className="inbound-flow-row"><b>2</b><strong>Retreaver / Twilio / SignalWire</strong><small>router</small></div>
               <div className="inbound-flow-row"><b>3</b><strong>CORE availability</strong><small>saved</small></div>
               <div className="inbound-flow-row"><b>4</b><strong>Agent delivery</strong><small>bridge pending</small></div>
             </div>
           </aside>
         </div>
+
+        <article className="portal-card" style={{ marginBottom: 18 }}>
+          <div className="inbound-bridge-head">
+            <div>
+              <h2>SignalWire integration</h2>
+              <p>
+                Connect a SignalWire space to route inbound calls through CORE.
+                Once configured, SignalWire replaces or supplements the Retreaver/Twilio path
+                with direct SIP and programmable voice routing.
+              </p>
+            </div>
+            <span className="inbound-bridge-badge">Not connected</span>
+          </div>
+
+          <div className="inbound-flow" aria-label="SignalWire integration steps">
+            <div className="inbound-flow-row"><b>1</b><strong>SignalWire space ID</strong><small>your-space.signalwire.com</small></div>
+            <div className="inbound-flow-row"><b>2</b><strong>Project &amp; API token</strong><small>credential pair</small></div>
+            <div className="inbound-flow-row"><b>3</b><strong>Phone number / SIP endpoint</strong><small>inbound DID</small></div>
+            <div className="inbound-flow-row"><b>4</b><strong>LaML webhook → CORE</strong><small>route to availability</small></div>
+          </div>
+
+          <p className="inbound-source-note" style={{ marginTop: 14 }}>
+            <strong>Next step:</strong> add your SignalWire space credentials in the Command Center.
+            CORE will register a LaML webhook that checks agent availability before routing the call.
+            No calls will be routed until the webhook is verified and a routing policy is approved.
+          </p>
+        </article>
 
         <article className="portal-card inbound-feed">
           <div className="inbound-feed-head">
@@ -203,7 +230,7 @@ export default async function InboundPage() {
           )}
 
           <p className="inbound-source-note">
-            <strong>Routing boundary:</strong> marking yourself available is persisted in CORE, but it does not yet change carrier, Retreaver, or Twilio routing. That write-side integration needs credentials and an approved routing policy before it can be turned on.
+            <strong>Routing boundary:</strong> marking yourself available is persisted in CORE, but it does not yet change carrier, Retreaver, Twilio, or SignalWire routing. That write-side integration needs credentials and an approved routing policy before it can be turned on.
           </p>
         </article>
       </main>
