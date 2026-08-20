@@ -46,6 +46,7 @@ type PortalIconName =
   | "leadership"
   | "members"
   | "audit"
+  | "gallery"
   | "signout";
 
 type NavItem = {
@@ -251,6 +252,16 @@ const NAV: readonly NavItem[] = [
    * dangerous only if it were ever mistaken for the lock itself.
    */
   {
+    href: "/portal/gallery",
+    label: "Operations Deck",
+    capability: "dashboard.view.self",
+    icon: "gallery",
+    group: "Workspace",
+    description: "Ten AI-made agent portraits. Select, build, and publish to Inkbox.",
+    state: "live",
+    stateLabel: "Available",
+  },
+  {
     href: "/portal/shop",
     label: "Exchange",
     capability: "dashboard.view.self",
@@ -453,7 +464,9 @@ const MISSION_GROUPS = [
 ] as const;
 
 const MISSION_LABELS: Readonly<Record<string, string>> = {
+  "/portal/gallery": "Operations Deck",
   "/portal/command": "Command Center",
+  "/portal/command/cloud": "Cloud AI Command",
   "/portal/training": "Training",
   "/portal/calls": "Call Lab",
   "/portal/book": "Book",
@@ -1218,6 +1231,14 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
     </>
   ),
   // Door with an outbound arrow.
+  // Portrait frame — gallery / operations deck.
+  gallery: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="2" />
+      <circle cx="12" cy="11" r="3.5" />
+      <path d="M7.5 18.5c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
+    </>
+  ),
   signout: (
     <>
       <path d="M13.5 4.5H7A1.5 1.5 0 0 0 5.5 6v12A1.5 1.5 0 0 0 7 19.5h6.5" />

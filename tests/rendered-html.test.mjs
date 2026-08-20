@@ -102,10 +102,12 @@ const PROTECTED_ROUTES = [
   "/portal/book",
   "/portal/calls",
   "/portal/command",
+  "/portal/command/cloud",
   "/portal/command/lodge",
   "/portal/calls/review",
   "/portal/calls/review/1",
   "/portal/commission",
+  "/portal/gallery",
   "/portal/commission/document",
   "/portal/investigator",
   "/portal/leadership",
@@ -1689,4 +1691,61 @@ test("no client module reaches the server-only training library", async () => {
       `a \`"use client"\` module reaches ${show(target)}, so ${consequence}:\n    ${chainTo(target)}`,
     );
   }
+});
+
+test("no surface can be swiped sideways off the screen", async () => {
+  // Founder, 2026-08-19, with a screenshot of the training page dragged half
+  // off a phone: "I can swipe right forever on scripts".
+  //
+  // Measured in Chromium against the built bundle before this test was
+  // written: /portal/training laid out 2076px wide inside a 390px viewport —
+  // 1686px of page you could swipe into, taking the whole layout with it.
+  //
+  // THE CAUSE WAS NOT A MISSING `overflow-x`. The tab strip already had
+  // `overflow-x: auto` and already scrolled correctly; its own box measured
+  // 366px. What `overflow-x: auto` does not do on its own is stop the
+  // strip's 1561px of content from counting toward the DOCUMENT's scrollable
+  // width. Paint containment is what ends that propagation, which is why the
+  // rule being pinned here is `contain`, not an overflow declaration —
+  // someone reading the file and seeing `overflow-x: auto` would reasonably
+  // conclude the strip was already handled, and delete this.
+  //
+  // The second half is the account chip. An implicit `auto` grid column
+  // refuses to shrink below its content's min-content width, so when the top
+  // bar ran out of room the chip collapsed to 4px and its name and rank spilled
+  // out of the bar rather than ellipsising — 23px to 134px of overflow across
+  // 700-1024px, where the rail is on screen and the bar is still full width.
+  //
+  // Verified 0px page overflow at 320, 360, 390, 430, 600, 700, 768, 820,
+  // 900, 1024, 1100, 1280 and 1440 after the fix, with the tab strip still
+  // scrolling horizontally at every one of them.
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  const tabStrip = css.match(/\.training-tabs \{[^}]*\}/s)?.[0] ?? "";
+  assert.match(
+    tabStrip,
+    /contain:\s*paint/,
+    ".training-tabs must keep paint containment, or its scrolled tabs grow the page again",
+  );
+
+  const sectionTabs = css.match(/\.training-section-tabs \{[^}]*\}/s)?.[0] ?? "";
+  assert.match(
+    sectionTabs,
+    /contain:\s*paint/,
+    ".training-section-tabs scrolls the same way and needs the same containment",
+  );
+
+  const chip = css.match(/\.portal-member-name \{[^}]*\}/s)?.[0] ?? "";
+  assert.match(
+    chip,
+    /grid-template-columns:\s*minmax\(0,\s*1fr\)/,
+    "the account chip's column must be minmax(0, 1fr) so it can shrink instead of spilling",
+  );
+
+  const topbar = css.match(/\.portal-topbar \{[^}]*\}/s)?.[0] ?? "";
+  assert.match(
+    topbar,
+    /flex-wrap:\s*wrap/,
+    "the top bar must wrap rather than push its account cluster past the viewport",
+  );
 });

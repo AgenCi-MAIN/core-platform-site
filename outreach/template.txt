@@ -1,0 +1,26 @@
+THRIVE - the carrier line-up
+
+Hi {{GREETING_NAME}},
+
+{{INTRO_PARAGRAPH_TEXT}}
+
+
+WHO IS ON THE BENCH
+-------------------
+
+{{CARRIER_ROWS}}
+
+
+Every link goes straight to the agent portal, not the public site.
+If a carrier is missing or an appointment has changed, reply and
+we will fix it the same day.
+
+{{CTA_LABEL}}:
+{{CTA_URL}}
+
+Talk soon,
+{{SENDER_NAME}}
+{{SENDER_TITLE}}, THRIVE
+
+--
+{{FOOTER_TEXT}}

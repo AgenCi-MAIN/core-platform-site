@@ -1,0 +1,21 @@
+{
+  "_note": "Subject and preheader do different jobs: the subject sells the reason to open, the preheader spends its space on what you actually get. Repeating one in the other wastes the only two lines the inbox gives you. Both are held under the mobile truncation points (subject <=45, preheader <=90).",
+  "subject": "A quick tour of our carrier bench",
+  "preheader": "Two minutes, four carriers, and one link that keeps them handy.",
+  "subjectAlternates": [
+    { "text": "The carriers behind your next call", "chars": 34, "suits": "producers actively on the phones — frames the line-up as useful in the next hour, not a reference document" },
+    { "text": "Meet the line-up: four carriers", "chars": 31, "suits": "newly contracted agents still building the map of who we are appointed with; the number promises a finite list" }
+  ],
+  "tokens": {
+    "GREETING_NAME": "{{FIRST_NAME}}",
+    "CARRIER_HEADING": "Who is on the bench",
+    "INTRO_PARAGRAPH": "Quick one. We keep the carrier line-up in a single place inside CORE, so nobody has to dig through bookmarks or ask in chat which portal handles what. It is the same names you already quote every week &mdash; just gathered, labeled, and pointed at the agent login instead of the consumer homepage.",
+    "INTRO_PARAGRAPH_TEXT": "Quick one. We keep the carrier line-up in a single place inside\nCORE, so nobody has to dig through bookmarks or ask in chat which\nportal handles what. It is the same names you already quote every\nweek - just gathered, labeled, and pointed at the agent login\ninstead of the consumer homepage.",
+    "CTA_LABEL": "Open the carrier line-up",
+    "CTA_URL": "{{CTA_URL}}",
+    "SENDER_NAME": "{{SENDER_NAME}}",
+    "SENDER_TITLE": "{{SENDER_TITLE}}",
+    "FOOTER": "{{FOOTER}}",
+    "FOOTER_TEXT": "{{FOOTER_TEXT}}"
+  }
+}

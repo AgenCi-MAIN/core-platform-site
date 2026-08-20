@@ -58,3 +58,7 @@ next-env.d.ts
 /.design-sync/.cache/
 /.design-sync/learnings/
 /.design-sync/node_modules
+
+# Built email output — regenerate with `node outreach/build.mjs`
+outreach/dist/
+
