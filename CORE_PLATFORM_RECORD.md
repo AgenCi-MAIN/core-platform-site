@@ -2242,3 +2242,32 @@ above is the only call action in this repair. A fresh one-use founder `mi` is
 required to merge the branch. Deployment is a separate explicit action after
 merged-main verification, and a real 3647 PSTN browser-answer test requires a
 new action-time confirmation after deployment.
+
+### 19x. Call-context parser fix deployed to production — 2026-08-21
+
+The 19w repair reached production. The branch merged to main as `1724c9c`
+(PR #118, "fix(calls): accept SignalWire call context") and the owner's
+work order reports the Worker deployed tonight: version
+`f25e66aa-95ea-4d6a-…` created 2026-08-21T01:21:23Z.
+
+**Version id status — pending, deliberately.** The work order carried only
+the id prefix. The recording session has no Cloudflare credentials, so
+`npx wrangler deployments list` could not recover the full id, and the
+standing rule (§18, and the two ids already lost to scrollback in the
+2026-08-17 deploy log) forbids recording a partial or scrollback-sourced id
+as complete. The full id must be recovered from wrangler or the Cloudflare
+dashboard and substituted into this section and the DEPLOYMENT.md deploy
+log before this entry merges.
+
+**What is and is not established.** Established from the repository: main
+is at `1724c9c`, whose message names PR #118 and matches the 19w repair
+scope. Reported by the work order but not independently verified by the
+recorder: the deploy itself, its timestamp, and the version prefix. Not
+performed in this recording task: any deploy, probe, migration, secret
+change, SignalWire change, D1 mutation, purchase, or call. Previous
+rollback version remains `9147c300-97dc-44dc-a3cf-154636207ae4` as
+recorded in the deploy log.
+
+**Delivery boundary.** This section records a deploy; it does not perform
+or re-verify one. The real 3647 PSTN browser-answer test contemplated at
+the end of 19w still requires its own action-time confirmation.

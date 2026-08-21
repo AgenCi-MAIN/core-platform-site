@@ -469,3 +469,22 @@ optional one.
   `codex/deploy-log-browser-phone-20260820`; not yet merged and requiring a new
   one-use founder `mi`.
 
+- 2026-08-21: **version `f25e66aa-95ea-4d6a-????-????????????`** — **FULL ID
+  PENDING RECOVERY**: the work order carried only the prefix
+  `f25e66aa-95ea-4d6a-`, and this recording session has no Cloudflare
+  credentials, so `npx wrangler deployments list` could not be run. Per the
+  standing rule, the full id must be recovered from wrangler (or the
+  Cloudflare dashboard) and substituted here before this entry merges; the
+  prefix is not to be trusted as a complete identifier. Created
+  2026-08-21T01:21:23Z per the owner's work order, from
+  `main@1724c9c` — PR #118, "fix(calls): accept SignalWire call context",
+  the External SWML call-context parser repair recorded in
+  CORE_PLATFORM_RECORD.md §19w (nested `call.call_id` accepted;
+  `call.from_number` / `call.to_number` / `call.parent.call_id` honored;
+  legacy shapes kept as fallbacks; missing provider id fails closed).
+  Recorded by Agent 1 from the owner's work order — Agent 1 did not perform
+  this deploy and has not independently probed the serving version. No
+  migration, secret change, provider-routing change, purchase, or call was
+  part of this recording task. Previous rollback version:
+  `9147c300-97dc-44dc-a3cf-154636207ae4`.
+
