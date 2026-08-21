@@ -69,11 +69,15 @@ export function buildInboundRoutePlan(input: InboundRoutePlan): SwmlDocument {
               digit_timeout: 2,
             },
           },
+          // `return` is only legal in sections invoked via `execute`; inside
+          // connect.confirm it invalidates the whole document (SignalWire logs
+          // relay_script_method_undefined 'Unknown method "confirm.return"'
+          // and drops the call). Accepting is falling through the confirm
+          // section; rejecting is hanging up the confirm leg.
+          // Mirrors the live-verified 5158 relay-bin pattern, including the
+          // `vars.` prefix.
           {
-            cond: [
-              { when: "prompt_value == '1'", then: [{ return: 1 }] },
-              { else: [{ return: 0 }] },
-            ],
+            cond: [{ when: "vars.prompt_value != '1'", then: [{ hangup: {} }] }],
           },
         ],
         status_url: input.lifecycleUrl,

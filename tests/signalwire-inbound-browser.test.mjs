@@ -270,6 +270,19 @@ test("the route plan is an 8s/8s/20s hunt and records only announced voicemail",
   assert.equal(connects[2].timeout, 20);
   assert.equal(connects[2].to, MOBILE_FALLBACK);
   assert.match(JSON.stringify(connects[2].confirm), /Press 1 to accept/);
+  // `return` is only legal in sections invoked via `execute`; inside
+  // connect.confirm SignalWire rejects the whole document with
+  // relay_script_method_undefined ('Unknown method "confirm.return"') and
+  // ends the call. Reject = hangup; accept = fall through the section.
+  assert.doesNotMatch(
+    JSON.stringify(plan),
+    /"return"/,
+    "no step in the route plan may use the return method",
+  );
+  const confirmCond = connects[2].confirm.find((step) => step.cond)?.cond;
+  assert.deepEqual(confirmCond, [
+    { when: "vars.prompt_value != '1'", then: [{ hangup: {} }] },
+  ]);
 
   const main = plan.sections.main;
   const recordIndex = main.findIndex((step) => step.record);
