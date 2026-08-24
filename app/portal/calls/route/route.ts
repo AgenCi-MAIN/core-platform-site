@@ -10,7 +10,10 @@ import {
   voicePresence,
 } from "../../../../db/schema";
 import { normalizeE164 } from "../../dialer/outbound";
-import { authenticateSignalwireRequest } from "../../signalwire/ingest-auth";
+import {
+  authenticateSignalwireRequest,
+  credentialedMachineUrl as sharedCredentialedMachineUrl,
+} from "../../signalwire/ingest-auth";
 import { maskPhone, voiceRuntimeConfig } from "../voice-server";
 import { buildInboundRoutePlan, type HuntTarget } from "./route-plan";
 
@@ -355,19 +358,13 @@ async function readPayload(request: Request): Promise<unknown> {
   throw new Error("Unsupported content type");
 }
 
+// Delegates to the guard's builder rather than repeating the construction.
+// Building it twice is what caused §19z: this file embedded a credentialed
+// callback URL while the guard verified signatures against the bare one.
 function credentialedMachineUrl(path: string): string | null {
-  const origin = env.SIGNALWIRE_PUBLIC_ORIGIN?.trim();
   const secret = env.SIGNALWIRE_INGEST_SECRET;
-  if (!origin || !secret) return null;
-  try {
-    const url = new URL(path, new URL(origin).origin);
-    if (url.protocol !== "https:") return null;
-    url.username = "signalwire";
-    url.password = secret;
-    return url.toString();
-  } catch {
-    return null;
-  }
+  if (!secret) return null;
+  return sharedCredentialedMachineUrl(path, secret);
 }
 
 async function encryptCaller(value: string): Promise<{ ciphertext: string; iv: string } | null> {

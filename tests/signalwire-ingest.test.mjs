@@ -388,3 +388,63 @@ test("GET is refused 405 and never renders", async (t) => {
   assert.equal(res.status, 405, "this path exists for one POST");
   assert.equal(await res.text(), "", "and answers a browser with nothing");
 });
+
+/**
+ * A callback URL this Worker embeds in an SWML document carries HTTP user-info,
+ * so SignalWire signs that string rather than the bare one. Verifying only the
+ * bare form refused every call-state event while calls themselves connected —
+ * the call history stopped recording in silence (CORE_PLATFORM_RECORD.md §19z).
+ */
+const credentialedUrlFor = (secret) => `https://signalwire:${secret}@localhost${PATH}`;
+
+test("a signature computed over the credentialed callback URL is accepted", async (t) => {
+  const w = await startIngest();
+  t.after(w.dispose);
+
+  assertAccepted(
+    await w.post(event(), {
+      signature: signatureFor(SIGNING_KEY, baseFor(event(), credentialedUrlFor(SECRET))),
+    }),
+    "a lifecycle callback signed over the URL CORE handed out",
+  );
+
+  assert.equal((await w.transfers()).length, 1, "the event is recorded");
+});
+
+test("the credentialed form widens which string may be signed, not which secret is accepted", async (t) => {
+  const w = await startIngest({ previous: "test-previous-secret-value" });
+  t.after(w.dispose);
+
+  // Presenting the current secret must not let a signature built from any
+  // other generation through: the URL is rebuilt only from the generation the
+  // caller proved it holds.
+  await assertOpaqueRefusal(
+    await w.post(event(), {
+      secret: SECRET,
+      signature: signatureFor(SIGNING_KEY, baseFor(event(), credentialedUrlFor("test-previous-secret-value"))),
+    }),
+    "a signature over a different generation's URL",
+  );
+
+  // A retired secret still authenticates during a rotation, and its own
+  // credentialed URL verifies with it.
+  assertAccepted(
+    await w.post(event(), {
+      secret: "test-previous-secret-value",
+      signature: signatureFor(SIGNING_KEY, baseFor(event(), credentialedUrlFor("test-previous-secret-value"))),
+    }),
+    "the retired generation's credentialed URL during a rotation",
+  );
+});
+
+test("a signature computed over a URL carrying an unrelated password is refused", async (t) => {
+  const w = await startIngest();
+  t.after(w.dispose);
+
+  await assertOpaqueRefusal(
+    await w.post(event(), {
+      signature: signatureFor(SIGNING_KEY, baseFor(event(), credentialedUrlFor("not-the-shared-secret"))),
+    }),
+    "user-info is not a free-text field the caller may choose",
+  );
+});
