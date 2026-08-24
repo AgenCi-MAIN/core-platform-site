@@ -524,3 +524,30 @@ optional one.
   2026-08-23) which has **not** been deployed — the serving Worker predates
   it. A security patch merged but not shipped is exactly the gap this log
   exists to make visible.
+
+- 2026-08-24: **version `9c09e919-1019-469f-9b2b-4b2843d8723f`** — deployed by
+  the owner from `C:\dev\core-platform-site` after PRs #121 and #122 merged.
+  The `npm run deploy` chain rebuilt, passed the suite and the preflight, and
+  uploaded 25 changed files; startup time was 25 ms and bindings remained
+  `env.DB` to `site-creator-d1` and `env.CALL_RECORDINGS` to `site-creator-r2`.
+
+  **What this version carries that no previous one did:**
+  1. The lifecycle-signature repair (PR #122). Callbacks to
+     `/portal/calls/ingest` were denied `bad_signature` because the SWML handed
+     SignalWire a credentialed callback URL while the guard verified against the
+     bare origin. The guard now accepts either form, rebuilding the credentialed
+     candidate only from the generation the caller proved it holds, and both
+     sides call one exported builder so they cannot drift apart again.
+  2. `b6e1e4e` — Next 16.3.2 and the React Server DOM advisory patches, merged
+     2026-08-23 and undeployed until now.
+  3. The §19y/§19z record entries (documentation; no runtime effect).
+
+  **Verification status at the time of writing: deploy confirmed, behaviour not
+  yet.** The version id above was read from the owner's deploy output. Whether
+  call state is now recorded requires one inbound call to 3647 followed by an
+  `allow` / `secret_and_signature_verified` row on `signalwire.ingest.auth` and
+  a new `inbound_voice_calls` row. Until those are seen, the call history must
+  be treated as incomplete.
+
+  Previous rollback version: the 2026-08-24 secret-change version, whose id is
+  still pending recovery (see the entry above).

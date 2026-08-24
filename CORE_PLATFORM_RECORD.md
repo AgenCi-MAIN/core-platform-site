@@ -2371,3 +2371,33 @@ URL. `SIGNALWIRE_INGEST_SECRET_PREVIOUS` still holds the 06:28 value of
 unknown correctness and should be deleted now that the current generation
 is proven. Agent 1 holds no Cloudflare or SignalWire credentials; every
 production action in this section was executed by the owner.
+
+### 19aa. Lifecycle-signature repair deployed — 2026-08-24
+
+PRs #121 and #122 merged and the owner deployed Worker version
+`9c09e919-1019-469f-9b2b-4b2843d8723f` from `C:\dev\core-platform-site`. The
+deploy chain rebuilt, passed the suite and the preflight, uploaded 25 changed
+files, and reported a 25 ms startup with the expected D1 and R2 bindings.
+
+**What went live.** The §19z signature defect is repaired: the guard now
+verifies a callback signature against either the bare origin or the
+credentialed URL the SWML actually handed out, rebuilding the credentialed
+candidate only from the secret generation the caller has already proved it
+holds. Both sides now call one exported builder, so the construction cannot
+drift apart again — drifting apart is what caused the defect. This version
+also ships `b6e1e4e`, the Next 16.3.2 and React Server DOM advisory patches
+that had been merged since 2026-08-23 and never deployed.
+
+**What is not yet established.** That call state is now actually recorded.
+The repair was proven locally — the regression test fails against the previous
+code and passes against this one, and the full suite passed inside the deploy
+chain — but no inbound call has been observed through the deployed version.
+The evidence required is one call to 3647 followed by an `allow` /
+`secret_and_signature_verified` row on `signalwire.ingest.auth` and a new
+`inbound_voice_calls` row. Until those are seen, the call history remains
+incomplete and must not be read as a full account of inbound activity.
+
+**Still open after this deploy.** The 2026-08-24 secret-change version id
+remains pending recovery. `SIGNALWIRE_INGEST_SECRET_PREVIOUS` still holds a
+value of unknown correctness and should be deleted now that the current
+generation is proven by a connected call.
