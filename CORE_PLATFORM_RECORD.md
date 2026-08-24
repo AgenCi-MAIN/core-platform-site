@@ -2397,7 +2397,6 @@ The evidence required is one call to 3647 followed by an `allow` /
 `inbound_voice_calls` row. Until those are seen, the call history remains
 incomplete and must not be read as a full account of inbound activity.
 
-**Still open after this deploy.** The 2026-08-24 secret-change version id
-remains pending recovery. `SIGNALWIRE_INGEST_SECRET_PREVIOUS` still holds a
+**Still open after this deploy.** `SIGNALWIRE_INGEST_SECRET_PREVIOUS` still holds a
 value of unknown correctness and should be deleted now that the current
 generation is proven by a connected call.
