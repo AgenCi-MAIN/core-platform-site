@@ -184,12 +184,38 @@ export async function authenticateSignalwireRequest(
     return deny({ kind: "no_signature", status: 403 }, requestPath, generation, auditAction);
   }
 
-  const signatureInput = await buildSignatureInput(request, signedUrl);
-  if (signatureInput === null) {
+  const body = await readSignatureBody(request);
+  if (body === null) {
     return deny({ kind: "unverifiable_body", status: 403 }, requestPath, generation, auditAction);
   }
 
-  const signatureScheme = await matchSignature(presentedSignature, signingKey, signatureInput);
+  // SignalWire signs the URL string it actually requested, and this Worker
+  // hands out two forms of the same path. A URL configured in the provider
+  // dashboard is bare; a callback URL embedded in an SWML document this Worker
+  // generated carries HTTP user-info, because the provider has to authenticate
+  // itself when it calls back. Both are legitimate for the same path, so both
+  // are tried.
+  //
+  // The credentialed candidate is built only from the generation the caller has
+  // already proved it holds. That keeps this a widening of which *string* may
+  // have been signed, not of which secret is accepted: an unproven generation
+  // never reaches the HMAC.
+  const provenSecret = generation === "current" ? current : previous;
+  const candidates = [
+    signedUrl,
+    provenSecret ? credentialedMachineUrl(expectedPath, provenSecret) : null,
+  ];
+
+  let signatureScheme: SignalwireWebhookSignatureScheme | null = null;
+  for (const candidate of candidates) {
+    if (candidate === null) continue;
+    signatureScheme = await matchSignature(
+      presentedSignature,
+      signingKey,
+      signatureMessage(body, candidate),
+    );
+    if (signatureScheme !== null) break;
+  }
   if (signatureScheme === null) {
     return deny({ kind: "bad_signature", status: 403 }, requestPath, generation, auditAction);
   }
@@ -272,6 +298,30 @@ function publicMachineUrl(path: string): string | null {
   }
 }
 
+/**
+ * The same stated URL with the shared secret in HTTP user-info: what SignalWire
+ * is handed for callbacks it must authenticate itself on.
+ *
+ * Exported so the document that gives the URL out and the guard that verifies
+ * the resulting signature build one identical string. They were written
+ * separately once and drifted — lifecycle callbacks were signed over the
+ * credentialed URL and verified against the bare one, so every call-state event
+ * was refused `bad_signature` while the calls themselves connected, and the
+ * call history silently stopped recording (CORE_PLATFORM_RECORD.md §19z).
+ */
+export function credentialedMachineUrl(path: string, secret: string): string | null {
+  const bare = publicMachineUrl(path);
+  if (bare === null) return null;
+  try {
+    const url = new URL(bare);
+    url.username = "signalwire";
+    url.password = secret;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function isLiteralMachinePath(value: string): boolean {
   return value.startsWith("/portal/calls/") && !value.includes("?") && !value.includes("#");
 }
@@ -289,10 +339,18 @@ type SignatureInput = {
   scheme: SignalwireWebhookSignatureScheme;
 };
 
-async function buildSignatureInput(
-  request: SignedRequest,
-  signedUrl: string,
-): Promise<SignatureInput | null> {
+type SignatureBody =
+  | { kind: "json"; raw: string }
+  | { kind: "form"; entries: Array<[string, string]> };
+
+/**
+ * Read the body once, in the form the signature is computed over.
+ *
+ * Separated from message construction because a body can only be consumed
+ * once, and the same body must now be checked against more than one candidate
+ * URL.
+ */
+async function readSignatureBody(request: SignedRequest): Promise<SignatureBody | null> {
   let raw: string;
   try {
     raw = await request.text();
@@ -306,10 +364,7 @@ async function buildSignatureInput(
     // The raw bytes as received. Re-serialising parsed JSON would change key
     // order and whitespace, and the signature covers the document that was
     // actually sent, not an equivalent one.
-    return {
-      message: `${signedUrl}${raw}`,
-      scheme: "swml-json-sha1-hex",
-    };
+    return { kind: "json", raw };
   }
 
   if (contentType.includes("application/x-www-form-urlencoded")) {
@@ -317,16 +372,24 @@ async function buildSignatureInput(
     // construction SignalWire inherited from Twilio.
     const entries = [...new URLSearchParams(raw).entries()];
     entries.sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0));
-    return {
-      message: entries.reduce(
-        (accumulated, [name, value]) => `${accumulated}${name}${value}`,
-        signedUrl,
-      ),
-      scheme: "compat-form-sha1-base64",
-    };
+    return { kind: "form", entries };
   }
 
   return null;
+}
+
+/** The exact string a signature is computed over, for one candidate URL. */
+function signatureMessage(body: SignatureBody, signedUrl: string): SignatureInput {
+  if (body.kind === "json") {
+    return { message: `${signedUrl}${body.raw}`, scheme: "swml-json-sha1-hex" };
+  }
+  return {
+    message: body.entries.reduce(
+      (accumulated, [name, value]) => `${accumulated}${name}${value}`,
+      signedUrl,
+    ),
+    scheme: "compat-form-sha1-base64",
+  };
 }
 
 /** The password half of an HTTP Basic credential, or null if there isn't one. */
