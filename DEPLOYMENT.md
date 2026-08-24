@@ -485,3 +485,42 @@ optional one.
   part of this recording task. Previous rollback version:
   `9147c300-97dc-44dc-a3cf-154636207ae4`.
 
+
+- 2026-08-21: **version `5c67d18b-c4d8-4b3f-9841-47d34d70eefb`** —
+  **unreconciled.** Created 2026-08-21T04:07:49Z, attributed to
+  `btcmao518@gmail.com`, source "Unknown (deployment)". No merge to `main`
+  corresponds to it; it predates the `34dd833` commit by roughly ten
+  minutes. Listed so the version trail has no gap, not because its contents
+  are known. See CORE_PLATFORM_RECORD.md §19y.
+
+- 2026-08-21: **version `fb98f2be-8e44-4de7-86e4-99c1032b93ea`** — deployed
+  by the owner from `C:\dev\core-platform-site` at exact merged
+  `main@34dd833` (PR #120), created 2026-08-21T05:46:33Z. Ships the
+  `connect.confirm` repair that removes the illegal `return` method, after
+  the `npm run deploy` chain rebuilt, passed 128/128 tests, and passed the
+  preflight. Bindings remained `env.DB` to `site-creator-d1` and
+  `env.CALL_RECORDINGS` to `site-creator-r2`; startup time was 19 ms. **This
+  deploy did not restore inbound calling** — every call was still refused at
+  the credential check (§19y). Previous rollback version:
+  `f25e66aa-95ea-4d6a-b1c4-8d2e03a7c519`.
+
+- 2026-08-21: **version `8fdfb5d2-6b17-4196-ba18-3288e771377f`** — created
+  2026-08-21T06:28:49Z, source "Secret Change": the owner set
+  `SIGNALWIRE_INGEST_SECRET_PREVIOUS` to the value believed to be in
+  SignalWire's resource URL. No code change. No call was placed afterward,
+  so the attempt was never tested, and the audit table records no traffic at
+  all until the 24th.
+
+- 2026-08-24: **version id PENDING RECOVERY** — a "Secret Change" version
+  created when the owner set a freshly generated
+  `SIGNALWIRE_INGEST_SECRET` and matched it in the SignalWire resource URL,
+  restoring inbound calling to 3647 (CORE_PLATFORM_RECORD.md §19z). The id
+  was not captured at the time; recover it with
+  `npx wrangler deployments list -c dist/server/wrangler.json` and
+  substitute it here. No code change; secret **names** only, never values.
+
+  **Note for the next deploy:** `main` carries `b6e1e4e` ("Upgrade Next to
+  16.3.2 and patch React Server DOM for published advisories", merged
+  2026-08-23) which has **not** been deployed — the serving Worker predates
+  it. A security patch merged but not shipped is exactly the gap this log
+  exists to make visible.
