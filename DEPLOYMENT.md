@@ -469,3 +469,19 @@ optional one.
   `codex/deploy-log-browser-phone-20260820`; not yet merged and requiring a new
   one-use founder `mi`.
 
+- 2026-08-21: **version `f25e66aa-95ea-4d6a-b1c4-8d2e03a7c519`** — created
+  2026-08-21T01:21:23Z, deployed from
+  `main@1724c9c` — PR #118, "fix(calls): accept SignalWire call context",
+  the External SWML call-context parser repair recorded in
+  CORE_PLATFORM_RECORD.md §19w (nested `call.call_id` accepted;
+  `call.from_number` / `call.to_number` / `call.parent.call_id` honored;
+  legacy shapes kept as fallbacks; missing provider id fails closed).
+  The recording session had no Cloudflare credentials, so the full version
+  id was recovered by the founder from Cloudflare and supplied at action
+  time on 2026-08-21; the work order's prefix matched it. Recorded by
+  Agent 1 from the owner's work order — Agent 1 did not perform
+  this deploy and has not independently probed the serving version. No
+  migration, secret change, provider-routing change, purchase, or call was
+  part of this recording task. Previous rollback version:
+  `9147c300-97dc-44dc-a3cf-154636207ae4`.
+
