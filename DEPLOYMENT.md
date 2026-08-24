@@ -511,16 +511,63 @@ optional one.
   so the attempt was never tested, and the audit table records no traffic at
   all until the 24th.
 
-- 2026-08-24: **version id PENDING RECOVERY** — a "Secret Change" version
-  created when the owner set a freshly generated
-  `SIGNALWIRE_INGEST_SECRET` and matched it in the SignalWire resource URL,
-  restoring inbound calling to 3647 (CORE_PLATFORM_RECORD.md §19z). The id
-  was not captured at the time; recover it with
-  `npx wrangler deployments list -c dist/server/wrangler.json` and
-  substitute it here. No code change; secret **names** only, never values.
+- 2026-08-24: **version `69a7ed75-6060-4dae-8a58-7600d1496bbe`** — created
+  2026-08-24T08:51:50Z, source "Secret Change": the owner set a freshly
+  generated `SIGNALWIRE_INGEST_SECRET` and matched it in the SignalWire
+  resource URL, restoring inbound calling to 3647
+  (CORE_PLATFORM_RECORD.md §19z). The id was not captured at the time and was
+  recovered afterwards with `npx wrangler deployments list`; it is consistent
+  with the audit trail, which shows the credential check flipping from
+  `bad_credential` to `secret=current` at 08:59 the same morning. No code
+  change; secret **names** only, never values.
 
   **Note for the next deploy:** `main` carries `b6e1e4e` ("Upgrade Next to
   16.3.2 and patch React Server DOM for published advisories", merged
   2026-08-23) which has **not** been deployed — the serving Worker predates
   it. A security patch merged but not shipped is exactly the gap this log
   exists to make visible.
+
+- 2026-08-24: **version `9c09e919-1019-469f-9b2b-4b2843d8723f`** — deployed by
+  the owner from `C:\dev\core-platform-site` after PRs #121 and #122 merged.
+  The `npm run deploy` chain rebuilt, passed the suite and the preflight, and
+  uploaded 25 changed files; startup time was 25 ms and bindings remained
+  `env.DB` to `site-creator-d1` and `env.CALL_RECORDINGS` to `site-creator-r2`.
+
+  **What this version carries that no previous one did:**
+  1. The lifecycle-signature repair (PR #122). Callbacks to
+     `/portal/calls/ingest` were denied `bad_signature` because the SWML handed
+     SignalWire a credentialed callback URL while the guard verified against the
+     bare origin. The guard now accepts either form, rebuilding the credentialed
+     candidate only from the generation the caller proved it holds, and both
+     sides call one exported builder so they cannot drift apart again.
+  2. `b6e1e4e` — Next 16.3.2 and the React Server DOM advisory patches, merged
+     2026-08-23 and undeployed until now.
+  3. The §19y/§19z record entries (documentation; no runtime effect).
+
+  **Verification status at the time of writing: deploy confirmed, behaviour not
+  yet.** The version id above was read from the owner's deploy output. Whether
+  call state is now recorded requires one inbound call to 3647 followed by an
+  `allow` / `secret_and_signature_verified` row on `signalwire.ingest.auth` and
+  a new `inbound_voice_calls` row. Until those are seen, the call history must
+  be treated as incomplete.
+
+  Previous rollback version: `69a7ed75-6060-4dae-8a58-7600d1496bbe`.
+
+### The 2026-08-21 → 2026-08-24 version trail, complete
+
+Recovered in full from `npx wrangler deployments list` rather than from
+scrollback. No gaps, which is the property this table exists to have.
+
+| Created (UTC) | Version | Source | What it was |
+| --- | --- | --- | --- |
+| 2026-08-21 01:21 | `f25e66aa-95ea-4d6a-b1c4-8d2e03a7c519` | deployment | PR #118, call-context parser fix (§19x) |
+| 2026-08-21 04:07 | `5c67d18b-c4d8-4b3f-9841-47d34d70eefb` | deployment | **Unreconciled** — matches no merge to `main` (§19y) |
+| 2026-08-21 05:46 | `fb98f2be-8e44-4de7-86e4-99c1032b93ea` | deployment | PR #120, `connect.confirm` repair — did not restore calling (§19y) |
+| 2026-08-21 06:28 | `8fdfb5d2-6b17-4196-ba18-3288e771377f` | Secret Change | `SIGNALWIRE_INGEST_SECRET_PREVIOUS` set to a believed-old value; never tested (§19y) |
+| 2026-08-24 08:51 | `69a7ed75-6060-4dae-8a58-7600d1496bbe` | Secret Change | Fresh `SIGNALWIRE_INGEST_SECRET`, matched in the provider URL — **this is what restored inbound calling** (§19z) |
+| 2026-08-24 10:27 | `9c09e919-1019-469f-9b2b-4b2843d8723f` | deployment | PRs #121/#122: lifecycle-signature repair + Next 16.3.2 patches (§19aa) |
+
+Two lessons the trail makes concrete. A deploy never rotates a secret — the
+two "Secret Change" rows are the only credential events, and neither is a code
+deploy. And an id not captured at the moment is not lost: this list holds it,
+which is why it is the source of record and terminal scrollback is not.
