@@ -2272,3 +2272,102 @@ recorded in the deploy log.
 **Delivery boundary.** This section records a deploy; it does not perform
 or re-verify one. The real 3647 PSTN browser-answer test contemplated at
 the end of 19w still requires its own action-time confirmation.
+
+### 19y. Confirm-section repair deployed; inbound still refused at the credential — 2026-08-21
+
+The §19w repair merged as `main@34dd833` (PR #120) and deployed as Worker
+version `fb98f2be-8e44-4de7-86e4-99c1032b93ea` at 2026-08-21T05:46:33Z, from
+the owner's `C:\dev` checkout with `git log -1` confirming that exact commit.
+The `npm run deploy` chain rebuilt, passed 128/128 tests and the preflight,
+and reported `env.DB` and `env.CALL_RECORDINGS` bound with a 19 ms startup.
+
+**What the repair was.** SignalWire had been rejecting the whole routing
+document with `relay_script_method_undefined` — `Unknown method
+"confirm.return"` — because `return` is legal only inside sections invoked
+via `execute`; inside `connect.confirm` it invalidates the document. The
+cell-fallback confirm now uses the pattern the 5158 relay bin already
+proves: press-1 prompt, then `cond: when vars.prompt_value != '1' ->
+hangup`, with fall-through as accept. A regression test rejects any
+`return` method anywhere in the plan.
+
+**The deploy did not restore inbound calling.** Between 05:55:38 and
+06:00:24 every request to `/portal/calls/route` was denied
+`bad_credential`: a credential was presented and matched neither
+`SIGNALWIRE_INGEST_SECRET` nor `SIGNALWIRE_INGEST_SECRET_PREVIOUS`. The
+caller heard the carrier's three-tone "call cannot be completed", which is
+indistinguishable by ear from the earlier failure and cost several hours of
+misattribution. At 06:28:49Z the owner set
+`SIGNALWIRE_INGEST_SECRET_PREVIOUS` to the value believed to be in
+SignalWire's resource URL, producing version
+`8fdfb5d2-6b17-4196-ba18-3288e771377f`. No call was placed afterward, so
+that attempt was never tested; the audit table shows no traffic at all
+between 06:00 on the 21st and the 24th.
+
+**An unexplained deploy sits in the trail.** Version
+`5c67d18b-c4d8-4b3f-9841-47d34d70eefb` was created 2026-08-21T04:07:49Z —
+about ten minutes before `34dd833` was committed — attributed to
+`btcmao518@gmail.com`, source "Unknown (deployment)". No merge to `main`
+corresponds to it. It is recorded here as an unreconciled entry rather than
+left out of the version trail.
+
+### 19z. Shared secret realigned; 3647 inbound verified live; lifecycle signature defect isolated — 2026-08-24
+
+Inbound calling to 3647 is working. The owner answered a live inbound call
+in the portal browser phone ("On call · ***-***-3647 · Connected"), which is
+the first end-to-end inbound success on this platform.
+
+**Root cause of the outage, stated plainly.** Two independent failures were
+stacked, and each hid the other. The routing document was invalid (§19w,
+repaired in 19y), and the shared Basic secret the Worker expected had
+diverged from the password baked into SignalWire's resource URL. The
+document repair could not take effect while the credential was refused,
+and the credential failure was misread as the document failure because both
+end the call within a second with the same carrier tone.
+
+**Which side had drifted, and the evidence.** The SignalWire resource
+`CORE Inbound Router 3647` (SWML Webhook, `c4d8502e-7508-4e08-acd9-…`)
+showed Last Update 2026-08-20T21:19Z — untouched through the whole
+incident window. `SIGNALWIRE_INGEST_SECRET` on the Worker had therefore
+been rotated out from under a URL that never changed. Who rotated it, and
+when, is not established; Cloudflare's version list shows no "Secret
+Change" entry before the owner's 06:28 one, so the change predates the
+window the list covers here. The leading unproven explanation is that it
+was set during the 2026-08-20 signing-key reset (§19v) and the URL was
+never updated to match.
+
+**The realignment.** On 2026-08-24 the owner generated a fresh
+64-character value locally, wrote it to `SIGNALWIRE_INGEST_SECRET` via
+`wrangler secret put`, and set the same value as the password in the
+SignalWire resource URL. No value passed through an agent, a file in this
+repository, a commit, or a chat message. The intermediate attempt to
+recover the old value failed for the reason that matters most here:
+Cloudflare secrets are write-only, so the only readable copy was the
+provider URL, and nobody could read it. Rotating both sides was faster than
+recovering either.
+
+**Verification.** Audit rows immediately after the change carry
+`detail = secret=current`, which is the credential check passing — the
+same rows that read `bad_credential` for the three days before. The owner's
+answered call is the end-to-end proof.
+
+**One defect remains open, and it is ours.** Lifecycle callbacks to
+`/portal/calls/ingest` are denied `bad_signature` (rows at
+2026-08-24 08:59:47–08:59:53, all `secret=current`). Calls connect; they are
+not recorded, so the call history and any team-hunt logging built on those
+rows are silently incomplete. The cause is an asymmetry inside this
+repository: `app/portal/calls/route/route.ts` hands SignalWire a
+credentialed callback URL (`credentialedMachineUrl` sets `url.username` and
+`url.password`), while `app/portal/signalwire/ingest-auth.ts` verifies the
+signature against the bare origin (`publicMachineUrl` returns
+`${url.origin}${path}`). The signature covers the URL string, so the two
+sides hash different messages and can never agree. The shared secret is
+part of that signed message, which is why realigning the secret could not
+fix it, and why it stayed hidden: until 2026-08-24 no call had ever
+survived long enough for a lifecycle callback to be attempted.
+
+**Delivery boundary.** No code changed on 2026-08-24. The only production
+change was the `SIGNALWIRE_INGEST_SECRET` value and the matching provider
+URL. `SIGNALWIRE_INGEST_SECRET_PREVIOUS` still holds the 06:28 value of
+unknown correctness and should be deleted now that the current generation
+is proven. Agent 1 holds no Cloudflare or SignalWire credentials; every
+production action in this section was executed by the owner.
