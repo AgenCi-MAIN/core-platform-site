@@ -21,7 +21,17 @@ const THEMES = [
   // off-canvas below 900px), so a navy status bar would draw a hard 15:1
   // edge against nothing navy. Desktop title bars get the same light chrome
   // for the same reason — the workspace is light.
-  { id: "thrive", label: "Thrive", glyph: "◆", chrome: "#eef2f9", scheme: "light" },
+  // LABEL RENAMED TO "Blue" ON THE FOUNDER'S WORD, 2026-08-26 — the palette is
+  // untouched, which is the whole point: his order of 2026-08-18 ("DO NOT TAKE
+  // THRIVE COLOR OUT") protects the colour, and the colour is exactly what
+  // survives here. Only the word in the picker changed, with the IMO rebrand.
+  //
+  // The `id` deliberately stays "thrive". It is not a label: it is the value
+  // written into localStorage, the `data-portal-theme` attribute, and roughly
+  // twenty CSS selectors keyed on it. Renaming it would silently reset every
+  // member's saved theme to the default — their stored "thrive" would match
+  // nothing — for no visible gain, since no member ever sees an id.
+  { id: "thrive", label: "Blue", glyph: "◆", chrome: "#eef2f9", scheme: "light" },
 ] as const;
 
 type PortalTheme = (typeof THEMES)[number]["id"];

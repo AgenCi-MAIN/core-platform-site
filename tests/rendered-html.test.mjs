@@ -923,7 +923,10 @@ test("public surfaces offer all three theme choices", async () => {
   const response = await fetchPath("/");
   assert.equal(response.status, 200);
   const html = await response.text();
-  for (const label of ["Bright", "Dark", "Thrive"]) {
+  // "Thrive" became "Blue" on the founder's word 2026-08-26, palette untouched.
+  // The ids are asserted separately above and deliberately did NOT change:
+  // `thrive` is still the stored value and the CSS selector key.
+  for (const label of ["Bright", "Dark", "Blue"]) {
     assert.match(
       html,
       new RegExp(`portal-theme-label">${label}`),

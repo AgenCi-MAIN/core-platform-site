@@ -566,3 +566,40 @@ optional one.
   fixed this (the edge gate is dashboard configuration, not code), and this
   entry records that it is still absent after the deploy rather than leaving
   the question open.
+
+- 2026-08-26 (later): **version id PENDING CAPTURE** — the IMO Operating
+  Portal rebrand (A32), deployed by the owner from `C:\dev\core-platform-site`
+  at `main@7c0ef9e` (PR #125). Recover the id with
+  `npx wrangler deployments list -c dist\server\wrangler.json` and substitute
+  it here; the `Tee-Object` practice in §7 exists to stop this recurring, and
+  this is the third entry to need recovery.
+
+  **Verified live from outside the session, anonymously**, which is the half
+  that matters after this particular deploy went wrong once:
+
+  | Surface | Status | `THRIVE` | `IMO` |
+  | --- | --- | --- | --- |
+  | `/` | 200 | **0** | 20 |
+  | `/access` | 200 | **0** | 28 |
+  | `/tour` | 200 | **0** | 28 |
+  | `/portal/members` | 307 → `/auth/signin` | — | — |
+
+  **The failure this entry exists to record.** An earlier deploy the same
+  evening shipped `main@25fd5ad` and the owner reported the site still read
+  THRIVE. The cause was not the deploy: **the rebrand had never been merged.**
+  It sat on `claude/member-access-removal-bk3gga` while the deploy instruction
+  given to the owner was a bare `git pull && npm run deploy`, which faithfully
+  shipped a `main` that had never carried the change. He deployed correctly;
+  there was nothing to deploy.
+
+  The lesson is narrow and worth keeping: **a change is not shippable until it
+  is on `main`**, and "it is committed and pushed" is not that. A branch push
+  and a merge are different events, and only the second one is visible to
+  `git pull`. Every deploy instruction should name the commit it expects to be
+  at HEAD so the mismatch is caught before `wrangler` runs, not afterwards from
+  a screenshot.
+
+  **Still reading THRIVE by design, so it is not filed as a defect twice:** the
+  portal theme picker's third option is still labelled *Thrive*, held under the
+  founder's order of 2026-08-18 ("DO NOT TAKE THRIVE COLOR OUT"). Renaming the
+  label while keeping the palette is a one-line change awaiting his word (A32).
