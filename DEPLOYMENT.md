@@ -523,4 +523,46 @@ optional one.
   16.3.2 and patch React Server DOM for published advisories", merged
   2026-08-23) which has **not** been deployed — the serving Worker predates
   it. A security patch merged but not shipped is exactly the gap this log
-  exists to make visible.
+  exists to make visible. **Closed 2026-08-26 by the deploy below.**
+
+- 2026-08-26: **version `572f72e7-f372-4708-bfdf-697e2c5cb238`** — deployed by
+  the owner from `C:\dev\core-platform-site` at `main@2aac5ea`, via
+  `npm run deploy`. Bindings confirmed present in the deploy output:
+  `env.DB` → `site-creator-d1` and `env.CALL_RECORDINGS` → `site-creator-r2`.
+  Worker startup 19 ms, upload 3712.26 KiB (gzip 1148.35 KiB), no asset
+  changes to upload — expected, since everything shipped here is server-side.
+
+  **Three things that had been merged-but-unshipped are now live**, which is
+  the whole reason this log tracks the gap:
+  - `b6e1e4e` — Next 16.3.2 and the React Server DOM advisory patches, merged
+    2026-08-23. The note directly above is closed by this line.
+  - PR #122 (`2aac5ea`) — lifecycle callbacks to `/portal/calls/ingest` were
+    denied `bad_signature` because the guard verified against the bare origin
+    while the route handed out a credentialed URL. Call state had stopped
+    being recorded (CORE_PLATFORM_RECORD.md §19z).
+  - A21's command-pass lock, listed in OWNER-DECISIONS as merged and not
+    deployed since 2026-08-18. **The A21 caveat still stands:** there is no UI
+    to issue a pass, so the lock is now enforced without an issuing path.
+
+  **Pre-deploy gate, run in full before the owner deployed:** `vinext build`
+  clean, **131/131 tests passing** against real workerd + D1, and
+  `verify:build` reporting "Build verified — safe to deploy" (worker 2323 KB,
+  D1 `e19d74e0-1913-41a5-b695-cd1acc94d5ed`, 17 assets).
+
+  **Post-deploy smoke test, anonymous, from outside:** `/` serves 200;
+  `/portal` and `/portal/members` both answer `307` to
+  `/auth/signin?return_to=…`; `/auth/signin` answers `302` to Google with the
+  `thrive18` callback. The portal fails closed on the new version.
+
+  **This deploy changed no one's access.** The roster lives in D1 and is
+  untouched by shipping code. Founder order A30 (portal access reduced to
+  `btcmao518@gmail.com` and `ray@inkbox.ai`) still requires
+  `db/sql/0012_roster_reduction_2026_08_26.sql` to be run against the remote
+  database, and that file is not on `main` yet.
+
+  **A31 re-confirmed on the new version.** The anonymous smoke test above
+  reached application code and received the worker's own redirect — no
+  Cloudflare Access interstitial, no challenge. Deploying could never have
+  fixed this (the edge gate is dashboard configuration, not code), and this
+  entry records that it is still absent after the deploy rather than leaving
+  the question open.
