@@ -45,7 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: "CORE J.A.R.V.I.S. — The In-House Signal Exchange",
     description: "J.A.R.V.I.S. connects verified in-house opportunity, carrier intelligence, call coaching, scripts, compensation ranks, and accountable outcomes in one CORE operating system.",
     manifest: "/manifest.webmanifest",
-    applicationName: "THRIVE",
+    applicationName: "IMO",
     icons: {
       icon: "/favicon.svg",
       shortcut: "/favicon.svg",
@@ -67,7 +67,7 @@ export async function generateMetadata(): Promise<Metadata> {
      */
     appleWebApp: {
       capable: true,
-      title: "THRIVE",
+      title: "IMO",
       statusBarStyle: "default",
     },
     /**

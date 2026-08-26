@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 
 /**
- * Storage for THRIVE Radio.
+ * Storage for Portal Radio.
  *
  * Music lives in the existing R2 bucket under a `music/` prefix rather than in
  * a second bucket. That keeps the deployment contract unchanged — no new

@@ -70,7 +70,7 @@ const SUPPORT = [
 const RANK_STEPS = [
   { mark: "I", name: "Ember", phase: "Bronze / Captive", note: "Where you start. Learn the full policy economy and protect the first dollar.", metal: "bronze" as Metal },
   { mark: "II", name: "Vector", phase: "Silver / Producer", note: "Earned through repeatable production — not one hot month.", metal: "silver" as Metal },
-  { mark: "III", name: "Apex", phase: "Gold / Thrive", note: "Production earns altitude. Quality keeps it.", metal: "gold" as Metal },
+  { mark: "III", name: "Apex", phase: "Gold", note: "Production earns altitude. Quality keeps it.", metal: "gold" as Metal },
   { mark: "IV", name: "Dominion", phase: "Diamond / Core 1.0", note: "Own the book, not just the leaderboard.", metal: "diamond" as Metal },
   { mark: "V", name: "Zenith", phase: "Obsidian / Core 2.0", note: "The system compounds through you.", metal: "obsidian" as Metal },
 ] as const;
@@ -86,9 +86,9 @@ export default function OnboardingPage() {
 
       <main className="site-main">
         <section className="site-hero">
-          <p className="portal-eyebrow">THRIVE — New agent onboarding</p>
+          <p className="portal-eyebrow">IMO — New agent onboarding</p>
           <h1>
-            Your first month<span> at THRIVE.</span>
+            Your first month<span> at IMO.</span>
           </h1>
           <p className="site-hero-lede">
             This page is for people who are new to the business. It covers what
@@ -101,7 +101,7 @@ export default function OnboardingPage() {
               Portal access <KeyGlyph />
             </Link>
             <Link className="text-link" href="/">
-              About THRIVE <KeyGlyph />
+              About IMO <KeyGlyph />
             </Link>
           </div>
         </section>
@@ -233,7 +233,7 @@ export default function OnboardingPage() {
                 Go to portal access <KeyGlyph />
               </Link>
               <Link className="text-link" href="/">
-                About THRIVE <KeyGlyph />
+                About IMO <KeyGlyph />
               </Link>
             </div>
           </article>

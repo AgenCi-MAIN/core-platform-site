@@ -130,7 +130,7 @@ export function MusicManager({ canUpload }: { canUpload: boolean }) {
         <form className="portal-card music-upload" onSubmit={upload}>
           <h2>Add a track</h2>
           <p className="portal-fine">
-            Upload audio THRIVE has the right to use — music you own, licensed
+            Upload audio IMO has the right to use — music you own, licensed
             or royalty-free production audio, or something you commissioned.
             Every upload is recorded in the audit log against your name.
           </p>

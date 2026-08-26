@@ -16,7 +16,7 @@ export const PORTAL_PERFORMANCE_STORAGE_KEY = "thrive-portal-performance";
  * wrong theme, and stops a boosted machine rendering one animated frame before
  * the effects are switched off.
  */
-// THRIVE IS THE DEFAULT (founder's order 2026-08-18: "DO NOT TAKE THRIVE
+// IMO IS THE DEFAULT (founder's order 2026-08-18: "DO NOT TAKE IMO
 // COLOR OUT. THAT'LL BE THE DEFAULT COLOR WHILE STILL HAVING BRIGHT AND
 // DARK"). Only a stored "bright" or "dark" opts out — any other stored value
 // (junk, or a theme removed in a future revision) falls back to thrive, the
@@ -50,8 +50,8 @@ export function PortalGovernanceFooter() {
     <footer className="portal-footer">
       <p>
         <strong>J.A.R.V.I.S.</strong> — Joint Agency Routing, Verification &amp;
-        Intelligence System. THRIVE&apos;s project-level operational identity,
-        operated under THRIVE governance.
+        Intelligence System. the IMO&apos;s project-level operational identity,
+        operated under IMO governance.
       </p>
       <p>
         J.A.R.V.I.S. is not a human, a licensed insurance producer, or a

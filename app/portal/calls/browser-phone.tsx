@@ -470,7 +470,7 @@ export function BrowserPhone({
       const availablePresence = await postPresence("available");
       presenceExpiresAtRef.current = availablePresence.expiresAt ?? null;
       heartbeatFailuresRef.current = 0;
-      setPhase("available", `Ready on ${bootstrap.personalNumber ?? "your THRIVE line"}. Keep this tab open.`);
+      setPhase("available", `Ready on ${bootstrap.personalNumber ?? "your IMO line"}. Keep this tab open.`);
     } catch (error) {
       await stopPhone(friendlyError(error, "Browser phone registration failed."));
       setPhase("error", friendlyError(error, "Browser phone registration failed."));

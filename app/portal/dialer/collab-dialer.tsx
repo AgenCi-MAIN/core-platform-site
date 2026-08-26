@@ -56,7 +56,7 @@ export function CollabDialer() {
         <article className="dialer-card">
           <span>Public inbound line</span>
           <strong>{TELEPHONY_CONFIG.mainNumber.display}</strong>
-          <small>Customers call this number to enter the Thrive Life inbound queue.</small>
+          <small>Customers call this number to enter the the IMO inbound queue.</small>
         </article>
         <article className="dialer-card">
           <span>Inbound bridge line</span>

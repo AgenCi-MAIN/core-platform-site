@@ -20,10 +20,10 @@ import type { MetadataRoute } from "next";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/portal",
-    name: "THRIVE — J.A.R.V.I.S. Portal",
-    short_name: "THRIVE",
+    name: "IMO Operating Portal",
+    short_name: "IMO",
     description:
-      "THRIVE's permissioned operating portal: verified opportunity, carrier intelligence, call review, scripts, compensation ranks, and accountable outcomes.",
+      "the IMO's permissioned operating portal: verified opportunity, carrier intelligence, call review, scripts, compensation ranks, and accountable outcomes.",
     start_url: "/portal",
     scope: "/",
     display: "standalone",
@@ -69,7 +69,7 @@ export default function manifest(): MetadataRoute.Manifest {
       },
       { name: "Calls", short_name: "Calls", url: "/portal/calls?tab=live" },
       { name: "Scripts", short_name: "Scripts", url: "/portal/scripts" },
-      { name: "THRIVE Radio", short_name: "Radio", url: "/portal/music" },
+      { name: "Portal Radio", short_name: "Radio", url: "/portal/music" },
     ],
   };
 }

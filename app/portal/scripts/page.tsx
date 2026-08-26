@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
  * The live call Script Vault.
  *
  * Presentation here is free to change. The script text is not: every `body`
- * value is authored by a human at THRIVE and rendered verbatim. See
+ * value is authored by a human at IMO and rendered verbatim. See
  * `library.ts` for the content rule.
  */
 export default async function ScriptsPage() {
@@ -21,14 +21,14 @@ export default async function ScriptsPage() {
         <PortalPageIntro
           eyebrow="Approved playbooks"
           title="Script Vault"
-          subtitle="Live call language, exactly as THRIVE approved it. Versioned, owned, and rendered word-for-word."
+          subtitle="Live call language, exactly as IMO approved it. Versioned, owned, and rendered word-for-word."
           compact
         />
 
         <p className="script-governance" role="note">
           <span className="script-governance-tag">Content locked</span>
           <span>
-            Script wording is authored and owned by THRIVE. J.A.R.V.I.S. renders
+            Script wording is authored and owned by IMO. J.A.R.V.I.S. renders
             it verbatim and <strong>may not write, reword, or summarise it.</strong>{" "}
             Layout and presentation can change freely; the words an agent says on
             a live call change only when a human changes them.
@@ -50,7 +50,7 @@ export default async function ScriptsPage() {
               body={
                 <>
                   The vault is built and ready to hold live call scripts. It is
-                  empty because script text must come from THRIVE — it is not
+                  empty because script text must come from IMO — it is not
                   generated here. Add approved scripts to{" "}
                   <code>app/portal/scripts/library.ts</code>, each with its owner,
                   version, and compliance status, and they will appear here

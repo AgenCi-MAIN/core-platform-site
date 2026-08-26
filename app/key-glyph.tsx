@@ -1,5 +1,5 @@
 /**
- * The THRIVE key.
+ * The IMO key.
  *
  * Deliberately simple. The first version drew a key and a separate keyhole at
  * 22x11, and at that size neither read as anything — it looked like two gold

@@ -8,11 +8,11 @@ const MUTED_KEY = "thrive-portal-muted";
 type Track = { key: string; title: string; artist: string };
 
 /**
- * THRIVE Radio deck — the player docked at the bottom of every portal page.
+ * Portal Radio deck — the player docked at the bottom of every portal page.
  *
  * Tracks come from `/portal/music/list`, which reads the uploads made on the
  * Radio page. Nothing is bundled with the application, so the deck plays only
- * what THRIVE has deliberately put there.
+ * what IMO has deliberately put there.
  *
  * Deliberate behaviours:
  *  - Never autoplays. The member presses play.
@@ -207,10 +207,10 @@ export function PortalAudioDeck() {
 
   if (!hasTracks) {
     return (
-      <aside className="audio-deck audio-deck-empty" aria-label="THRIVE Radio">
+      <aside className="audio-deck audio-deck-empty" aria-label="Portal Radio">
         <span className="audio-deck-badge" aria-hidden="true">♪</span>
         <div className="audio-deck-copy">
-          <strong>THRIVE Radio</strong>
+          <strong>Portal Radio</strong>
           <small>No tracks yet — add them on the Radio page.</small>
         </div>
         <a className="audio-deck-button" href="/portal/music" title="Open Radio">
@@ -221,7 +221,7 @@ export function PortalAudioDeck() {
   }
 
   return (
-    <aside className="audio-deck" aria-label="THRIVE Radio player">
+    <aside className="audio-deck" aria-label="Portal Radio player">
       <audio
         ref={audioRef}
         src={`/portal/music/track?key=${encodeURIComponent(track!.key)}`}
@@ -234,7 +234,7 @@ export function PortalAudioDeck() {
 
       <div className="audio-deck-copy">
         <strong>{track!.title}</strong>
-        <small>{track!.artist || "THRIVE Radio"}</small>
+        <small>{track!.artist || "Portal Radio"}</small>
       </div>
 
       <div className="audio-deck-transport">

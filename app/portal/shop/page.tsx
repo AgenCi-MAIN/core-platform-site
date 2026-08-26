@@ -24,7 +24,7 @@ const PRODUCTS = [
     name: "Recruiting ads",
     price: "Custom",
     priceNote: "campaign",
-    description: "Request THRIVE recruiting campaign support for agent acquisition and local market expansion.",
+    description: "Request IMO recruiting campaign support for agent acquisition and local market expansion.",
     bullets: ["Creative + campaign request", "Market-specific setup", "Pricing approved before charge"],
     quantityEnabled: false,
     unitPrice: null,
@@ -36,7 +36,7 @@ const PRODUCTS = [
     name: "GoHighLevel access",
     price: "Access",
     priceNote: "plan",
-    description: "Request access to THRIVE's GoHighLevel software stack for CRM, automations, pipelines, and follow-up.",
+    description: "Request access to the IMO's GoHighLevel software stack for CRM, automations, pipelines, and follow-up.",
     bullets: ["CRM workspace", "Automation tooling", "Account setup request"],
     quantityEnabled: false,
     unitPrice: null,
@@ -48,7 +48,7 @@ const PRODUCTS = [
     name: "AI capacity",
     price: "Custom",
     priceNote: "allocation",
-    description: "Request additional THRIVE AI capacity for agent support, recruiting, or operating workflows.",
+    description: "Request additional IMO AI capacity for agent support, recruiting, or operating workflows.",
     bullets: ["Capacity request", "Use-case review", "Approved allocation only"],
     quantityEnabled: false,
     unitPrice: null,
@@ -68,7 +68,7 @@ export default async function MarketplacePage() {
       <style>{STYLES}</style>
       <main className="portal-main">
         <PortalPageIntro
-          eyebrow="THRIVE Marketplace"
+          eyebrow="IMO Marketplace"
           title={<>Buy the tools that <em>move production</em>.</>}
           subtitle="Calls, recruiting, software, and AI capacity live in one storefront. The portal records order intent now; the wallet and payment rail remain visibly disconnected until a real ledger is wired in."
           compact

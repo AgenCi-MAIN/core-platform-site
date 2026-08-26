@@ -74,7 +74,7 @@ export function maskNumber(raw: string | undefined | null): string | null {
  * would flag if it were read back aloud.
  */
 export const CONNECT_GREETING =
-  "Thank you for calling THRIVE. Please hold while we connect you to a licensed representative.";
+  "Thank you for calling IMO. Please hold while we connect you to a licensed representative.";
 
 /**
  * The fail-safe greeting when there is no one to ring (roster unconfigured or
@@ -83,7 +83,7 @@ export const CONNECT_GREETING =
  * defers), and never to recording.
  */
 export const UNAVAILABLE_GREETING =
-  "Thank you for calling THRIVE. We are not able to take your call right now. Please try again shortly.";
+  "Thank you for calling IMO. We are not able to take your call right now. Please try again shortly.";
 
 const XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>';
 const VOICE = "Polly.Joanna";

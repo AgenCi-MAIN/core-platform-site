@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { PortalGovernanceFooter } from "../portal-chrome";
 
 export const metadata: Metadata = {
-  title: "THRIVE — Onboarding & Training",
+  title: "IMO — Onboarding & Training",
   description:
-    "Onboarding and training for new THRIVE agents. Process only; no member or production data.",
+    "Onboarding and training for new IMO agents. Process only; no member or production data.",
   robots: { index: false, follow: false },
 };
 

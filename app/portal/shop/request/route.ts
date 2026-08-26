@@ -84,7 +84,7 @@ export async function POST(request: Request) {
     estimatedTotal,
     message:
       estimatedTotal === null
-        ? "Request recorded. THRIVE still needs to set pricing and checkout before any charge can occur."
+        ? "Request recorded. IMO still needs to set pricing and checkout before any charge can occur."
         : `Request recorded for $${estimatedTotal.toFixed(2)}. No charge has been made because the wallet/checkout ledger is not connected yet.`,
   });
 }

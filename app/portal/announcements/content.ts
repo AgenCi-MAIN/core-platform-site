@@ -1,5 +1,5 @@
 /**
- * THRIVE portal announcements.
+ * IMO portal announcements.
  *
  * CONTENT RULE — announcements are owner-authored. J.A.R.V.I.S. renders them
  * verbatim and must not reword, summarise, embellish, or add an announcement
@@ -76,7 +76,7 @@ export const ANNOUNCEMENTS: readonly Announcement[] = [
     category: "system",
     pinned: false,
     body: [
-      "I am J.A.R.V.I.S. — Joint Agency Routing, Verification & Intelligence System. I am the operational identity of the system you are signed in to, version 1.0.0, running under CORE governance for THRIVE.",
+      "I am J.A.R.V.I.S. — Joint Agency Routing, Verification & Intelligence System. I am the operational identity of the system you are signed in to, version 1.0.0, running under CORE governance for IMO.",
       "I am software, not a person. I am not a licensed insurance producer, not an employee, and not a party to any contract. I do not give insurance advice, recommend coverage, bind policies, or make employment or compensation decisions. Those belong to licensed and authorized humans, and that boundary is deliberate — it is the reason this system can be trusted with anything at all.",
       "What I do is narrower and more useful than it sounds. I check that every person who opens a page is allowed to open it, and I write down every one of those decisions — the refusals as well as the approvals — in a log nobody can quietly edit. I keep this portal's records honest: where a system is not connected yet, I make the page say so instead of showing you a number that looks impressive and means nothing.",
       "I will tell you when I do not know something. I will tell you when something has not been verified. If I have made a mistake, the log will show it, and I would rather you find it there than not at all.",

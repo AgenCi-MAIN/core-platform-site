@@ -654,6 +654,36 @@ test("every approved Training body remains byte-verbatim", async () => {
   // impossible: a new `*_BODY` constant appears here whether or not anyone
   // remembered to add a pin.
   const declared = [...library.matchAll(/^export const (\w+_BODY) = (".*");$/gm)];
+
+  // PENDING STATE — the IMO changeover, 2026-08-26. The approved bodies were
+  // unpublished with the rest of the previous operator's content, so the file
+  // declares none. The PINS table above is deliberately KEPT rather than
+  // deleted: it is the byte record of what the approved language was, and it
+  // is what makes a restoration from `backup/thrive-content-2026-08-26`
+  // verifiable rather than merely plausible. Restore the content and every
+  // assertion below wakes up and enforces those exact bytes again.
+  //
+  // The empty case is asserted, never assumed. A library with no bodies but a
+  // slot still marked approved is the dangerous shape — an inline string
+  // rendering as approved language outside every check here — so that is
+  // exactly what this branch refuses.
+  if (declared.length === 0) {
+    // Comma, not semicolon: `state: "approved";` is the ApprovedTrainingSlot
+    // type declaration and must survive an empty library. Only a slot literal
+    // — `state: "approved",` — is the shape this guards against.
+    const approvedWhileEmpty = [...library.matchAll(/state: "approved",/g)];
+    assert.equal(
+      approvedWhileEmpty.length,
+      0,
+      "the library declares no approved bodies, yet a slot is still marked approved",
+    );
+    assert.ok(
+      Object.keys(PINS).length > 0,
+      "the PINS table was emptied — the restoration baseline for the approved language is gone",
+    );
+    return;
+  }
+
   assert.deepEqual(
     declared.map(([, name]) => name).sort(),
     Object.keys(PINS).sort(),
@@ -758,7 +788,10 @@ test("public surfaces render for anonymous visitors", async () => {
 
     const html = await response.text();
     assert.ok(html.length > 500, `${pathname} rendered an empty page`);
-    assert.match(html, /THRIVE/, `${pathname} must carry THRIVE branding`);
+    // Rebranded to the IMO Operating Portal 2026-08-26. The assertion is kept
+    // rather than dropped: its job is to catch a page that renders chrome-less
+    // or unbranded, and that job did not go away with the wordmark.
+    assert.match(html, /IMO/, `${pathname} must carry IMO branding`);
     // Theme control must exist on every public page, or Bright/Dark is
     // unreachable there.
     assert.match(
@@ -1086,12 +1119,26 @@ test("restricted data never reaches a public client chunk", async () => {
     ...librarySource.matchAll(/^export const (\w+_BODY) = (".*");$/gm),
   ].map(([, name, literal]) => ({ name, text: JSON.parse(literal) }));
 
-  assert.ok(
-    bodies.length > 0,
-    "no approved training bodies were found in library.ts — the training half of " +
-      "this scan would pass vacuously. Check the export shape before assuming the " +
-      "library is simply empty.",
-  );
+  // The training half of this scan is derived from the approved bodies, so an
+  // empty library would silently reduce it to nothing. That must never happen
+  // by accident — but as of the IMO changeover (2026-08-26) it is the real,
+  // intended state: the bodies were unpublished with the rest of the previous
+  // operator's content. So the emptiness is VERIFIED rather than assumed. A
+  // library with no bodies but a slot still marked approved is the shape that
+  // would leak an inline string past every check here, and it fails.
+  //
+  // The rest of the scan is unaffected: the pay-rate and Command Center
+  // markers below are literal and still enforced, so this test keeps its teeth
+  // while the training library is empty. Load approved bodies again and the
+  // training markers derive themselves back into FORBIDDEN with no edit here.
+  if (bodies.length === 0) {
+    assert.equal(
+      [...librarySource.matchAll(/state: "approved",/g)].length,
+      0,
+      "library.ts exports no approved bodies yet still marks a slot approved — " +
+        "an inline body would render as approved language and go unscanned.",
+    );
+  }
 
   // One distinctive spoken line per body: the longest curly-quoted span in it.
   // Spoken lines are what a client chunk would leak, and the longest is the

@@ -57,7 +57,7 @@ export function MarketplaceAction({
         {busy ? "Recording…" : "Request order"}
       </button>
       <small className="marketplace-estimate">
-        {estimate === null ? "Pricing requires THRIVE approval" : `Estimated order · $${estimate.toFixed(2)}`}
+        {estimate === null ? "Pricing requires IMO approval" : `Estimated order · $${estimate.toFixed(2)}`}
       </small>
       {message ? <p className="marketplace-message" role="status">{message}</p> : null}
     </div>

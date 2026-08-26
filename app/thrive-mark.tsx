@@ -1,5 +1,5 @@
 /**
- * THRIVE mark — the "V" glyph: a bold left arm, a flame/helix forming the
+ * IMO mark — the "V" glyph: a bold left arm, a flame/helix forming the
  * right arm, and a four-point sparkle. Rendered in `currentColor`, so a
  * badge sets the colour (gold on the obsidian marks) and the mark inherits it.
  *

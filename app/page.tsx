@@ -5,7 +5,7 @@ import { RankMedallion, type Metal } from "./rank-medallion";
 import { SiteTopbar } from "./site-chrome";
 
 /**
- * Public overview for THRIVE.
+ * Public overview for IMO.
  *
  * Rebuilt on the portal's design system: the same `.portal` token scope, the
  * same card and topbar language, the same Bright/Dark control. A recruit who
@@ -41,7 +41,7 @@ const RANKS = [
     id: "03",
     mark: "III",
     name: "Apex",
-    phase: "Gold / Thrive",
+    phase: "Gold",
     headline: "Production earns altitude. Quality keeps it.",
     body: "Apex recognizes the producer who can place business without hollowing out the book. Promotion blends sustained AP with retention, chargeback control, clean files, and customer outcomes.",
     metric: "95%",
@@ -112,14 +112,14 @@ export default function Home() {
 
       <main className="site-main">
         <section className="site-hero">
-          <p className="portal-eyebrow">THRIVE — Agency operating model</p>
+          <p className="portal-eyebrow">IMO — Agency operating model</p>
           <h1>
             From rented demand<span> to owned intelligence.</span>
           </h1>
           <p className="site-hero-lede">
             Most agencies rent their demand: buy a list, dial it until it is
             dead, buy another. The economics only work while leads stay cheap
-            and people stay disposable. THRIVE is built the other way round — so
+            and people stay disposable. IMO is built the other way round — so
             every conversation leaves something behind that the agency keeps.
           </p>
           <div className="site-hero-actions">
@@ -252,7 +252,7 @@ export default function Home() {
           <article className="portal-card site-cta-card">
             <h2>Already onboarded?</h2>
             <p className="portal-lede">
-              Sign in with the email THRIVE has on file for you. Access is
+              Sign in with the email IMO has on file for you. Access is
               assigned by name before your first sign-in — it is never
               self-served.
             </p>

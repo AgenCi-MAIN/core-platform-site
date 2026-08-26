@@ -1,9 +1,9 @@
 /**
- * THRIVE live call script library.
+ * IMO live call script library.
  *
  * CONTENT RULE — this is the whole point of this file.
  *
- * Script text is AUTHORED AND OWNED BY THRIVE. J.A.R.V.I.S. must not write,
+ * Script text is AUTHORED AND OWNED BY IMO. J.A.R.V.I.S. must not write,
  * rewrite, reword, shorten, "improve", summarise, or generate any value of the
  * `body` field. Presentation is free to change; the words agents say on a live
  * call are not. Compliance-reviewed language stops being compliance-reviewed
@@ -19,7 +19,7 @@
 export type CallScript = {
   /** Stable id, used as the React key and the anchor. */
   id: string;
-  /** Script name as THRIVE refers to it. */
+  /** Script name as IMO refers to it. */
   title: string;
   /** Where in a call this is used. */
   stage: string;
@@ -29,7 +29,7 @@ export type CallScript = {
   owner: string;
   /** Compliance review state, set by a human. */
   status: "approved" | "in_review" | "retired";
-  /** Version label THRIVE maintains. */
+  /** Version label IMO maintains. */
   version: string;
   /** ISO date this version took effect. */
   effectiveFrom: string;

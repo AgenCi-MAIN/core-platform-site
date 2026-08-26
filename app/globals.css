@@ -1518,7 +1518,7 @@ html[data-portal-theme="dark"] .portal-system-dot-neutral { background: #9ba5b1;
 html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"] { box-shadow: 0 1px 4px rgba(0, 0, 0, .45); }
 
 /* ==========================================================================
-   THRIVE THEME — navy spine, daylight workspace.
+   IMO THEME — navy spine, daylight workspace.
    Matched to the commission schedule's design language by owner order
    (2026-08-18): #16202e navy chrome, white surfaces, #2563eb accent.
    Semantic chip hues stay Bright's — their fills are hardcoded light
@@ -1769,7 +1769,7 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
 }
 
 /* ============================================================
-   THRIVE access intake, recruiting tour, script vault, audio deck
+   IMO access intake, recruiting tour, script vault, audio deck
    Uses the existing --portal-* tokens so both themes are inherited.
    ============================================================ */
 
@@ -2052,7 +2052,7 @@ html[data-portal-theme="dark"] .access-confirm-label { color: #79dfad; }
 html[data-portal-theme="dark"] .tour-surface-mark { background: var(--portal-soft); color: var(--portal-text); }
 
 /* ============================================================
-   THRIVE elevation pass - depth, motion, presence.
+   IMO elevation pass - depth, motion, presence.
    Every animation is disabled under prefers-reduced-motion at the
    end of this block.
    ============================================================ */
@@ -2287,7 +2287,7 @@ html[data-portal-theme="dark"] .tour-shell::before {
 }
 
 /* ============================================================
-   THRIVE performance mode
+   IMO performance mode
    Toggle lives in the portal topbar. Boost keeps layout and colour
    identical and drops the effects that cost frames.
    ============================================================ */
@@ -2387,7 +2387,7 @@ html[data-portal-performance="boost"] .tour-cta .button-primary:hover {
 }
 
 /* ============================================================
-   THRIVE library - company reading
+   IMO library - company reading
    ============================================================ */
 
 .library-index {
@@ -2487,7 +2487,7 @@ html[data-portal-performance="boost"] .library-index-icon { background: var(--po
 html[data-portal-performance="boost"] .library-index-item:hover { transform: none; box-shadow: none; }
 
 /* ============================================================
-   THRIVE announcements
+   IMO announcements
    ============================================================ */
 
 .announce-list { display: grid; gap: 15px; }
@@ -2603,7 +2603,7 @@ html[data-portal-performance="boost"] .announce-card-pinned { box-shadow: 0 1px 
 html[data-portal-theme="dark"] .announce-tag-system { color: #8fd2ea; border-color: #2c5568; background: #102a35; }
 
 /* ============================================================
-   THRIVE public surfaces - overview, access, onboarding
+   IMO public surfaces - overview, access, onboarding
    Built on the same .portal token scope as the authenticated
    portal, so Bright/Dark works identically on every page.
    ============================================================ */
@@ -2924,7 +2924,7 @@ html { scroll-padding-top: 88px; }
 }
 
 /* ============================================================
-   THE THRIVE KEY
+   THE IMO KEY
    Replaces the old arrow glyph, which rendered as a blue emoji
    tile on Windows. Easter egg: the key turns and slides into the
    lock on hover. Decorative only -- it grants nothing.
@@ -3043,7 +3043,7 @@ html[data-portal-theme="dark"] .portal-gate-actions .text-link { border-color: v
   font-size: var(--portal-type-label); line-height: 1.5;
 }
 
-/* --- THRIVE Radio: upload + library ------------------------ */
+/* --- Portal Radio: upload + library ------------------------ */
 .music-manager { display: grid; gap: 15px; }
 .music-upload { display: grid; gap: 12px; }
 .music-upload h2, .music-manager section h2 { margin: 0; font-size: var(--portal-type-title); font-weight: 800; }
@@ -3220,7 +3220,7 @@ html[data-portal-performance="boost"] .music-list li,
 html[data-portal-performance="boost"] .portal-workspace-item { transition: none; }
 
 /* ============================================================
-   THRIVE MARK
+   IMO MARK
    The "V" glyph (app/thrive-mark.tsx): a gold mark on a deep
    navy-obsidian badge, matching the founder's supplied logo. A
    soft reflection sweeps across it on hover.
@@ -3556,7 +3556,7 @@ html[data-portal-performance="boost"] .portal-metric-gold .portal-metric-value {
 }
 html[data-portal-theme="dark"][data-portal-performance="boost"] .portal-metric-gold .portal-metric-value { color: var(--m-gold); }
 
-/* --- THRIVE Exchange ---------------------------------------- */
+/* --- IMO Exchange ---------------------------------------- */
 .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-bottom: 18px; }
 .shop-card { display: grid; gap: 13px; align-content: start; position: relative; overflow: hidden; }
 .shop-card::after { content: ""; position: absolute; inset: 0 0 auto 0; height: 3px; }
@@ -4076,7 +4076,7 @@ html[data-portal-theme="dark"] .member-note-ok {
    ============================================================ */
 
 /* The brand mark and the member avatars carry the one gradient:
-   accent into THRIVE gold. Everything else stays token-flat. */
+   accent into IMO gold. Everything else stays token-flat. */
 .portal-brand-mark,
 .portal-topbar-avatar,
 .portal-account-avatar {
@@ -4920,7 +4920,7 @@ html[data-portal-theme="dark"] .portal-card {
 .presence-status span { color: var(--presence-accent); background: var(--presence-soft); }
 html[data-portal-theme="dark"] .presence-line-you,
 html[data-portal-theme="dark"] .presence-ask button { background: #5064c8; color: #fff; }
-/* Thrive's chrome is navy on daylight, so its shadows have to be navy too —
+/* IMO's chrome is navy on daylight, so its shadows have to be navy too —
    the bright theme's warm brown reads as dirt over #eef2f9. */
 html[data-portal-theme="thrive"] .presence {
   --presence-shade: 16, 32, 56;
