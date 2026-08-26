@@ -4639,7 +4639,24 @@ html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
   padding-top: calc(16px + env(safe-area-inset-top));
   padding-inline: 13px;
   padding-bottom: calc(14px + env(safe-area-inset-bottom));
-  background:
+  /* COLOUR AND IMAGE AS LONGHANDS, NOT THE `background` SHORTHAND. This was
+     the shorthand with images only, which resets `background-color` to
+     `transparent`. Boost mode then strips `background-image` (see the
+     `[data-portal-performance="boost"] .portal-sidebar` rule), leaving the
+     rail with NO background at all.
+
+     On the desktop rail that is survivable — it sits in its own grid column
+     against the workspace. On the MOBILE DRAWER it is not: the drawer is
+     `.portal-sidebar .portal-sidebar-mobile`, positioned over the page, so a
+     transparent background renders the drawer's own text on top of the page's
+     text. Reported 2026-08-26 in Bright and Dark with boost on.
+
+     Only the `thrive`/Blue theme escaped it, because its own block declares a
+     longhand `background-color` for an unrelated reason — which is why the
+     bug looked theme-specific and was not. Declaring the longhand here fixes
+     every theme at once and makes the rail opaque with or without boost. */
+  background-color: var(--portal-sidebar);
+  background-image:
     radial-gradient(circle at 18px 124px, color-mix(in srgb, var(--portal-accent) 22%, transparent) 0 1px, transparent 2px),
     radial-gradient(circle at 42px 274px, color-mix(in srgb, var(--portal-accent) 14%, transparent) 0 1px, transparent 2px),
     linear-gradient(180deg, color-mix(in srgb, var(--portal-accent) 4%, var(--portal-sidebar)), var(--portal-sidebar));

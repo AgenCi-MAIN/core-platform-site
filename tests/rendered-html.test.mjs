@@ -1857,3 +1857,65 @@ test("no surface can be swiped sideways off the screen", async () => {
     "the persistent Calls control must collapse to one 44px touch target rather than leave the viewport",
   );
 });
+
+test("the sidebar rail keeps an opaque background in boost mode, in every theme", async () => {
+  // REGRESSION, reported 2026-08-26: with BOOSTED on, opening the mobile menu
+  // drawer in Bright and Dark rendered the drawer's text on top of the page's
+  // text. The drawer was fully transparent.
+  //
+  // The cause was a two-rule interaction that neither rule looks wrong alone:
+  //
+  //   .portal-sidebar { background: <gradients only>; }        // shorthand
+  //   [data-portal-performance="boost"] .portal-sidebar {
+  //     background-image: none;                                // strips them
+  //   }
+  //
+  // The shorthand resets `background-color` to `transparent`, boost removes
+  // the images, and nothing is left. It survived review because the desktop
+  // rail sits in its own grid column where transparency is invisible, and
+  // because the `thrive`/Blue theme happens to declare a longhand
+  // `background-color` in its own block for an unrelated reason — so the bug
+  // presented as theme-specific and was not.
+  //
+  // The fix is a longhand `background-color` on the rail itself. This test
+  // pins that shape rather than the symptom: any future return to the
+  // shorthand reintroduces the bug for every theme at once.
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  // Several rules target .portal-sidebar; the one that matters is whichever
+  // block paints the rail's gradients, found by content rather than by
+  // position so a reordering of the stylesheet cannot silently un-pin this.
+  const blocks = [...css.matchAll(/(?:^|\n)\s*\.portal-sidebar\s*\{([^}]*)\}/g)].map(
+    (m) => m[1],
+  );
+  assert.ok(blocks.length > 0, "no .portal-sidebar rule was found at all");
+  const rail = blocks.find((b) => b.includes("radial-gradient") || b.includes("linear-gradient"));
+  assert.ok(rail, "no .portal-sidebar rule paints the rail gradients any more");
+
+  assert.match(
+    rail,
+    /background-color:\s*var\(--portal-sidebar\)/,
+    "the rail must set background-color as a LONGHAND — the `background` shorthand " +
+      "resets it to transparent, and boost mode then strips the images, leaving the " +
+      "mobile drawer see-through over the page",
+  );
+  assert.doesNotMatch(
+    rail,
+    /(?:^|[\s;])background:\s*(?:radial-|linear-)gradient/,
+    "the rail is back on the `background` shorthand with images, which resets " +
+      "background-color to transparent",
+  );
+
+  // The boost rule may strip the images — that is its job — but it must not be
+  // the only thing standing between the drawer and transparency.
+  const boost = css.match(
+    /html\[data-portal-performance="boost"\]\s+\.portal-sidebar\s*\{[^}]*\}/,
+  );
+  if (boost) {
+    assert.doesNotMatch(
+      boost[0],
+      /background:\s*none|background-color:\s*transparent/,
+      "boost mode must not clear the rail's background COLOUR, only its images",
+    );
+  }
+});
