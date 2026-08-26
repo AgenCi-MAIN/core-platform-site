@@ -220,19 +220,19 @@ Guard a page with `requireCapability(...)`; guard a write with
 | --- | --- | --- | --- |
 | `btcmao518@gmail.com` | Yuxiang Mao (Shawn) — **current founder identity** | owner | owner-migration 2026-08-17 (`db/sql/0003`); signed in and bound 2026-08-17 |
 | `bankerrunners@gmail.com` | Yuxiang Mao (Shawn) — retired identity (Google locked the account 2026-08-17; cannot sign in; row retained for the record; **outreach PAUSED through 2026-08-20 — do not email this address; after that, owner's word required, A12**) | owner | bootstrap, 2026-08-14 |
-| `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | by Shawn, 2026-08-14 |
-| `epiclife.nguyen@gmail.com` | Nate Nguyen | **manager** | seated as owner by Shawn from the portal 2026-08-15; revoked 2026-08-18 (A15, declined to invest), reinstated the same day as **manager** (A16 — employment and ownership are separate). **This row read `owner` until 2026-08-18**, three days after A16 changed it: whoever consulted the record to decide his role would have found the wrong answer, which is how a stale table stops being documentation and starts being a cause. Corrected alongside `db/sql/0008`. |
-| `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | owner | approved by Shawn 2026-08-15 ("shawn-aprooved"); granted from the portal 2026-08-15, first sign-in bound 2026-08-16 — LIVE (roster screenshot verified by the owner) |
+| `ryandavidson.zenith@gmail.com` | Ryan Davidson | **reviewer** | seated as owner by Shawn 2026-08-14; **demoted `owner` → `reviewer` and revoked 2026-08-26 (A30)**. Holds no access. |
+| `epiclife.nguyen@gmail.com` | Nate Nguyen | manager — **revoked 2026-08-26 (A30)**, role left as it stood | seated as owner by Shawn from the portal 2026-08-15; revoked 2026-08-18 (A15, declined to invest), reinstated the same day as **manager** (A16 — employment and ownership are separate). **This row read `owner` until 2026-08-18**, three days after A16 changed it: whoever consulted the record to decide his role would have found the wrong answer, which is how a stale table stops being documentation and starts being a cause. Corrected alongside `db/sql/0008`. |
+| `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | **reviewer** | approved by Shawn 2026-08-15 ("shawn-aprooved"); granted from the portal 2026-08-15, bound 2026-08-16; **demoted `owner` → `reviewer` and revoked 2026-08-26 (A30)**. Holds no access. |
 | `ray@inkbox.ai` | ray — personal friend of the founder | **reviewer** ("Reviewer / Coach") | granted by `btcmao518@gmail.com` from the portal 2026-08-20; bound. **This grant reached the record on 2026-08-26, six days late** — it was discovered from a screenshot of the live roster, not from any file here, and no A-row, migration, or session entry had ever mentioned it. See §19aa: it is the reason the 2026-08-26 revocation was written by exclusion. |
+| `keno.thrivecontracting@gmail.com` | **Ken** | admin — **revoked** | **Reached this record 2026-08-26, from a screenshot of the live members page, and from no file, migration, A-row or session entry.** Already revoked before `db/sql/0012` ran, which is why the sweep's census (`logged` = 3) did not surface it. Grants nothing while revoked, but the role is `admin` — `members.manage` and `scripts.manage`. **Origin, grant date and grantor are unknown**; `audit_events` is the only place that can answer, and should be queried. Second undocumented row found in one day, after `ray@inkbox.ai`. |
 
-> **Pending order, 2026-08-26 (A30).** The founder has ordered portal access
-> reduced to **`btcmao518@gmail.com` and `ray@inkbox.ai` only**, and — by a
-> same-day amendment — **Ryan Davidson and Andrew Davidson demoted `owner` →
-> `reviewer`** as well as revoked. The SQL is
-> `db/sql/0012_roster_reduction_2026_08_26.sql` and **has not been run** — the
-> rows above still read as they stand today. This table is updated when the
-> founder executes it and not before, so that nobody reads a decision here as
-> a fact about the database. §19aa carries the detail.
+> **Status of this table: EXECUTED and verified 2026-08-26 (A30).** The
+> founder ran `db/sql/0012_roster_reduction_2026_08_26.sql` against the remote
+> D1 — 3 queries, 20 rows written — and verified by query. **Two addresses now
+> hold access: `btcmao518@gmail.com` (owner) and `ray@inkbox.ai` (reviewer).**
+> Exactly one active owner row exists and it is the founder's. Three people
+> were affected and all three are named in `audit_events`. §19aa carries the
+> detail and the one number that mattered most.
 
 
 Pending: **Oscar Valencia** is named as an owner in the agreement record, but
@@ -2481,3 +2481,79 @@ deliberately undocumented active row: two active rows survive
 (`btcmao518` owner, `ray@inkbox.ai` reviewer), both Davidson rows read
 `reviewer`/`revoked`, the retired `bankerrunners` row is untouched, four audit
 rows carry each prior role and status, and a second execution is a no-op.
+
+**Executed and verified 2026-08-26.** The founder ran the file against the
+remote D1: **3 queries, 27 rows read, 20 rows written.** The verify queries
+returned exactly what the dry-run predicted:
+
+| Email | Role | Status |
+| --- | --- | --- |
+| `btcmao518@gmail.com` | owner | active |
+| `ray@inkbox.ai` | reviewer | active |
+| `ryandavidson.zenith@gmail.com` | **reviewer** | revoked |
+| `andrew.davidson.zenith@gmail.com` | **reviewer** | revoked |
+| `epiclife.nguyen@gmail.com` | manager | revoked |
+| `bankerrunners@gmail.com` | owner | revoked (retired identity, untouched) |
+
+`SELECT email FROM portal_members WHERE role = 'owner' AND status = 'active'`
+returned one row, `btcmao518@gmail.com`. No other active owner exists.
+
+**The number that mattered most was `logged` = 3.** The audit sweep covers
+everyone it touches, so its count is a census of the affected population taken
+by the database rather than by this repository. Three means Ryan, Andrew and
+Nate and nobody else lost access in this run.
+
+**It does NOT mean the roster held no other surprises, and the first reading
+of it here said so wrongly.** The sweep's population is *active* rows only, so
+its census can only ever count those. A screenshot of the members page taken
+minutes after execution showed a **seventh row this repository has never
+recorded**: `keno.thrivecontracting@gmail.com`, display name **Ken**, role
+**admin**, status **revoked**. It was already revoked before this file ran,
+which is precisely why `logged` = 3 did not reveal it. The correct statement
+is: no undocumented *active* row existed. An undocumented *row* did, and it
+carried `admin` — the second-highest capability set in the system, holding
+`members.manage` and `scripts.manage`.
+
+Nothing about that row grants anything today; `access.ts` refuses it like any
+other non-active row. What it costs is the assumption underneath it. Ray was
+found by screenshot on 2026-08-26 and Ken was found by screenshot the same
+day, both absent from every file here — which makes two, not one, and turns
+"the record drifted once" into "the record does not know the roster." **The
+D1 database is the only authority on who holds access; this table is a report
+of it and has now twice been wrong.** Reading the live roster before acting on
+membership is not a courtesy check, it is the check.
+
+Worth stating plainly, since the check could easily have been skipped: "20
+rows written" does not verify a roster. D1 counts index writes alongside table
+rows, and between them these two tables carry six indexes, so that figure is
+consistent with the right outcome and with several wrong ones. Only the
+SELECTs distinguish them.
+
+**Ray's row was never in danger, and this is worth recording because the SQL
+was written by exclusion.** An exclusion sweep is only as good as the spelling
+of its keep list: a typo in `ray@inkbox.ai` would have revoked him silently
+along with everyone else. `logged` = 3 rules that out — he was not in the
+affected population — and he does not appear among the revoked rows.
+
+**A side effect of the demotion, recorded because it is not obvious.** A1's
+peer protection covers **owner rows only** — `/portal/members/manage` refuses
+to change another owner's role or status. Ryan and Andrew were owners and are
+now reviewers, so **their rows are no longer peer-protected and are editable
+from the portal** by anyone holding `members.manage`. The members page
+confirms it: their dropdowns render live, while both founder rows stay greyed
+out. Today the only active holder of `members.manage` is the founder, so this
+changes nothing in practice. It matters the moment anyone is granted `owner`
+or `admin` again: reinstating either brother would then be a click rather than
+a console operation, and A26 exists because console-level roster changes are
+already hard enough to attribute.
+
+**Still open, and outside the database entirely:** Ryan, Andrew and Nate
+remain on the Cloudflare Access allow policy. Whether **Ken** is on it too is
+unknown and should be checked in the same sitting — an undocumented `admin`
+row means an undocumented Access entry is equally plausible. Per A31 that gate was not
+fronting this hostname before or after Worker version `572f72e7`, so it is
+currently removing nobody from anything; the membership check inside is what
+is actually refusing them. Both facts point at the same next action, which
+only the founder can take: open Zero Trust, find out why the policy is not
+enforcing, and confirm `ray@inkbox.ai` is on the allow list before trimming
+the other three off it.
