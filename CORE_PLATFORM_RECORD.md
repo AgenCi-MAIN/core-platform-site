@@ -223,6 +223,17 @@ Guard a page with `requireCapability(...)`; guard a write with
 | `ryandavidson.zenith@gmail.com` | Ryan Davidson | owner | by Shawn, 2026-08-14 |
 | `epiclife.nguyen@gmail.com` | Nate Nguyen | **manager** | seated as owner by Shawn from the portal 2026-08-15; revoked 2026-08-18 (A15, declined to invest), reinstated the same day as **manager** (A16 — employment and ownership are separate). **This row read `owner` until 2026-08-18**, three days after A16 changed it: whoever consulted the record to decide his role would have found the wrong answer, which is how a stale table stops being documentation and starts being a cause. Corrected alongside `db/sql/0008`. |
 | `andrew.davidson.zenith@gmail.com` | Andrew Davidson (Ryan's brother) | owner | approved by Shawn 2026-08-15 ("shawn-aprooved"); granted from the portal 2026-08-15, first sign-in bound 2026-08-16 — LIVE (roster screenshot verified by the owner) |
+| `ray@inkbox.ai` | ray — personal friend of the founder | **reviewer** ("Reviewer / Coach") | granted by `btcmao518@gmail.com` from the portal 2026-08-20; bound. **This grant reached the record on 2026-08-26, six days late** — it was discovered from a screenshot of the live roster, not from any file here, and no A-row, migration, or session entry had ever mentioned it. See §19aa: it is the reason the 2026-08-26 revocation was written by exclusion. |
+
+> **Pending order, 2026-08-26 (A30).** The founder has ordered portal access
+> reduced to **`btcmao518@gmail.com` and `ray@inkbox.ai` only**, and — by a
+> same-day amendment — **Ryan Davidson and Andrew Davidson demoted `owner` →
+> `reviewer`** as well as revoked. The SQL is
+> `db/sql/0012_roster_reduction_2026_08_26.sql` and **has not been run** — the
+> rows above still read as they stand today. This table is updated when the
+> founder executes it and not before, so that nobody reads a decision here as
+> a fact about the database. §19aa carries the detail.
+
 
 Pending: **Oscar Valencia** is named as an owner in the agreement record, but
 his sign-in address was never confirmed. Confirm the exact Google address he
@@ -2371,3 +2382,102 @@ URL. `SIGNALWIRE_INGEST_SECRET_PREVIOUS` still holds the 06:28 value of
 unknown correctness and should be deleted now that the current generation
 is proven. Agent 1 holds no Cloudflare or SignalWire credentials; every
 production action in this section was executed by the owner.
+
+### 19aa. Roster reduced to two by founder order; edge gate found open — 2026-08-26
+
+**The order.** "remove all MEBER ACCESS expept-Yuxiang Mao(shawn) and Ray."
+No roster row carries the name Ray, so the order could not be executed as
+written — naming the wrong address would revoke the wrong partner. Asked, the
+founder identified **`ray@inkbox.ai`**, the Reviewer / Coach row, and said he
+is a personal friend he wants to keep a personal line to. Access after
+execution is two addresses: `btcmao518@gmail.com` and `ray@inkbox.ai`.
+
+Losing access, all three retained as revoked rows: **Ryan Davidson**
+(`ryandavidson.zenith@gmail.com`, owner), **Andrew Davidson**
+(`andrew.davidson.zenith@gmail.com`, owner) and **Nate Nguyen**
+(`epiclife.nguyen@gmail.com`, manager). Two of the three are partner owner
+seats, which is why this is a console file: owner rows are peer-protected and
+`/portal/members/manage` refuses to touch them (governance 2026-08-15).
+
+**Why the SQL is written by exclusion, not by name.** `ray@inkbox.ai` was
+granted from the portal on 2026-08-20 and appears in **no file in this
+repository**. It was discovered from a screenshot the founder pasted, which
+means the repository's roster was six days stale and did not know it. A file
+revoking three named addresses would therefore have silently left behind any
+other row granted since 2026-08-18 and reported success.
+`WHERE status = 'active' AND email NOT IN (the two keepers)` cannot miss a row
+it has never heard of. The paired audit INSERT runs **before** the UPDATE and
+is also a SELECT over the same rows, so every person swept — including any
+this repository still does not know about — is named in the append-only trail
+at the moment they lose access. That closes, for this change, the A26 gap
+where console statements changed roles and left no audit row.
+
+**The live roster could not be read from this session, and that is correct
+behaviour.** `GET /portal/members` was fetched anonymously; the worker
+answered `307` to `/auth/signin`, which lands on Google. There is no way to
+hold a `core_session` cookie from here and there should not be. The record's
+roster is therefore accurate as of the screenshot the founder pasted and no
+further — the verify query at the foot of `db/sql/0012` is what establishes
+the real state, and it should be run and read.
+
+**Finding, from that same fetch: Cloudflare Access did not front the request.**
+An anonymous request from an unauthenticated datacenter address reached
+application code and received the app's own sign-in redirect — no Access
+interstitial, no `cf-access` challenge, first hop `307` straight from the
+worker. §1 and CLAUDE.md both state that anonymous requests are refused at
+the edge *before* this application runs. On 2026-08-26 that is not what
+production does at this hostname.
+
+Nothing leaked, and the reason is the whole design: identity comes only from
+the HMAC-signed cookie and membership is re-resolved on every request, so the
+app refused on its own without help. That is defence in depth doing its job.
+But it is now the **only** layer, which changes the risk of every other
+decision made on the assumption that two gates exist — including this one, in
+a specific way: A30 depends on removed members being dropped from the Access
+allow policy, and a policy that is not being enforced cannot remove anyone.
+Whether the Access application was deleted, detached from this hostname, or
+scoped to paths that miss `/portal`, only the Zero Trust dashboard can say,
+and only the founder can reach it. **Unverified and worth checking in the
+same sitting: whether `ray@inkbox.ai` is on that allow policy at all.** If
+the gate is later restored to the four owner emails of the 2026-08-18 build,
+Ray is locked out at the edge while the roster says he has access — a portal
+that looks broken rather than closed.
+
+**Amended the same day: Ryan and Andrew demoted, not only revoked.** The
+founder followed the first order with a second — "now remove the access for
+ryan and andrew, downgrade them from role owner to reviewer." The first
+version of `db/sql/0012` had deliberately left `role` alone, reasoning that
+the order concerned access rather than rank. That reasoning was right about
+the first order and wrong about the intent, and the founder said so plainly.
+
+The file was corrected **in place** rather than superseded by an 0013, which
+is the opposite of what A15/A16/A26 did — and the difference is the whole
+justification. Those files were already applied to the live database, so
+editing them would have rewritten history that had really happened. This one
+had never been run and had never reached `main`. There was no applied
+statement to preserve, and shipping a file known to do the wrong thing is
+worse than editing an unapplied one.
+
+Two things about the demotion worth keeping, because both are easy to get
+backwards:
+
+- **It grants nothing, and it is not a no-op either.** `access.ts` refuses any
+  row whose status is not `active` before role is ever consulted, so a revoked
+  reviewer grants precisely what a revoked owner grants — nothing. What the
+  demotion changes is what the row *means* and what it would *restore to*: if
+  either address is ever reinstated, it returns as a reviewer. That is the
+  durable half of the order, and it is the half that survives any future
+  reinstatement made in a hurry.
+- **The roster is not a cap table.** `portal_members.role` is a capability set
+  in this application. It is not an equity position, a partnership interest,
+  or anything in the agreement record. This ends two owner *seats in the
+  portal*; it says nothing about ownership of the company. If the intent
+  reaches the partnership itself, that belongs in a separate decision in a
+  separate record, and `db/sql/0012` is not it.
+
+After execution, no active owner row exists but the founder's. Verified by
+dry-run against a scratch database seeded with the known roster plus a
+deliberately undocumented active row: two active rows survive
+(`btcmao518` owner, `ray@inkbox.ai` reviewer), both Davidson rows read
+`reviewer`/`revoked`, the retired `bankerrunners` row is untouched, four audit
+rows carry each prior role and status, and a second execution is a no-op.
