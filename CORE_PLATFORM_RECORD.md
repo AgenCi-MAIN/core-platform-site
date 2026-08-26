@@ -226,11 +226,13 @@ Guard a page with `requireCapability(...)`; guard a write with
 | `ray@inkbox.ai` | ray — personal friend of the founder | **reviewer** ("Reviewer / Coach") | granted by `btcmao518@gmail.com` from the portal 2026-08-20; bound. **This grant reached the record on 2026-08-26, six days late** — it was discovered from a screenshot of the live roster, not from any file here, and no A-row, migration, or session entry had ever mentioned it. See §19aa: it is the reason the 2026-08-26 revocation was written by exclusion. |
 
 > **Pending order, 2026-08-26 (A30).** The founder has ordered portal access
-> reduced to **`btcmao518@gmail.com` and `ray@inkbox.ai` only**. The SQL is
+> reduced to **`btcmao518@gmail.com` and `ray@inkbox.ai` only**, and — by a
+> same-day amendment — **Ryan Davidson and Andrew Davidson demoted `owner` →
+> `reviewer`** as well as revoked. The SQL is
 > `db/sql/0012_roster_reduction_2026_08_26.sql` and **has not been run** — the
-> rows above still read as they stand today. This table is updated to
-> `revoked` when the founder executes it and not before, so that nobody reads
-> a decision here as a fact about the database. §19aa carries the detail.
+> rows above still read as they stand today. This table is updated when the
+> founder executes it and not before, so that nobody reads a decision here as
+> a fact about the database. §19aa carries the detail.
 
 
 Pending: **Oscar Valencia** is named as an owner in the agreement record, but
@@ -2440,3 +2442,42 @@ same sitting: whether `ray@inkbox.ai` is on that allow policy at all.** If
 the gate is later restored to the four owner emails of the 2026-08-18 build,
 Ray is locked out at the edge while the roster says he has access — a portal
 that looks broken rather than closed.
+
+**Amended the same day: Ryan and Andrew demoted, not only revoked.** The
+founder followed the first order with a second — "now remove the access for
+ryan and andrew, downgrade them from role owner to reviewer." The first
+version of `db/sql/0012` had deliberately left `role` alone, reasoning that
+the order concerned access rather than rank. That reasoning was right about
+the first order and wrong about the intent, and the founder said so plainly.
+
+The file was corrected **in place** rather than superseded by an 0013, which
+is the opposite of what A15/A16/A26 did — and the difference is the whole
+justification. Those files were already applied to the live database, so
+editing them would have rewritten history that had really happened. This one
+had never been run and had never reached `main`. There was no applied
+statement to preserve, and shipping a file known to do the wrong thing is
+worse than editing an unapplied one.
+
+Two things about the demotion worth keeping, because both are easy to get
+backwards:
+
+- **It grants nothing, and it is not a no-op either.** `access.ts` refuses any
+  row whose status is not `active` before role is ever consulted, so a revoked
+  reviewer grants precisely what a revoked owner grants — nothing. What the
+  demotion changes is what the row *means* and what it would *restore to*: if
+  either address is ever reinstated, it returns as a reviewer. That is the
+  durable half of the order, and it is the half that survives any future
+  reinstatement made in a hurry.
+- **The roster is not a cap table.** `portal_members.role` is a capability set
+  in this application. It is not an equity position, a partnership interest,
+  or anything in the agreement record. This ends two owner *seats in the
+  portal*; it says nothing about ownership of the company. If the intent
+  reaches the partnership itself, that belongs in a separate decision in a
+  separate record, and `db/sql/0012` is not it.
+
+After execution, no active owner row exists but the founder's. Verified by
+dry-run against a scratch database seeded with the known roster plus a
+deliberately undocumented active row: two active rows survive
+(`btcmao518` owner, `ray@inkbox.ai` reviewer), both Davidson rows read
+`reviewer`/`revoked`, the retired `bankerrunners` row is untouched, four audit
+rows carry each prior role and status, and a second execution is a no-op.
