@@ -7206,3 +7206,57 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
 .calls-outbound-panel:not([hidden]) { display: grid; gap: 14px; }
 @media (max-width: 780px) { .calls-live-grid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .presence-toggle-call { animation: none; } }
+/* --- Cloud Command Center: clickable cards ------------------- */
+
+/* The stretched-link pattern. The anchor lives on the card's heading, so its
+   accessible name is just the title; this overlay then extends the hit area
+   across the whole card. Pointer users get the large target they expect from
+   a card, screen reader and keyboard users get one sensible link instead of
+   one enormous one, and either way there is exactly one tab stop per card.
+
+   `position: relative` on the card is what the overlay anchors to. Without it
+   the ::after would stretch to the nearest positioned ancestor — usually the
+   panel — and one card would swallow clicks meant for its neighbours. */
+.cacc-linked { position: relative; }
+
+.cacc-stretch {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cacc-stretch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Above the card's own background, below anything interactive that may sit
+     on top of it later — a second control inside a stretched card must stay
+     clickable, and it needs a z-index above this to do it. */
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.cacc-linked:hover { cursor: pointer; }
+.cacc-linked:hover .cacc-stretch { text-decoration: underline; }
+
+/* The focus ring belongs on the CARD, not on the heading text — the heading
+   is a few words in the corner of a large clickable box, and ringing only
+   those words tells a keyboard user almost nothing about what they are about
+   to activate. :focus-within moves it to the thing that is really the target. */
+.cacc-linked:focus-within {
+  outline: 2px solid var(--portal-accent);
+  outline-offset: 2px;
+}
+.cacc-stretch:focus-visible { outline: none; }
+
+/* Small mark on links that leave the portal. aria-hidden in the markup, since
+   the anchor already carries "(opens in a new tab)" for assistive tech — the
+   arrow is for people who can see where they are about to be sent. */
+.cacc-external {
+  margin-left: 4px;
+  font-size: .78em;
+  opacity: .65;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cacc-stretch { transition: none; }
+}
