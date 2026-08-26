@@ -567,12 +567,11 @@ optional one.
   entry records that it is still absent after the deploy rather than leaving
   the question open.
 
-- 2026-08-26 (later): **version id PENDING CAPTURE** — the IMO Operating
+- 2026-08-26 (later): **version `6dbafe27-5818-4042-81fb-b0a4fbcb4741`**, created
+  2026-08-26T22:55:27Z — the IMO Operating
   Portal rebrand (A32), deployed by the owner from `C:\dev\core-platform-site`
-  at `main@7c0ef9e` (PR #125). Recover the id with
-  `npx wrangler deployments list -c dist\server\wrangler.json` and substitute
-  it here; the `Tee-Object` practice in §7 exists to stop this recurring, and
-  this is the third entry to need recovery.
+  at `main@7c0ef9e` (PR #125). Id recovered from
+  `wrangler deployments list` the same night rather than left pending.
 
   **Verified live from outside the session, anonymously**, which is the half
   that matters after this particular deploy went wrong once:
@@ -603,3 +602,35 @@ optional one.
   portal theme picker's third option is still labelled *Thrive*, held under the
   founder's order of 2026-08-18 ("DO NOT TAKE THRIVE COLOR OUT"). Renaming the
   label while keeping the palette is a one-line change awaiting his word (A32).
+
+- 2026-08-26 (later still): **version `2e61ea69-b335-4956-b61f-4b80e8cf20aa`**,
+  created 2026-08-26T23:21:16Z — the `Thrive` → `Blue` theme relabel (A33),
+  deployed by the owner at `main@97bd78e` (PR #126). **Verified live from
+  outside the session:** the public theme picker renders `Bright`, `Dark`,
+  `Blue`, with zero occurrences of `Thrive`. The palette is unchanged and the
+  theme id is still `thrive`, so no member's saved preference was reset.
+
+  **The deploy instruction named the expected commit this time**, and the check
+  did its job: the owner ran `git log --oneline -1` before `npm run deploy` and
+  confirmed `97bd78e` at HEAD. That is the practice the earlier failure in this
+  log argued for, used once and working.
+
+### "Source: Unknown (deployment)" is normal, and §19z's suspicion is partly withdrawn
+
+`CORE_PLATFORM_RECORD.md` §19z records version `5c67d18b-c4d8-4b3f-9841-47d34d70eefb`
+(2026-08-21) as **an unexplained deploy**, resting on two observations: it was
+attributed to `btcmao518@gmail.com` with source **"Unknown (deployment)"**, and
+no merge to `main` corresponded to it.
+
+The `wrangler deployments list` output of 2026-08-26 shows **both** of that
+night's deploys — `6dbafe27` and `2e61ea69`, each a plain `npm run deploy` from
+the owner's machine, each with a known commit — carrying the identical
+`Source: Unknown (deployment)` and an empty `Message`. **That attribute is
+simply what a wrangler CLI deploy looks like in this listing.** It is not a
+signal of anything irregular, and it should never again be cited as one.
+
+What survives of the §19z observation is the narrower half: no merge to `main`
+corresponded to `5c67d18b`. That remains unreconciled and is worth nothing more
+alarming than "someone deployed a working tree", which the CLI permits and which
+this project has done. The suspicious-looking source line was the weaker half of
+the case and is withdrawn.
