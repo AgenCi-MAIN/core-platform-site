@@ -78,7 +78,7 @@ const NAV: readonly NavItem[] = [
     capability: "dashboard.view.self",
     icon: "dashboard",
     group: "Workspace",
-    description: "Your authenticated THRIVE command surface.",
+    description: "Your authenticated IMO command surface.",
     state: "live",
     stateLabel: "Available",
   },
@@ -98,7 +98,7 @@ const NAV: readonly NavItem[] = [
     capability: "dashboard.view.self",
     icon: "library",
     group: "Workspace",
-    description: "Who THRIVE is, what we believe, training, and the incentive plan.",
+    description: "Who IMO is, what we believe, training, and the incentive plan.",
     state: "live",
     stateLabel: "Available",
   },
@@ -118,7 +118,7 @@ const NAV: readonly NavItem[] = [
     capability: "dashboard.view.self",
     icon: "training",
     group: "Calls",
-    description: "THRIVE-approved introductions, call angles, and training language.",
+    description: "IMO-approved introductions, call angles, and training language.",
     state: "live",
     stateLabel: "Approved content",
   },
@@ -521,7 +521,7 @@ export async function PortalShell({
         }}
       />
 
-      <aside className="portal-sidebar portal-sidebar-desktop" aria-label="THRIVE portal sidebar">
+      <aside className="portal-sidebar portal-sidebar-desktop" aria-label="IMO portal sidebar">
         <PortalSidebarContent
           session={session}
           current={current}
@@ -533,7 +533,7 @@ export async function PortalShell({
       <aside
         className="portal-sidebar portal-sidebar-mobile"
         id="portal-mobile-navigation"
-        aria-label="THRIVE mobile navigation"
+        aria-label="IMO mobile navigation"
         popover="auto"
       >
         <button
@@ -602,7 +602,7 @@ export async function PortalShell({
             <PortalBackControl />
             <span className="portal-topbar-copy">
               <strong className="portal-section-name">J.A.R.V.I.S. / {section}</strong>
-              <small className="portal-section-context">Private operations · THRIVE</small>
+              <small className="portal-section-context">Private operations · IMO</small>
             </span>
           </div>
 
@@ -645,10 +645,10 @@ function PortalSidebarContent({
   return (
     <>
       <div className="portal-sidebar-head">
-        <Link className="portal-brand" href="/portal" aria-label="THRIVE portal dashboard">
+        <Link className="portal-brand" href="/portal" aria-label="IMO portal dashboard">
           <span className="portal-brand-mark" aria-hidden="true"><ThriveMark size={19} /></span>
           <span className="portal-brand-copy">
-            <strong>THRIVE</strong>
+            <strong>IMO</strong>
             <small>Operating portal</small>
           </span>
         </Link>

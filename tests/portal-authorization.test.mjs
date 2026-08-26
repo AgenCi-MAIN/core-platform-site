@@ -275,7 +275,7 @@ test("active members see the pinned Switchboard announcement", async (t) => {
   );
 });
 
-test("active members open Training with one verbatim intro and labelled empty slots", async (t) => {
+test("active members open Training with every slot labelled and awaiting language", async (t) => {
   const portal = await startPortal();
   t.after(portal.dispose);
 
@@ -305,9 +305,17 @@ test("active members open Training with one verbatim intro and labelled empty sl
   assert.match(html, /id="training"/);
   assert.match(html, /id="introductions"/);
   assert.match(html, /id="call-angles"/);
-  assert.match(visibleHtml, /Inbound Call Process — Variation 1/);
-  assert.match(visibleHtml, /That’s a carrier I can help you with\. Do you have your policy number\?/);
-  assert.match(visibleHtml, /Always use the word 'verify'\./);
+  // PENDING STATE — IMO changeover, 2026-08-26. Every slot's approved body was
+  // unpublished with the rest of the previous operator's content, so the page
+  // now renders the labelled empty state throughout rather than any script
+  // text. What is asserted here is the honest half: the page must SAY it is
+  // awaiting language, not render a blank panel that looks fine.
+  assert.match(visibleHtml, /awaiting approved language/);
+  assert.doesNotMatch(
+    visibleHtml,
+    /approved language loaded/,
+    "a slot claims approved language while the library declares none",
+  );
 
   for (const label of [
     "Client States Problem First ...",
@@ -359,11 +367,17 @@ test("active members open Training with one verbatim intro and labelled empty sl
     4,
     "the standalone Training slot plus the intro, angle and closing panels render, each declaring its state",
   );
+  // PENDING STATE — IMO changeover, 2026-08-26. Every approved body was
+  // unpublished, so no panel may claim loaded content. This was 2 while the
+  // previous operator's intro and call angle were supplied; it is 0 now and
+  // becomes non-zero again the day the incoming IMO loads its own approved
+  // language. The count is still asserted exactly rather than loosened to
+  // "at most", because a panel claiming content the library cannot supply is
+  // precisely the failure the empty states exist to prevent.
   assert.equal(
     (html.match(/data-content-state="loaded"/g) ?? []).length,
-    2,
-    "the default intro and the default call angle are both owner-supplied and both load; " +
-      "the Closing slot is still awaiting its wording, so exactly two panels may claim content",
+    0,
+    "no approved language is loaded, so no panel may claim content",
   );
   // Both truncated labels still disclose themselves in the tab strip.
   assert.ok(
@@ -2531,7 +2545,24 @@ test("the rendered Training script is byte-identical to the approved body", asyn
   const literal = library.match(
     /^export const DIRECT_CARRIER_QUESTION_INTRO_BODY = (".*");$/m,
   )?.[1];
-  assert.ok(literal, "approved Training body constant not found");
+  // PENDING STATE — IMO changeover, 2026-08-26. The approved bodies were
+  // unpublished with the rest of the previous operator's content, so there is
+  // no rendered script to compare against and this guarantee has nothing to
+  // guard. It is not deleted: the moment an approved body is loaded again the
+  // comparison below runs against it, unchanged and with no edit here.
+  //
+  // The emptiness is asserted, not assumed, so this can never become a
+  // permanently silent pass: a library still marking a slot approved while
+  // declaring no body would render an inline string as approved language, and
+  // that fails here.
+  if (!literal) {
+    assert.equal(
+      [...library.matchAll(/state: "approved",/g)].length,
+      0,
+      "no approved body constant exists, yet a Training slot is still marked approved",
+    );
+    return;
+  }
   const approved = JSON.parse(literal);
 
   const portal = await startPortal();
@@ -2774,7 +2805,22 @@ test("the commission schedule serves every active member from inside the bundle"
 
   const html = await doc.text();
   assert.match(html, /Commission Schedule/i, "the schedule document must render");
-  assert.match(html, /LEVEL_KEYS/, "the interactive grid data must be present");
+  // PENDING STATE — IMO changeover, 2026-08-26. The interactive grid
+  // (LEVEL_KEYS and the carrier ladders) held the previous operator's
+  // contracted rates and was unpublished. What still matters is asserted: the
+  // document is served from inside the bundle, it renders, and it declares
+  // itself pending instead of showing a stale comp grid — which is the one
+  // failure mode that costs money, because people quote from a comp grid.
+  assert.match(
+    html,
+    /Pending/i,
+    "the schedule document must declare itself pending rather than render a stale grid",
+  );
+  assert.doesNotMatch(
+    html,
+    /LEVEL_KEYS/,
+    "the previous operator's commission grid is still embedded in the document",
+  );
   assert.ok(
     !html.includes("unavailable on this deployment"),
     "the fail-closed fallback must not fire when the bundle carries the document",

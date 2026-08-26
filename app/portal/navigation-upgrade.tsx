@@ -67,7 +67,7 @@ export function PortalNavigationUpgrade() {
         const balance = document.createElement("a");
         balance.href = "/portal/shop";
         balance.className = "thrive-balance-pill";
-        balance.title = "Open THRIVE Marketplace";
+        balance.title = "Open IMO Marketplace";
         balance.innerHTML = "<span>Account balance</span><strong>— · ledger pending</strong>";
 
         const calls = document.createElement("button");

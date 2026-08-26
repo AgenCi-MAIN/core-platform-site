@@ -5,7 +5,7 @@ import { LIBRARY, type LibraryBlock, type LibraryDocument } from "./content";
 export const dynamic = "force-dynamic";
 
 /**
- * The reading room: who THRIVE is, what it believes, how training works, and
+ * The reading room: who IMO is, what it believes, how training works, and
  * the current incentive plan.
  *
  * Guarded by `dashboard.view.self`, which every one of the six roles holds —
@@ -19,7 +19,7 @@ export default async function LibraryPage() {
     <PortalShell session={session} current="/portal/library" section="Library">
       <main className="portal-main">
         <PortalPageIntro
-          eyebrow="THRIVE — Company reading"
+          eyebrow="IMO — Company reading"
           title="Library"
           subtitle="Who we are, what we believe, how you get trained, and what the agency invests in you."
           compact
@@ -68,7 +68,7 @@ function LibraryArticle({ doc }: { doc: LibraryDocument }) {
 
       {doc.status === "draft" ? (
         <p className="library-draft-note" role="note">
-          <strong>This is a draft.</strong> It was written for THRIVE&apos;s
+          <strong>This is a draft.</strong> It was written for the IMO&apos;s
           owner to edit or approve, and it is not agency policy until they do.
           Nothing in it states a figure, date, or commitment the agency has not
           supplied.

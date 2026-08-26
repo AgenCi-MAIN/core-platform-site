@@ -1,7 +1,7 @@
 import type { Metal } from "../../rank-medallion";
 
 /**
- * THRIVE Exchange — the catalogue of what an agent can trade contract points for.
+ * IMO Exchange — the catalogue of what an agent can trade contract points for.
  *
  * NOTHING HERE TRANSACTS. This is a priced menu and a calculator. Compensation
  * is an employment term, so a change to anyone's contract level is a human

@@ -199,7 +199,7 @@ function ContentSlot({ slot }: { slot: TrainingSlot }) {
           ) : null}
         </div>
         <span className={`portal-state portal-state-${loaded ? "live" : "pending"}`}>
-          {loaded ? "THRIVE approved" : "Content not loaded"}
+          {loaded ? "IMO approved" : "Content not loaded"}
         </span>
       </header>
 
@@ -212,7 +212,7 @@ function ContentSlot({ slot }: { slot: TrainingSlot }) {
             </div>
             <div>
               <dt>Approval</dt>
-              <dd>THRIVE-approved</dd>
+              <dd>IMO-approved</dd>
             </div>
             <div>
               <dt>Source</dt>
@@ -260,7 +260,7 @@ function ContentSlot({ slot }: { slot: TrainingSlot }) {
           <div>
             <strong>Label reserved; script intentionally empty.</strong>
             <p>
-              THRIVE has not loaded approved wording for this slot. No draft,
+              IMO has not loaded approved wording for this slot. No draft,
               suggested phrasing, or AI-generated substitute is shown — the
               line below describes which call this slot covers, not anything
               to say on one.
@@ -310,9 +310,9 @@ export default async function TrainingPage({
     <PortalShell session={session} current="/portal/training" section="Training">
       <main className="portal-main training-page">
         <PortalPageIntro
-          eyebrow="THRIVE call enablement"
+          eyebrow="IMO call enablement"
           title="Training"
-          subtitle="Human-authored introductions and call angles, rendered exactly as THRIVE approved them. Empty means not loaded — never generated."
+          subtitle="Human-authored introductions and call angles, rendered exactly as IMO approved them. Empty means not loaded — never generated."
           compact
         />
 
@@ -352,7 +352,7 @@ export default async function TrainingPage({
               <strong>Training slot ready; approved content is not loaded yet.</strong>
               <p>
                 No training body was supplied. This section stays visibly empty
-                until THRIVE provides human-authored, approved wording.
+                until IMO provides human-authored, approved wording.
               </p>
             </div>
           </div>

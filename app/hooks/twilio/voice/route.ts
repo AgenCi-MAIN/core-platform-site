@@ -13,7 +13,7 @@ import {
 /**
  * Twilio inbound voice webhook — Phase 1 of the Switchboard transfer system.
  *
- * A caller dials the THRIVE number; Twilio POSTs here; this route answers with
+ * A caller dials the IMO number; Twilio POSTs here; this route answers with
  * TwiML that greets the caller and rings the roster. First person to answer
  * takes the call. Every call is logged and audited. **No recording** — see
  * `../twiml.ts` (recording is OFF until counsel clears the wording, A29/E7b).

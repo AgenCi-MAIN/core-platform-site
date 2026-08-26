@@ -36,7 +36,7 @@ export default function PortalError({
         <section className="portal-card portal-gate-card access-card">
           <header className="access-head">
             <span className="access-mark" aria-hidden="true">!</span>
-            <p className="portal-eyebrow">THRIVE — System fault</p>
+            <p className="portal-eyebrow">IMO — System fault</p>
             <h1>Something went wrong</h1>
             <p className="portal-lede">
               This page could not be loaded. The fault has been recorded on the

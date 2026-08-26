@@ -39,7 +39,7 @@ export default async function CommissionPage() {
         />
         <iframe
           src="/portal/commission/document"
-          title="Thrive commission schedule"
+          title="IMO commission schedule"
           style={{
             width: "100%",
             height: "78vh",

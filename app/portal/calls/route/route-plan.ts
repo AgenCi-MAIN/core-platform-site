@@ -63,7 +63,7 @@ export function buildInboundRoutePlan(input: InboundRoutePlan): SwmlDocument {
         confirm: [
           {
             prompt: {
-              play: "say:THRIVE incoming call. Press 1 to accept.",
+              play: "say:IMO incoming call. Press 1 to accept.",
               max_digits: 1,
               initial_timeout: 5,
               digit_timeout: 2,
@@ -106,7 +106,7 @@ export function buildInboundRoutePlan(input: InboundRoutePlan): SwmlDocument {
     },
     {
       play: {
-        url: "say:Thank you. A member of the THRIVE team will return your call.",
+        url: "say:Thank you. A member of the IMO team will return your call.",
       },
     },
     { hangup: {} },

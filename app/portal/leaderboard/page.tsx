@@ -95,7 +95,7 @@ export default async function LeaderboardPage() {
       <main className="portal-main">
         <PortalPageIntro
           eyebrow="Production"
-          title={<>The THRIVE <em>top 15</em>.</>}
+          title={<>The IMO <em>top 15</em>.</>}
           subtitle="The first five get the spotlight; positions 6–15 stay in the chase grid. Calls and talk time are computed from CORE records now, while deals closed and annual premium wait for the policy system of record."
           compact
         />
@@ -119,7 +119,7 @@ export default async function LeaderboardPage() {
                 existing privacy regression test. It contains the same top-15
                 data as the visual cards and never includes member emails. */}
             <table className="leader-accessible-table">
-              <caption>THRIVE top 15 production standings</caption>
+              <caption>IMO top 15 production standings</caption>
               <thead>
                 <tr><th>Rank</th><th>Member</th><th>Role</th><th>Deals closed</th><th>Annual premium</th><th>Calls</th><th>Talk time</th></tr>
               </thead>

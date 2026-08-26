@@ -12,7 +12,7 @@ import { PortalThemeControl } from "./theme-control";
  */
 export function SiteTopbar({
   section,
-  context = "THRIVE operating portal",
+  context = "IMO Operating Portal",
   cta,
 }: {
   section: string;
@@ -21,10 +21,10 @@ export function SiteTopbar({
 }) {
   return (
     <header className="site-topbar">
-      <Link className="site-brand" href="/" aria-label="THRIVE home">
+      <Link className="site-brand" href="/" aria-label="IMO home">
         <span className="site-brand-mark" aria-hidden="true"><ThriveMark size={20} /></span>
         <span className="site-brand-copy">
-          <strong>THRIVE</strong>
+          <strong>IMO</strong>
           <small>{context}</small>
         </span>
       </Link>

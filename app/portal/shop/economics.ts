@@ -1,5 +1,5 @@
 /**
- * THRIVE Exchange — the economics behind the catalogue.
+ * IMO Exchange — the economics behind the catalogue.
  *
  * The whole trade reduces to one question: does the contract percentage an
  * agent surrenders cover what the agency spends to feed them?
@@ -29,7 +29,7 @@
  * Every constant below is an ASSUMPTION, not an observation. The portal has no
  * connection to a dialer, a CRM, or a carrier, so nothing here is measured.
  * `LEAD_COST` in particular decides whether the whole model works, and it is
- * the one number THRIVE must supply from its actual invoices.
+ * the one number IMO must supply from its actual invoices.
  */
 
 /** Average annual premium per placed deal. Owner-supplied. */

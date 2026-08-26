@@ -64,7 +64,7 @@ const ENVIRONMENTS: readonly CloudEnvironment[] = [
     agents: 0,
     routines: 0,
     detail:
-      "Primary environment for the THRIVE operating platform. Full network access, setup script runs npm install on session start.",
+      "Primary environment for the IMO operating platform. Full network access, setup script runs npm install on session start.",
   },
   {
     id: "ENV-02",
@@ -344,7 +344,7 @@ const COMM_ACTIVITY: readonly CommActivity[] = [
     channel: "email",
     direction: "inbound",
     from: "Yuxiang Mao",
-    subject: "Re: Welcome to the CORE / THRIVE platform",
+    subject: "Re: Welcome to the CORE / IMO platform",
     when: "2026-08-17 12:23 UTC",
     tone: "idle",
   },

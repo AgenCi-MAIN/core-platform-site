@@ -8,7 +8,7 @@ import { SiteTopbar } from "../site-chrome";
 export const dynamic = "force-dynamic";
 
 /**
- * Public sign-in intake for the THRIVE operating portal.
+ * Public sign-in intake for the IMO Operating Portal.
  *
  * IMPORTANT — this page performs NO membership lookup, deliberately.
  *
@@ -102,7 +102,7 @@ export default async function AccessPage({
             SAME EMAIL you provided during onboarding.</strong> A different
             Google account — even your own personal one — will be refused,
             because the portal matches your Google identity against the address
-            THRIVE has on file for you.
+            IMO has on file for you.
           </p>
 
           <div className="portal-gate-actions">
@@ -150,7 +150,7 @@ export default async function AccessPage({
           <p className="portal-eyebrow">About</p>
           <h2>What you are signing in to</h2>
           <p className="portal-lede">
-            THRIVE is an insurance agency built around owning its demand rather
+            IMO is an insurance agency built around owning its demand rather
             than renting it. This portal is where that operating model actually
             runs — your book, call review, scripts, team, and the company
             reading library, each opened only to the roles that hold it.
@@ -161,7 +161,7 @@ export default async function AccessPage({
               <strong>Two checks, every request</strong>
               <p>
                 Signing in with Google proves who you are. A membership record
-                THRIVE created for you proves you belong here and carries your
+                IMO created for you proves you belong here and carries your
                 role. Identity alone grants nothing.
               </p>
             </div>
@@ -185,7 +185,7 @@ export default async function AccessPage({
 
           <div className="portal-gate-actions">
             <Link className="button button-primary" href="/">
-              Read more about THRIVE <KeyGlyph />
+              Read more about IMO <KeyGlyph />
             </Link>
             <Link className="text-link" href="/tour">
               Onboarding &amp; training <KeyGlyph />

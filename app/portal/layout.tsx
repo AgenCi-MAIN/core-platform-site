@@ -5,8 +5,8 @@ import { PortalNavigationUpgrade } from "./navigation-upgrade";
 import { PortalPresence } from "./presence";
 
 export const metadata: Metadata = {
-  title: "THRIVE Portal — J.A.R.V.I.S.",
-  description: "Authenticated THRIVE operating portal.",
+  title: "IMO Portal — J.A.R.V.I.S.",
+  description: "Authenticated IMO Operating Portal.",
   robots: { index: false, follow: false },
 };
 

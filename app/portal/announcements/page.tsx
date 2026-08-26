@@ -35,7 +35,7 @@ export default async function AnnouncementsPage() {
     >
       <main className="portal-main">
         <PortalPageIntro
-          eyebrow="THRIVE — From the desk"
+          eyebrow="IMO — From the desk"
           title="Announcements"
           subtitle="Releases, roadmap, and operating notes, published by the agency."
           compact
@@ -45,7 +45,7 @@ export default async function AnnouncementsPage() {
           <section className="portal-card portal-placeholder-card">
             <EmptyState
               title="No announcements yet"
-              body="When THRIVE publishes an announcement it appears here, newest first."
+              body="When IMO publishes an announcement it appears here, newest first."
             />
           </section>
         ) : (

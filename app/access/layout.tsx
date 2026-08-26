@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { PortalGovernanceFooter } from "../portal-chrome";
 
 export const metadata: Metadata = {
-  title: "THRIVE Portal Access",
-  description: "Sign-in intake for the THRIVE operating portal.",
+  title: "IMO Portal Access",
+  description: "Sign-in intake for the IMO Operating Portal.",
   robots: { index: false, follow: false },
 };
 

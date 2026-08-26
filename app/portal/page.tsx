@@ -161,7 +161,7 @@ export default async function PortalDashboard() {
           >
             <span className="portal-metric-label">Membership</span>
             <strong className="portal-metric-value portal-metric-shout">{session.status}</strong>
-            <span className="portal-metric-detail">Verified against your THRIVE member record</span>
+            <span className="portal-metric-detail">Verified against your IMO member record</span>
           </article>
 
           {/* Operating role, struck in its rank metal. Owner is gold. */}

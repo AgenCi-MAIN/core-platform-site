@@ -35,7 +35,7 @@ export default async function NoAccessPage({
       <section className="portal-card portal-gate-card access-card">
         <header className="access-head">
           <span className="access-mark" aria-hidden="true">T</span>
-          <p className="portal-eyebrow">THRIVE — Operating portal</p>
+          <p className="portal-eyebrow">IMO — Operating portal</p>
           <h1>{view.heading}</h1>
           <p className="portal-lede">{view.body}</p>
           <span className="portal-state portal-state-restricted access-phase">
@@ -63,7 +63,7 @@ export default async function NoAccessPage({
             SAME EMAIL you provided during onboarding.</strong> A different
             Google account — including your own personal one — will be refused,
             because the portal matches your Google identity against the address
-            THRIVE has on file for you.
+            IMO has on file for you.
           </p>
         ) : null}
 
@@ -88,7 +88,7 @@ function describeDenial(denial: AccessDenial) {
     case "anonymous":
       return {
         heading: "Sign in required",
-        body: "The THRIVE portal is only available to signed-in members.",
+        body: "The IMO portal is only available to signed-in members.",
         next: "Sign in and try again. If you reached this page after signing in, your session may have expired.",
         showRecruiter: false,
         showEmailRule: true,
@@ -103,8 +103,8 @@ function describeDenial(denial: AccessDenial) {
       };
     case "not_a_member":
       return {
-        heading: "No THRIVE membership",
-        body: `Signing in confirmed your identity as ${denial.email}, but that account has not been granted THRIVE portal membership.`,
+        heading: "No IMO membership",
+        body: `Signing in confirmed your identity as ${denial.email}, but that account has not been granted IMO portal membership.`,
         next: "Membership is assigned by an owner or administrator before first sign-in. It is never self-served.",
         showRecruiter: true,
         showEmailRule: true,
@@ -122,7 +122,7 @@ function describeDenial(denial: AccessDenial) {
     case "subject_conflict":
       return {
         heading: "Account mismatch",
-        body: `The THRIVE membership for ${denial.email} is bound to a different sign-in account than the one you used.`,
+        body: `The IMO membership for ${denial.email} is bound to a different sign-in account than the one you used.`,
         next: "This protects an existing member from having their access taken over. An owner or administrator must resolve the binding.",
         showRecruiter: true,
         showEmailRule: true,
@@ -130,7 +130,7 @@ function describeDenial(denial: AccessDenial) {
     case "identity_ambiguous":
       return {
         heading: "Two memberships match you",
-        body: `Your sign-in account is already bound to one THRIVE membership, and ${denial.email} belongs to a different one. The portal cannot tell which is yours.`,
+        body: `Your sign-in account is already bound to one IMO membership, and ${denial.email} belongs to a different one. The portal cannot tell which is yours.`,
         next: "Access is refused rather than guessed, so neither membership can be taken over by mistake. An owner or administrator must merge or remove one of the two records.",
         showRecruiter: true,
         showEmailRule: false,
@@ -138,7 +138,7 @@ function describeDenial(denial: AccessDenial) {
     case "invalid_role":
       return {
         heading: "Membership needs repair",
-        body: `The THRIVE membership for ${denial.email} carries a role the portal does not recognize, so its permissions are undefined.`,
+        body: `The IMO membership for ${denial.email} carries a role the portal does not recognize, so its permissions are undefined.`,
         next: "Access is refused rather than guessed. An owner or administrator must correct the role on this membership record.",
         showRecruiter: false,
         showEmailRule: false,

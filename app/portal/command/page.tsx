@@ -208,7 +208,7 @@ const DECISION_ITEMS: readonly QueueItem[] = [
   },
   {
     id: "T3-S02-D12",
-    title: "Thrive Life inbound line — verify",
+    title: "the IMO inbound line — verify",
     detail:
       `The approved main inbound and customer-transfer line is ${TELEPHONY_CONFIG.mainNumber.display}; the approved CORE website caller ID is ${TELEPHONY_CONFIG.platformLine.display}; and ${TELEPHONY_CONFIG.bridgeLine.display} is the inbound bridge line. The press-1 SignalWire queue is deployed, but a real inbound call still has to prove the external ring. Recording stays off until counsel clears the wording.`,
     owner: "Founder",
@@ -319,7 +319,7 @@ const TIMELINE = [
   {
     id: "T3-S02-T06",
     when: "2026-08-19",
-    title: "Old-HQ rebuild · Thrive Life line",
+    title: "Old-HQ rebuild · the IMO line",
     detail:
       "The lineage was rebuilt from the records; the company voice line was stood up on SignalWire with a voicemail-proof press-1 queue, pending one live test call.",
     owner: "Founder",

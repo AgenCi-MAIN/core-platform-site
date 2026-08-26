@@ -344,8 +344,8 @@ export function PortalPresence() {
             </button>
             <PresenceFace size={26} />
             <div className="presence-head-copy">
-              <strong id="presence-title">{mode === "jarvis" ? "J.A.R.V.I.S. Presence" : "THRIVE Calls"}</strong>
-              <small>{mode === "jarvis" ? "Ask about THRIVE and this portal" : "Browser phone · primary tab only"}</small>
+              <strong id="presence-title">{mode === "jarvis" ? "J.A.R.V.I.S. Presence" : "IMO Calls"}</strong>
+              <small>{mode === "jarvis" ? "Ask about IMO and this portal" : "Browser phone · primary tab only"}</small>
             </div>
             <button
               type="button"
@@ -388,7 +388,7 @@ export function PortalPresence() {
           <div className="presence-log" ref={logRef} aria-live="polite">
             {lines.length === 0 ? (
               <p className="presence-line presence-line-presence">
-                Hi {""}— I answer questions about THRIVE, this portal, and your
+                Hi {""}— I answer questions about IMO, this portal, and your
                 own setup. What do you want to know?
               </p>
             ) : (

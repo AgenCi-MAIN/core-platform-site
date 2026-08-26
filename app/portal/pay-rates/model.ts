@@ -48,7 +48,7 @@ export const START_RANKS: readonly Rank[] = [
  * Opening positions for the dials.
  *
  * `leadCost` is the deciding number and is still a placeholder — it must come
- * from THRIVE's own invoices before any of this output is quoted to anyone.
+ * from the IMO's own invoices before any of this output is quoted to anyone.
  */
 export type StudioInputs = {
   premium: number;

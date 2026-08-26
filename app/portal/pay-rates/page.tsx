@@ -57,7 +57,7 @@ export default async function PayRatesPage({
           <section className="portal-card portal-gate-card access-card">
             <header className="access-head">
               <span className="access-mark" aria-hidden="true">T</span>
-              <p className="portal-eyebrow">THRIVE — Restricted</p>
+              <p className="portal-eyebrow">IMO — Restricted</p>
               <h1>Second factor required</h1>
               <p className="portal-lede">
                 Your role holds this capability, but this deployment also requires
@@ -124,7 +124,7 @@ export default async function PayRatesPage({
           <p className="portal-lede">
             A password written into the code is committed, pushed, and permanent
             — it cannot be removed from git history any more than a member&apos;s
-            address can. THRIVE&apos;s own operating rules forbid storing one in
+            address can. the IMO&apos;s own operating rules forbid storing one in
             this workspace, and a secret several people share and forward is not
             authentication in any case.
           </p>
