@@ -1003,50 +1003,65 @@ test("the browser phone resolves provider-stripped invite context before allowin
 
 test("answering in the browser clears the accept gate without a second keypress", () => {
   // Founder, 2026-08-27: "when i hit press 1 [to answer] then i have to hit 1
-  // again on number pad."
+  // again on number pad." Then, after the first fix shipped and was verified
+  // working: "it went back to where i need to hit 1 again!"
   //
-  // Answering accepts the WebRTC leg; the route then holds a "press 1 to
-  // accept" gate in front of the bridge. So the call went quiet and the
-  // answerer had to open the keypad and press 1 again to actually reach the
-  // caller — two deliberate actions for one decision, the second invisible
-  // until you learn it.
+  // Nothing had been reverted. The first fix sent the digit the instant
+  // status$ reported "connected" — but that is a SIGNALLING state, not a
+  // media one. When RTP happened to be flowing already the digit landed and
+  // the call went straight through; when it did not, the digit was discarded
+  // with no error and no signal, and the gate went on waiting for a digit
+  // that had already been spent. Same code, two different outcomes, looking
+  // exactly like a regression.
   //
-  // Clicking Answer in an authenticated portal session IS the human proof the
-  // gate wants, so the browser sends the digit itself. Three properties are
-  // pinned here because each one, if it broke, would break quietly:
+  // What is pinned here is the timing, because that is the part that broke.
   const source = readFileSync(
     new URL("../app/portal/calls/browser-phone.tsx", import.meta.url),
     "utf8",
   );
 
-  // 1. The digit goes out when the leg connects — not on a click, so it covers
-  //    the Answer button and the keyboard shortcut with one path.
+  // 1. The digit waits for a LIVE remote audio track, not merely a connected
+  //    call. This is the whole fix; without it the rest is decoration.
   assert.match(
     source,
-    /status === "connected"[\s\S]{0,1200}sendDigits\(CONFIRM_DIGIT\)/,
-    "the accept digit must be sent when the browser leg connects",
+    /readyState === "live"/,
+    "media readiness must be checked on the track, not inferred from call status",
+  );
+  assert.match(
+    source,
+    /while \(!remoteAudioLive\(call\) && Date\.now\(\) < deadline\)/,
+    "the first attempt must wait for the media path, with a bounded deadline",
   );
 
-  // 2. Exactly once per offer. status$ can emit "connected" again on a
-  //    re-subscribe or a hold/resume, and a stray tone mid-call is audible to
-  //    the caller.
+  // 2. It retries, because a digit lost to a not-yet-flowing path is silent.
+  assert.match(
+    source,
+    /for \(let attempt = 0; attempt < ACCEPT_DIGIT_ATTEMPTS/,
+    "a single attempt is what made this intermittent; retries are the fix",
+  );
+
+  // 3. Every attempt re-checks that this call is still ours. A tone sent into
+  //    a dead call is harmless; one sent into somebody else's live
+  //    conversation is not.
+  assert.match(
+    source,
+    /if \(!stillOurs\(\)\) return;/,
+    "each retry must confirm the call is still this component's before firing",
+  );
+
+  // 4. Still exactly once per offer, and still reset per offer.
   assert.match(
     source,
     /if \(!confirmSentRef\.current\) \{\s*confirmSentRef\.current = true;/,
-    "the digit must be guarded so it cannot fire twice in one call",
+    "the send must not be startable twice for one offer",
   );
-  assert.match(
-    source,
-    /confirmSentRef\.current = false;/,
-    "the guard must reset per offer, or the second call of a session is stuck",
-  );
+  assert.match(source, /confirmSentRef\.current = false;/);
 
-  // 3. A failed send must never fail the answer. If the gate is absent the
-  //    digit was unnecessary; if the send throws, the keypad still works.
+  // 5. A failure never takes down an answered call.
   assert.match(
     source,
-    /sendDigits\(CONFIRM_DIGIT\)\.catch\(/,
-    "a failed accept digit must not take the answered call down with it",
+    /try \{\s*await call\.sendDigits\(CONFIRM_DIGIT\);\s*\} catch \{/,
+    "a failed send must be swallowed, not propagated into the answer path",
   );
 
   // The two sides must agree on the digit: the plan hangs up on anything else.

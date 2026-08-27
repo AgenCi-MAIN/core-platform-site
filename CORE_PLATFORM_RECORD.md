@@ -2383,6 +2383,67 @@ unknown correctness and should be deleted now that the current generation
 is proven. Agent 1 holds no Cloudflare or SignalWire credentials; every
 production action in this section was executed by the owner.
 
+### 19ab. The accept gate needed two keypresses; the browser now clears its own — 2026-08-27
+
+Answering an inbound call in the portal took **two** deliberate actions, and
+the second was undocumented. Pressing 1 (or clicking Answer) accepted the
+WebRTC leg; the call then went quiet, and the answerer had to open the in-call
+keypad and press 1 again before reaching the caller. The founder reported it
+plainly: "when i hit press 1 then i have to hit 1 again on number pad."
+
+**The fix.** `app/portal/calls/browser-phone.tsx` now sends the accept digit
+itself the moment its leg reaches `connected`, so the Answer button and the
+keyboard shortcut both take the call all the way through one path. Clicking
+Answer inside an authenticated portal session *is* the human proof the gate
+asks for — a voicemail box cannot click a button behind a signed session.
+
+**The gate was deliberately left in place.** The same connect can ring a
+mobile, where voicemail will happily "answer" and record the caller into an
+outgoing message. On that leg the prompt is the only thing separating a person
+from a machine. What changed is that the browser stopped making a human do the
+machine's job.
+
+**Verified live by the founder, 2026-08-27**, after deploying `main@eef83c4`
+(PR #131): "it auto connect when i hit 1, its good."
+
+**That verification did not hold, and the reason matters more than the fix.**
+Minutes later: "it went back to where i need to hit 1 again!" Nothing had been
+reverted — the code was still on `main`. The first fix sent the digit the
+instant `status$` reported `connected`, which is a **signalling** state, not a
+media one: the call is up, but RTP may not be flowing yet. A DTMF sent into a
+path that is not carrying media is discarded with no error and no callback, so
+the gate went on waiting for a digit that had already been spent.
+
+Same code, same deploy, opposite outcomes depending on how quickly the media
+path happened to come up. That is what a single live test cannot distinguish
+from success, and it is the trap worth remembering: **one passing call does not
+prove a race is closed.** The repaired version waits for a remote audio track
+in `readyState: "live"` before its first attempt (bounded at 2.5s so a stalled
+negotiation cannot hang it), then retries up to three times 1.2s apart, all
+inside the five-second window the route's prompt is still collecting in. The
+operator being able to press 1 manually seconds after answering is the evidence
+that the window really is that wide.
+
+The original test passed against the broken build, because sending the digit
+was never in doubt — *when* it was sent was. The test now pins the timing.
+
+**What that verification settles, and what it does not.** `connectStage` in
+`app/portal/calls/route/route-plan.ts` builds the browser legs and carries **no
+confirm section** — only the mobile fallback stage does. On a reading of this
+repository alone the browser leg should not have been gated at all. Since
+sending the digit demonstrably changed the outcome, the prompt is coming from
+the **SignalWire resource / Fabric configuration**, which is outside this repo
+and was unreachable from the build environment. Anyone reading `route-plan.ts`
+and concluding the browser leg is ungated will be wrong.
+
+Not settled: the founder tested from the answering side, which is the one side
+that cannot hear a DTMF tone leaking to the caller. If a caller ever reports a
+beep at pickup, the digit should become conditional rather than unconditional.
+Three guards already bound the blast radius — one send per offer held by a ref
+(because `status$` re-emits `connected` on re-subscribe and hold/resume, and a
+stray tone mid-conversation is audible), a per-offer reset, and a swallowed
+failure so a throw cannot disturb an answered call.
+
 ### 19aa. Roster reduced to two by founder order; edge gate found open — 2026-08-26
 
 **The order.** "remove all MEBER ACCESS expept-Yuxiang Mao(shawn) and Ray."

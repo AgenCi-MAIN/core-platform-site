@@ -67,6 +67,68 @@ const CALL_ACTIVITY_EVENT = "thrive:call-activity";
  */
 const CONFIRM_DIGIT = "1";
 
+/**
+ * How long to wait for the remote audio track before sending the accept digit
+ * anyway. The media path usually comes up in well under a second; this is the
+ * ceiling, not the expectation.
+ */
+const MEDIA_READY_TIMEOUT_MS = 2500;
+
+/**
+ * Attempts, and the gap between them. The route's prompt collects one digit
+ * with a 5s initial timeout, so three attempts inside ~2.6s all land while it
+ * is still listening. It stops at the first success it can observe; the extra
+ * attempts exist because a digit lost to a not-yet-flowing media path is
+ * silent, and the alternative is the operator pressing 1 again.
+ */
+const ACCEPT_DIGIT_ATTEMPTS = 3;
+const ACCEPT_DIGIT_GAP_MS = 1200;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Is the remote audio actually flowing, not merely negotiated? */
+function remoteAudioLive(call: Call): boolean {
+  const track = call.remoteStream?.getAudioTracks?.()[0];
+  return Boolean(track && track.readyState === "live");
+}
+
+/**
+ * Clear the route's "press 1 to accept" gate on the operator's behalf.
+ *
+ * Waits for the media path before the first attempt, because a DTMF sent
+ * before RTP is flowing is discarded with no error and no signal — that is
+ * what made the two-keypress bug come and go. Then retries a bounded number of
+ * times inside the window the far-side prompt is still collecting in.
+ *
+ * Every failure is swallowed on purpose. If the gate is absent the digit was
+ * unnecessary; if a send throws, the in-call keypad still works and the
+ * operator presses 1 exactly as before. Nothing here may take down a call that
+ * has already been answered.
+ */
+async function sendAcceptDigit(call: Call, stillOurs: () => boolean): Promise<void> {
+  const deadline = Date.now() + MEDIA_READY_TIMEOUT_MS;
+  while (!remoteAudioLive(call) && Date.now() < deadline) {
+    await sleep(100);
+  }
+
+  for (let attempt = 0; attempt < ACCEPT_DIGIT_ATTEMPTS; attempt += 1) {
+    // The call may have ended, been transferred, or been answered elsewhere
+    // between attempts. A tone sent into a dead call is harmless; one sent
+    // into somebody else's live conversation is not. The SDK's Call carries no
+    // state field here, so liveness is asked of the component, which owns it.
+    if (!stillOurs()) return;
+
+    try {
+      await call.sendDigits(CONFIRM_DIGIT);
+    } catch {
+      // Keep trying — a throw here is as likely to be a not-ready media path
+      // as a real fault, and the retry costs nothing the operator can hear.
+    }
+
+    if (attempt < ACCEPT_DIGIT_ATTEMPTS - 1) await sleep(ACCEPT_DIGIT_GAP_MS);
+  }
+}
+
 const PHONE_PANEL_EVENT = "thrive:phone-panel";
 
 export function BrowserPhone({
@@ -376,35 +438,36 @@ export function BrowserPhone({
       if (status === "connected") {
         connectedRef.current = true;
 
-        // ONE ANSWER, NOT TWO.
-        //
-        // Answering here accepts the WebRTC leg, but the route still holds a
-        // "press 1 to accept" gate in front of the bridge — so the call went
-        // quiet and the answerer had to open the keypad and press 1 a second
-        // time to actually reach the caller. Two deliberate actions for one
-        // decision, and the second one is invisible until you learn it.
-        //
-        // Clicking Answer, or pressing 1 while it rings, IS the human
-        // confirmation the gate is asking for: a voicemail box cannot click a
-        // button in an authenticated portal session. So the digit is sent once,
-        // automatically, the moment this leg comes up.
-        //
-        // Guarded by a ref rather than by phase, because status$ can emit
-        // "connected" more than once (a re-subscribe, a hold/resume) and a
-        // stray tone mid-conversation is audible to the caller.
-        if (!confirmSentRef.current) {
-          confirmSentRef.current = true;
-          void call.sendDigits(CONFIRM_DIGIT).catch(() => {
-            // Never fail the answer over this. If the gate is absent the digit
-            // was unnecessary; if it is present and this throws, the keypad is
-            // still there and the operator presses 1 as before.
-          });
-        }
-
         const remote = call.remoteStream;
         if (remote && audioRef.current) {
           audioRef.current.srcObject = remote;
           void audioRef.current.play().catch(() => setMessage("Click the page once to allow call audio."));
+        }
+
+        // ONE ANSWER, NOT TWO.
+        //
+        // Answering accepts the WebRTC leg, but the route holds a "press 1 to
+        // accept" gate in front of the bridge, so the call went quiet and the
+        // answerer had to open the keypad and press 1 again to reach the
+        // caller. Clicking Answer in an authenticated portal session IS the
+        // human proof that gate wants, so the browser sends the digit itself.
+        //
+        // WHY THIS IS NOT SENT THE INSTANT status$ SAYS "connected".
+        // It was, and it worked once and then stopped. "connected" is a
+        // SIGNALLING state: the call is up, but the media path may not be
+        // carrying RTP yet. A DTMF sent into a path that is not flowing is
+        // simply lost, and the gate goes on waiting for a digit that was
+        // already spent — which is the two-keypress bug returning
+        // intermittently, looking like a regression when nothing changed.
+        //
+        // So: wait for a live remote audio track, then send, then retry a
+        // bounded number of times. The far side is patient — the operator
+        // could always press 1 manually seconds later and be heard — so a
+        // couple of attempts inside that window is safe, and a lost digit
+        // costs only the second keypress we are removing.
+        if (!confirmSentRef.current) {
+          confirmSentRef.current = true;
+          void sendAcceptDigit(call, () => callRef.current === call && connectedRef.current);
         }
         try {
           const result = await offerEvent("answered", nextContext);
