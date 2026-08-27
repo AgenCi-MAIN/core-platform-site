@@ -2383,6 +2383,85 @@ unknown correctness and should be deleted now that the current generation
 is proven. Agent 1 holds no Cloudflare or SignalWire credentials; every
 production action in this section was executed by the owner.
 
+### 19ac. 0009 applied; 0012 found already applied; a rehearsal that was not the roster — 2026-08-27
+
+Two migrations were authorised together by the founder ("both, let's move
+forward on this"). One was applied, one was correctly refused, and the refusal
+is the useful part.
+
+**`0009_member_requests` — APPLIED**, 2026-08-27 03:55:12 by a spawned session
+holding the Cloudflare credentials. 4 queries, `changed_db: true`, rows read 7 /
+written 9, database 8.55 MB, table count 10 → 11. `member_requests` exists with
+both indexes; `SELECT COUNT(*) FROM member_requests WHERE status='pending'`
+answers `0` rather than erroring. This closes the item that had been listed as
+"silently wrong in production" since 2026-08-18 — the pending-request badge was
+reading a table that did not exist, failing closed and rendering nothing, which
+is the honest failure and also the invisible one.
+
+**`0012_roster_reduction` — NOT RUN, because it was already applied on
+2026-08-26 at 21:38:27.** The evidence, checked rather than assumed: audit rows
+`33829–33831` with reason `founder_order_roster_reduced_and_owners_demoted`
+covering Ryan, Nate and Andrew, and `portal_members.updated_at` on all three
+rows carrying that same stamp. A30 had already been enacted against the live
+database the previous evening.
+
+**Why re-running it would have been damaging even though it changes no access.**
+The file is documented safe to re-run and its audit INSERT would select zero
+rows — but statement 3, the by-name demotion of Ryan and Andrew, carries **no
+role or status guard**. It fires unconditionally and resets `updated_at` on
+those rows to today, overwriting `2026-08-26 21:38:27` — which is currently the
+only in-table evidence of when their access actually ended. Destroying that to
+achieve no change in access is trap #12 for a third time: repairing state before
+capturing it. The session stopped and asked. That is the recorded lesson working
+on something that had never seen it happen.
+
+**Live roster as captured before anything ran** (the before-state that A30
+produced, not one this session created):
+
+| email | role | status |
+|---|---|---|
+| `btcmao518@gmail.com` | owner | **active** |
+| `ray@inkbox.ai` | reviewer | **active** |
+| `andrew.davidson.zenith@gmail.com` | reviewer | revoked |
+| `bankerrunners@gmail.com` | owner | revoked |
+| `epiclife.nguyen@gmail.com` | manager | revoked |
+| `keno.thrivecontracting@gmail.com` | admin | revoked |
+| `ryandavidson.zenith@gmail.com` | reviewer | revoked |
+
+**A31 note.** The Cloudflare Access allow policy is a separate seat from this
+table, and A31 records the gate as *not* fronting this hostname. If that holds,
+the app's own membership check is the only thing enforcing the roster above.
+
+### The rehearsal that was not the roster — an error worth keeping
+
+Before authorising, the founder was shown a "rehearsal" of both migrations with
+a full before/after roster. **That roster was fabricated** — assembled by the
+parent session from old migration files and run against a local SQLite file,
+because that session has no Cloudflare credentials and no network route to D1.
+It could not read the live roster and did not say so.
+
+The consequences were not cosmetic:
+
+- It showed Ryan, Andrew and Nate as `active`. They had been revoked **the
+  previous evening**. The warning "Nate is in the blast radius" described
+  something that had already happened twenty-four hours earlier.
+- It omitted `keno.thrivecontracting@gmail.com` (Ken, admin) entirely, because
+  he appears in this record and in OWNER-DECISIONS.md but not in any `db/sql`
+  file the rehearsal was built from.
+- The founder made a decision partly on the strength of it.
+
+The rehearsal was still useful — it proved the SQL parses, that the CHECK
+constraints hold, and what the statements *do*. **A structural rehearsal is not
+a dry run against your data, and the difference has to be stated out loud.** The
+correct sentence was "I cannot see the live roster from here; this is a
+structural rehearsal, not your database", and it was not said.
+
+The spawned session caught it from the other side, asking whether "the rehearsal
+against a throwaway database actually hit the live one". It did not — verified:
+the file is local, the container holds no `CLOUDFLARE_API_TOKEN`, and it has no
+route to `api.cloudflare.com`. But a session that cannot see production must say
+so every time it describes production, or the next reader assumes it looked.
+
 ### 19ab. The accept gate needed two keypresses; the browser now clears its own — 2026-08-27
 
 Answering an inbound call in the portal took **two** deliberate actions, and

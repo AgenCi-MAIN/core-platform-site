@@ -1,3 +1,22 @@
+-- =====================================================================
+-- ALREADY APPLIED — 2026-08-26 21:38:27. DO NOT RE-RUN.
+--
+-- Verified 2026-08-27 against the live database: audit rows 33829-33831
+-- (reason `founder_order_roster_reduced_and_owners_demoted`) and matching
+-- `portal_members.updated_at` stamps on Ryan's, Nate's and Andrew's rows.
+--
+-- Re-running changes no access, and is still harmful. Statement 3 below --
+-- the by-name demotion -- carries NO role or status guard, so it fires
+-- unconditionally and resets `updated_at` to the day it is re-run. That
+-- overwrites 2026-08-26 21:38:27, which is the only in-table evidence of
+-- when access actually ended. See CORE_PLATFORM_RECORD.md 19ac, and trap
+-- #12 on repairing state before capturing it.
+--
+-- If this ever needs to run against a REBUILT database, that is fine --
+-- there is no prior state to destroy there. The warning is about re-running
+-- it against the live one.
+-- =====================================================================
+
 -- CORE portal — access reduced to two people; Ryan and Andrew downgraded
 -- owner -> reviewer. Founder orders, 2026-08-26.
 --
