@@ -3219,3 +3219,57 @@ test("the outbound dialer refuses everyone but the founder, before it can bill",
     "the unconfigured refusal is recorded too",
   );
 });
+
+test("the command prompt leads the console, and moving it widened nothing", async (t) => {
+  // Founder, 2026-08-27: "move the command on top of the screen still owner
+  // gated access."
+  //
+  // Two assertions, and the second is the one that matters. Reordering markup
+  // on a gated page is the kind of change that looks cosmetic and is trivially
+  // capable of not being — so the gate is re-proved here rather than assumed
+  // to have survived.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  // 1. ANONYMOUS STILL REFUSED. No session, no page.
+  const anon = await portal.mf.dispatchFetch("http://localhost/portal/command", {
+    redirect: "manual",
+    headers: { accept: "text/html" },
+  });
+  assert.equal(anon.status, 307, "an anonymous request must not reach the console");
+  assert.equal(await anon.text(), "", "a refused console must emit no body");
+
+  // 2. AN ACTIVE MEMBER WHO IS NOT COMMAND CENTER IS STILL REFUSED. Being
+  //    signed in and on the roster is not the same as holding this surface.
+  await portal.addMember("agent-console@example.com", "agent");
+  const member = await portal.get("/portal/command", {
+    subject: "subject-agent-console",
+    email: "agent-console@example.com",
+  });
+  assert.equal(member.status, 307, "an ordinary member must not reach the console");
+  assert.equal(await member.text(), "", "a refused console must emit no body");
+
+  // 3. The founder gets it, and the prompt now precedes the heading.
+  await portal.addMember("btcmao518@gmail.com", "owner");
+  const founder = await portal.get("/portal/command", {
+    subject: "sub-founder-console-order",
+    email: "btcmao518@gmail.com",
+  });
+  assert.equal(founder.status, 200);
+  const html = await founder.text();
+
+  const promptAt = html.indexOf("fcc-prompt");
+  const headingAt = html.indexOf('id="fcc-title"');
+  assert.ok(promptAt > -1, "the command prompt must render for the founder");
+  assert.ok(headingAt > -1, "the console heading must render");
+  assert.ok(
+    promptAt < headingAt,
+    "the command prompt must come before the heading — on a phone the heading "
+      + "and standfirst pushed the console's only control below the fold",
+  );
+
+  // It must stay inside the hero: the dark ground and cream text are the
+  // hero's, so a prompt lifted out of it renders cream-on-cream.
+  const heroAt = html.indexOf("fcc-hero");
+  assert.ok(heroAt > -1 && heroAt < promptAt, "the prompt must remain inside .fcc-hero");
+});

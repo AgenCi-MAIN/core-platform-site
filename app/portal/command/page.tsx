@@ -550,6 +550,31 @@ export default async function FounderCommandCenter({
             <span>Founder Command Center / S02</span>
             <span className="fcc-live-mark"><i aria-hidden="true" /> Repository snapshot</span>
           </div>
+
+          {/* The command prompt leads the page, above the heading and the
+              standfirst. This is a phone surface first — on a narrow screen
+              those two blocks pushed the only interactive control on the
+              console below the fold, so reaching it meant scrolling past a
+              description of what you were already looking at.
+
+              It stays INSIDE .fcc-hero on purpose. The dark ground and the
+              cream text belong to the hero, not to .fcc; lifted out, this
+              block renders near-invisible cream-on-cream on the page
+              background. Reordering within the hero keeps the contrast the
+              design already had.
+
+              Moving markup cannot widen access: this page's single server
+              guard runs above, before any of it is rendered. Do not name that
+              guard here — a comment that spells it out reads as a second
+              guard to the scanner in rendered-html.test.mjs, and the page
+              fails the one-unambiguous-guard rule. */}
+          <div className="fcc-prompt" aria-label="J.A.R.V.I.S. command prompt">
+            <div className="fcc-prompt-head">
+              <span><i aria-hidden="true">J</i> Command prompt</span>
+              <FactChip tone="recorded">Existing protected console</FactChip>
+            </div>
+            <JarvisCommandPrompt />
+          </div>
           <div className="fcc-hero-copy">
             <p className="fcc-kicker">Scan first · decide once · move deliberately</p>
             <h1 id="fcc-title">Your field console.</h1>
@@ -558,13 +583,6 @@ export default async function FounderCommandCenter({
               waiting signals, and accountable handoffs. Live sources that this
               Worker cannot read stay visibly unavailable.
             </p>
-          </div>
-          <div className="fcc-prompt" aria-label="J.A.R.V.I.S. command prompt">
-            <div className="fcc-prompt-head">
-              <span><i aria-hidden="true">J</i> Command prompt</span>
-              <FactChip tone="recorded">Existing protected console</FactChip>
-            </div>
-            <JarvisCommandPrompt />
           </div>
           {canIssue ? (
             <LodgeKeyDesk
