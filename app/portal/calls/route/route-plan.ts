@@ -79,10 +79,20 @@ export function buildInboundRoutePlan(input: InboundRoutePlan): SwmlDocument {
           // The browser phone satisfies this gate on its own: clicking Answer
           // in an authenticated portal session is already the human proof this
           // is asking for, so browser-phone.tsx sends the digit the moment its
-          // leg connects (CONFIRM_DIGIT there, '1' here — the two must agree).
+          // leg connects (CONFIRM_DIGIT there, '1' here — the two must agree;
+          // this plan hangs up on anything else).
+          //
           // The prompt stays because this leg can also ring a mobile, where
           // voicemail will happily "answer" and the gate is the only thing
           // separating a person from an outgoing message.
+          //
+          // READ THIS BEFORE CONCLUDING THE BROWSER LEG IS UNGATED. connectStage
+          // below builds the browser legs and carries no confirm section, so
+          // this file alone suggests only the fallback is gated. It is not:
+          // answering in the browser required a SECOND manual keypress until
+          // 2026-08-27, which means a gate exists on that leg too and comes
+          // from the SignalWire resource / Fabric configuration rather than
+          // from this document. See CORE_PLATFORM_RECORD 19ab.
           {
             cond: [{ when: "vars.prompt_value != '1'", then: [{ hangup: {} }] }],
           },
