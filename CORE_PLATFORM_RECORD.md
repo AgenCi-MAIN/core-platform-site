@@ -2406,6 +2406,27 @@ machine's job.
 **Verified live by the founder, 2026-08-27**, after deploying `main@eef83c4`
 (PR #131): "it auto connect when i hit 1, its good."
 
+**That verification did not hold, and the reason matters more than the fix.**
+Minutes later: "it went back to where i need to hit 1 again!" Nothing had been
+reverted — the code was still on `main`. The first fix sent the digit the
+instant `status$` reported `connected`, which is a **signalling** state, not a
+media one: the call is up, but RTP may not be flowing yet. A DTMF sent into a
+path that is not carrying media is discarded with no error and no callback, so
+the gate went on waiting for a digit that had already been spent.
+
+Same code, same deploy, opposite outcomes depending on how quickly the media
+path happened to come up. That is what a single live test cannot distinguish
+from success, and it is the trap worth remembering: **one passing call does not
+prove a race is closed.** The repaired version waits for a remote audio track
+in `readyState: "live"` before its first attempt (bounded at 2.5s so a stalled
+negotiation cannot hang it), then retries up to three times 1.2s apart, all
+inside the five-second window the route's prompt is still collecting in. The
+operator being able to press 1 manually seconds after answering is the evidence
+that the window really is that wide.
+
+The original test passed against the broken build, because sending the digit
+was never in doubt — *when* it was sent was. The test now pins the timing.
+
 **What that verification settles, and what it does not.** `connectStage` in
 `app/portal/calls/route/route-plan.ts` builds the browser legs and carries **no
 confirm section** — only the mobile fallback stage does. On a reading of this
