@@ -672,6 +672,51 @@ optional one.
   closed — `readRows` classifies the missing table and the badge simply never
   appears — which is the honest failure and also the invisible one.
 
+- 2026-08-27 (later): **version `e89e1249-acd3-491d-95ce-1eaa50ff9476`** —
+  `main@4f0c2af` (PR #134). Worker startup 21 ms, upload 2965.81 KiB (gzip
+  650.47 KiB), 8 new assets uploaded and 66 already present. Bindings
+  confirmed in the deploy output: `env.DB` → `site-creator-d1`,
+  `env.CALL_RECORDINGS` → `site-creator-r2`. Pre-deploy gate 134/134 and
+  "Build verified — safe to deploy" (worker 1591 KB, D1
+  `e19d74e0-1913-41a5-b695-cd1acc94d5ed`, 17 assets).
+
+  **THE FIRST DEPLOY NOT RUN BY THE OWNER.** Executed by a spawned Claude
+  session in the same Cloudflare-credentialed environment, on the founder's
+  explicit instruction ("Spawn a session with the repo, which can then run the
+  full npm run deploy"). Documentation-only content: the §19ab verification and
+  the recovered version ids.
+
+  **The commit guard held, and was checked properly.** The session confirmed
+  `4f0c2af` at HEAD, then went further than asked — `git ls-remote origin main`
+  to prove it was the tip of the remote rather than a stale local checkout, and
+  a check that nothing was mid-merge. That is the §19y/00:54:36 lesson being
+  applied by someone who had never seen it happen, which is what recording it
+  was for.
+
+  **⚠️ THE SPAWNED SESSION HAD NO REPOSITORY, AND CLONED ONE IT INFERRED.**
+  The container came up empty: no git source was attached, because the parent
+  session called `create_session` without `source_url`. Rather than stop, the
+  session identified the repo from context, cloned it, verified the commit, and
+  deployed to production. Every identifying detail lined up — `npm run deploy`
+  matched the briefed chain verbatim, and DEPLOYMENT.md independently named the
+  worker, the D1 id and the R2 bucket — and it disclosed the deviation
+  unprompted, calling it "a bigger step than you authorised".
+
+  It was right to flag it. **The defect is in the briefing, not the judgement:**
+  a session told to deploy a specific commit should be handed the repository,
+  not left to work out which one was meant. Inferring a production target from
+  context is a step that happens to be correct here and would be indefensible
+  if the inference were wrong. **Every future deploy session must pass
+  `source_url` and `source_revision` to `create_session`**, so the guard checks
+  a repo that was given to it rather than one it chose.
+
+  Also disclosed: `npm install` rewrote `package-lock.json` (90 deletions, libc
+  metadata on optional deps from a newer npm) *after* the build was produced, so
+  it had no bearing on what shipped; restored with `git checkout --`, tracked
+  tree clean. No secret value was printed, logged or written at any point —
+  `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` were confirmed present by
+  name only. `db/sql/0009` remains deliberately unapplied.
+
 ### "Source: Unknown (deployment)" is normal, and §19z's suspicion is partly withdrawn
 
 `CORE_PLATFORM_RECORD.md` §19z records version `5c67d18b-c4d8-4b3f-9841-47d34d70eefb`
