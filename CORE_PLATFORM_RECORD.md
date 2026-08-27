@@ -2427,6 +2427,30 @@ that the window really is that wide.
 The original test passed against the broken build, because sending the digit
 was never in doubt — *when* it was sent was. The test now pins the timing.
 
+**Third report, and the one that changed the design.** With the retries in
+place the operator's side worked every time — and the caller's side did not:
+"from the customer's side when it answered it sounds like the platform kept
+spamming 1, a beeping sound on repeat." The gate opens on the **first** digit,
+so each later attempt landed on the bridged call as an audible tone. From the
+caller's seat, the agency answered the phone and immediately beeped at them.
+
+The retries cannot be made conditional. Before the bridge this leg hears the
+prompt; after it, the caller. Both are audio, and there is no client-side
+signal for "the gate has opened" — so a retry can only be silent if it happens
+to be unnecessary, which is luck, not design.
+
+**Resolved 2026-08-27 by removing the retries entirely** and lengthening the
+wait to compensate: wait for the live track, settle `MEDIA_SETTLE_MS` (600ms)
+because `readyState: "live"` means the track exists rather than that RTP has
+traversed the path, then send exactly one digit. If a digit is ever missed the
+operator presses 1 as before — **one keypress on our side of the call, rather
+than a repeating tone on the customer's.** `MEDIA_SETTLE_MS` is the number to
+raise if the second keypress ever returns.
+
+The lesson generalises past this bug: **the operator's side of a call is not
+the whole test.** Two rounds of verification passed because the only person
+checking was the one who could not hear the defect.
+
 **What that verification settles, and what it does not.** `connectStage` in
 `app/portal/calls/route/route-plan.ts` builds the browser legs and carries **no
 confirm section** — only the mobile fallback stage does. On a reading of this

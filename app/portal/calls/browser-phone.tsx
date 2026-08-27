@@ -75,14 +75,14 @@ const CONFIRM_DIGIT = "1";
 const MEDIA_READY_TIMEOUT_MS = 2500;
 
 /**
- * Attempts, and the gap between them. The route's prompt collects one digit
- * with a 5s initial timeout, so three attempts inside ~2.6s all land while it
- * is still listening. It stops at the first success it can observe; the extra
- * attempts exist because a digit lost to a not-yet-flowing media path is
- * silent, and the alternative is the operator pressing 1 again.
+ * A short settle after the track reports "live" and before the digit goes out.
+ *
+ * `readyState: "live"` means the track exists and is not ended — it does NOT
+ * promise the first RTP packet has traversed the path. This gap covers that
+ * last stretch. It is the whole reason a single send is now enough, and it is
+ * the number to raise if a call ever needs a second keypress again.
  */
-const ACCEPT_DIGIT_ATTEMPTS = 3;
-const ACCEPT_DIGIT_GAP_MS = 1200;
+const MEDIA_SETTLE_MS = 600;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -95,37 +95,45 @@ function remoteAudioLive(call: Call): boolean {
 /**
  * Clear the route's "press 1 to accept" gate on the operator's behalf.
  *
- * Waits for the media path before the first attempt, because a DTMF sent
- * before RTP is flowing is discarded with no error and no signal — that is
- * what made the two-keypress bug come and go. Then retries a bounded number of
- * times inside the window the far-side prompt is still collecting in.
+ * EXACTLY ONE DIGIT. NEVER A RETRY.
+ *
+ * An earlier version sent up to three, spaced 1.2s apart, to survive a digit
+ * lost to a not-yet-flowing media path. It survived that — and the customer
+ * heard the rest. The gate opens on the first digit, so every later attempt
+ * lands on the bridged call as an audible tone: from the caller's side, the
+ * agency answers the phone and immediately beeps at them, repeatedly.
+ *
+ * There is no client-side signal for "the gate has opened" — before the bridge
+ * this leg hears the prompt, after it hears the caller, and both are just
+ * audio. So a retry cannot be made conditional, only silent-if-lucky. It was
+ * not lucky.
+ *
+ * The trade is therefore made deliberately, and in the operator's direction
+ * rather than the customer's: wait longer, send once, and if the digit is
+ * ever missed the operator presses 1 as they used to. That costs one keypress
+ * on our side of the call. The alternative charged the customer for it.
  *
  * Every failure is swallowed on purpose. If the gate is absent the digit was
- * unnecessary; if a send throws, the in-call keypad still works and the
- * operator presses 1 exactly as before. Nothing here may take down a call that
- * has already been answered.
+ * unnecessary; if the send throws, the in-call keypad still works. Nothing
+ * here may take down a call that has already been answered.
  */
 async function sendAcceptDigit(call: Call, stillOurs: () => boolean): Promise<void> {
   const deadline = Date.now() + MEDIA_READY_TIMEOUT_MS;
   while (!remoteAudioLive(call) && Date.now() < deadline) {
     await sleep(100);
   }
+  await sleep(MEDIA_SETTLE_MS);
 
-  for (let attempt = 0; attempt < ACCEPT_DIGIT_ATTEMPTS; attempt += 1) {
-    // The call may have ended, been transferred, or been answered elsewhere
-    // between attempts. A tone sent into a dead call is harmless; one sent
-    // into somebody else's live conversation is not. The SDK's Call carries no
-    // state field here, so liveness is asked of the component, which owns it.
-    if (!stillOurs()) return;
+  // The call may have ended, been transferred, or been answered elsewhere
+  // while we waited. A tone sent into a dead call is harmless; one sent into
+  // somebody else's live conversation is not. The SDK's Call carries no state
+  // field here, so liveness is asked of the component, which owns it.
+  if (!stillOurs()) return;
 
-    try {
-      await call.sendDigits(CONFIRM_DIGIT);
-    } catch {
-      // Keep trying — a throw here is as likely to be a not-ready media path
-      // as a real fault, and the retry costs nothing the operator can hear.
-    }
-
-    if (attempt < ACCEPT_DIGIT_ATTEMPTS - 1) await sleep(ACCEPT_DIGIT_GAP_MS);
+  try {
+    await call.sendDigits(CONFIRM_DIGIT);
+  } catch {
+    // Deliberately silent. The keypad is still there.
   }
 }
 
