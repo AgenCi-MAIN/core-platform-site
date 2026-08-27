@@ -1,5 +1,6 @@
 import { signOutPath } from "../google-auth";
 import { ThriveMark } from "../thrive-mark";
+import { JarvisCommandPrompt } from "./command-prompt";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { getDb } from "../../db";
@@ -342,6 +343,21 @@ const NAV: readonly NavItem[] = [
     founderOnly: true,
     stateLabel: "Founder only",
   },
+  {
+    // The console had no sidebar entry at all until 2026-08-27 — twenty-three
+    // nav rows and not one of them reached it, so it could only be opened by
+    // typing the URL. A page you have to remember the address of is a page
+    // that stops being used.
+    href: "/portal/command",
+    label: "Command Center",
+    capability: "command.view",
+    icon: "dashboard",
+    group: "Administration",
+    description: "Workforce state, owner decisions, waiting signals, and accountable handoffs.",
+    state: "live",
+    commandOnly: true,
+    stateLabel: "Command Center only",
+  },
 ];
 
 const NAV_GROUPS = ["Workspace", "Calls", "Team", "API", "Administration"] as const;
@@ -624,6 +640,48 @@ export async function PortalShell({
             </span>
           </div>
         </header>
+
+        {/* THE COMMAND BAR — sticky, collapsible, and gated.
+            Founder, 2026-08-27: "i want it on top of the screen constanly."
+            The prompt used to live on one page you had to navigate to; here it
+            rides the shell, so it is at the top of every portal surface.
+
+            GATED to Command Center holders, not merely rendered. Showing an
+            agent a command prompt that refuses them is worse than not showing
+            one — it advertises a door and then holds it shut.
+
+            COLLAPSED BY DEFAULT, and that is the point of the collapse: sticky
+            furniture is permanent furniture, and a phone has little enough
+            height without a text field occupying it on every scroll. Shut, it
+            is one 44px line; open, it is the same prompt as the console.
+
+            CSS-only, via the same visually-hidden checkbox + :has(:checked)
+            mechanism as #portal-sidebar-toggle above. No client component and
+            no hydration for what is a disclosure widget. */}
+        {isCommandCenter(session) ? (
+          <>
+            <input
+              className="portal-command-bar-toggle"
+              id="portal-command-bar-toggle"
+              type="checkbox"
+              aria-label="Open the command prompt"
+            />
+            <div className="portal-command-bar">
+              <label
+                className="portal-command-bar-tab"
+                htmlFor="portal-command-bar-toggle"
+              >
+                <span className="portal-command-bar-mark" aria-hidden="true">J</span>
+                <span className="portal-command-bar-label">Command</span>
+                <span className="portal-command-bar-hint">Ask about this workspace</span>
+                <span className="portal-command-bar-caret" aria-hidden="true" />
+              </label>
+              <div className="portal-command-bar-body">
+                <JarvisCommandPrompt />
+              </div>
+            </div>
+          </>
+        ) : null}
 
         {children}
       </div>
