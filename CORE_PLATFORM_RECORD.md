@@ -2447,9 +2447,23 @@ operator presses 1 as before — **one keypress on our side of the call, rather
 than a repeating tone on the customer's.** `MEDIA_SETTLE_MS` is the number to
 raise if the second keypress ever returns.
 
+**Verified from BOTH sides, 2026-08-27**, after deploying `main@35b5c6e`
+(PR #133). The founder: "fixed." Answering connects the call through in one
+action, and the caller hears nothing at pickup. This is the first verification
+in this whole sequence that covered the customer's side, which is the only
+reason it can be trusted — the two before it were reported as working and were
+not.
+
+Tuning, if it ever drifts: `MEDIA_SETTLE_MS` in
+`app/portal/calls/browser-phone.tsx` is the single dial. The second keypress
+returning means raise it; a beep at pickup means lower it. The two failure
+modes pull the same number in opposite directions.
+
 The lesson generalises past this bug: **the operator's side of a call is not
 the whole test.** Two rounds of verification passed because the only person
-checking was the one who could not hear the defect.
+checking was the one who could not hear the defect. A defect that is
+inaudible to the person testing is not a rare shape — it is the normal shape
+of anything with two ends, and telephony has two ends by definition.
 
 **What that verification settles, and what it does not.** `connectStage` in
 `app/portal/calls/route/route-plan.ts` builds the browser legs and carries **no

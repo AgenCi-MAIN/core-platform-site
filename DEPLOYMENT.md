@@ -615,6 +615,41 @@ optional one.
   confirmed `97bd78e` at HEAD. That is the practice the earlier failure in this
   log argued for, used once and working.
 
+- 2026-08-27: **version id NOT CAPTURED** — deployed by the owner from
+  `C:\dev\core-platform-site`, at `main@35b5c6e` (PR #133) or a later commit;
+  the deploy output was not relayed into the session, so the exact id and
+  serving commit are unconfirmed here. Recover with
+  `npx wrangler deployments list -c dist/server/wrangler.json` and substitute
+  it. **Logged as not captured rather than omitted**, because the gap this log
+  exists to make visible is precisely the one nobody writes down.
+
+  **What this deploy carried**, all merged the same day:
+  - PR #131/#132/#133 — the inbound accept gate. Answering in the browser
+    required a **second** manual keypress on the in-call keypad before the
+    caller could be heard. The browser now clears that gate itself.
+  - PR #129 — every card on the Cloud AI Command Center opens the thing it
+    names; they were inert labels before.
+  - PR #130 — the "Inbound calling is live" announcement, and the repo
+    references moved to `AgenCi-MAIN` after the 2026-08-26 transfer.
+  - PR #98 — `/portal/training` could be swiped 1686px sideways on a phone.
+
+  **Verified live by the owner from BOTH sides of a call** — "fixed." Answering
+  connects in one action, and the caller hears nothing at pickup. That
+  two-sided check is the point: the same fix was reported working twice before
+  and was not, because the only person testing was the one who could not hear
+  the defect (CORE_PLATFORM_RECORD.md §19ab).
+
+  **Pre-deploy gate, run in full in-session before the owner deployed:**
+  134/134 tests against real workerd + D1, and `verify:build` reporting "Build
+  verified — safe to deploy" (worker 1591 KB, D1
+  `e19d74e0-1913-41a5-b695-cd1acc94d5ed`, 17 assets).
+
+  **Still outstanding after this deploy**, unchanged by shipping code:
+  `db/sql/0009_member_requests.sql` has never been applied to the remote
+  database, so the pending-request badge reads an absent table. It fails
+  closed — `readRows` classifies the missing table and the badge simply never
+  appears — which is the honest failure and also the invisible one.
+
 ### "Source: Unknown (deployment)" is normal, and §19z's suspicion is partly withdrawn
 
 `CORE_PLATFORM_RECORD.md` §19z records version `5c67d18b-c4d8-4b3f-9841-47d34d70eefb`
