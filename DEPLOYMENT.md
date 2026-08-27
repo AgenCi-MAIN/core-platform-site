@@ -615,36 +615,58 @@ optional one.
   confirmed `97bd78e` at HEAD. That is the practice the earlier failure in this
   log argued for, used once and working.
 
-- 2026-08-27: **version id NOT CAPTURED** — deployed by the owner from
-  `C:\dev\core-platform-site`, at `main@35b5c6e` (PR #133) or a later commit;
-  the deploy output was not relayed into the session, so the exact id and
-  serving commit are unconfirmed here. Recover with
-  `npx wrangler deployments list -c dist/server/wrangler.json` and substitute
-  it. **Logged as not captured rather than omitted**, because the gap this log
-  exists to make visible is precisely the one nobody writes down.
+- 2026-08-27: **serving version `460bec64-6ba4-4ae5-a5d0-79f2fca5b0e8`**,
+  created 2026-08-27T02:35:08.537Z, deployed by the owner from
+  `C:\dev\core-platform-site`. Id recovered from
+  `npx wrangler deployments list` after the fact and reconciled against merge
+  times, which is how the rest of this entry can be stated rather than guessed.
 
-  **What this deploy carried**, all merged the same day:
-  - PR #131/#132/#133 — the inbound accept gate. Answering in the browser
-    required a **second** manual keypress on the in-call keypad before the
-    caller could be heard. The browser now clears that gate itself.
-  - PR #129 — every card on the Cloud AI Command Center opens the thing it
-    names; they were inert labels before.
-  - PR #130 — the "Inbound calling is live" announcement, and the repo
-    references moved to `AgenCi-MAIN` after the 2026-08-26 transfer.
-  - PR #98 — `/portal/training` could be swiped 1686px sideways on a phone.
+  **Eight deploys went out across 2026-08-26/27**, and matching each against
+  the merge it followed reconstructs the whole inbound-accept saga. Merge times
+  are UTC from `git show -s --format=%cI`:
 
-  **Verified live by the owner from BOTH sides of a call** — "fixed." Answering
-  connects in one action, and the caller hears nothing at pickup. That
-  two-sided check is the point: the same fix was reported working twice before
-  and was not, because the only person testing was the one who could not hear
-  the defect (CORE_PLATFORM_RECORD.md §19ab).
+  | Deploy (UTC) | Version | First carried |
+  |---|---|---|
+  | 26th 23:36:33 | `acd9a4ea-755e-4536-b052-e5d763f68ebc` | predates #129 |
+  | 26th 23:48:06 | `0490c1f5-d9d4-4d0e-9d93-ce536592b9de` | predates #129 |
+  | 27th 00:33:17 | `ae38c76d-e9f9-4970-8741-2fd1f693454a` | #129 (23:57:27) + #130 (00:16:36) |
+  | 27th 00:42:11 | `4013d435-5754-4064-87bd-31f346eb5b1f` | no new merge since |
+  | 27th 00:54:36 | `790fbd88-3f5a-4a42-9b40-f4220fe84715` | **raced #131 — see below** |
+  | 27th 00:57:28 | `b749e25d-763c-4db5-addf-387fe5d5c072` | #131 (00:55:02) |
+  | 27th 01:15:58 | `22b498de-4a0c-4e29-8dcd-dffc817e5949` | #132 (01:13:42) |
+  | 27th 02:35:08 | `460bec64-6ba4-4ae5-a5d0-79f2fca5b0e8` | #133 (02:32:32) — **live** |
 
-  **Pre-deploy gate, run in full in-session before the owner deployed:**
-  134/134 tests against real workerd + D1, and `verify:build` reporting "Build
-  verified — safe to deploy" (worker 1591 KB, D1
-  `e19d74e0-1913-41a5-b695-cd1acc94d5ed`, 17 assets).
+  **The 00:54:36 deploy beat its own merge by twenty-six seconds.** PR #131
+  merged at 00:55:02; that deploy went out at 00:54:36, so it shipped `main`
+  *without* the accept-digit fix. Nothing broke, because the owner deployed
+  again at 00:57:28 and that one carried it. But the near-miss is the exact
+  shape of the failure this log was started for: a deploy that looks like it
+  shipped a fix, does not, and makes the fix look broken. `git log --oneline -1`
+  before `npm run deploy` catches it in one line, and is why that check is
+  written into the deploy instructions.
 
-  **Still outstanding after this deploy**, unchanged by shipping code:
+  **The three accept-gate deploys map one-to-one onto the three founder
+  reports**, which is what makes CORE_PLATFORM_RECORD.md §19ab evidence rather
+  than recollection:
+  - `b749e25d` (#131) → "it auto connect when i hit 1, its good" — then, minutes
+    later, "it went back to where i need to hit 1 again!" Same version, both
+    outcomes: the race, not a regression.
+  - `22b498de` (#132) → operator side fixed, and "from the customers side …
+    it sounds like the platform kept spamming 1" — the retries, audible on the
+    bridged call.
+  - `460bec64` (#133) → "fixed", verified from **both** sides.
+
+  Also carried by these deploys: PR #129 (Cloud AI Command Center cards became
+  real links), PR #130 (the "Inbound calling is live" announcement and the
+  `AgenCi-MAIN` repo references), and PR #98 (`/portal/training` could be swiped
+  1686px sideways on a phone).
+
+  **Pre-deploy gate, run in full in-session before each:** 134/134 tests
+  against real workerd + D1, and `verify:build` reporting "Build verified —
+  safe to deploy" (worker 1591 KB, D1 `e19d74e0-1913-41a5-b695-cd1acc94d5ed`,
+  17 assets).
+
+  **Still outstanding after all eight**, and unchanged by shipping code:
   `db/sql/0009_member_requests.sql` has never been applied to the remote
   database, so the pending-request badge reads an absent table. It fails
   closed — `readRows` classifies the missing table and the badge simply never

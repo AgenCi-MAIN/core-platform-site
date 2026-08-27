@@ -2414,7 +2414,8 @@ media one: the call is up, but RTP may not be flowing yet. A DTMF sent into a
 path that is not carrying media is discarded with no error and no callback, so
 the gate went on waiting for a digit that had already been spent.
 
-Same code, same deploy, opposite outcomes depending on how quickly the media
+Same code, same deploy — version `b749e25d-763c-4db5-addf-387fe5d5c072`,
+2026-08-27T00:57:28Z — opposite outcomes depending on how quickly the media
 path happened to come up. That is what a single live test cannot distinguish
 from success, and it is the trap worth remembering: **one passing call does not
 prove a race is closed.** The repaired version waits for a remote audio track
@@ -2447,8 +2448,9 @@ operator presses 1 as before — **one keypress on our side of the call, rather
 than a repeating tone on the customer's.** `MEDIA_SETTLE_MS` is the number to
 raise if the second keypress ever returns.
 
-**Verified from BOTH sides, 2026-08-27**, after deploying `main@35b5c6e`
-(PR #133). The founder: "fixed." Answering connects the call through in one
+**Verified from BOTH sides, 2026-08-27**, on Worker version
+`460bec64-6ba4-4ae5-a5d0-79f2fca5b0e8` (created 02:35:08Z, `main@35b5c6e`,
+PR #133). The founder: "fixed." Answering connects the call through in one
 action, and the caller hears nothing at pickup. This is the first verification
 in this whole sequence that covered the customer's side, which is the only
 reason it can be trusted — the two before it were reported as working and were
