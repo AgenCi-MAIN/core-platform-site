@@ -87,9 +87,9 @@ const LINKS = {
   desk: "/go/desk",
   /** This session. Already linked at the foot of the page. */
   hq: "/go/hq",
-  repo: "https://github.com/bankerrunners/core-platform-site",
-  pulls: "https://github.com/bankerrunners/core-platform-site/pulls",
-  security: "https://github.com/bankerrunners/core-platform-site/security",
+  repo: "https://github.com/AgenCi-MAIN/core-platform-site",
+  pulls: "https://github.com/AgenCi-MAIN/core-platform-site/pulls",
+  security: "https://github.com/AgenCi-MAIN/core-platform-site/security",
   /** The portal's own call records — where a call row actually resolves. */
   calls: "/portal/calls",
   audit: "/portal/audit",
@@ -938,7 +938,7 @@ export default async function CloudAgentCommandCenter() {
             </a>
             <a
               className="cacc-launch"
-              href="https://github.com/bankerrunners/core-platform-site"
+              href="https://github.com/AgenCi-MAIN/core-platform-site"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -1041,7 +1041,7 @@ export default async function CloudAgentCommandCenter() {
             <small>Code</small>
           </a>
           <a
-            href="https://github.com/bankerrunners/core-platform-site"
+            href="https://github.com/AgenCi-MAIN/core-platform-site"
             target="_blank"
             rel="noopener noreferrer"
           >

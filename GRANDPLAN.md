@@ -19,7 +19,7 @@
 **Product name:** THRIVE agency operating portal  
 **Deployment target:** Single Cloudflare Worker (`site-creator-vinext-starter`)  
 **Stack:** Next.js 16 + React 19 · Drizzle ORM · D1 (SQLite) · R2 · Vinext  
-**Repo:** `bankerrunners/core-platform-site`
+**Repo:** `AgenCi-MAIN/core-platform-site`
 
 ---
 

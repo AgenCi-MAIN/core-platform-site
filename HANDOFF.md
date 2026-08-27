@@ -8,7 +8,7 @@ and the strategy blueprints.
 
 **Owner:** Yuxiang Mao (Shawn), `btcmao518@gmail.com` (since 2026-08-17;
 previously `bankerrunners@gmail.com`, retired — Google locked that account).
-**Canonical source:** GitHub `bankerrunners/core-platform-site` — always
+**Canonical source:** GitHub `AgenCi-MAIN/core-platform-site` — always
 current; this handoff is a point-in-time copy.
 **Live platform:** `https://site-creator-vinext-starter.bankerrunners.workers.dev`
 (Version 877e0c99 as of 2026-08-16 — open-redirect fix + call-review surface live).

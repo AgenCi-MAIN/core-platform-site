@@ -125,7 +125,7 @@ the scores — that is the whole point.
 Mon–Sat around the clock; Sunday is the maintenance window, no runs):**
 
 **SEAT 1 — SITE STEWARD (hourly, :10 past).** The platform side.
-Each run, against bankerrunners/core-platform-site + the portal's records:
+Each run, against AgenCi-MAIN/core-platform-site + the portal's records:
 check the suite state on main, deploy staleness (last recorded deploy vs
 latest merge — flag if main is ahead of live), open PRs needing the owner,
 roster/audit-log anomalies surfaced by the day's records, OWNER-DECISIONS

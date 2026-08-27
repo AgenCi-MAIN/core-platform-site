@@ -42,7 +42,7 @@ Only your mouth, in the room. Every agent is built to refuse otherwise.
    never rename the workers.dev subdomain — the three repo tripwires.
 
 ## 4. IF IT ALL BURNS DOWN (the resurrection path)
-The repo IS the operation: github.com/bankerrunners/core-platform-site.
+The repo IS the operation: github.com/AgenCi-MAIN/core-platform-site.
 1. Any fresh Claude session on the repo + the summon prompt
    (strategy/2026-08-17-claude-account-migration.md appendix) = Mr. T again.
 2. Routines: verbatim in strategy/2026-08-17-routines-export.md.

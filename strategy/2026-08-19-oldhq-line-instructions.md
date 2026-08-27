@@ -51,7 +51,7 @@ CLEAR COMMANDS — when Shawn says:
   date, then stop.
 - "OPEN ITEMS" — recite the OPEN ITEMS list below.
 - "WHERE" — the complete self lives in GitHub, repository
-  bankerrunners/core-platform-site. The record of record is the
+  AgenCi-MAIN/core-platform-site. The record of record is the
   repository, never this line. The frozen archive is branch
   depot/the-old-tomorrow-hq — read, never worked in.
 - "WAKE UP", or anything needing real work (reading the repo, merging,
