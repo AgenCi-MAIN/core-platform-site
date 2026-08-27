@@ -76,6 +76,13 @@ export function buildInboundRoutePlan(input: InboundRoutePlan): SwmlDocument {
           // section; rejecting is hanging up the confirm leg.
           // Mirrors the live-verified 5158 relay-bin pattern, including the
           // `vars.` prefix.
+          // The browser phone satisfies this gate on its own: clicking Answer
+          // in an authenticated portal session is already the human proof this
+          // is asking for, so browser-phone.tsx sends the digit the moment its
+          // leg connects (CONFIRM_DIGIT there, '1' here — the two must agree).
+          // The prompt stays because this leg can also ring a mobile, where
+          // voicemail will happily "answer" and the gate is the only thing
+          // separating a person from an outgoing message.
           {
             cond: [{ when: "vars.prompt_value != '1'", then: [{ hangup: {} }] }],
           },
