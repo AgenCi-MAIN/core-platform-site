@@ -1001,68 +1001,73 @@ test("the browser phone resolves provider-stripped invite context before allowin
   );
 });
 
-test("answering in the browser clears the accept gate without a second keypress", () => {
-  // Founder, 2026-08-27: "when i hit press 1 [to answer] then i have to hit 1
-  // again on number pad." Then, after the first fix shipped and was verified
-  // working: "it went back to where i need to hit 1 again!"
+test("the accept digit is sent once, after media settles, and never retried", () => {
+  // Three founder reports, in order, and each one moved the fix:
   //
-  // Nothing had been reverted. The first fix sent the digit the instant
-  // status$ reported "connected" — but that is a SIGNALLING state, not a
-  // media one. When RTP happened to be flowing already the digit landed and
-  // the call went straight through; when it did not, the digit was discarded
-  // with no error and no signal, and the gate went on waiting for a digit
-  // that had already been spent. Same code, two different outcomes, looking
-  // exactly like a regression.
+  //   "when i hit press 1 then i have to hit 1 again on number pad"
+  //     -> the browser should clear the route's accept gate itself.
   //
-  // What is pinned here is the timing, because that is the part that broke.
+  //   "it went back to where i need to hit 1 again!"
+  //     -> nothing was reverted. The digit was sent on status$ "connected",
+  //        a SIGNALLING state; when RTP was not flowing yet the digit was
+  //        discarded silently. Fixed by waiting for a live audio track.
+  //
+  //   "from the customer's side it sounds like the platform kept spamming 1,
+  //    a beeping sound on repeat"
+  //     -> the retries. The gate opens on the FIRST digit, so every later
+  //        attempt lands on the bridged call as a tone the caller hears.
+  //
+  // The third report is why this test exists in its current form. A retry
+  // cannot be made conditional: before the bridge this leg hears the prompt,
+  // after it hears the caller, and both are just audio — there is no
+  // client-side signal for "the gate opened". So the retry is removed
+  // outright, and the wait is lengthened to compensate.
   const source = readFileSync(
     new URL("../app/portal/calls/browser-phone.tsx", import.meta.url),
     "utf8",
   );
 
-  // 1. The digit waits for a LIVE remote audio track, not merely a connected
-  //    call. This is the whole fix; without it the rest is decoration.
-  assert.match(
+  // 1. NO RETRY LOOP. This is the customer-facing property; everything else
+  //    here is about making one send land.
+  assert.doesNotMatch(
     source,
-    /readyState === "live"/,
-    "media readiness must be checked on the track, not inferred from call status",
+    /ACCEPT_DIGIT_ATTEMPTS/,
+    "retrying the accept digit beeps at the caller after the gate has opened",
   );
+  assert.equal(
+    (source.match(/sendDigits\(CONFIRM_DIGIT\)/g) ?? []).length,
+    1,
+    "the accept digit must be sent from exactly one place, exactly once",
+  );
+
+  // 2. It still waits for a live track — that was the fix for the
+  //    intermittent miss and removing it would bring that back.
+  assert.match(source, /readyState === "live"/);
   assert.match(
     source,
     /while \(!remoteAudioLive\(call\) && Date\.now\(\) < deadline\)/,
-    "the first attempt must wait for the media path, with a bounded deadline",
+    "the send must wait for the media path, with a bounded deadline",
   );
 
-  // 2. It retries, because a digit lost to a not-yet-flowing path is silent.
+  // 3. And then settles. "live" means the track exists, not that RTP has
+  //    traversed the path; this gap is what makes a single send sufficient.
   assert.match(
     source,
-    /for \(let attempt = 0; attempt < ACCEPT_DIGIT_ATTEMPTS/,
-    "a single attempt is what made this intermittent; retries are the fix",
+    /await sleep\(MEDIA_SETTLE_MS\);/,
+    "a settle after the track goes live is what replaces the retries",
   );
 
-  // 3. Every attempt re-checks that this call is still ours. A tone sent into
-  //    a dead call is harmless; one sent into somebody else's live
-  //    conversation is not.
-  assert.match(
-    source,
-    /if \(!stillOurs\(\)\) return;/,
-    "each retry must confirm the call is still this component's before firing",
-  );
+  // 4. Liveness is still re-checked before firing, since the wait is now
+  //    longer and the call can end inside it.
+  assert.match(source, /if \(!stillOurs\(\)\) return;/);
 
-  // 4. Still exactly once per offer, and still reset per offer.
+  // 5. Once per offer, reset per offer, failure swallowed.
   assert.match(
     source,
     /if \(!confirmSentRef\.current\) \{\s*confirmSentRef\.current = true;/,
-    "the send must not be startable twice for one offer",
   );
   assert.match(source, /confirmSentRef\.current = false;/);
-
-  // 5. A failure never takes down an answered call.
-  assert.match(
-    source,
-    /try \{\s*await call\.sendDigits\(CONFIRM_DIGIT\);\s*\} catch \{/,
-    "a failed send must be swallowed, not propagated into the answer path",
-  );
+  assert.match(source, /\} catch \{/);
 
   // The two sides must agree on the digit: the plan hangs up on anything else.
   const plan = readFileSync(
