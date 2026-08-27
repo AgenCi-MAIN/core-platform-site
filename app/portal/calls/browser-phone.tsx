@@ -60,6 +60,13 @@ type Snapshot = {
 const CHANNEL = "core-browser-phone-v1";
 const LOCK_NAME = "core-browser-phone-primary-v1";
 const CALL_ACTIVITY_EVENT = "thrive:call-activity";
+/**
+ * The digit the inbound route's accept gate waits for. It is declared here and
+ * in app/portal/calls/route/route-plan.ts, and the two must agree — the plan
+ * hangs up on anything that is not this digit.
+ */
+const CONFIRM_DIGIT = "1";
+
 const PHONE_PANEL_EVENT = "thrive:phone-panel";
 
 export function BrowserPhone({
@@ -87,6 +94,8 @@ export function BrowserPhone({
   const channelRef = useRef<BroadcastChannel | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const connectedRef = useRef(false);
+  /** Whether this call's accept digit has already gone out. Reset per offer. */
+  const confirmSentRef = useRef(false);
   const transferringRef = useRef(false);
   const callStatusCleanupRef = useRef<(() => void) | null>(null);
   const heartbeatFailuresRef = useRef(0);
@@ -355,6 +364,7 @@ export function BrowserPhone({
     contextRef.current = nextContext;
     setContext(nextContext);
     setSeconds(8);
+    confirmSentRef.current = false;
     setPhase(
       "ringing",
       `${nextContext.stage === "personal" ? "Your line" : "Team hunt"} · press 1 or Answer.`,
@@ -365,6 +375,32 @@ export function BrowserPhone({
     const statusSubscription = call.status$.subscribe(async (status) => {
       if (status === "connected") {
         connectedRef.current = true;
+
+        // ONE ANSWER, NOT TWO.
+        //
+        // Answering here accepts the WebRTC leg, but the route still holds a
+        // "press 1 to accept" gate in front of the bridge — so the call went
+        // quiet and the answerer had to open the keypad and press 1 a second
+        // time to actually reach the caller. Two deliberate actions for one
+        // decision, and the second one is invisible until you learn it.
+        //
+        // Clicking Answer, or pressing 1 while it rings, IS the human
+        // confirmation the gate is asking for: a voicemail box cannot click a
+        // button in an authenticated portal session. So the digit is sent once,
+        // automatically, the moment this leg comes up.
+        //
+        // Guarded by a ref rather than by phase, because status$ can emit
+        // "connected" more than once (a re-subscribe, a hold/resume) and a
+        // stray tone mid-conversation is audible to the caller.
+        if (!confirmSentRef.current) {
+          confirmSentRef.current = true;
+          void call.sendDigits(CONFIRM_DIGIT).catch(() => {
+            // Never fail the answer over this. If the gate is absent the digit
+            // was unnecessary; if it is present and this throws, the keypad is
+            // still there and the operator presses 1 as before.
+          });
+        }
+
         const remote = call.remoteStream;
         if (remote && audioRef.current) {
           audioRef.current.srcObject = remote;

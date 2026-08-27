@@ -1000,3 +1000,60 @@ test("the browser phone resolves provider-stripped invite context before allowin
     "an authorization error must remain visible after the provider closes the leg",
   );
 });
+
+test("answering in the browser clears the accept gate without a second keypress", () => {
+  // Founder, 2026-08-27: "when i hit press 1 [to answer] then i have to hit 1
+  // again on number pad."
+  //
+  // Answering accepts the WebRTC leg; the route then holds a "press 1 to
+  // accept" gate in front of the bridge. So the call went quiet and the
+  // answerer had to open the keypad and press 1 again to actually reach the
+  // caller — two deliberate actions for one decision, the second invisible
+  // until you learn it.
+  //
+  // Clicking Answer in an authenticated portal session IS the human proof the
+  // gate wants, so the browser sends the digit itself. Three properties are
+  // pinned here because each one, if it broke, would break quietly:
+  const source = readFileSync(
+    new URL("../app/portal/calls/browser-phone.tsx", import.meta.url),
+    "utf8",
+  );
+
+  // 1. The digit goes out when the leg connects — not on a click, so it covers
+  //    the Answer button and the keyboard shortcut with one path.
+  assert.match(
+    source,
+    /status === "connected"[\s\S]{0,1200}sendDigits\(CONFIRM_DIGIT\)/,
+    "the accept digit must be sent when the browser leg connects",
+  );
+
+  // 2. Exactly once per offer. status$ can emit "connected" again on a
+  //    re-subscribe or a hold/resume, and a stray tone mid-call is audible to
+  //    the caller.
+  assert.match(
+    source,
+    /if \(!confirmSentRef\.current\) \{\s*confirmSentRef\.current = true;/,
+    "the digit must be guarded so it cannot fire twice in one call",
+  );
+  assert.match(
+    source,
+    /confirmSentRef\.current = false;/,
+    "the guard must reset per offer, or the second call of a session is stuck",
+  );
+
+  // 3. A failed send must never fail the answer. If the gate is absent the
+  //    digit was unnecessary; if the send throws, the keypad still works.
+  assert.match(
+    source,
+    /sendDigits\(CONFIRM_DIGIT\)\.catch\(/,
+    "a failed accept digit must not take the answered call down with it",
+  );
+
+  // The two sides must agree on the digit: the plan hangs up on anything else.
+  const plan = readFileSync(
+    new URL("../app/portal/calls/route/route-plan.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(source, /const CONFIRM_DIGIT = "1";/);
+  assert.match(plan, /vars\.prompt_value != '1'/);
+});
