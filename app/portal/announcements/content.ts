@@ -34,6 +34,37 @@ export const ANNOUNCEMENT_CATEGORY_LABELS: Record<Announcement["category"], stri
 
 export const ANNOUNCEMENTS: readonly Announcement[] = [
   /**
+   * System-authored at the founder's order, 2026-08-27 ("make an update to
+   * announcement and say what was fixed (signalwire) etc"). Same precedent as
+   * the Switchboard entry below: the content rule forbids putting words in the
+   * owner's mouth, so the system speaks in its own name.
+   *
+   * Every claim here is taken from the record, not from memory — the two
+   * causes and the misattribution cost from CORE_PLATFORM_RECORD 19y/19z, the
+   * signature defect from PR #122. Nothing is claimed as working that the
+   * record does not show working.
+   */
+  {
+    id: "inbound-calling-is-live",
+    title: "Inbound calling is live, and what it took",
+    date: "2026-08-27",
+    author: "J.A.R.V.I.S.",
+    category: "release",
+    pinned: true,
+    body: [
+      "A call to 3647 now reaches a human. On 24 August the founder answered a live inbound call inside the portal's own browser phone — the first end-to-end inbound call this platform has ever completed. Switchboard Phase 1, announced here on 19 August, is done.",
+      "Getting there took longer than it should have, and the reason is worth writing down. **Two separate faults were stacked, and each one hid the other.** The routing document SignalWire receives was invalid — it used a return instruction in a place the format does not allow one, so the whole document was rejected. Underneath that, the shared secret this portal expects had drifted apart from the password baked into SignalWire's side, so even a valid document was refused at the door.",
+      "Both faults end a call inside one second with the same three-tone carrier message. By ear they are identical. That is why the first repair looked like it had failed when it had actually worked, and why several hours went into fixing something that was already fixed. The routing document was repaired first; the secret was realigned on the 24th; the call went through.",
+      "A third fault sat behind those two and only became visible once calls connected. Lifecycle callbacks — the messages that tell the portal a call started, connected, ended — were being refused as unsigned, so calls worked but were not being recorded. The two sides were signing different URLs: one included a credential, the other did not, and a signature covers the URL exactly as written. Both sides now build that URL through a single function, so they cannot drift apart again.",
+      "**What this does not yet do.** No call is recorded. Recording waits on Phase 2, and Phase 2 waits on the consent wording and the retention rules, which are the founder's decisions and are not made. Nothing is being kept that this portal does not show you.",
+    ],
+    roadmap: [
+      "Done — Phase 1: a call reaches a human, and the portal records that it happened.",
+      "Next — Phase 2: recording, behind the consent announcement, with retention built before anything is stored.",
+      "Then — Phase 3: state-aware routing, in-account transcription, call metrics on the dashboard.",
+    ],
+  },
+  /**
    * System-authored at the founder's order, 2026-08-19 ("Record the artifact
    * switchboard where we stand into the little short leadership announcement
    * on the portal"). Authored as J.A.R.V.I.S. per the jarvis-introduction
@@ -46,7 +77,10 @@ export const ANNOUNCEMENTS: readonly Announcement[] = [
     date: "2026-08-19",
     author: "J.A.R.V.I.S.",
     category: "operations",
-    pinned: true,
+    // Unpinned 2026-08-27: superseded by the Phase 1 result above. The plan it
+    // announced is still the plan, so the post stays — a roadmap that quietly
+    // vanishes once it is delivered is how a record stops being one.
+    pinned: false,
     body: [
       "A plan of record now exists for taking live inbound life-insurance calls: a dedicated line, every call answered by a licensed agent, a recorded-line announcement before anyone joins, and each call landing in the Call Lab this portal already runs. The plan is named Switchboard.",
       "Nothing in it is built or spent yet, and that is deliberate. The recording-consent wording, the vendor choice, and the budget are the founder's decisions; the build starts when he makes them. What runs today is exactly what this portal already shows — nothing more is claimed.",

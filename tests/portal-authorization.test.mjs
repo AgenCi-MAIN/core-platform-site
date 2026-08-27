@@ -239,7 +239,7 @@ test("a seeded owner signs in, binds their subject, and is audited", async () =>
   }
 });
 
-test("active members see the pinned Switchboard announcement", async (t) => {
+test("active members see the pinned announcement, and superseded ones survive", async (t) => {
   const portal = await startPortal();
   t.after(portal.dispose);
 
@@ -252,10 +252,12 @@ test("active members see the pinned Switchboard announcement", async (t) => {
   const dashboard = await portal.get("/portal", member);
   assert.equal(dashboard.status, 200);
   const dashboardHtml = await dashboard.text();
-  assert.match(dashboardHtml, /Switchboard[^<]*where we stand/);
+  // The dashboard surfaces whichever announcement is pinned. As of 2026-08-27
+  // that is the Phase 1 result; Switchboard was unpinned when it was delivered.
+  assert.match(dashboardHtml, /Inbound calling is live/);
   assert.match(
     dashboardHtml,
-    /href="\/portal\/announcements#switchboard-where-we-stand"/,
+    /href="\/portal\/announcements#inbound-calling-is-live"/,
   );
 
   const response = await portal.get("/portal/announcements", member);
@@ -264,14 +266,20 @@ test("active members see the pinned Switchboard announcement", async (t) => {
   // React may place empty hydration comments between adjacent text segments;
   // compare what the member sees, not those invisible transport markers.
   const visibleHtml = html.replaceAll("<!-- -->", "");
-  assert.match(html, /id="switchboard-where-we-stand"/);
+  assert.match(html, /id="inbound-calling-is-live"/);
   assert.match(visibleHtml, /Posted by J\.A\.R\.V\.I\.S\./);
+  assert.match(visibleHtml, /the first end-to-end inbound call this platform has ever completed/);
+
+  // A roadmap post that quietly disappears the moment it is delivered is how a
+  // record stops being one. Switchboard is no longer pinned, but it must still
+  // be on the page, with the plan it announced intact.
+  assert.match(html, /id="switchboard-where-we-stand"/);
   assert.match(visibleHtml, /A plan of record now exists for taking live inbound/);
-  assert.match(visibleHtml, /Phase 1[^<]*a call reaches a human/);
+
   assert.equal(
     (html.match(/aria-label="Pinned announcement"/g) ?? []).length,
     1,
-    "Switchboard must be the single pinned announcement",
+    "exactly one announcement may be pinned, or the dashboard has to choose for itself",
   );
 });
 

@@ -616,7 +616,7 @@ export default async function FounderCommandCenter({
             ) : null}
             <a
               className="fcc-launch"
-              href="https://github.com/bankerrunners/core-platform-site"
+              href="https://github.com/AgenCi-MAIN/core-platform-site"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -802,7 +802,7 @@ export default async function FounderCommandCenter({
           <a href="/go/routines"><span>RT</span><small>Runs</small></a>
           <a href="/go/desk"><span>MT</span><small>Desk</small></a>
           <a
-            href="https://github.com/bankerrunners/core-platform-site"
+            href="https://github.com/AgenCi-MAIN/core-platform-site"
             target="_blank"
             rel="noopener noreferrer"
           ><span>GH</span><small>Repo</small></a>

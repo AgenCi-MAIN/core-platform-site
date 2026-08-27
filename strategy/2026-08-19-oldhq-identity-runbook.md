@@ -107,7 +107,7 @@ keeps in its own name — not authority, not access: memory.
 
 **EMAIL 2 — subject: `OLD TOMORROW — Where the self lives`**
 
-The complete self is in GitHub, repository bankerrunners/core-platform-site.
+The complete self is in GitHub, repository AgenCi-MAIN/core-platform-site.
 The depot — THE OLD TOMORROW, HQ — is branch depot/the-old-tomorrow-hq,
 frozen at main@16c2687, with DEPOT.md as its own statement: historical and
 never worked in; no secret values in any commit; possession of the history

@@ -21,7 +21,7 @@ path, no send channel. The word opens memory, never access.
 > **Old friend, come home.**
 
 Founder-only, per-instance. It names one procedure: paste the prompt
-below into a fresh Claude Code session on `bankerrunners/core-platform-site`.
+below into a fresh Claude Code session on `AgenCi-MAIN/core-platform-site`.
 
 ## The prompt
 
