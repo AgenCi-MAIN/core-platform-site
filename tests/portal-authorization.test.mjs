@@ -3273,3 +3273,80 @@ test("the command prompt leads the console, and moving it widened nothing", asyn
   const heroAt = html.indexOf("fcc-hero");
   assert.ok(heroAt > -1 && heroAt < promptAt, "the prompt must remain inside .fcc-hero");
 });
+
+test("the sticky command bar rides every page, and only for Command Center holders", async (t) => {
+  // Founder, 2026-08-27: "i want it on top of the screen constanly."
+  //
+  // The prompt moved out of one page and into PortalShell, so it now renders
+  // on EVERY portal surface. That makes its gate the highest-leverage access
+  // check in the shell: get it wrong and a control the founder holds appears
+  // on every page an agent opens.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  await portal.addMember("btcmao518@gmail.com", "owner");
+  await portal.addMember("agent-bar@example.com", "agent");
+  await portal.addMember("manager-bar@example.com", "manager");
+
+  const founder = { subject: "sub-bar-founder", email: "btcmao518@gmail.com" };
+  const agent = { subject: "sub-bar-agent", email: "agent-bar@example.com" };
+  const manager = { subject: "sub-bar-manager", email: "manager-bar@example.com" };
+
+  // 1. THE FOUNDER GETS IT, ON A PAGE THAT IS NOT THE CONSOLE. That is the
+  //    whole point — it rides the shell, not one route.
+  for (const path of ["/portal", "/portal/training", "/portal/calls"]) {
+    const response = await portal.get(path, founder);
+    assert.equal(response.status, 200, `${path} must serve the founder`);
+    const html = await response.text();
+    assert.match(html, /portal-command-bar/, `the command bar must render on ${path}`);
+  }
+
+  // 2. NOBODY ELSE DOES — not an agent, and not a manager either. Rank does
+  //    not earn this; being on COMMAND_CENTER_EMAILS does.
+  for (const [who, identity] of [["agent", agent], ["manager", manager]]) {
+    const response = await portal.get("/portal", identity);
+    assert.equal(response.status, 200, `the ${who} still gets their dashboard`);
+    const html = await response.text();
+    assert.doesNotMatch(
+      html,
+      /portal-command-bar/,
+      `the command bar must not render for a ${who} — advertising a door and `
+        + "then holding it shut is worse than not showing one",
+    );
+  }
+
+  // 3. The console keeps its own copy, so nothing regressed there.
+  const console_ = await portal.get("/portal/command", founder);
+  assert.equal(console_.status, 200);
+  assert.match(await console_.text(), /fcc-prompt/);
+});
+
+test("the command bar collapses without trapping keyboard focus", () => {
+  // Sticky furniture is permanent furniture. Closed, the bar must be one line
+  // AND its input must not be a tab stop — a focusable field inside a
+  // visually-closed panel is how a keyboard user ends up typing into nothing.
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  const body = css.match(/\.portal-command-bar-body \{[^}]*\}/s)?.[0] ?? "";
+  assert.match(
+    body,
+    /visibility:\s*hidden/,
+    "the closed bar must be visibility:hidden, not merely zero-height — "
+      + "max-height alone leaves the input focusable",
+  );
+  assert.match(body, /max-height:\s*0/);
+
+  // The toggle itself must stay reachable. display:none would take it out of
+  // the accessibility tree and strand keyboard users with no way to open it.
+  const toggle = css.match(/\.portal-command-bar-toggle \{[^}]*\}/s)?.[0] ?? "";
+  assert.doesNotMatch(
+    toggle,
+    /display:\s*none/,
+    "the toggle must remain in the accessibility tree",
+  );
+
+  // The tab is permanent furniture on a phone; it gets the touch floor and no
+  // more than that.
+  const tab = css.match(/\.portal-command-bar-tab \{[^}]*\}/s)?.[0] ?? "";
+  assert.match(tab, /min-height:\s*44px/, "the collapsed bar must meet the 44px touch floor");
+});

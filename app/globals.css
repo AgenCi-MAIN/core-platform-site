@@ -7260,3 +7260,124 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
 @media (prefers-reduced-motion: reduce) {
   .cacc-stretch { transition: none; }
 }
+
+/* --- The command bar: sticky, collapsible, Command Center only ---
+   Founder, 2026-08-27: "i want it on top of the screen constanly."
+
+   Lives in PortalShell, so it rides every portal surface rather than sitting
+   on one page you have to navigate to. Collapsed it is a single 44px line;
+   opened it reveals the same prompt the console uses. */
+
+/* Same visually-hidden mechanism as #portal-sidebar-toggle: a real checkbox,
+   kept operable by keyboard and assistive tech, driving state through
+   :has(:checked). display:none would take it out of the accessibility tree
+   and strand keyboard users with a control they cannot reach. */
+.portal-command-bar-toggle {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.portal-command-bar {
+  position: sticky;
+  /* Above the page, below the sidebar (z-index 30) so the mobile drawer still
+     covers it when open. */
+  top: 0;
+  z-index: 25;
+  border-bottom: 1px solid var(--portal-line);
+  background: var(--portal-panel);
+}
+
+.portal-command-bar-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* 44px is the touch floor this codebase holds everywhere else. The bar is
+     permanent furniture on a phone, so it earns no more height than that. */
+  min-height: 44px;
+  padding: 0 16px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.portal-command-bar-mark {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.portal-command-bar-label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--portal-text);
+}
+
+/* The hint explains the bar without a second line. It is the first thing to
+   go when there is no room for it — the mark and the label alone still say
+   what this is. */
+.portal-command-bar-hint {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--portal-muted);
+  font-size: 12px;
+}
+
+.portal-command-bar-caret {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--portal-muted);
+  border-bottom: 2px solid var(--portal-muted);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform .18s ease;
+}
+
+/* Closed: zero height, and inert. `visibility: hidden` rather than height
+   alone, so the collapsed prompt is not a tab stop — a focusable input inside
+   a visually-closed panel is how keyboard users end up typing into nothing. */
+.portal-command-bar-body {
+  visibility: hidden;
+  max-height: 0;
+  overflow: hidden;
+  padding: 0 16px;
+  transition: max-height .2s ease, padding .2s ease;
+}
+
+.portal-shell:has(.portal-command-bar-toggle:checked) .portal-command-bar-body {
+  visibility: visible;
+  max-height: 320px;
+  padding: 0 16px 14px;
+}
+
+.portal-shell:has(.portal-command-bar-toggle:checked) .portal-command-bar-caret {
+  transform: rotate(225deg) translate(-2px, -2px);
+}
+
+.portal-command-bar-toggle:focus-visible + .portal-command-bar .portal-command-bar-tab {
+  outline: 2px solid var(--portal-accent);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-command-bar-body,
+  .portal-command-bar-caret { transition: none; }
+}
+
+/* Narrow phones: the hint is the first thing to go. */
+@media (max-width: 30rem) {
+  .portal-command-bar-hint { display: none; }
+}
