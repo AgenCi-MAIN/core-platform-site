@@ -48,12 +48,12 @@ export function PortalNavigationUpgrade() {
     }
 
     function upgrade() {
-      document.querySelectorAll<HTMLElement>(".portal-nav-item-surelc").forEach((node) => node.remove());
+      document.querySelectorAll<HTMLElement>(".portal-menu-item-surelc").forEach((node) => node.remove());
 
-      document.querySelectorAll<HTMLElement>(".portal-nav-exchange .portal-nav-label").forEach((node) => {
+      document.querySelectorAll<HTMLElement>(".portal-menu-item-shop .portal-menu-label").forEach((node) => {
         setLabel(node, "Marketplace");
       });
-      document.querySelectorAll<HTMLElement>(".portal-nav-item-reagan .portal-nav-label").forEach((node) => {
+      document.querySelectorAll<HTMLElement>(".portal-menu-item-reagan .portal-menu-label").forEach((node) => {
         setLabel(node, "Reagan AI — Heartland");
       });
 

@@ -31,7 +31,7 @@ import "./globals.css";
 export const viewport: Viewport = {
   width: "device-width, viewport-fit=cover",
   initialScale: 1,
-  themeColor: "#0c0a07",
+  themeColor: "#0b130f",
 };
 
 export async function generateMetadata(): Promise<Metadata> {

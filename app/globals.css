@@ -779,37 +779,52 @@ button, .button, .nav-cta, .text-link {
 
 .portal {
   --portal-bg: #f3ecdf;
-  --portal-panel: #fffaf1;
-  --portal-sidebar: #eadfc9;
-  --portal-raised: #f8efdf;
-  --portal-text: #241b10;
-  --portal-muted: #665b4b;
-  --portal-subtle: #786b57;
-  --portal-soft: #eee1ca;
-  --portal-line: #d8c8aa;
-  --portal-line-strong: #aa8e5e;
-  --portal-accent: #bd861c;
-  --portal-accent-strong: #80580f;
-  --portal-accent-soft: #f2dfb7;
-  --portal-secondary: #c66a22;
+  --portal-panel: #fdf9ee;
+  --portal-sidebar: #ece5d0;
+  --portal-raised: #f8f3e3;
+  --portal-text: #1c2a20;
+  --portal-muted: #56685c;
+  /* Darkened from the drafted #6c7d70: micro-labels and table headers wear
+     this at 10.5px, and the draft sat at 4.15:1 on the panel and 3.5:1 on
+     the chrome — under the 4.5:1 floor small text needs. */
+  --portal-subtle: #5a6b60;
+  --portal-soft: #eae2cd;
+  --portal-line: #d9d0b8;
+  --portal-line-strong: #a8a488;
+  --portal-accent: #1f6b45;
+  --portal-accent-strong: #145233;
+  --portal-accent-soft: #ddebdd;
+  --portal-accent-2: #a8791c;
+  --portal-secondary: #a8791c;
   --portal-success: #157347;
   --portal-warning: #8a5700;
   --portal-danger: #a52620;
-  --portal-brand-surface: #2b2012;
-  --portal-brand-ink: #f5ead4;
-  --portal-avatar-surface: #d9a63a;
-  --portal-avatar-ink: #241b10;
-  --portal-hover: #eadbbf;
-  --portal-icon: #786542;
+  --portal-brand-surface: #1c2a20;
+  --portal-brand-ink: #f2eddc;
+  --portal-avatar-surface: #2e7d54;
+  --portal-avatar-ink: #f2f7ef;
+  --portal-hover: #e9e2cc;
+  --portal-icon: #5f7263;
   --portal-success-ring: #e5f4ec;
+  --portal-pill-live-ink: #0f6a3d;
+  --portal-pill-live-bg: #e2f2e6;
+  --portal-pill-live-line: #9cc9ad;
+  --portal-pill-pending-ink: #7a5200;
+  --portal-pill-pending-bg: #f6ecd4;
+  --portal-pill-pending-line: #cfb27a;
+  --portal-pill-owner-ink: #806018;
+  --portal-pill-owner-line: #b39a5c;
+  --portal-dock-shadow: 0 4px 14px rgba(43, 54, 40, .14), 0 18px 48px rgba(43, 54, 40, .12);
+  --portal-serif: Georgia, "Times New Roman", Times, serif;
+  --portal-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --portal-type-label: 11px;
   --portal-type-body: 13px;
   --portal-type-title: 15px;
-  --portal-type-display: clamp(25px, 2.4vw, 32px);
+  --portal-type-display: clamp(30px, 4vw, 44px);
   --portal-radius-sm: 6px;
-  --portal-radius: 9px;
-  --portal-radius-lg: 12px;
-  --portal-shadow: 0 1px 2px rgba(55, 37, 13, .08), 0 10px 28px rgba(82, 53, 12, .06);
+  --portal-radius: 10px;
+  --portal-radius-lg: 16px;
+  --portal-shadow: 0 1px 2px rgba(37, 49, 33, .08), 0 10px 28px rgba(37, 49, 33, .06);
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -838,23 +853,18 @@ button, .button, .nav-cta, .text-link {
      words: "I Dont want be able to drag it down this much." */
   flex: 1 1 auto;
   min-height: 0;
-  display: grid;
-  grid-template-columns: 232px minmax(0, 1fr);
+  display: block;
   background: var(--portal-bg);
-  transition: grid-template-columns .18s ease;
 }
 
-/* Both drawer/collapse state checkboxes are visually hidden but remain in the
-   accessibility tree and focusable, so :has(...:checked) can drive layout and
-   keyboard users can still toggle them — but each is focusable ONLY inside
+/* The menu-fallback checkbox is visually hidden but remains in the
+   accessibility tree and focusable, so :has(...:checked) can drive the menu
+   and keyboard users can still toggle it — but it is focusable ONLY inside
    the window where checking it does something visible. Outside that window a
    1px invisible checkbox is a tab stop with no effect and no focus
-   indication, which fails WCAG 2.4.7. The desktop collapse toggle goes
-   display: none under 900px (in the 899px media query below); the mobile
-   drawer toggle goes display: none here and is restored solely inside the
-   pre-Popover fallback branch — the one place its :has(...:checked) rules
-   exist. */
-.portal-sidebar-toggle,
+   indication, which fails WCAG 2.4.7. It goes display: none here and is
+   restored solely inside the pre-Popover fallback branch — the one place its
+   :has(...:checked) rules exist. */
 .portal-mobile-drawer-toggle {
   position: fixed;
   width: 1px;
@@ -863,8 +873,6 @@ button, .button, .nav-cta, .text-link {
   pointer-events: none;
 }
 .portal-mobile-drawer-toggle { display: none; }
-
-.portal-shell:has(.portal-sidebar-toggle:checked) { grid-template-columns: 68px minmax(0, 1fr); }
 
 .portal-sidebar {
   position: sticky;
@@ -1049,52 +1057,6 @@ button, .button, .nav-cta, .text-link {
 .portal-account-copy small { margin-top: 3px; overflow: hidden; color: var(--portal-muted); font-size: var(--portal-type-label); text-overflow: ellipsis; white-space: nowrap; }
 .portal-signout { grid-column: 1 / -1; min-height: 34px; margin-top: 2px; padding: 6px 8px; font-size: var(--portal-type-body); }
 .portal-signout > span:first-child { width: 28px; text-align: center; font-size: 16px; }
-
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-brand { justify-content: center; padding-inline: 0; }
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-brand-copy,
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-brand-kicker,
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-group-label,
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-group-sub,
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-label,
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-account-copy { display: none; }
-/* The two LIVE surfaces — Inbound Calls and the Marketplace — keep their
-   marker when the tray is collapsed, as a dot rather than a word.
-   `.thrive-inbound-live` is injected by navigation-upgrade.tsx and was never
-   in the hide list above, so in a 74px rail it kept its full pill width and
-   `margin-left: auto`, pushing the row wider than the rail; `overflow: hidden`
-   on the sidebar then sliced the row's own highlight off at the edge. That is
-   the misalignment. Hiding it outright would have been the easy fix and the
-   wrong one: these are the only two live surfaces in the product, and losing
-   the marker is exactly what the collapsed rail should not cost you.
-   Absolutely positioned so it contributes no width at all — a marker that
-   participates in the row box can always push the row again. */
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-flare,
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .thrive-inbound-live {
-  position: absolute;
-  top: 5px;
-  right: 13px;
-  width: 7px;
-  height: 7px;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  /* The word itself is collapsed rather than removed, so the row still
-     announces "LIVE" to a screen reader that never sees the dot. */
-  font-size: 0;
-  line-height: 0;
-  overflow: hidden;
-}
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-flare {
-  background: var(--portal-secondary);
-}
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .thrive-inbound-live {
-  background: var(--portal-accent);
-}
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav a,
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-signout { justify-content: center; padding-inline: 6px; }
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-sidebar-account { grid-template-columns: 1fr; justify-items: center; }
 
 /* Product-shell extensions: concise labels and operational system state. */
 .portal-sidebar-head { padding: 0 2px; }
@@ -1321,14 +1283,9 @@ button, .button, .nav-cta, .text-link {
 .portal-system-dot-pending { background: #b98219; box-shadow: 0 0 0 3px #fff2cf; }
 .portal-system-dot-neutral { background: #777f89; box-shadow: 0 0 0 3px #eceef1; }
 
-/* Desktop collapse and mobile drawer are separate controls so closed navigation
-   never remains in the keyboard order on small screens. */
-.portal-menu-button-mobile,
-.portal-menu-button-mobile-fallback,
-.portal-drawer-backdrop,
-.portal-sidebar-mobile { display: none; }
-.portal-menu-button-desktop { display: grid; }
-.portal-sidebar-desktop { display: flex; }
+/* The fallback backdrop exists only for the checkbox path; the popover path
+   uses the native ::backdrop. Shown solely inside the @supports not branch. */
+.portal-drawer-backdrop { display: none; }
 .portal-drawer-close { position: relative; width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--portal-line); border-radius: 7px; background: var(--portal-panel); color: var(--portal-text); cursor: pointer; }
 .portal-drawer-close::before,
 .portal-drawer-close::after { content: ""; position: absolute; width: 14px; height: 1.5px; border-radius: 2px; background: currentColor; transform: rotate(45deg); }
@@ -1421,7 +1378,10 @@ button, .button, .nav-cta, .text-link {
   place-items: center;
   border-radius: 12px;
   background: var(--portal-accent);
-  color: #fff;
+  /* On-accent ink is the page ground, not white: dark's accent is a light
+     mint, and white on it reads at 1.7:1. The ground token is dark exactly
+     when the accent is light, so the pair holds in all three themes. */
+  color: var(--portal-bg);
   font-size: 14px;
   font-weight: 800;
   letter-spacing: .06em;
@@ -1434,7 +1394,7 @@ button, .button, .nav-cta, .text-link {
 .portal-dialer-table th:last-child,
 .portal-dialer-table td:last-child { text-align: right; }
 .portal-recording-link { display: inline-flex; align-items: center; min-height: 30px; padding: 5px 9px; border: 1px solid var(--portal-accent); border-radius: 7px; background: var(--portal-accent-soft); color: var(--portal-accent-strong); font-size: 10px; font-weight: 800; white-space: nowrap; }
-.portal-recording-link:hover { background: var(--portal-accent); color: #fff; }
+.portal-recording-link:hover { background: var(--portal-accent); color: var(--portal-bg); }
 .portal-call-review { gap: 18px; }
 .portal-call-review-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .portal-call-back { display: inline-flex; align-items: center; gap: 7px; color: var(--portal-muted); font-size: 11px; font-weight: 800; text-decoration: none; }
@@ -1470,30 +1430,40 @@ button, .button, .nav-cta, .text-link {
 .portal-call-status-failed { color: var(--portal-danger); border-color: #e0b6b2; background: #fff0ef; }
 
 html[data-portal-theme="dark"] .portal {
-  --portal-bg: #0c0a07;
-  --portal-panel: #17130d;
-  --portal-sidebar: #100d09;
-  --portal-raised: #211a10;
-  --portal-text: #f5ead4;
-  --portal-muted: #c9b894;
-  --portal-subtle: #a99776;
-  --portal-soft: #2a2114;
-  --portal-line: #3f3322;
-  --portal-line-strong: #6f592e;
-  --portal-accent: #d9a63a;
-  --portal-accent-strong: #f1c75c;
-  --portal-accent-soft: #342813;
-  --portal-secondary: #c66a22;
-  --portal-success: #6fd5a2;
-  --portal-warning: #f0bd65;
+  --portal-bg: #0b130f;
+  --portal-panel: #101a14;
+  --portal-sidebar: #0d1712;
+  --portal-raised: #152219;
+  --portal-text: #e9f2ea;
+  --portal-muted: #9db8a6;
+  --portal-subtle: #7d9886;
+  --portal-soft: #142019;
+  --portal-line: #22352a;
+  --portal-line-strong: #3a5a46;
+  --portal-accent: #46e08d;
+  --portal-accent-strong: #7ef0ae;
+  --portal-accent-soft: #12301f;
+  --portal-accent-2: #d9a63a;
+  --portal-secondary: #d9a63a;
+  --portal-success: #46e08d;
+  --portal-warning: #e0b95a;
   --portal-danger: #ff8c84;
-  --portal-brand-surface: #d9a63a;
-  --portal-brand-ink: #241b10;
-  --portal-avatar-surface: #d9a63a;
-  --portal-avatar-ink: #241b10;
-  --portal-hover: #2b2215;
-  --portal-icon: #c9b07a;
-  --portal-success-ring: #244a39;
+  --portal-brand-surface: #d9a63a;   /* brand mark stays GOLD — owner order 2026-08-17 */
+  --portal-brand-ink: #1a1408;
+  --portal-avatar-surface: #2e7d54;
+  --portal-avatar-ink: #eafff3;
+  --portal-hover: #16281d;
+  --portal-icon: #8fb79c;
+  --portal-success-ring: #17402b;
+  --portal-pill-live-ink: #7ef0ae;
+  --portal-pill-live-bg: #12301f;
+  --portal-pill-live-line: #2c5c40;
+  --portal-pill-pending-ink: #e6c37a;
+  --portal-pill-pending-bg: #2b2312;
+  --portal-pill-pending-line: #5c4b24;
+  --portal-pill-owner-ink: #d9a63a;
+  --portal-pill-owner-line: #6f592e;
+  --portal-dock-shadow: 0 6px 18px rgba(0, 0, 0, .5), 0 24px 60px rgba(0, 0, 0, .35);
   --portal-shadow: 0 1px 2px rgba(0, 0, 0, .42), 0 16px 38px rgba(0, 0, 0, .26);
   color-scheme: dark;
 }
@@ -1501,18 +1471,18 @@ html[data-portal-theme="dark"] .portal-status-active,
 html[data-portal-theme="dark"] .portal-decision-allow,
 html[data-portal-theme="dark"] .portal-state-live,
 html[data-portal-theme="dark"] .portal-call-consent-verified,
-html[data-portal-theme="dark"] .portal-call-status-ready { color: #79dfad; border-color: #3d7659; background: #173325; }
+html[data-portal-theme="dark"] .portal-call-status-ready { color: #7ef0ae; border-color: #2c5c40; background: #12301f; }
 html[data-portal-theme="dark"] .portal-status-suspended,
 html[data-portal-theme="dark"] .portal-state-pending,
 html[data-portal-theme="dark"] .portal-call-consent-pending,
 html[data-portal-theme="dark"] .portal-call-status-received,
 html[data-portal-theme="dark"] .portal-call-status-processing,
-html[data-portal-theme="dark"] .portal-call-status-needs_review { color: #f1c26d; border-color: #765d31; background: #352a17; }
+html[data-portal-theme="dark"] .portal-call-status-needs_review { color: #e6c37a; border-color: #5c4b24; background: #2b2312; }
 html[data-portal-theme="dark"] .portal-status-revoked,
 html[data-portal-theme="dark"] .portal-decision-deny,
 html[data-portal-theme="dark"] .portal-call-consent-restricted,
-html[data-portal-theme="dark"] .portal-call-status-failed { color: #ff9c94; border-color: #7d4542; background: #3b1f20; }
-html[data-portal-theme="dark"] .portal-state-restricted { color: #cbb7b4; border-color: #655350; background: #2d2526; }
+html[data-portal-theme="dark"] .portal-call-status-failed { color: #ff9c94; border-color: #6e3f3c; background: #331d1c; }
+html[data-portal-theme="dark"] .portal-state-restricted { color: #c1cbc4; border-color: #4a5c50; background: #212b24; }
 html[data-portal-theme="dark"] .portal-system-dot-pending { background: #d89d3f; box-shadow: 0 0 0 3px #49391e; }
 html[data-portal-theme="dark"] .portal-system-dot-neutral { background: #9ba5b1; box-shadow: 0 0 0 3px #303640; }
 html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"] { box-shadow: 0 1px 4px rgba(0, 0, 0, .45); }
@@ -1553,23 +1523,31 @@ html[data-portal-theme="thrive"] .portal {
   --portal-avatar-ink: #06142b;
   --portal-hover: #e2ebf8;
   --portal-icon: #4a6285;
+  --portal-accent-2: #b45309;
+  --portal-pill-live-ink: #157347;
+  --portal-pill-live-bg: #e3f3ea;
+  --portal-pill-live-line: #a3cfb6;
+  --portal-pill-pending-ink: #8a5700;
+  --portal-pill-pending-bg: #f8eed6;
+  --portal-pill-pending-line: #d6b97e;
+  --portal-pill-owner-ink: #1d4ed8;
+  --portal-pill-owner-line: #93a9c6;
+  --portal-dock-shadow: 0 6px 16px rgba(7, 26, 49, .22), 0 22px 56px rgba(7, 26, 49, .18);
   --portal-shadow: 0 1px 2px rgba(16, 32, 56, .09), 0 10px 28px rgba(16, 32, 56, .07);
   color-scheme: light;
 }
-/* The navy rail re-scopes the shared tokens rather than adding new ones, so
-   every sidebar descendant (.portal-nav, .portal-brand, group labels, the
-   account card) inverts with no per-selector rules — custom properties
-   resolve against the nearest scope. */
-html[data-portal-theme="thrive"] .portal .portal-sidebar {
-  /* Two non-token declarations, both load-bearing:
-     color — `color` inherits as a COMPUTED value, so descendants that never
-     declare one (.portal-brand-copy strong, .portal-account-copy strong)
-     would inherit the workspace navy and vanish on the navy rail.
-     background-color — the P0 rail rule uses the background SHORTHAND with
-     only images, resetting background-color to transparent; boost mode then
-     strips background-image, which under thrive (the one theme whose rail
-     inverts from its workspace) left near-white text floating on the light
-     workspace. A longhand background-color survives both. */
+/* The navy chrome re-scopes the shared tokens rather than adding new ones, so
+   every dock and menu descendant inverts with no per-selector rules — custom
+   properties resolve against the nearest scope. Two non-token declarations,
+   both load-bearing:
+   color — `color` inherits as a COMPUTED value, so descendants that never
+   declare one would inherit the workspace navy and vanish on the navy chrome.
+   background-color — the longhand, never the `background` shorthand: boost
+   strips background-image, and a shorthand with only images resets
+   background-color to transparent, leaving light text floating on the light
+   workspace. Pill triples are retuned for the navy ground. */
+html[data-portal-theme="thrive"] .portal .portal-dock,
+html[data-portal-theme="thrive"] .portal .portal-menu {
   color: var(--portal-text);
   background-color: var(--portal-sidebar);
   --portal-panel: #16304f;
@@ -1588,6 +1566,14 @@ html[data-portal-theme="thrive"] .portal .portal-sidebar {
   --portal-success: #56d29a;
   --portal-success-ring: #1c3a2c;
   --portal-secondary: #e0913f;
+  --portal-pill-live-ink: #8ef0bd;
+  --portal-pill-live-bg: #12301f;
+  --portal-pill-live-line: #2c5c40;
+  --portal-pill-pending-ink: #f0cd82;
+  --portal-pill-pending-bg: #3a2f14;
+  --portal-pill-pending-line: #6d5827;
+  --portal-pill-owner-ink: #cbe0ff;
+  --portal-pill-owner-line: #3a5c88;
   color-scheme: dark;
 }
 /* The schedule's other identity half is its numerals: IBM Plex Mono with
@@ -1637,13 +1623,9 @@ html[data-portal-theme="thrive"] .portal-command-core {
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: #ffffff;
 }
-/* The LIVE flare's hardcoded cream ink fails (2.4:1) on the navy rail's
-   lighter secondary; dark ink on the gold pill reads at 6.9:1. */
-html[data-portal-theme="thrive"] .portal .portal-sidebar .portal-nav-flare { color: #241804; }
 html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true"] { box-shadow: 0 1px 3px rgba(16, 32, 56, .16); }
 
-.portal :where(a, label, input, button, select, textarea, summary, [tabindex]):focus-visible { outline: 3px solid var(--portal-accent); outline-offset: 2px; }
-.portal-sidebar-toggle:focus-visible ~ .portal-workspace .portal-menu-button { outline: 3px solid var(--portal-accent); outline-offset: 2px; }
+.portal :where(a, label, input, button, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
 
 @media (max-width: 1100px) {
   .portal-main { width: min(100% - 36px, 1040px); }
@@ -1654,53 +1636,6 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
 }
 
 @media (max-width: 899px) {
-  .portal-shell,
-  .portal-shell:has(.portal-sidebar-toggle:checked) { display: block; }
-  .portal-sidebar-desktop,
-  .portal-menu-button-desktop,
-  .portal-sidebar-toggle { display: none; }
-  .portal-sidebar-mobile { position: fixed; inset: 0 auto 0 0; width: min(280px, calc(100vw - 44px)); height: 100dvh; max-height: none; margin: 0; padding: 14px 12px 12px; overflow-y: auto; border: 0; border-right: 1px solid var(--portal-line); background: var(--portal-sidebar); color: var(--portal-text); box-shadow: 20px 0 50px rgba(16, 24, 40, .2); transform: translateX(-102%); transition: transform .18s ease, display .18s allow-discrete, overlay .18s allow-discrete; }
-
-  /* Modern engines drive the drawer through the Popover API and its top layer. */
-  @supports selector(:popover-open) {
-    .portal-menu-button-mobile { display: grid; }
-    .portal-drawer-close-fallback { display: none; }
-    .portal-sidebar-mobile:popover-open { display: flex; flex-direction: column; transform: translateX(0); }
-    .portal-sidebar-mobile::backdrop { background: rgba(17, 20, 25, .46); }
-    @starting-style { .portal-sidebar-mobile:popover-open { transform: translateX(-102%); } }
-  }
-
-  /* Engines without :popover-open (Safari 15.4–16.x and other pre-2023 builds)
-     cannot open a popover at all — the drawer never came on-screen, so every
-     portal sub-page stranded the member with no navigation. Fall back to a
-     visually-hidden checkbox revealed through :has(...:checked), the same
-     proven mechanism as the desktop #portal-sidebar-toggle collapse. The
-     shared .portal-sidebar-mobile rule above supplies the slide transform and
-     transition, so the animation and the reduced-motion opt-out (which targets
-     .portal-sidebar-mobile) apply to this path unchanged. Explicit z-index
-     replaces the popover top layer, which this path cannot use. */
-  @supports not selector(:popover-open) {
-    /* The one window where the fallback checkbox works: restore it to the
-       keyboard order here, mirroring how the desktop collapse toggle exists
-       only on desktop. Everywhere else it stays display: none (base rule)
-       so it is never a focusable control with no visible effect. */
-    .portal-mobile-drawer-toggle { display: inline-block; }
-    .portal-menu-button-mobile-fallback { display: grid; }
-    .portal-drawer-close-popover { display: none; }
-    .portal-shell:has(.portal-mobile-drawer-toggle:checked) .portal-drawer-backdrop { display: block; position: fixed; inset: 0; z-index: 40; border: 0; background: rgba(17, 20, 25, .46); }
-    .portal-shell:has(.portal-mobile-drawer-toggle:checked) .portal-sidebar-mobile { display: flex; flex-direction: column; transform: translateX(0); z-index: 41; }
-    .portal-mobile-drawer-toggle:focus-visible ~ .portal-workspace .portal-menu-button-mobile-fallback { outline: 3px solid var(--portal-accent); outline-offset: 2px; }
-  }
-  .portal-sidebar-mobile .portal-drawer-close { position: absolute; top: 18px; right: 14px; z-index: 2; }
-  .portal-sidebar-mobile .portal-sidebar-head { padding-right: 40px; }
-  .portal-sidebar-mobile .portal-brand-copy,
-  .portal-sidebar-mobile .portal-account-copy { display: grid; }
-  /* Block, not grid: text-overflow ellipsis does not apply to a grid
-     container, so a grid label hard-clips instead of eliding. */
-  .portal-sidebar-mobile .portal-nav-label { display: block; }
-  .portal-sidebar-mobile .portal-nav a,
-  .portal-sidebar-mobile .portal-signout { justify-content: flex-start; padding-inline: 9px; }
-  .portal-sidebar-mobile .portal-sidebar-account { grid-template-columns: 36px minmax(0, 1fr); justify-items: stretch; }
   .portal-topbar { position: sticky; min-height: 58px; }
   .portal-main { width: min(100% - 32px, 820px); padding: 24px 0 48px; }
   .portal-panels { grid-template-columns: 1fr; }
@@ -1915,7 +1850,7 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
   font-size: 11px; font-weight: 850; letter-spacing: .055em; text-align: center; text-transform: uppercase;
 }
 .training-section-tabs a:hover { color: var(--portal-text); background: var(--portal-hover); }
-.training-section-tabs a:focus-visible { outline: 3px solid var(--portal-accent); outline-offset: 2px; }
+.training-section-tabs a:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
 .training-section {
   display: grid; gap: 14px; margin-top: 18px; scroll-margin-top: 92px;
 }
@@ -2008,7 +1943,10 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
 
 /* --- Background audio deck -------------------------------- */
 .audio-deck {
-  position: sticky; bottom: 14px; z-index: 30;
+  /* Rides above the global bottom dock (fixed, 56px + 12px inset); the three
+     bespoke command-console routes hide that dock and revert this offset —
+     see the SKY CHROME section. */
+  position: sticky; bottom: calc(80px + env(safe-area-inset-bottom)); z-index: 30;
   display: flex; flex-wrap: wrap; align-items: center; gap: 13px;
   width: min(920px, calc(100% - 28px)); margin: 22px auto 0; padding: 10px 14px;
   border: 1px solid var(--portal-line-strong); border-radius: 999px;
@@ -2033,7 +1971,7 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
 .audio-deck-button:hover { background: var(--portal-hover); border-color: var(--portal-accent); transform: translateY(-1px); }
 .audio-deck-button:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
 .audio-deck-button-primary { width: 39px; height: 39px; background: var(--portal-brand-surface); border-color: var(--portal-brand-surface); color: var(--portal-brand-ink); font-size: 13px; }
-.audio-deck-button-primary:hover { background: var(--portal-accent); border-color: var(--portal-accent); color: #fff; }
+.audio-deck-button-primary:hover { background: var(--portal-accent); border-color: var(--portal-accent); color: var(--portal-bg); }
 .audio-deck-volume { display: flex; align-items: center; gap: 9px; flex: 1 1 190px; min-width: 150px; }
 .audio-deck-slider { flex: 1 1 auto; min-width: 90px; height: 4px; accent-color: var(--portal-accent); cursor: pointer; }
 .audio-deck-slider:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 4px; }
@@ -2046,9 +1984,9 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
 }
 
 /* --- Dark theme overrides --------------------------------- */
-html[data-portal-theme="dark"] .access-pending { color: #f0d69a; border-color: #6b5520; border-left-color: #c79a2c; background: #2f2716; }
-html[data-portal-theme="dark"] .access-confirm { background: #173325; border-left-color: #79dfad; }
-html[data-portal-theme="dark"] .access-confirm-label { color: #79dfad; }
+html[data-portal-theme="dark"] .access-pending { color: #e6c37a; border-color: #5c4b24; border-left-color: #d9a63a; background: #2b2312; }
+html[data-portal-theme="dark"] .access-confirm { background: #12301f; border-left-color: #7ef0ae; }
+html[data-portal-theme="dark"] .access-confirm-label { color: #7ef0ae; }
 html[data-portal-theme="dark"] .tour-surface-mark { background: var(--portal-soft); color: var(--portal-text); }
 
 /* ============================================================
@@ -2148,7 +2086,7 @@ html[data-portal-theme="dark"] .tour-surface-mark { background: var(--portal-sof
   overflow: hidden;
   border-radius: var(--portal-radius);
   background: linear-gradient(135deg, var(--portal-accent) 0%, var(--portal-accent-strong) 100%);
-  color: #fff;
+  color: var(--portal-bg);   /* ground-token ink: white fails on dark's light mint accent */
   border: 1px solid var(--portal-accent-strong);
   box-shadow: 0 12px 30px -10px color-mix(in srgb, var(--portal-accent) 58%, transparent);
   transition: transform .22s cubic-bezier(.22, .68, .36, 1), box-shadow .22s ease;
@@ -2228,7 +2166,7 @@ html[data-portal-theme="dark"] .tour-surface-mark { background: var(--portal-sof
 .audio-deck-button-primary {
   background: linear-gradient(135deg, var(--portal-accent) 0%, var(--portal-accent-strong) 100%);
   border-color: var(--portal-accent-strong);
-  color: #fff;
+  color: var(--portal-bg);   /* ground-token ink: white fails on dark's light mint accent */
   box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--portal-accent) 62%, transparent);
 }
 
@@ -2449,7 +2387,7 @@ html[data-portal-performance="boost"] .tour-cta .button-primary:hover {
   content: counter(library);
   position: absolute; left: 14px; top: 13px;
   display: grid; place-items: center; width: 23px; height: 23px; border-radius: 50%;
-  background: var(--portal-accent); color: #fff;
+  background: var(--portal-accent); color: var(--portal-bg);
   font-size: 11px; font-weight: 850; font-variant-numeric: tabular-nums;
 }
 .library-numbered strong { font-size: var(--portal-type-body); font-weight: 800; color: var(--portal-text); }
@@ -2576,7 +2514,7 @@ html[data-portal-performance="boost"] .announce-card-pinned { box-shadow: 0 1px 
   height: 52px;
   border-radius: 14px;
   background: var(--portal-accent);
-  color: #fff;
+  color: var(--portal-bg);   /* ground-token ink: white fails on dark's light mint accent */
   font-size: 14px;
   font-weight: 900;
   letter-spacing: -.03em;
@@ -2651,7 +2589,7 @@ html[data-portal-theme="dark"] .announce-tag-system { color: #8fd2ea; border-col
 .site-cta {
   padding: 8px 14px; border-radius: var(--portal-radius-sm);
   background: linear-gradient(135deg, var(--portal-accent) 0%, var(--portal-accent-strong) 100%);
-  border: 1px solid var(--portal-accent-strong); color: #fff;
+  border: 1px solid var(--portal-accent-strong); color: var(--portal-bg);
   font-size: var(--portal-type-label); font-weight: 850; letter-spacing: .06em; text-transform: uppercase;
   box-shadow: 0 8px 20px -10px color-mix(in srgb, var(--portal-accent) 60%, transparent);
   transition: transform .2s ease, box-shadow .2s ease;
@@ -3695,7 +3633,7 @@ html[data-portal-theme="dark"] .pay-rank-net.is-good { color: #79dfad; }
 
 .member-grant button {
   padding: 10px 18px; border: 1px solid var(--portal-accent); border-radius: 8px;
-  background: var(--portal-accent); color: #fff; font: inherit; font-weight: 800;
+  background: var(--portal-accent); color: var(--portal-bg); font: inherit; font-weight: 800;
   font-size: var(--portal-type-label); letter-spacing: .07em; text-transform: uppercase; cursor: pointer;
 }
 .member-grant button:hover:not(:disabled) { background: var(--portal-accent-strong); border-color: var(--portal-accent-strong); }
@@ -4024,7 +3962,7 @@ html[data-portal-theme="dark"] .member-note-ok {
   font: inherit; font-size: var(--portal-type-label); font-weight: 800;
   white-space: nowrap; cursor: pointer;
 }
-.member-apply:hover:not(:disabled) { background: var(--portal-accent); color: #fff; }
+.member-apply:hover:not(:disabled) { background: var(--portal-accent); color: var(--portal-bg); }
 .member-apply:disabled { opacity: .55; cursor: default; }
 @media (pointer: coarse) { .member-apply { min-height: 44px; } }
 
@@ -4056,7 +3994,7 @@ html[data-portal-theme="dark"] .member-note-ok {
     width: calc(100% - 16px);
     margin-top: 14px;
     padding: 6px 10px;
-    bottom: 8px;
+    bottom: calc(80px + env(safe-area-inset-bottom));
   }
   .audio-deck-badge { width: 26px; height: 26px; font-size: 12px; }
   /* Back inline with the badge — the full-width row was the biggest cost. */
@@ -4075,19 +4013,23 @@ html[data-portal-theme="dark"] .member-note-ok {
    promise), and prefers-reduced-motion kills the animation.
    ============================================================ */
 
-/* The brand mark and the member avatars carry the one gradient:
-   accent into IMO gold. Everything else stays token-flat. */
-.portal-brand-mark,
+/* The brand mark and the member avatars are token-flat like everything
+   else; the P0 layer below repeats the pair (it used to gold-wash them). */
+.portal-brand-mark {
+  background: var(--portal-brand-surface);
+  color: var(--portal-brand-ink);
+}
 .portal-topbar-avatar,
 .portal-account-avatar {
-  background: linear-gradient(135deg, var(--portal-accent), #e0b64e);
-  color: #fff;
+  background: var(--portal-avatar-surface);
+  color: var(--portal-avatar-ink);
 }
 .portal-brand-mark { box-shadow: 0 2px 12px -5px var(--portal-accent); }
 
-/* Display headings: the emphasized word picks up the same sweep. */
+/* Display headings: the emphasized word picks up the same sweep. Both stops
+   are ink-grade tokens — the old #e0b64e end fell to 1.6:1 on bright paper. */
 .portal-intro h1 em {
-  background: linear-gradient(120deg, var(--portal-accent), #e0b64e 85%);
+  background: linear-gradient(120deg, var(--portal-accent), var(--portal-accent-2) 85%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -4160,47 +4102,8 @@ html[data-portal-performance="boost"] .portal-card {
 }
 
 /* --- Dark portal field ------------------------------------
-   Obsidian, aged gold, and amber create quiet depth. Blue and violet remain
-   exclusive to J.A.R.V.I.S. so the assistant is the one cool signal here. */
-@keyframes portal-cosmos-breathe {
-  from { opacity: .42; transform: scale(1); }
-  to   { opacity: .64; transform: scale(1.035); }
-}
-html[data-portal-theme="dark"] .portal {
-  position: relative;
-  isolation: isolate;
-  background: #0c0a07;
-}
-html[data-portal-theme="dark"] .portal::before,
-html[data-portal-theme="dark"] .portal::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-}
-html[data-portal-theme="dark"] .portal::before {
-  z-index: -1;
-  background:
-    radial-gradient(circle at 13% 18%, rgba(241, 199, 92, .3) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 76% 31%, rgba(255, 250, 241, .18) 0 1px, transparent 1.5px),
-    radial-gradient(circle at 55% 78%, rgba(217, 166, 58, .24) 0 1px, transparent 1.5px),
-    radial-gradient(75rem 42rem at 78% 0%, rgba(217, 166, 58, .055), transparent 68%),
-    linear-gradient(180deg, #0c0a07 0%, #120f0a 54%, #090805 100%);
-  background-size: 176px 158px, 228px 214px, 310px 286px, auto, auto;
-}
-html[data-portal-theme="dark"] .portal::after {
-  z-index: -1;
-  background:
-    radial-gradient(48rem 28rem at 18% 96%, rgba(241, 199, 92, .025), transparent 72%),
-    radial-gradient(42rem 24rem at 92% 64%, rgba(198, 106, 34, .032), transparent 74%);
-  animation: portal-cosmos-breathe 18s ease-in-out infinite alternate;
-}
-html[data-portal-theme="dark"] .portal-shell,
-html[data-portal-theme="dark"] .portal-workspace {
-  position: relative;
-  z-index: 1;
-  background: transparent;
-}
+   A flat near-black forest ground. Depth comes from the token ladder
+   (panel over bg over sidebar), not from painted layers. */
 
 /* ============================================================
    The JARVIS Presence — the portal's pet.
@@ -4211,7 +4114,7 @@ html[data-portal-theme="dark"] .portal-workspace {
 .presence {
   position: fixed;
   right: max(14px, env(safe-area-inset-right));
-  bottom: calc(84px + env(safe-area-inset-bottom));
+  bottom: calc(140px + env(safe-area-inset-bottom));
   z-index: 40;
   display: grid;
   justify-items: end;
@@ -4507,9 +4410,9 @@ html[data-portal-theme="dark"] .portal-workspace {
   font-size: 9.5px; line-height: 1.5;
 }
 
-/* Keep clear of the compact audio deck on phones. */
+/* Keep clear of the compact audio deck and the dock on phones. */
 @media (max-width: 620px) {
-  .presence { bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .presence { bottom: calc(148px + env(safe-area-inset-bottom)); }
 }
 
 /* BOOST strips the expensive parts, per the standing contract. */
@@ -4522,7 +4425,6 @@ html[data-portal-performance="boost"] .presence-eye { animation: none; }
 html[data-portal-performance="boost"] .presence-toggle { transition: none; }
 html[data-portal-performance="boost"] .presence-panel,
 html[data-portal-performance="boost"] .presence-line { animation: none; }
-html[data-portal-performance="boost"] .portal::after { animation: none; }
 
 /* The assistant owns the only blue/violet accents in the dark portal.
    Dark re-declares the two shade tokens and the focus hue; the shadows,
@@ -4532,39 +4434,43 @@ html[data-portal-theme="dark"] .presence {
   --presence-shade: 0, 0, 0;
   --presence-depth: 2.4;
   --presence-ring: var(--presence-accent-strong);
-  --presence-surface: color-mix(in srgb, var(--portal-panel) 88%, #6a7ab8);
+  --presence-surface: color-mix(in srgb, var(--portal-panel) 88%, var(--presence-accent));
 }
 html[data-portal-theme="dark"] .presence-toggle {
   background:
-    radial-gradient(76% 76% at 32% 18%, rgba(92, 112, 178, .3), transparent 66%),
+    radial-gradient(76% 76% at 32% 18%, color-mix(in srgb, var(--presence-accent) 30%, transparent), transparent 66%),
     var(--presence-surface);
 }
+/* Surfaces mix from the portal's own dark tokens, so the widget sits on the
+   forest ground with a blue cast instead of importing the retired obsidian
+   navy. The blue itself stays: the assistant owns that hue in every theme. */
 html[data-portal-theme="dark"] .presence-panel {
   background:
-    radial-gradient(28rem 12rem at 82% -18%, rgba(105, 76, 177, .22), transparent 70%),
-    linear-gradient(160deg, rgba(31, 34, 57, .97), rgba(15, 18, 27, .97) 64%);
+    radial-gradient(28rem 12rem at 82% -18%, color-mix(in srgb, var(--presence-accent) 22%, transparent), transparent 70%),
+    linear-gradient(160deg, color-mix(in srgb, var(--portal-panel) 90%, var(--presence-accent)), color-mix(in srgb, var(--portal-bg) 94%, var(--presence-accent)) 64%);
 }
 html[data-portal-theme="dark"] .presence-head {
-  background: linear-gradient(180deg, rgba(87, 104, 178, .2), transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--presence-accent) 20%, transparent), transparent);
 }
 html[data-portal-theme="dark"] .presence-drag-handle:hover {
-  color: #b8caff;
-  background: rgba(87, 102, 174, .18);
+  color: var(--presence-accent-strong);
+  background: color-mix(in srgb, var(--presence-accent) 18%, transparent);
 }
 html[data-portal-theme="dark"] .presence-ask {
-  background: rgba(72, 86, 143, .12);
+  background: color-mix(in srgb, var(--presence-accent) 12%, transparent);
 }
 html[data-portal-theme="dark"] .presence-ask input {
-  background: rgba(10, 13, 21, .55);
+  background: color-mix(in srgb, var(--portal-bg) 78%, transparent);
 }
 html[data-portal-theme="dark"] .presence-line-presence {
-  background: rgba(83, 72, 146, .24);
+  background: color-mix(in srgb, var(--presence-accent) 24%, transparent);
 }
 html[data-portal-theme="dark"] .presence-status span {
-  color: #aabaff;
-  background: rgba(74, 69, 142, .18);
+  color: var(--presence-accent-strong);
+  background: color-mix(in srgb, var(--presence-accent) 18%, transparent);
 }
-html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
+html[data-portal-theme="dark"] .presence-thinking { color: var(--presence-accent-strong); }
+html[data-portal-theme="dark"] .browser-phone-kicker { color: var(--presence-accent-strong); }
 
 @media (prefers-reduced-motion: reduce) {
   .presence-eye { animation: none; }
@@ -4585,7 +4491,6 @@ html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
   .presence .presence-close:active,
   .presence .presence-ask button:hover:not(:disabled),
   .presence .presence-ask button:active:not(:disabled) { transform: none; }
-  html[data-portal-theme="dark"] .portal::after { animation: none; }
 }
 
 /* ============================================================
@@ -4594,21 +4499,23 @@ html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
    a constellation rail; the dashboard becomes the mission map.
    ============================================================ */
 
-/* Public and authenticated surfaces share the same non-glare CTA language. */
+/* Public and authenticated surfaces share the same non-glare CTA language.
+   Token gradient and ground-token ink: the old gold sweep with #241b10 ink
+   assumed a gold accent, and read at 1.6:1 once the accent went green. */
 .portal .button-primary,
 .portal .site-cta {
   border-color: var(--portal-accent);
-  background: linear-gradient(135deg, #f1c75c, var(--portal-accent));
-  color: #241b10;
+  background: linear-gradient(135deg, var(--portal-accent), var(--portal-accent-strong));
+  color: var(--portal-bg);
   box-shadow: 0 14px 34px -16px color-mix(in srgb, var(--portal-accent) 72%, transparent);
 }
 .portal .button-primary:hover,
 .portal .site-cta:hover {
   border-color: var(--portal-accent-strong);
   background: var(--portal-accent-strong);
-  color: #241b10;
+  color: var(--portal-bg);
 }
-.portal .button-primary .key-glyph-lock { color: rgba(36, 27, 16, .58); }
+.portal .button-primary .key-glyph-lock { color: color-mix(in srgb, var(--portal-bg) 58%, transparent); }
 
 /* The access screen is presentation around real Google identity, never a
    password surface. The mark and copy establish the private-operations entry. */
@@ -4625,8 +4532,6 @@ html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
 
 /* Constellation rail. Every route keeps its original capability filter and
    destination; this is visual hierarchy, not a new authorization layer. */
-.portal-shell { grid-template-columns: 252px minmax(0, 1fr); }
-.portal-shell:has(.portal-sidebar-toggle:checked) { grid-template-columns: 74px minmax(0, 1fr); }
 .portal-sidebar {
   /* LONGHAND ON PURPOSE. The `padding` shorthand here used to read
      `16px 13px 14px`, and because this block sits ~740 lines below the
@@ -4664,11 +4569,17 @@ html[data-portal-theme="dark"] .presence-thinking { color: #bba8eb; }
   border-right-color: var(--portal-line-strong);
 }
 .portal-brand { min-height: 54px; border-bottom-color: var(--portal-line-strong); }
-.portal-brand-mark,
+/* Token-flat, replacing the gold-era gradient: the brand tokens keep the
+   mark gold in dark (owner order 2026-08-17) and deep green on paper, and
+   full mode now matches what boost already rendered. */
+.portal-brand-mark {
+  background: var(--portal-brand-surface);
+  color: var(--portal-brand-ink);
+}
 .portal-topbar-avatar,
 .portal-account-avatar {
-  background: linear-gradient(135deg, #f1c75c, #bd861c);
-  color: #241b10;
+  background: var(--portal-avatar-surface);
+  color: var(--portal-avatar-ink);
 }
 .portal-nav { gap: 3px; }
 /* Section separation. The old connector rail (a fixed-offset ::before at
@@ -4816,7 +4727,10 @@ html[data-portal-theme="dark"] .portal-card {
   border: 1px solid var(--portal-accent);
   border-radius: 11px;
   background: var(--portal-accent);
-  color: #241b10;
+  /* Ground-token ink: the old #241b10 assumed a gold accent and reads at
+     1.6:1 on bright's deep green. The FCC prompt re-pins its gold-button
+     ink; thrive keeps its white counter above. */
+  color: var(--portal-bg);
   font-size: 11px;
   font-weight: 850;
   letter-spacing: .07em;
@@ -4936,7 +4850,7 @@ html[data-portal-theme="dark"] .portal-card {
 .presence-ask button { background: var(--presence-accent); color: #fff; }
 .presence-status span { color: var(--presence-accent); background: var(--presence-soft); }
 html[data-portal-theme="dark"] .presence-line-you,
-html[data-portal-theme="dark"] .presence-ask button { background: #5064c8; color: #fff; }
+html[data-portal-theme="dark"] .presence-ask button { background: var(--presence-accent); color: #fff; }
 /* IMO's chrome is navy on daylight, so its shadows have to be navy too —
    the bright theme's warm brown reads as dirt over #eef2f9. */
 html[data-portal-theme="thrive"] .presence {
@@ -5125,7 +5039,7 @@ html[data-portal-performance="boost"] .portal-sidebar {
   color: #fff8e9;
 }
 .fcc-prompt .portal-command-prompt input::placeholder { color: rgba(255, 248, 233, .42); }
-.fcc-prompt .portal-command-prompt button { background: var(--fcc-gold); border-color: var(--fcc-gold); }
+.fcc-prompt .portal-command-prompt button { background: var(--fcc-gold); border-color: var(--fcc-gold); color: #241b10; }
 .fcc-prompt .portal-command-prompt small { color: rgba(255, 248, 233, .48); }
 .fcc-hero-foot { align-items: flex-end; flex-wrap: wrap; letter-spacing: .04em; text-transform: none; }
 
@@ -6349,15 +6263,6 @@ input[type="button"], input[type="submit"], input[type="range"], input[type="che
     border-radius: inherit;
   }
 
-  /* The collapsed rail is icons only at 68px wide. It stays dense: the
-     pseudo-element above already carries the touch target, so the visible
-     button has no reason to grow. */
-  .portal-shell:has(.portal-sidebar-toggle:checked) .portal-nav a {
-    min-height: 34px;
-    padding-block: 5px;
-  }
-  .portal-shell:has(.portal-sidebar-toggle:checked) .portal-nav-group { gap: 1px; }
-
   /* 4 — Sliders. A 13px thumb on a 4px rail is a desktop control shipped to a
      thumb. Both grow on touch; the rail keeps its slim look by growing its
      hit area rather than its paint. */
@@ -6612,13 +6517,6 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
    horizontal detail a scrollbar could help you find.
    Expanded: the scrollbar stays, and the gutter is reserved so the labels do
    not shift sideways the moment the list becomes scrollable. */
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav {
-  scrollbar-width: none;
-}
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
 .portal-sidebar .portal-nav { scrollbar-gutter: stable; }
 /* Per-person seats in the Playbook. Each is a block rather than a table row:
    what a person may do needs sentences, and a table would force it into
@@ -6675,26 +6573,6 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   line-height: 1.35;
   text-align: center;
 }
-/* Collapsed rail: the name and rank have nowhere to go, so the badge becomes
-   a dot pinned to the icon — the same treatment the LIVE markers get, and for
-   the same reason. It must never widen the row. */
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-identity {
-  display: none;
-}
-.portal-shell:has(.portal-sidebar-toggle:checked) .portal-sidebar-desktop .portal-nav-badge {
-  position: absolute;
-  top: 5px;
-  right: 13px;
-  min-width: 7px;
-  width: 7px;
-  height: 7px;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  font-size: 0;
-  line-height: 0;
-}
-
 /* ============================================================
    PERSONAL COMMAND CENTER (PCC)
    Founder-only overview. The high-contrast command language borrows the
@@ -7182,7 +7060,9 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
 .browser-phone-available { border-color: #20b56b !important; background: #147d4c !important; color: #fff !important; font-size: 13px !important; }
 .browser-phone-answer span { display: inline-grid; place-items: center; min-width: 24px; min-height: 24px; margin-right: 5px; border-radius: 50%; background: rgba(255,255,255,.18); }
 .browser-phone-controls { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 6px; margin-top: 7px; }
-.browser-phone-controls .browser-phone-end { grid-column: 1 / -1; border-color: color-mix(in srgb, var(--portal-danger, #c0392b) 70%, var(--portal-line)); color: #ffb3ad; }
+/* Danger token, not the old #ffb3ad literal: that pale red was drawn for the
+   obsidian panel and read at 1.5:1 on bright's raised surface. */
+.browser-phone-controls .browser-phone-end { grid-column: 1 / -1; border-color: color-mix(in srgb, var(--portal-danger, #c0392b) 70%, var(--portal-line)); color: var(--portal-danger, #c0392b); }
 .browser-phone-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
 .browser-phone-keypad button { font-family: var(--portal-mono); font-size: 14px; }
 .browser-phone-message { min-height: 30px; margin: 0; color: var(--portal-muted); font-size: 11px; line-height: 1.45; }
@@ -7196,7 +7076,7 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
 .calls-live-grid { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(260px,.6fr); gap: 14px; }
 .calls-ready-card { display: grid; gap: 10px; }
 .calls-ready-action { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; }
-.calls-ready-action button { min-height: 40px; border: 1px solid var(--portal-accent); border-radius: 10px; padding: 0 15px; background: var(--portal-accent); color: #fff; font: inherit; font-size: 11px; font-weight: 900; cursor: pointer; }
+.calls-ready-action button { min-height: 40px; border: 1px solid var(--portal-accent); border-radius: 10px; padding: 0 15px; background: var(--portal-accent); color: var(--portal-bg); font: inherit; font-size: 11px; font-weight: 900; cursor: pointer; }
 .calls-task-list, .calls-history-list { display: grid; gap: 8px; }
 .calls-task, .calls-history-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 14px; align-items: center; border: 1px solid var(--portal-line); border-radius: 11px; padding: 11px 12px; background: var(--portal-raised); }
 .calls-task strong, .calls-history-row strong { font-size: 12px; }
@@ -7268,7 +7148,7 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
    on one page you have to navigate to. Collapsed it is a single 44px line;
    opened it reveals the same prompt the console uses. */
 
-/* Same visually-hidden mechanism as #portal-sidebar-toggle: a real checkbox,
+/* Same visually-hidden mechanism as #portal-mobile-drawer: a real checkbox,
    kept operable by keyboard and assistive tech, driving state through
    :has(:checked). display:none would take it out of the accessibility tree
    and strand keyboard users with a control they cannot reach. */
@@ -7380,4 +7260,742 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
 /* Narrow phones: the hint is the first thing to go. */
 @media (max-width: 30rem) {
   .portal-command-bar-hint { display: none; }
+}
+
+/* === SKY CHROME — dock, menu, pills (2026-08-31 redesign) ===
+   Foundation for the rail → dock/menu redesign: serif display type over the
+   Inter body, mono micro-labels, and the pill/button/panel primitives the
+   chrome and page passes apply. Every colour resolves through --portal-*
+   tokens, so all three themes carry the system without per-theme copies. */
+
+/* --- Type scale ------------------------------------------- */
+/* Georgia ships only 400 and 700 — no other weight may appear on serif text. */
+.portal-intro h1,
+.portal-main h1 {
+  font-family: var(--portal-serif);
+  font-size: var(--portal-type-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.08;
+  color: var(--portal-text);
+}
+.portal-main h2,
+.portal-card h2,
+.portal-card-header h2 {
+  font-family: var(--portal-serif);
+  font-size: clamp(20px, 2.2vw, 25px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.18;
+}
+.portal-main h3,
+.portal-card h3 {
+  font-family: var(--portal-serif);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--portal-text);
+}
+.portal-microlabel,
+.portal-eyebrow {
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--portal-muted);
+}
+.portal-microlabel { display: block; margin: 0; }
+.portal-microlabel-sep { display: inline-block; margin: 0 6px; }
+.portal-lede {
+  max-width: 62ch;
+  color: var(--portal-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.portal-num {
+  font-family: var(--portal-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Status pills ----------------------------------------- */
+.portal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--portal-line);
+  background: var(--portal-soft);
+  color: var(--portal-muted);
+  font-family: var(--portal-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.portal-pill::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+.portal-pill-live {
+  color: var(--portal-pill-live-ink);
+  background: var(--portal-pill-live-bg);
+  border-color: var(--portal-pill-live-line);
+}
+.portal-pill-pending {
+  color: var(--portal-pill-pending-ink);
+  background: var(--portal-pill-pending-bg);
+  border-color: var(--portal-pill-pending-line);
+}
+.portal-pill-owner {
+  color: var(--portal-pill-owner-ink);
+  background: transparent;
+  border-color: var(--portal-pill-owner-line);
+}
+.portal-pill-owner::before { background: transparent; border: 1px solid currentColor; width: 5px; height: 5px; }
+
+/* The existing semantic chips keep their class names and per-state colour
+   triples; only the shared shape moves onto the pill recipe. */
+.portal-status,
+.portal-decision,
+.portal-state {
+  gap: 6px;
+  padding: 2px 9px;
+  font-family: var(--portal-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+}
+.portal-status::before,
+.portal-decision::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+/* --- Buttons ---------------------------------------------- */
+.portal-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 40px; padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--portal-line-strong);
+  background: var(--portal-raised);
+  color: var(--portal-text);
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; touch-action: manipulation;
+  transition: background .15s ease, border-color .15s ease;
+}
+.portal-button:hover { background: var(--portal-hover); }
+.portal-button:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
+.portal-button-primary {
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent-strong);
+}
+.portal-button-primary:hover { background: var(--portal-accent); color: var(--portal-bg); }
+.portal-button-quiet { border-color: transparent; background: transparent; color: var(--portal-muted); }
+.portal-button-danger { border-color: var(--portal-danger); color: var(--portal-danger); background: transparent; }
+@media (pointer: coarse) { .portal-button { min-height: 44px; } }
+
+/* --- Panels ----------------------------------------------- */
+.portal-card {
+  background: var(--portal-panel);
+  border: 1px solid var(--portal-line);
+  border-radius: 14px;
+  padding: clamp(18px, 2.5vw, 28px);
+  box-shadow: none;                 /* flat by default; whitespace does the work */
+}
+
+/* --- Layout: centered workspace, dock-cleared main ---------- */
+.portal-workspace {
+  max-width: 1120px;
+  margin-inline: auto;
+  width: 100%;
+  padding-inline: clamp(14px, 4vw, 40px);
+}
+/* Clears the fixed dock (56px + 12px inset) and the audio deck riding above
+   it. `.portal-main.portal-gate` keeps its own zero override, so the
+   shell-less refusal pages never gain phantom scroll. */
+.portal-main { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
+
+/* --- Top strip --------------------------------------------- */
+.portal-topbar {
+  min-height: 52px;
+  background: var(--portal-bg);
+  border-bottom: 1px solid var(--portal-line);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.portal-section-name {
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--portal-text);
+}
+.portal-topbar .portal-topbar-menu,
+.portal-topbar .portal-topbar-menu-fallback { min-height: 44px; }
+
+/* --- Bottom dock ------------------------------------------- */
+.portal-dock {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 35;
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  min-height: 56px;
+  /* The lateral safe-area insets join the 20px gutter so a notched phone in
+     landscape never tucks the end pills under the housing. */
+  max-width: min(560px, calc(100vw - 20px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--portal-line);
+  background-color: var(--portal-sidebar);   /* longhand ON PURPOSE — boost strips images, color must survive */
+  box-shadow: var(--portal-dock-shadow);
+}
+.portal-dock a,
+.portal-dock button,
+.portal-dock label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--portal-text);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  text-decoration: none;
+}
+.portal-dock a:hover,
+.portal-dock button:hover,
+.portal-dock label:hover { background: var(--portal-hover); }
+.portal-dock a:focus-visible,
+.portal-dock button:focus-visible,
+.portal-dock label:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
+.portal-dock-command {                        /* primary — command-center holders only */
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent-strong);
+}
+.portal-dock-command-mark {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--portal-accent);
+  color: var(--portal-bg);
+  font-family: var(--portal-mono);
+  font-size: 10px;
+  font-weight: 700;
+}
+.portal-dock-menu,
+.portal-dock-menu-fallback {
+  border-color: var(--portal-line-strong);
+}
+.portal-dock-link small { display: none; }    /* reserved; links are label-only */
+.portal-dock-link-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+}
+.portal-dock a[aria-current="page"] {
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent-strong);
+}
+.portal-dock-hint {
+  align-self: center;
+  margin-inline: 4px 8px;
+  font-family: var(--portal-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--portal-subtle);
+  white-space: nowrap;
+}
+.portal-dock-hint kbd {
+  font: inherit;
+  padding: 1px 5px;
+  border: 1px solid var(--portal-line);
+  border-radius: 5px;
+  background: var(--portal-panel);
+}
+@media (max-width: 560px) {
+  .portal-dock-hint { display: none; }
+  .portal-dock a span.portal-dock-link-text { display: none; } /* icon-only quick links on phones */
+}
+/* Each @supports branch below shows exactly one opener per surface; the
+   fallback pair stays hidden by default so pre-@supports-selector engines
+   never render two Menu controls side by side. Compound selectors on purpose:
+   they must outrank the `.portal-dock label` display rule above. */
+.portal-dock .portal-dock-menu-fallback,
+.portal-topbar .portal-topbar-menu-fallback { display: none; }
+
+/* Bespoke command-console docks win their pages — the global dock yields,
+   and the audio deck reverts to its shipped offset on those routes. */
+.portal:has(.fcc-thumb-dock) .portal-dock,
+.portal:has(.cacc-thumb-dock) .portal-dock,
+.portal:has(.pcc-mobile-dock) .portal-dock { display: none; }
+.portal:has(.fcc-thumb-dock) .audio-deck,
+.portal:has(.cacc-thumb-dock) .audio-deck,
+.portal:has(.pcc-mobile-dock) .audio-deck { bottom: 14px; }
+
+/* --- Slide-up grouped menu --------------------------------- */
+.portal-menu {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom));  /* anchored above the dock */
+  transform: translateX(-50%);
+  width: min(980px, calc(100vw - 24px));
+  max-height: calc(100dvh - 140px);
+  overflow-y: auto;                 /* NO overscroll-behavior — test ban */
+  margin: 0;
+  padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+  border: 1px solid var(--portal-line);
+  border-radius: 20px;
+  background-color: var(--portal-sidebar);   /* longhand — boost lesson */
+  color: var(--portal-text);
+  box-shadow: var(--portal-dock-shadow);
+  z-index: 70;                       /* fallback path; popover path is top layer */
+}
+/* Hidden by default so an engine that understands neither @supports branch
+   never paints a permanently open panel; each branch below restores its own
+   open state — the same proven pattern as the retired drawer. */
+.portal-menu { display: none; }
+.portal-menu::backdrop { background: rgba(4, 10, 7, .45); }
+@supports selector(:popover-open) {
+  .portal-menu { opacity: 0; transform: translate(-50%, 14px); transition: opacity .2s ease, transform .2s ease, overlay .2s allow-discrete, display .2s allow-discrete; }
+  .portal-menu:popover-open { display: block; opacity: 1; transform: translate(-50%, 0); }
+  @starting-style { .portal-menu:popover-open { opacity: 0; transform: translate(-50%, 14px); } }
+  .portal-menu .portal-drawer-close-fallback { display: none; }
+}
+/* Fallback open state (checkbox path) — engines without the Popover API. */
+@supports not selector(:popover-open) {
+  .portal-menu { display: none; }
+  .portal-shell:has(.portal-mobile-drawer-toggle:checked) .portal-menu { display: block; }
+  .portal-shell:has(.portal-mobile-drawer-toggle:checked) .portal-drawer-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 60; border: 0; background: rgba(4, 10, 7, .45);
+  }
+  /* The one window where the fallback checkbox works: restore it to the
+     keyboard order here. Everywhere else it stays display: none (base rule)
+     so it is never a focusable control with no visible effect. */
+  .portal-mobile-drawer-toggle { display: inline-block; }
+  .portal-dock .portal-dock-menu,
+  .portal-topbar .portal-topbar-menu,
+  .portal-menu .portal-drawer-close-popover { display: none; }
+  .portal-dock .portal-dock-menu-fallback,
+  .portal-topbar .portal-topbar-menu-fallback { display: inline-flex; }
+  .portal-mobile-drawer-toggle:focus-visible ~ .portal-workspace .portal-topbar-menu-fallback,
+  .portal-mobile-drawer-toggle:focus-visible ~ .portal-workspace .portal-dock-menu-fallback { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-menu { transition: none; }
+}
+/* 44px, not the topbar-era 32: the menu is a touch surface and its close
+   control has to meet the same floor as every row. The × strokes are grid
+   items, so they re-centre with the box on their own. */
+.portal-menu .portal-drawer-close { position: absolute; top: 16px; right: 16px; z-index: 2; width: 44px; height: 44px; }
+.portal-menu-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 6px 14px; border-bottom: 1px solid var(--portal-line); margin-bottom: 14px; }
+.portal-menu-head { padding-right: 64px; }   /* clears the absolute close control */
+.portal-menu-head .portal-brand { min-height: 44px; padding: 0; border-bottom: 0; }
+.portal-menu-head .portal-brand-copy strong { font-family: var(--portal-serif); font-weight: 700; letter-spacing: .02em; }
+.portal-menu-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px 22px;
+  align-items: start;                /* grid-stretch row inflation lesson */
+}
+.portal-menu-group { display: grid; gap: 2px; align-content: start; }
+.portal-menu-group-label {
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--portal-subtle);
+  padding: 0 10px 6px;
+  margin: 0;
+}
+.portal-menu-group-sub { font-size: 11px; color: var(--portal-subtle); padding: 0 10px 6px; margin: 0; }
+.portal-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;                  /* touch floor — deliberate change from the 40px rail ceiling */
+  padding: 6px 10px;
+  border-radius: 10px;
+  color: var(--portal-text);
+  font-size: 13px;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+.portal-menu-item:hover { background: var(--portal-hover); }
+.portal-menu-item:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: -2px; }
+.portal-menu-item[aria-current="page"] { background: var(--portal-accent-soft); color: var(--portal-accent-strong); }
+.portal-menu-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--portal-pill-live-ink); }
+.portal-menu-item-pending .portal-menu-dot { background: var(--portal-pill-pending-ink); }
+.portal-menu-label { flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.portal-menu-label small { color: var(--portal-subtle); font-size: 11px; }
+.portal-menu-badge {
+  min-width: 20px; padding: 1px 6px; border-radius: 999px;
+  background: var(--portal-accent); color: var(--portal-bg);
+  font-family: var(--portal-mono); font-size: 10.5px; text-align: center;
+}
+.portal-menu-external { color: var(--portal-subtle); font-size: 11px; }   /* holds the ↗ glyph */
+.portal-menu-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; padding: 12px 10px 0; border-top: 1px solid var(--portal-line); }
+.portal-menu-system {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--portal-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+/* Its own class rather than a `.portal-signout`-suffixed selector: the menu
+   is a touch surface with a 44px floor, and the retired rail's height guard
+   bans that floor on selectors ending in the old class name. */
+.portal-menu-foot .portal-menu-signout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--portal-line-strong);
+  border-radius: 999px;
+  color: var(--portal-text);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+.portal-menu-foot .portal-menu-signout:hover { background: var(--portal-hover); }
+
+/* --- Boost: flat chrome, no entrance animation -------------- */
+html[data-portal-performance="boost"] .portal-dock,
+html[data-portal-performance="boost"] .portal-menu {
+  box-shadow: none;
+  transition: none;
+}
+
+/* === SKY PAGES — page surfaces on the dock-era primitives (2026-08-31) ===
+   The page-by-page pass: serif display heads, mono micro-labels for section
+   kickers and metadata, flat panels and tables. Presentation only — every
+   class name, copy string, and gating decision above this section is
+   unchanged, and every colour resolves through --portal-* tokens. Rules here
+   deliberately ride the cascade (same or higher specificity, later in the
+   file) so bespoke pages that carry their own <style> blocks restyle without
+   their scanned source files changing. */
+
+/* --- Hero (PortalPageIntro) -------------------------------- */
+.portal-intro { padding: clamp(28px, 5vw, 52px) 0 clamp(18px, 3vw, 28px); margin-bottom: 0; }
+.portal-intro-compact { padding: clamp(14px, 2.5vw, 26px) 0 clamp(9px, 1.5vw, 14px); margin-bottom: 0; }
+.portal-intro-compact h1 { font-size: clamp(24px, 2.6vw, 32px); }
+.portal-eyebrow { margin: 0 0 10px; }
+.portal-lede { margin: 10px 0 0; }
+
+/* --- Panel headers ------------------------------------------ */
+.portal-card-icon { border: 1px solid var(--portal-line); border-radius: 999px; background: transparent; }
+
+/* --- Tables ------------------------------------------------- */
+.portal-main table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.portal-main thead th {
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--portal-subtle);
+  text-align: left;
+  padding: 8px 12px;
+  background: transparent;
+  border-bottom: 1px solid var(--portal-line-strong);
+}
+.portal-main tbody td { padding: 10px 12px; border-top: 0; border-bottom: 1px solid var(--portal-line); }
+.portal-main tbody tr:last-child td { border-bottom: 0; }
+.portal-main tbody tr:hover { background: var(--portal-hover); }
+.portal-main .portal-table tbody tr:hover td { background: var(--portal-hover); }
+.portal-main td.portal-num,
+.portal-main th.portal-num { font-family: var(--portal-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.portal-main .portal-cell-mono { font-family: var(--portal-mono); font-variant-numeric: tabular-nums; }
+
+/* --- Micro-labels: section kickers and metadata across pages -- */
+.portal-facts dt,
+.portal-call-facts dt,
+.script-meta dt,
+.portal-metric-label,
+.portal-metric-detail,
+.portal-section-kicker,
+.portal-dashboard-announcement-kicker,
+.portal-notice > span,
+.announce-date,
+.announce-tag,
+.announce-pin,
+.announce-roadmap-label,
+.shop-trade-label,
+.pay-rank-head small,
+.rank-id small,
+.rank-metric small,
+.onboard-day,
+.onboard-rank-copy small,
+.member-field label,
+.music-upload-grid label > span,
+.playbook-role {
+  font-family: var(--portal-mono);
+  font-weight: 500;
+}
+.portal-call-back {
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.portal-call-facts dd { font-variant-numeric: tabular-nums; }
+
+/* --- Stat tiles: mono tabular numerals ---------------------- */
+.portal-metric-value { font-family: var(--portal-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
+/* --- Dashboard command arrival + identity panel -------------- */
+.portal-main .portal-command-copy h1 {
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 400;
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+}
+.portal-command-question { font-family: var(--portal-serif); font-weight: 400; letter-spacing: -0.01em; }
+.portal-identity-key {
+  font-family: var(--portal-mono);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.portal-identity-value { font-variant-numeric: tabular-nums; }
+
+/* --- Dashboard mission map: flat lanes, serif titles, mono codes -- */
+.portal-mission-lane { border-radius: 14px; background: var(--portal-panel); }
+.portal-mission-lane-head { background: var(--portal-panel); }
+.portal-mission-lane-head strong {
+  font-family: var(--portal-serif);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.portal-mission-code {
+  font-family: var(--portal-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+/* --- Announcements + Library article heads ------------------ */
+.portal-main .announce-head h2,
+.portal-main .library-doc-title h2 { font-size: clamp(24px, 3vw, 34px); line-height: 1.12; }
+.library-heading { font-family: var(--portal-serif); font-size: 16px; font-weight: 700; letter-spacing: 0; }
+
+/* --- Training folder tabs ----------------------------------- */
+/* Typography only — the strip's contain: paint fix, tab structure, and the
+   active-tab seam all stay exactly as shipped. */
+.training-tab,
+.training-section-tabs a {
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* --- Calls workspace ---------------------------------------- */
+.portal-kicker {
+  display: block;
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--portal-muted);
+}
+.calls-tabs button {
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* --- Founder Command Center (/portal/command) --------------- */
+.portal-main .fcc-hero-copy h1 {
+  font-size: clamp(40px, 9vw, 80px);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+}
+.fcc-hero::after { font-family: var(--portal-serif); font-weight: 400; letter-spacing: -0.02em; }
+.fcc-kicker,
+.fcc-hero-topline,
+.fcc-hero-foot,
+.fcc-prompt-head,
+.fcc-panel-head p,
+.fcc-count,
+.fcc-chip,
+.fcc-timeline-when {
+  font-family: var(--portal-mono);
+  font-weight: 500;
+}
+.portal-main .fcc-panel-head h2 { font-size: clamp(18px, 2vw, 22px); }
+.portal-main .fcc-queue-title h3 { font-size: 14px; }
+
+/* --- Cloud Command Center (.cacc-*) ------------------------- */
+.portal-main .cacc-hero-copy h1 { font-weight: 400; line-height: 1.05; letter-spacing: -0.02em; }
+.cacc-kicker,
+.cacc-hero-topline,
+.cacc-hero-foot,
+.cacc-metric-label,
+.cacc-panel-head p,
+.cacc-count,
+.cacc-chip {
+  font-family: var(--portal-mono);
+  font-weight: 500;
+}
+.cacc-metric-value { font-family: var(--portal-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.portal-main .cacc-panel-head h2 { font-size: 17px; }
+.portal-main .cacc-env-title h3,
+.portal-main .cacc-agent-title h3 { font-size: 14px; }
+
+/* --- Personal Command Center (.pcc-*) ----------------------- */
+.portal-main .pcc-hero-copy h1 {
+  font-size: clamp(40px, 7vw, 72px);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+}
+.pcc-kicker,
+.pcc-hero-topline,
+.pcc-hero-foot,
+.pcc-command-box-head,
+.pcc-metric > span,
+.pcc-status,
+.pcc-truthbar span,
+.pcc-focus-list article > div > span:first-child,
+.pcc-lane small {
+  font-family: var(--portal-mono);
+  font-weight: 500;
+}
+.pcc-metric strong { font-family: var(--portal-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
+.portal-main .pcc-section-head h2 { font-size: 17px; }
+.portal-main .pcc-lane h3,
+.portal-main .pcc-focus-list h3 { font-size: 14px; }
+
+/* --- Leaderboard (inline-styled page; overridden from here) -- */
+.portal-main .leader-card h2 {
+  font-family: var(--portal-serif);
+  font-size: 1.05rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.portal-main .leader-next-head h2 { font-family: var(--portal-serif); font-weight: 400; }
+.portal-main .leader-signal,
+.portal-main .leader-metric span,
+.portal-main .leader-row.header,
+.portal-main .leader-source-badge { font-family: var(--portal-mono); font-weight: 500; }
+.portal-main .leader-rank,
+.portal-main .leader-row-rank,
+.portal-main .leader-metric strong { font-family: var(--portal-mono); font-variant-numeric: tabular-nums; }
+
+/* --- Exchange marketplace (inline-styled page) -------------- */
+.portal-main .marketplace-card h2 { font-family: var(--portal-serif); font-weight: 400; }
+.portal-main .marketplace-balance-kicker,
+.portal-main .marketplace-card-kicker,
+.portal-main .marketplace-balance-state { font-family: var(--portal-mono); font-weight: 500; }
+.portal-main .marketplace-balance strong,
+.portal-main .marketplace-price strong { font-family: var(--portal-mono); font-variant-numeric: tabular-nums; }
+
+/* === SKY POLISH — phones, motion, and stragglers (2026-08-31) ===
+   The closing pass over the dock-era chrome: the menu becomes an edge-to-edge
+   bottom sheet on phones, the founder's hidden control gains honest reach,
+   and the last accent-fill inks move onto tokens. Nothing here changes who
+   sees what — presentation only. */
+
+/* --- Phone menu: full-width bottom sheet -------------------- */
+@media (max-width: 560px) {
+  .portal-menu {
+    left: 0;
+    bottom: 0;
+    transform: none;
+    width: 100%;
+    max-height: calc(100dvh - 56px);
+    /* The sheet touches the screen edges, so the lateral insets move from
+       the viewport gutter into the sheet's own padding. */
+    padding-inline: calc(16px + env(safe-area-inset-left)) calc(16px + env(safe-area-inset-right));
+    border-radius: 20px 20px 0 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+  /* The close control anchors to the sheet's border box, which is now the
+     screen edge — the right inset keeps it out of a landscape notch. */
+  .portal-menu .portal-drawer-close { right: calc(16px + env(safe-area-inset-right)); }
+  /* The centering transform is gone in sheet mode, so the slide re-expresses
+     as a plain Y offset. Same 200ms, same reduced-motion and boost outs —
+     those kill the transition property itself, which this block never sets. */
+  @supports selector(:popover-open) {
+    .portal-menu { transform: translateY(16px); }
+    .portal-menu:popover-open { transform: translateY(0); }
+    @starting-style {
+      .portal-menu:popover-open { opacity: 0; transform: translateY(16px); }
+    }
+  }
+}
+
+/* --- Founder's system dot: 44px reach, same 7px light -------- */
+/* Vertical negative margins only: the row is 44px tall already, so height is
+   free; growing sideways is real (founder-only) width the foot can spare. */
+.portal-menu-foot .portal-system-dot-link {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin-block: -16px;
+}
+
+/* --- Blue-theme on-accent inks in the navy chrome ------------ */
+/* Inside the navy re-scope the accent lightens to #4c8df6 and the un-scoped
+   ground token (#eef2f9) only reaches 2.9:1 on it. The sidebar navy is the
+   one dark ink the re-scope leaves untouched: 4.8:1. */
+html[data-portal-theme="thrive"] .portal .portal-menu .portal-menu-badge,
+html[data-portal-theme="thrive"] .portal .portal-dock .portal-dock-command-mark {
+  color: var(--portal-sidebar);
+}
+
+/* --- Reduced motion covers every dock-era transition --------- */
+@media (prefers-reduced-motion: reduce) {
+  .portal-button,
+  .portal-dock a,
+  .portal-dock button,
+  .portal-dock label { transition: none; }
 }

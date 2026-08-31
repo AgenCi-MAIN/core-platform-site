@@ -15,7 +15,7 @@ import { useSyncExternalStore } from "react";
  */
 const THEMES = [
   { id: "bright", label: "Bright", glyph: "☼", chrome: "#f3ecdf", scheme: "light" },
-  { id: "dark", label: "Dark", glyph: "◐", chrome: "#0c0a07", scheme: "dark" },
+  { id: "dark", label: "Dark", glyph: "◐", chrome: "#0b130f", scheme: "dark" },
   // IMO's chrome is the LIGHT workspace hex, not the navy: on phones the
   // status bar sits directly above the white topbar (the navy rail is
   // off-canvas below 900px), so a navy status bar would draw a hard 15:1
