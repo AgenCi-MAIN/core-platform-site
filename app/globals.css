@@ -1952,6 +1952,9 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
   border: 1px solid var(--portal-line-strong); border-radius: 999px;
   background: var(--portal-panel); box-shadow: var(--portal-shadow);
 }
+/* display:flex above would beat the UA's [hidden] rule; the deck hides via
+   the attribute while staying mounted so the audio element survives. */
+.audio-deck[hidden] { display: none; }
 .audio-deck-empty { justify-content: flex-start; border-style: dashed; box-shadow: none; }
 .audio-deck-badge {
   flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
