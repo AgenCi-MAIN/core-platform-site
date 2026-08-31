@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const VOLUME_KEY = "thrive-portal-volume";
 const MUTED_KEY = "thrive-portal-muted";
@@ -124,6 +125,14 @@ export function PortalAudioDeck() {
   const [playing, setPlaying] = useState(false);
   const [volume, setVolume] = useState(storedVolume);
   const [muted, setMuted] = useState(storedMuted);
+  // The bar only earns its floor space while it is in use. It shows on the
+  // Radio page (where playback starts) and, anywhere else, only once this
+  // visit has actually played something — so a paused session keeps its
+  // controls but members who never press play never see the bar. The deck
+  // stays MOUNTED either way: unmounting it would kill the <audio> element
+  // and the radio with it on every page change.
+  const [engaged, setEngaged] = useState(false);
+  const onRadioPage = usePathname() === "/portal/music";
 
   // Load the library once. A failure here is non-fatal: the deck simply shows
   // its empty state rather than breaking the page it is docked to.
@@ -201,13 +210,18 @@ export function PortalAudioDeck() {
     }
     void el
       .play()
-      .then(() => setPlaying(true))
+      .then(() => {
+        setPlaying(true);
+        setEngaged(true);
+      })
       .catch(() => setPlaying(false));
   }, [playing]);
 
+  const visible = onRadioPage || playing || engaged;
+
   if (!hasTracks) {
     return (
-      <aside className="audio-deck audio-deck-empty" aria-label="Portal Radio">
+      <aside className="audio-deck audio-deck-empty" aria-label="Portal Radio" hidden={!visible}>
         <span className="audio-deck-badge" aria-hidden="true">♪</span>
         <div className="audio-deck-copy">
           <strong>Portal Radio</strong>
@@ -221,7 +235,7 @@ export function PortalAudioDeck() {
   }
 
   return (
-    <aside className="audio-deck" aria-label="Portal Radio player">
+    <aside className="audio-deck" aria-label="Portal Radio player" hidden={!visible}>
       <audio
         ref={audioRef}
         src={`/portal/music/track?key=${encodeURIComponent(track!.key)}`}
