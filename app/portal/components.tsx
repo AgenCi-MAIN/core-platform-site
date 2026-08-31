@@ -350,7 +350,8 @@ const NAV: readonly NavItem[] = [
     // that stops being used.
     href: "/portal/command",
     label: "Command Center",
-    capability: "command.view",
+    // commandOnly above is the gate; capability is the floor all members hold.
+    capability: "portal.access",
     icon: "dashboard",
     group: "Administration",
     description: "Workforce state, owner decisions, waiting signals, and accountable handoffs.",
@@ -501,20 +502,12 @@ export async function PortalShell({
 
   return (
     <div className="portal-shell">
-      <input
-        className="portal-sidebar-toggle"
-        id="portal-sidebar-toggle"
-        type="checkbox"
-        aria-label="Toggle portal navigation"
-      />
-
-      {/* Fallback drawer state for engines without the Popover API (Safari
+      {/* Fallback menu state for engines without the Popover API (Safari
           15.4–16.x and other pre-2023 builds): a visually-hidden checkbox,
-          driven by a <label> open control and :has(...:checked) in globals.css
-          — the same proven mechanism as #portal-sidebar-toggle above. Without
-          it those browsers cannot open the mobile drawer at all, which strands
-          the member with no navigation on every portal sub-page. Modern
-          browsers use the popover and leave this untouched. */}
+          driven by <label> open controls and :has(...:checked) in globals.css.
+          Without it those browsers cannot open the navigation menu at all,
+          which strands the member with no navigation on every portal sub-page.
+          Modern browsers use the popover and leave this untouched. */}
       <input
         className="portal-mobile-drawer-toggle"
         id="portal-mobile-drawer"
@@ -537,19 +530,13 @@ export async function PortalShell({
         }}
       />
 
-      <aside className="portal-sidebar portal-sidebar-desktop" aria-label="IMO portal sidebar">
-        <PortalSidebarContent
-          session={session}
-          current={current}
-          visible={visible}
-          pendingRequests={pendingRequests}
-        />
-      </aside>
-
+      {/* The one navigation surface at every width: a slide-up grouped menu,
+          anchored above the bottom dock, opened as a popover where the engine
+          has one and through the checkbox fallback where it does not. */}
       <aside
-        className="portal-sidebar portal-sidebar-mobile"
+        className="portal-menu"
         id="portal-mobile-navigation"
-        aria-label="IMO mobile navigation"
+        aria-label="Portal navigation"
         popover="auto"
       >
         <button
@@ -561,7 +548,7 @@ export async function PortalShell({
           <span aria-hidden="true">×</span>
           <span className="sr-only">Close navigation</span>
         </button>
-        {/* Fallback close: unchecking #portal-mobile-drawer slides the drawer
+        {/* Fallback close: unchecking #portal-mobile-drawer slides the menu
             shut where the popover hide button is inert. */}
         <label
           className="portal-drawer-close portal-drawer-close-fallback"
@@ -571,7 +558,7 @@ export async function PortalShell({
           <span aria-hidden="true">×</span>
           <span className="sr-only">Close navigation</span>
         </label>
-        <PortalSidebarContent
+        <PortalMenuContent
           session={session}
           current={current}
           visible={visible}
@@ -592,30 +579,27 @@ export async function PortalShell({
       <div className="portal-workspace">
         <header className="portal-topbar">
           <div className="portal-topbar-start">
-            <label className="portal-menu-button portal-menu-button-desktop" htmlFor="portal-sidebar-toggle" title="Collapse navigation">
-              <span aria-hidden="true" />
-              <span className="sr-only">Collapse or expand navigation</span>
-            </label>
+            <PortalBackControl />
+            {/* Secondary menu opener: the dock hides on the three bespoke
+                command-console routes, so navigation must never depend on it.
+                CSS shows exactly one of these two per @supports branch. */}
             <button
-              className="portal-menu-button portal-menu-button-mobile"
+              className="portal-topbar-menu portal-button portal-button-quiet"
               type="button"
               popoverTarget="portal-mobile-navigation"
               popoverTargetAction="toggle"
-              aria-label="Open navigation"
+              aria-label="Open navigation menu"
             >
-              <span aria-hidden="true" />
+              Menu
             </button>
-            {/* Fallback open control for engines without the Popover API. CSS
-                shows exactly one of these two per @supports branch. */}
             <label
-              className="portal-menu-button portal-menu-button-mobile-fallback"
+              className="portal-topbar-menu-fallback portal-button portal-button-quiet"
               htmlFor="portal-mobile-drawer"
-              title="Open navigation"
+              aria-label="Open navigation menu"
+              title="Open navigation menu"
             >
-              <span aria-hidden="true" />
-              <span className="sr-only">Open navigation</span>
+              Menu
             </label>
-            <PortalBackControl />
             <span className="portal-topbar-copy">
               <strong className="portal-section-name">J.A.R.V.I.S. / {section}</strong>
               <small className="portal-section-context">Private operations · IMO</small>
@@ -656,8 +640,9 @@ export async function PortalShell({
             is one 44px line; open, it is the same prompt as the console.
 
             CSS-only, via the same visually-hidden checkbox + :has(:checked)
-            mechanism as #portal-sidebar-toggle above. No client component and
-            no hydration for what is a disclosure widget. */}
+            mechanism as #portal-mobile-drawer above. No client component and
+            no hydration for what is a disclosure widget. The dock's Command
+            control is a second label for this same checkbox. */}
         {isCommandCenter(session) ? (
           <>
             <input
@@ -684,12 +669,68 @@ export async function PortalShell({
         ) : null}
 
         {children}
+
+        {/* THE DOCK — the fixed bottom strip that replaced the left rail.
+            Quick links render only when their route survived the same
+            capability filter as the menu; the Command opener is a second
+            label for the very same #portal-command-bar-toggle checkbox the
+            sticky bar uses, rendered in the same gated branch as the bar
+            itself so the string never reaches markup for non-holders. */}
+        <nav className="portal-dock" aria-label="Quick actions">
+          {isCommandCenter(session) ? (
+            <label className="portal-dock-command" htmlFor="portal-command-bar-toggle">
+              <span className="portal-dock-command-mark" aria-hidden="true">J</span>
+              Command
+            </label>
+          ) : null}
+          <button
+            className="portal-dock-menu"
+            type="button"
+            popoverTarget="portal-mobile-navigation"
+            popoverTargetAction="toggle"
+            aria-label="Open navigation menu"
+          >
+            Menu
+          </button>
+          {/* Fallback opener for engines without the Popover API. CSS shows
+              exactly one of these two per @supports branch. */}
+          <label
+            className="portal-dock-menu-fallback"
+            htmlFor="portal-mobile-drawer"
+            aria-label="Open navigation menu"
+            title="Open navigation menu"
+          >
+            Menu
+          </label>
+          {["/portal", "/portal/calls", "/portal/music"].map((href) => {
+            const item = visible.find((entry) => entry.href === href);
+            if (!item) return null;
+            return (
+              <Link
+                key={item.href}
+                className="portal-dock-link"
+                href={item.href}
+                aria-current={item.href === current ? "page" : undefined}
+                title={item.label}
+              >
+                <span className="portal-dock-link-icon" aria-hidden="true">
+                  <PortalNavMark name={item.icon} />
+                </span>
+                <span className="portal-dock-link-text">{item.label}</span>
+              </Link>
+            );
+          })}
+          {/* Honest hint: Esc genuinely closes the menu on both paths. */}
+          <span className="portal-dock-hint" aria-hidden="true">
+            <kbd>Esc</kbd> closes
+          </span>
+        </nav>
       </div>
     </div>
   );
 }
 
-function PortalSidebarContent({
+function PortalMenuContent({
   session,
   current,
   visible,
@@ -702,7 +743,7 @@ function PortalSidebarContent({
 }) {
   return (
     <>
-      <div className="portal-sidebar-head">
+      <div className="portal-menu-head">
         <Link className="portal-brand" href="/portal" aria-label="IMO portal dashboard">
           <span className="portal-brand-mark" aria-hidden="true"><ThriveMark size={19} /></span>
           <span className="portal-brand-copy">
@@ -713,16 +754,16 @@ function PortalSidebarContent({
         <span className="portal-brand-kicker">Protected workspace</span>
       </div>
 
-      <nav className="portal-nav" aria-label="Portal navigation">
+      <nav className="portal-menu-columns" aria-label="Portal sections">
         {NAV_GROUPS.map((group) => {
           const groupItems = visible.filter((item) => item.group === group);
           if (groupItems.length === 0) return null;
 
           return (
-            <div className="portal-nav-group" key={group}>
-              <p className="portal-nav-group-label">{group}</p>
+            <div className="portal-menu-group" key={group}>
+              <p className="portal-menu-group-label">{group}</p>
               {NAV_GROUP_SUBTITLES[group] ? (
-                <p className="portal-nav-group-sub">{NAV_GROUP_SUBTITLES[group]}</p>
+                <p className="portal-menu-group-sub">{NAV_GROUP_SUBTITLES[group]}</p>
               ) : null}
               {/* Internal links navigate client-side ON PURPOSE. A plain
                   <a> is a full page load, which tears down the portal layout
@@ -734,48 +775,47 @@ function PortalSidebarContent({
                   <a
                     key={item.href}
                     href={item.href}
-                    className={`portal-nav-item-${item.icon}`}
+                    className={`portal-menu-item portal-menu-item-${item.icon}`}
                     title={`${item.label} — opens in a new tab`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <span className="portal-nav-icon" aria-hidden="true">
-                      <PortalNavMark name={item.icon} />
-                    </span>
-                    <span className="portal-nav-label">{item.label}</span>
+                    <span className="portal-menu-dot" aria-hidden="true" />
+                    <span className="portal-menu-label">{item.label}</span>
+                    <span className="portal-menu-external" aria-hidden="true">↗</span>
                   </a>
                 ) : (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`portal-nav-item-${item.icon}${item.icon === "shop" ? " portal-nav-exchange" : ""}`}
+                    className={`portal-menu-item portal-menu-item-${item.icon}${item.state === "pending" ? " portal-menu-item-pending" : ""}`}
                     aria-current={item.href === current ? "page" : undefined}
                     title={item.label}
                   >
-                    <span className="portal-nav-icon" aria-hidden="true">
-                      <PortalNavMark name={item.icon} />
-                    </span>
+                    <span className="portal-menu-dot" aria-hidden="true" />
                     {/* The dashboard row wears the member's own name and rank
                         instead of the word "Dashboard" (founder 2026-08-18).
-                        It is the same destination; what changed is that the
-                        first thing in the rail now answers "who am I signed in
-                        as" — which used to require looking at the opposite end
-                        of the sidebar, where the account chip sat. One object,
-                        one place. */}
+                        It is the same destination; the first row of the menu
+                        answers "who am I signed in as". */}
                     {item.href === "/portal" ? (
-                      <span className="portal-nav-label portal-nav-identity">
+                      <span className="portal-menu-label portal-menu-identity">
                         <strong>{session.displayName}</strong>
                         <small>{ROLE_LABELS[session.role]}</small>
                       </span>
+                    ) : item.state === "pending" ? (
+                      <span className="portal-menu-label">
+                        <strong>{item.label}</strong>
+                        <small>{item.stateLabel}</small>
+                      </span>
                     ) : (
-                      <span className="portal-nav-label">{item.label}</span>
+                      <span className="portal-menu-label">{item.label}</span>
                     )}
                     {/* The count of things waiting on THIS person. Rendered
                         only when there is something to see: a badge that is
                         permanently present but usually zero teaches people to
                         stop looking at badges. */}
                     {item.href === "/portal" && pendingRequests > 0 ? (
-                      <span className="portal-nav-badge">
+                      <span className="portal-menu-badge">
                         {pendingRequests > 99 ? "99+" : pendingRequests}
                         <span className="sr-only">
                           {" "}
@@ -783,8 +823,14 @@ function PortalSidebarContent({
                         </span>
                       </span>
                     ) : null}
+                    {item.state === "pending" ? (
+                      <span className="portal-pill portal-pill-pending">PENDING</span>
+                    ) : null}
+                    {item.founderOnly || item.commandOnly ? (
+                      <span className="portal-pill portal-pill-owner">OWNER ONLY</span>
+                    ) : null}
                     {item.icon === "shop" ? (
-                      <span className="portal-nav-flare" aria-hidden="true">
+                      <span className="portal-pill portal-pill-live" aria-hidden="true">
                         LIVE
                       </span>
                     ) : null}
@@ -796,36 +842,33 @@ function PortalSidebarContent({
         })}
       </nav>
 
-      <div className="portal-sidebar-system">
-        {/* Wordless hidden control. For everyone it is just the status light;
-            for the founder alone it is the entrance to INVESTIGATOR's console.
-            Rendered as a link ONLY in the founder's own server-rendered
-            sidebar, so for anyone else there is no element to find, inspect,
-            or reach. /portal/investigator re-checks the founder identity: the
-            button is convenience, the server guard is the boundary. */}
-        {isFounder(session) ? (
-          <Link
-            className="portal-system-dot-link"
-            href="/portal/investigator"
-            aria-label="Investigator console"
-          >
+      <div className="portal-menu-foot">
+        <span className="portal-menu-system">
+          {/* Wordless hidden control. For everyone it is just the status
+              light; for the founder alone it is the entrance to
+              INVESTIGATOR's console. Rendered as a link ONLY in the founder's
+              own server-rendered menu, so for anyone else there is no element
+              to find, inspect, or reach. /portal/investigator re-checks the
+              founder identity: the button is convenience, the server guard is
+              the boundary. */}
+          {isFounder(session) ? (
+            <Link
+              className="portal-system-dot-link"
+              href="/portal/investigator"
+              aria-label="Investigator console"
+            >
+              <span className="portal-system-dot" aria-hidden="true" />
+            </Link>
+          ) : (
             <span className="portal-system-dot" aria-hidden="true" />
-          </Link>
-        ) : (
-          <span className="portal-system-dot" aria-hidden="true" />
-        )}
-        <span className="portal-nav-label">Access controls active</span>
-      </div>
-
-      <div className="portal-sidebar-account">
+          )}
+          <span>Access controls active</span>
+        </span>
         {/* Deliberately a plain <a>, never <Link>: Link may prefetch its
             target, and prefetching /auth/signout would sign the member out
-            for merely rendering the sidebar. */}
-        <a className="portal-signout" href={signOutPath("/")} title="Sign out">
-          <span className="portal-nav-icon" aria-hidden="true">
-            <PortalNavMark name="signout" />
-          </span>
-          <span className="portal-nav-label">Sign out</span>
+            for merely rendering the menu. */}
+        <a className="portal-signout portal-menu-signout" href={signOutPath("/")} title="Sign out">
+          Sign out
         </a>
       </div>
     </>

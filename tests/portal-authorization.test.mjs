@@ -503,6 +503,43 @@ test("a suspended member is refused", async () => {
   }
 });
 
+test("the grouped menu renders no entry a role cannot open", async () => {
+  // The dock-era menu is the one navigation surface at every width, built
+  // server-side from the same capability checks that guard the routes.
+  // Absent, not hidden: a destination an agent cannot open must not exist in
+  // the agent's markup at all — CSS-hiding it would hand every member a map
+  // of the surfaces they are refused from.
+  const portal = await startPortal();
+  try {
+    await portal.addMember("agent-menu@example.com", "agent");
+    const response = await portal.get("/portal", {
+      subject: "subject-agent-menu",
+      email: "agent-menu@example.com",
+    });
+    assert.equal(response.status, 200, "agent holds dashboard.view.self");
+    const html = await response.text();
+    for (const gated of [
+      'href="/portal/leadership"',
+      'href="/portal/pay-rates"',
+      'href="/portal/members"',
+      'href="/portal/audit"',
+      'href="/portal/command"',
+    ]) {
+      assert.ok(
+        !html.includes(gated),
+        `${gated} must be absent from an agent's markup, not hidden by CSS`,
+      );
+    }
+    // Positive control: the menu itself rendered, carrying an entry every
+    // role holds — a page with no menu at all would pass the absences
+    // vacuously.
+    assert.match(html, /class="portal-menu"/);
+    assert.match(html, /href="\/portal\/training"/);
+  } finally {
+    await portal.dispose();
+  }
+});
+
 test("capabilities are enforced per role, not merely displayed", async () => {
   const portal = await startPortal();
   try {
@@ -2723,11 +2760,11 @@ test("the dashboard mission map carries every lane and respects capability filte
   await portal.addMember("owner-missions@example.com", "owner");
   await portal.addMember("agent-missions@example.com", "agent");
 
-  // Whole-page matching would be vacuous for labels that are ALSO sidebar
-  // NAV labels (Leaderboard, My Stats) — the sidebar renders on every portal
-  // page and would satisfy the match with the mission map empty. Slice the
-  // page to the mission-map section (it contains no nested <section>) so
-  // every assertion speaks about the map itself.
+  // Whole-page matching would be vacuous for labels that are ALSO menu NAV
+  // labels (Leaderboard, My Stats) — the grouped menu renders on every
+  // portal page and would satisfy the match with the mission map empty.
+  // Slice the page to the mission-map section (it contains no nested
+  // <section>) so every assertion speaks about the map itself.
   const missionMap = (html) => {
     const start = html.indexOf('id="mission-map"');
     assert.ok(start >= 0, "the mission-map section must render");

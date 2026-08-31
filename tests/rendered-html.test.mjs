@@ -882,15 +882,15 @@ test("the theme boot script and the theme control agree on the three themes", as
   // Chrome hexes: the same three values in both files. Thrive's chrome is
   // its LIGHT workspace hex — on phones the status bar sits above the white
   // topbar, not the navy rail.
-  for (const chrome of ["#f3ecdf", "#0c0a07", "#eef2f9"]) {
+  for (const chrome of ["#f3ecdf", "#0b130f", "#eef2f9"]) {
     assert.ok(boot.includes(chrome), `boot script lost the ${chrome} chrome hex`);
     assert.ok(control.includes(chrome), `THEMES table lost the ${chrome} chrome hex`);
   }
 
   // The stylesheet actually defines the third skin — token block and the
-  // navy sidebar scope both present.
+  // navy menu/dock chrome scope both present.
   assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \{/);
-  assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \.portal-sidebar \{/);
+  assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \.portal-menu \{/);
   // Every custom property the dark block overrides has a thrive counterpart
   // on the main scope — a partial skin silently inherits parchment values.
   const blockOf = (marker) => {
@@ -1365,6 +1365,8 @@ test("no page-scoped style ships a hardcoded colour instead of a theme token", a
     "../app/portal/shop/page.tsx",
     "../app/portal/leaderboard/page.tsx",
     "../app/portal/navigation-upgrade.tsx",
+    // The shell chrome — dock, menu, topbar markup — must stay token-only too.
+    "../app/portal/components.tsx",
   ];
 
   for (const page of pages) {
@@ -1469,42 +1471,36 @@ test("nothing traps the vertical wheel", async () => {
   );
 });
 
-test("the sidebar rail stays where the founder put it", async () => {
+test("the dock and menu stay where the founder put them", async () => {
   // Founder, 2026-08-18, with a screenshot of the rail attached: "MAKE SITE
   // STAY HERE". That is a decision about a specific rendered state, and a
   // decision about pixels survives exactly as long as something measures it.
+  // This test held the old rail's rows at 38px through four rounds of
+  // "buttons still way too huge" — #79, #81, #87, and the shrink after.
   //
-  // This rail has now been retuned four times — #79, #81, #87, and the
-  // shrink after "buttons still way too huge". Four rounds of the same
-  // report is not four mistakes, it is one missing test. Nothing in the
-  // suite has ever asserted the size of a nav row: the touch-floor test one
-  // block up matches `width: max(100%, 44px)` anywhere in the file, which
-  // other controls also declare, so deleting the rail's rules outright would
-  // not have failed it.
+  // 2026-08-31 the rail retired: navigation is now a fixed bottom dock that
+  // opens a slide-up grouped menu. The constants below changed in the same
+  // commit as that chrome, which is exactly what this test always asked for.
+  // Three independent things are pinned in the new shape:
   //
-  // Two independent things are pinned, because he approved both:
+  //   HEIGHT — INVERTED. The rail was a dense pointer surface and carried a
+  //   40px ceiling; the menu is a thumb surface and every row carries the
+  //   44px touch FLOOR instead. The old ban on unconditional touch-sized
+  //   floors is gone with the rail it protected — on this chrome the floor
+  //   is the design, and a row that shrinks under it is the new drift.
   //
-  //   HEIGHT. With `box-sizing: border-box` global, the drawn row is
-  //   max(min-height, padding-block + icon box) — today max(38, 6+6+26) =
-  //   38px. Pinning only `min-height` would pin nothing: before the shrink
-  //   the icon was 30px and co-bound the row at exactly 44, so a 30px icon
-  //   alone re-inflates a rail whose min-height never changed.
-  //
-  //   STRUCTURE. Five groups, in this order. His reference screenshot from
-  //   an older build showed three (WORKSPACE / OPERATIONS / ADMINISTRATION)
-  //   and I had asked whether he wanted them collapsed back. "Stay here",
-  //   sent with a picture of the five, answers it: they stay. The five also
-  //   carry PLATFORM-MAP.md's categories, so regrouping the nav silently
+  //   STRUCTURE. Five groups, in this order, unchanged from the rail. His
+  //   reference screenshot showed the five, and they still carry
+  //   PLATFORM-MAP.md's categories, so regrouping the menu silently
   //   invalidates that document.
   //
-  // The 44px touch target is NOT weakened by any of this. On coarse pointers
-  // it is carried by a ::before hit area that grows the region a finger can
-  // land in and leaves the drawn box alone. A touch target is somewhere you
-  // can land, not something you have to look at.
+  //   PLACEMENT. The dock is the shell's one anchored surface. It must stay
+  //   position: fixed and keep the home-indicator inset in its offset, or a
+  //   phone with a gesture bar draws it half under the housing.
   //
-  // If a redesign genuinely wants taller rows or different groups, change
-  // these constants in the same commit and say so in the message. That is
-  // the point: the number stops being drift nobody measured and becomes a
+  // If a redesign genuinely wants different rows or groups, change these
+  // constants in the same commit and say so in the message. That is the
+  // point: the number stops being drift nobody measured and becomes a
   // decision someone made.
 
   // Comments are stripped first, for the reason the wheel guard strips them:
@@ -1513,7 +1509,6 @@ test("the sidebar rail stays where the founder put it", async () => {
   const css = (await readFile(new URL("../app/globals.css", import.meta.url), "utf8"))
     .replace(/\/\*[\s\S]*?\*\//g, "");
 
-  const ROW_CEILING = 40; // drawn at 38; two pixels of drift is not the regression
   const TOUCH_FLOOR = 44;
 
   // Largest absolute length in a value, so `max(100%, 44px)` reads 44 and a
@@ -1545,79 +1540,60 @@ test("the sidebar rail stays where the founder put it", async () => {
     return value;
   };
 
-  const rowFloor = maxPx(winning(".portal-nav a", "min-height"));
-  const shorthand = (winning(".portal-nav a", "padding") ?? "").split(/\s+/).filter(Boolean);
-  const padTop = maxPx(shorthand[0] ?? "0");
-  const padBottom = maxPx(shorthand[2] ?? shorthand[0] ?? "0");
-  // border-box means the icon's declared width already contains its 1px ring.
-  // 16px floors the sum at the label's own line box if the icon ever goes.
-  const iconBox = Math.max(maxPx(winning(".portal-nav-icon", "width")), 16);
-  const drawnRow = Math.max(rowFloor, padTop + padBottom + iconBox);
-
+  const rowFloor = maxPx(winning(".portal-menu-item", "min-height"));
   assert.ok(
-    drawnRow > 0,
-    "the rail's metrics could not be read at all — the selectors this test measures have been renamed",
+    rowFloor > 0,
+    "the menu row's metrics could not be read at all — the selector this test measures has been renamed",
   );
   assert.ok(
-    drawnRow <= ROW_CEILING,
-    `the sidebar nav row draws at ${drawnRow}px, over the ${ROW_CEILING}px the founder approved ` +
-      `(min-height ${rowFloor}px, padding ${padTop}+${padBottom}px, icon ${iconBox}px). ` +
-      "This is the fifth inflation of the same rail.",
-  );
-
-  // No unconditional touch-sized floor on a nav row, at any specificity. This
-  // is the exact mechanism that came back three times, and it covers the
-  // higher-specificity rules the height budget above deliberately skips.
-  const offenders = [];
-  for (const [, prelude, body] of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-    // A rule nested inside @media (pointer: coarse) is the hit area, which is
-    // the design being protected, not a violation of it.
-    if (/pointer\s*:\s*coarse/.test(prelude)) continue;
-    for (const selector of prelude.split(",").map((s) => s.trim().replace(/\s+/g, " "))) {
-      if (selector.includes("::")) continue;
-      if (!/(?:\.portal-nav\s+a|\.portal-signout)$/.test(selector)) continue;
-      // The mobile drawer is a touch surface reached by viewport width rather
-      // than pointer type. Different control, different screen, always 48px.
-      if (selector.includes(".portal-sidebar-mobile")) continue;
-      for (const [, value] of body.matchAll(/(?<![-\w])min-height\s*:\s*([^;}]+)/g)) {
-        if (maxPx(value) >= TOUCH_FLOOR) offenders.push(`${selector} { min-height: ${value.trim()} }`);
-      }
-    }
-  }
-  assert.deepEqual(
-    offenders,
-    [],
-    "a touch-sized height floor is being applied to the rail on every pointer, which is what " +
-      `made it "way too huge": ${offenders.join("; ")}. On coarse pointers that belongs on the ::before.`,
+    rowFloor >= TOUCH_FLOOR,
+    `the menu row floors at ${rowFloor}px, under the ${TOUCH_FLOOR}px touch floor the founder ` +
+      "approved — a thumb must be able to land on every row of the only navigation surface",
   );
 
   // Structure: five groups, this order. Read from the source of truth rather
   // than from rendered HTML, so it holds for every role's filtered view.
   const components = await readFile(new URL("../app/portal/components.tsx", import.meta.url), "utf8");
   const declared = components.match(/const NAV_GROUPS = \[([^\]]+)\]/);
-  assert.ok(declared, "NAV_GROUPS has been renamed or restructured — the rail's section list is no longer readable");
+  assert.ok(declared, "NAV_GROUPS has been renamed or restructured — the menu's section list is no longer readable");
   assert.deepEqual(
     declared[1].match(/"([^"]+)"/g)?.map((s) => s.slice(1, -1)),
     ["Workspace", "Calls", "Team", "API", "Administration"],
-    "the rail's five sections are the ones the founder approved and the ones PLATFORM-MAP.md documents",
+    "the menu's five sections are the ones the founder approved and the ones PLATFORM-MAP.md documents",
   );
 
-  // A grid that grows must be told where to put the surplus. `.portal-nav`
-  // is `display: grid` and `.portal-sidebar .portal-nav` is `flex: 1 1 auto`,
-  // so the nav box fills the rail; a grid's default `align-content: stretch`
-  // then pushes every leftover pixel into the ROWS. That produced the exact
-  // report this test exists for — "tabs become enlarged on dash board" — and
-  // it is invisible to the height budget above, which reads declarations and
-  // cannot see a row that grew without any declaration changing. A layout
-  // that only misbehaves when the content happens to be short is worse than
-  // one that is always wrong: it looks like caching, or like the network.
-  for (const selector of [".portal-nav", ".portal-nav-group"]) {
-    assert.ok(
-      new RegExp(`\\${selector} \\{[^}]*align-content:\\s*start`).test(css),
-      `${selector} is a grid that stretches to fill the rail, so it must declare ` +
-        "align-content: start or its rows absorb the surplus height",
-    );
-  }
+  // A grid that grows must be told where to put the surplus. The menu's
+  // columns and groups are grids; a grid's default stretch pushes every
+  // leftover pixel into the TRACKS. That is the exact "tabs become enlarged
+  // on dash board" mechanism from the rail era, and it is invisible to the
+  // floor above, which reads declarations and cannot see a row that grew
+  // without any declaration changing. A layout that only misbehaves when the
+  // content happens to be short is worse than one that is always wrong: it
+  // looks like caching, or like the network.
+  assert.ok(
+    /\.portal-menu-columns \{[^}]*align-items:\s*start/.test(css),
+    ".portal-menu-columns is a grid whose tracks stretch to the tallest column, so it must " +
+      "declare align-items: start or every group's rows absorb the surplus height",
+  );
+  assert.ok(
+    /\.portal-menu-group \{[^}]*align-content:\s*start/.test(css),
+    ".portal-menu-group is a grid that can be taller than its rows, so it must declare " +
+      "align-content: start or its rows absorb the surplus height",
+  );
+
+  // Placement: the dock is fixed, and its offset clears the home indicator.
+  const dock = css.match(/(?:^|\n)\.portal-dock \{([^}]*)\}/);
+  assert.ok(dock, "no .portal-dock rule was found at all — the dock selector has been renamed");
+  assert.match(
+    dock[1],
+    /position:\s*fixed/,
+    "the dock must stay position: fixed — it is the shell's one anchored surface",
+  );
+  assert.match(
+    dock[1],
+    /env\(safe-area-inset-bottom\)/,
+    "the dock's offset must include the home-indicator inset or a gesture-bar phone draws it half off-screen",
+  );
 });
 
 test("no client module reaches the server-only training library", async () => {
@@ -1858,10 +1834,11 @@ test("no surface can be swiped sideways off the screen", async () => {
   );
 });
 
-test("the sidebar rail keeps an opaque background in boost mode, in every theme", async () => {
-  // REGRESSION, reported 2026-08-26: with BOOSTED on, opening the mobile menu
-  // drawer in Bright and Dark rendered the drawer's text on top of the page's
-  // text. The drawer was fully transparent.
+test("the dock and menu keep an opaque background in boost mode, in every theme", async () => {
+  // REGRESSION, reported 2026-08-26 against the retired rail: with BOOSTED
+  // on, opening the mobile menu drawer in Bright and Dark rendered the
+  // drawer's text on top of the page's text. The drawer was fully
+  // transparent.
   //
   // The cause was a two-rule interaction that neither rule looks wrong alone:
   //
@@ -1871,51 +1848,47 @@ test("the sidebar rail keeps an opaque background in boost mode, in every theme"
   //   }
   //
   // The shorthand resets `background-color` to `transparent`, boost removes
-  // the images, and nothing is left. It survived review because the desktop
-  // rail sits in its own grid column where transparency is invisible, and
-  // because the `thrive`/Blue theme happens to declare a longhand
-  // `background-color` in its own block for an unrelated reason — so the bug
-  // presented as theme-specific and was not.
-  //
-  // The fix is a longhand `background-color` on the rail itself. This test
-  // pins that shape rather than the symptom: any future return to the
-  // shorthand reintroduces the bug for every theme at once.
+  // the images, and nothing is left. The rail is gone; the mechanism is not.
+  // The bottom dock and the slide-up menu are the surfaces that now float
+  // over page text in every theme, so each must paint a longhand
+  // `background-color` that survives boost stripping its images. This pins
+  // the shape rather than the symptom: any return to the shorthand
+  // reintroduces the bug for every theme at once.
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
-  // Several rules target .portal-sidebar; the one that matters is whichever
-  // block paints the rail's gradients, found by content rather than by
-  // position so a reordering of the stylesheet cannot silently un-pin this.
-  const blocks = [...css.matchAll(/(?:^|\n)\s*\.portal-sidebar\s*\{([^}]*)\}/g)].map(
-    (m) => m[1],
-  );
-  assert.ok(blocks.length > 0, "no .portal-sidebar rule was found at all");
-  const rail = blocks.find((b) => b.includes("radial-gradient") || b.includes("linear-gradient"));
-  assert.ok(rail, "no .portal-sidebar rule paints the rail gradients any more");
+  for (const chrome of [".portal-dock", ".portal-menu"]) {
+    // Several rules target each surface (open/closed states, sheet widths);
+    // scan them all by content rather than by position so a reordering of
+    // the stylesheet cannot silently un-pin this.
+    const blocks = [
+      ...css.matchAll(new RegExp(`(?:^|\\n)\\s*\\${chrome}\\s*\\{([^}]*)\\}`, "g")),
+    ].map((m) => m[1]);
+    assert.ok(blocks.length > 0, `no ${chrome} rule was found at all`);
+    assert.ok(
+      blocks.some((b) => /background-color:\s*var\(--portal-sidebar\)/.test(b)),
+      `${chrome} must set background-color as a LONGHAND — the \`background\` shorthand ` +
+        "resets it to transparent, and boost mode then strips the images, leaving the " +
+        "surface see-through over the page",
+    );
+    for (const block of blocks) {
+      assert.doesNotMatch(
+        block,
+        /(?:^|[\s;])background:\s*(?:radial-|linear-)gradient/,
+        `a ${chrome} rule is on the \`background\` shorthand with images, which resets ` +
+          "background-color to transparent",
+      );
+    }
+  }
 
-  assert.match(
-    rail,
-    /background-color:\s*var\(--portal-sidebar\)/,
-    "the rail must set background-color as a LONGHAND — the `background` shorthand " +
-      "resets it to transparent, and boost mode then strips the images, leaving the " +
-      "mobile drawer see-through over the page",
-  );
-  assert.doesNotMatch(
-    rail,
-    /(?:^|[\s;])background:\s*(?:radial-|linear-)gradient/,
-    "the rail is back on the `background` shorthand with images, which resets " +
-      "background-color to transparent",
-  );
-
-  // The boost rule may strip the images — that is its job — but it must not be
-  // the only thing standing between the drawer and transparency.
-  const boost = css.match(
-    /html\[data-portal-performance="boost"\]\s+\.portal-sidebar\s*\{[^}]*\}/,
-  );
-  if (boost) {
+  // The boost rules may strip images and shadows — that is their job — but
+  // they must not be the only thing standing between the chrome and
+  // transparency.
+  for (const boosted of css.matchAll(/html\[data-portal-performance="boost"\][^{}]*\{[^}]*\}/g)) {
+    if (!/\.portal-dock|\.portal-menu/.test(boosted[0])) continue;
     assert.doesNotMatch(
-      boost[0],
+      boosted[0],
       /background:\s*none|background-color:\s*transparent/,
-      "boost mode must not clear the rail's background COLOUR, only its images",
+      "boost mode must not clear the dock or menu background COLOUR, only the images",
     );
   }
 });
