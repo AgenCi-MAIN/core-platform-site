@@ -107,6 +107,7 @@ const PROTECTED_ROUTES = [
   "/portal/command/lodge",
   "/portal/calls/review",
   "/portal/calls/review/1",
+  "/portal/checkin",
   "/portal/commission",
   "/portal/dialer",
   "/portal/gallery",
@@ -477,7 +478,7 @@ test("Founder shortcuts are deliberate anchors, never prefetched redirect handle
   );
 });
 
-test("Training is guarded, ordered above Book of Business, and stays server-only", async () => {
+test("Training is guarded, ordered at the top of Work, and stays server-only", async () => {
   const navigation = await readFile(
     new URL("../app/portal/components.tsx", import.meta.url),
     "utf8",
@@ -491,11 +492,18 @@ test("Training is guarded, ordered above Book of Business, and stays server-only
     "utf8",
   );
 
+  // The order pin used to read "Training above Book of Business". Book left
+  // the menu in the 2026-09-02 IA consolidation (its route survives, guarded,
+  // reached from the dashboard's Book of Business tile), so that half of the
+  // pin died with the entry — this commit says so. The pin is re-anchored,
+  // not deleted: Training must still exist in NAV and still sit above the
+  // next working surface, Calls, so it stays the first thing after the
+  // identity row rather than drifting down the menu unmeasured.
   const trainingNav = navigation.indexOf('href: "/portal/training"');
-  const bookNav = navigation.indexOf('href: "/portal/book"');
+  const callsNav = navigation.indexOf('href: "/portal/calls"');
   assert.ok(trainingNav >= 0, "Training is missing from portal navigation");
-  assert.ok(bookNav >= 0, "Book of Business is missing from portal navigation");
-  assert.ok(trainingNav < bookNav, "Training must stay above Book of Business");
+  assert.ok(callsNav >= 0, "Calls is missing from portal navigation");
+  assert.ok(trainingNav < callsNav, "Training must stay above Calls in the Work group");
   assert.match(
     page,
     /requireCapability\("dashboard\.view\.self", "\/portal\/training"\)/,
@@ -1489,10 +1497,12 @@ test("the dock and menu stay where the founder put them", async () => {
   //   floors is gone with the rail it protected — on this chrome the floor
   //   is the design, and a row that shrinks under it is the new drift.
   //
-  //   STRUCTURE. Five groups, in this order, unchanged from the rail. His
-  //   reference screenshot showed the five, and they still carry
-  //   PLATFORM-MAP.md's categories, so regrouping the menu silently
-  //   invalidates that document.
+  //   STRUCTURE. Three groups, in this order. The rail's five (and the
+  //   dock-era menu that inherited them) consolidated to three in the
+  //   2026-09-02 IA consolidation — this constant changed in the same commit
+  //   as that regroup, which is exactly what this test always asked for. The
+  //   groups still carry PLATFORM-MAP.md's categories, so regrouping the menu
+  //   silently invalidates that document.
   //
   //   PLACEMENT. The dock is the shell's one anchored surface. It must stay
   //   position: fixed and keep the home-indicator inset in its offset, or a
@@ -1551,15 +1561,15 @@ test("the dock and menu stay where the founder put them", async () => {
       "approved — a thumb must be able to land on every row of the only navigation surface",
   );
 
-  // Structure: five groups, this order. Read from the source of truth rather
+  // Structure: three groups, this order. Read from the source of truth rather
   // than from rendered HTML, so it holds for every role's filtered view.
   const components = await readFile(new URL("../app/portal/components.tsx", import.meta.url), "utf8");
   const declared = components.match(/const NAV_GROUPS = \[([^\]]+)\]/);
   assert.ok(declared, "NAV_GROUPS has been renamed or restructured — the menu's section list is no longer readable");
   assert.deepEqual(
     declared[1].match(/"([^"]+)"/g)?.map((s) => s.slice(1, -1)),
-    ["Workspace", "Calls", "Team", "API", "Administration"],
-    "the menu's five sections are the ones the founder approved and the ones PLATFORM-MAP.md documents",
+    ["Work", "Resources", "Administration"],
+    "the menu's three sections are the ones the founder approved and the ones PLATFORM-MAP.md documents",
   );
 
   // A grid that grows must be told where to put the surplus. The menu's
@@ -1949,4 +1959,44 @@ test("every link on the Cloud Command Center goes somewhere that exists", async 
     /\{ type: "iMessage", status: "disabled", address: "Not enabled" \}/,
     "the disabled iMessage channel must stay unlinked",
   );
+});
+
+test("week arithmetic holds across year boundaries and Sundays", async () => {
+  // The check-in route computes week_key server-side from these helpers, and
+  // the dashboard's windowed counts compare their date-prefix strings — so a
+  // wrong week here is a commitment filed under the wrong week and a
+  // production count windowed wrong, silently. The two places ISO weeks go
+  // wrong are the year boundary (the first days of January can belong to the
+  // OLD year's last week) and Sunday (day 0 in JavaScript, day 7 in ISO).
+  const { isoWeekKey, isoWeekStart, isoPrevWeekStart } = await import(
+    "../app/portal/week.ts"
+  );
+
+  // 2026-01-01 is a Thursday: ISO says it anchors week 1 of its own year.
+  assert.equal(isoWeekKey(new Date("2026-01-01T12:00:00Z")), "2026-W01");
+  // 2027-01-01 is a Friday: it belongs to the PREVIOUS year's final week.
+  assert.equal(isoWeekKey(new Date("2027-01-01T12:00:00Z")), "2026-W53");
+  assert.equal(isoWeekStart(new Date("2027-01-01T12:00:00Z")), "2026-12-28");
+
+  // Sunday maps into the Monday-STARTED week, not the one about to begin.
+  const sunday = new Date("2026-09-06T23:59:59Z");
+  assert.equal(isoWeekKey(sunday), "2026-W36");
+  assert.equal(isoWeekStart(sunday), "2026-08-31");
+  assert.equal(
+    isoWeekKey(sunday),
+    isoWeekKey(new Date("2026-08-31T00:00:00Z")),
+    "a Sunday and its preceding Monday are the same ISO week",
+  );
+
+  // The previous week's Monday is exactly seven days back, across months.
+  assert.equal(isoPrevWeekStart(sunday), "2026-08-24");
+  assert.equal(isoPrevWeekStart(new Date("2026-09-07T00:00:00Z")), "2026-08-31");
+
+  // Whatever instant "now" is, the invariants the queries lean on hold: the
+  // key matches its own week start, and both strings are the shape the
+  // lexical comparisons and the 0013 CHECK constraint expect.
+  const now = new Date();
+  assert.match(isoWeekKey(now), /^\d{4}-W\d{2}$/);
+  assert.match(isoWeekStart(now), /^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(isoWeekKey(now), isoWeekKey(new Date(`${isoWeekStart(now)}T00:00:00Z`)));
 });

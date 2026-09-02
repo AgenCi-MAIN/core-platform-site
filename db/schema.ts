@@ -562,3 +562,49 @@ export const memberRequests = sqliteTable("member_requests", {
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+/**
+ * One member's stated plan for one ISO week — the check-in the dashboard's
+ * commitment panel writes. PLAN, never ACTUAL: nothing here is production
+ * data, and the dashboard renders it on a visually distinct panel so the two
+ * can never be misread as each other.
+ *
+ * One row per member per week (unique index), written only by the member's
+ * own session through POST /portal/checkin. member_id comes from the
+ * session's resolved membership — which is subject-bound in portal_members —
+ * and week_key is computed server-side from the current UTC instant, so a
+ * request can neither name another member nor back-date a week.
+ *
+ * Money is integer cents. TEXT dollars invite float drift; the founder's
+ * "cost per policy = lead spend ÷ policies sold" must eventually divide this.
+ */
+export const weeklyCommitments = sqliteTable(
+  "weekly_commitments",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    memberId: integer("member_id").notNull().references(() => portalMembers.id),
+    /** ISO-8601 week key in UTC, e.g. "2026-W36". Monday-start. */
+    weekKey: text("week_key").notNull(),
+    /** Planned lead spend for the week, integer cents, 0..2,000,000 ($20k). */
+    leadBudgetCents: integer("lead_budget_cents").notNull(),
+    /** Planned calls for the week, integer, 0..2,000. */
+    callTarget: integer("call_target").notNull(),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    uniqueIndex("weekly_commitments_member_week_idx").on(table.memberId, table.weekKey),
+    check(
+      "weekly_commitments_week_key_check",
+      sql`${table.weekKey} GLOB '[0-9][0-9][0-9][0-9]-W[0-9][0-9]'`,
+    ),
+    check(
+      "weekly_commitments_lead_budget_check",
+      sql`${table.leadBudgetCents} >= 0 AND ${table.leadBudgetCents} <= 2000000`,
+    ),
+    check(
+      "weekly_commitments_call_target_check",
+      sql`${table.callTarget} >= 0 AND ${table.callTarget} <= 2000`,
+    ),
+  ],
+);

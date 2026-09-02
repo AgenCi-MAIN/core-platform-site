@@ -1,0 +1,1664 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "f13e22ba-45e9-4459-a18b-08a33948ed41",
+  "prevId": "41d8338f-bf79-4d4d-8ef6-42e3ad93d8e1",
+  "tables": {
+    "audit_events": {
+      "name": "audit_events",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "occurred_at": {
+          "name": "occurred_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "actor_email": {
+          "name": "actor_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "actor_subject_id": {
+          "name": "actor_subject_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "actor_role": {
+          "name": "actor_role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "resource": {
+          "name": "resource",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "request_path": {
+          "name": "request_path",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "decision": {
+          "name": "decision",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "detail": {
+          "name": "detail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "audit_events_occurred_idx": {
+          "name": "audit_events_occurred_idx",
+          "columns": [
+            "occurred_at"
+          ],
+          "isUnique": false
+        },
+        "audit_events_actor_idx": {
+          "name": "audit_events_actor_idx",
+          "columns": [
+            "actor_email"
+          ],
+          "isUnique": false
+        },
+        "audit_events_action_idx": {
+          "name": "audit_events_action_idx",
+          "columns": [
+            "action"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "audit_events_decision_check": {
+          "name": "audit_events_decision_check",
+          "value": "\"audit_events\".\"decision\" IN ('allow','deny')"
+        }
+      }
+    },
+    "command_passes": {
+      "name": "command_passes",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "code_hash": {
+          "name": "code_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "issued_by": {
+          "name": "issued_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "issued_at": {
+          "name": "issued_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "redeemed_at": {
+          "name": "redeemed_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "redeemed_subject_id": {
+          "name": "redeemed_subject_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "revoked_at": {
+          "name": "revoked_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "failed_attempts": {
+          "name": "failed_attempts",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "command_passes_email_idx": {
+          "name": "command_passes_email_idx",
+          "columns": [
+            "email"
+          ],
+          "isUnique": false
+        },
+        "command_passes_expires_idx": {
+          "name": "command_passes_expires_idx",
+          "columns": [
+            "expires_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "dialer_transfers": {
+      "name": "dialer_transfers",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "transfer_id": {
+          "name": "transfer_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source_system": {
+          "name": "source_system",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "external_call_id": {
+          "name": "external_call_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "direction": {
+          "name": "direction",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'received'"
+        },
+        "consent_status": {
+          "name": "consent_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "caller_number_masked": {
+          "name": "caller_number_masked",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "agent_email": {
+          "name": "agent_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "queue_name": {
+          "name": "queue_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "duration_seconds": {
+          "name": "duration_seconds",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recording_object_key": {
+          "name": "recording_object_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "recording_mime_type": {
+          "name": "recording_mime_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "received_at": {
+          "name": "received_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "dialer_transfers_transfer_id_idx": {
+          "name": "dialer_transfers_transfer_id_idx",
+          "columns": [
+            "transfer_id"
+          ],
+          "isUnique": true
+        },
+        "dialer_transfers_received_idx": {
+          "name": "dialer_transfers_received_idx",
+          "columns": [
+            "received_at"
+          ],
+          "isUnique": false
+        },
+        "dialer_transfers_status_idx": {
+          "name": "dialer_transfers_status_idx",
+          "columns": [
+            "status"
+          ],
+          "isUnique": false
+        },
+        "dialer_transfers_agent_idx": {
+          "name": "dialer_transfers_agent_idx",
+          "columns": [
+            "agent_email"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "dialer_transfers_direction_check": {
+          "name": "dialer_transfers_direction_check",
+          "value": "\"dialer_transfers\".\"direction\" IN ('inbound','outbound')"
+        },
+        "dialer_transfers_status_check": {
+          "name": "dialer_transfers_status_check",
+          "value": "\"dialer_transfers\".\"status\" IN ('received','processing','ready','needs_review','failed')"
+        },
+        "dialer_transfers_consent_check": {
+          "name": "dialer_transfers_consent_check",
+          "value": "\"dialer_transfers\".\"consent_status\" IN ('pending','verified','restricted')"
+        },
+        "dialer_transfers_duration_check": {
+          "name": "dialer_transfers_duration_check",
+          "value": "\"dialer_transfers\".\"duration_seconds\" IS NULL OR \"dialer_transfers\".\"duration_seconds\" >= 0"
+        }
+      }
+    },
+    "inbound_voice_calls": {
+      "name": "inbound_voice_calls",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "provider_call_id": {
+          "name": "provider_call_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "parent_provider_call_id": {
+          "name": "parent_provider_call_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "active_provider_call_id": {
+          "name": "active_provider_call_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "line_type": {
+          "name": "line_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "called_number_masked": {
+          "name": "called_number_masked",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "caller_number_masked": {
+          "name": "caller_number_masked",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "caller_ciphertext": {
+          "name": "caller_ciphertext",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "caller_cipher_iv": {
+          "name": "caller_cipher_iv",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "caller_cipher_version": {
+          "name": "caller_cipher_version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "assigned_member_id": {
+          "name": "assigned_member_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "accepted_member_id": {
+          "name": "accepted_member_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "routing_stage": {
+          "name": "routing_stage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'received'"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'received'"
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "answered_at": {
+          "name": "answered_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "disposition": {
+          "name": "disposition",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "voicemail_state": {
+          "name": "voicemail_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "voicemail_object_key": {
+          "name": "voicemail_object_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "inbound_voice_calls_provider_idx": {
+          "name": "inbound_voice_calls_provider_idx",
+          "columns": [
+            "provider_call_id"
+          ],
+          "isUnique": true
+        },
+        "inbound_voice_calls_active_provider_idx": {
+          "name": "inbound_voice_calls_active_provider_idx",
+          "columns": [
+            "active_provider_call_id"
+          ],
+          "isUnique": true
+        },
+        "inbound_voice_calls_assigned_idx": {
+          "name": "inbound_voice_calls_assigned_idx",
+          "columns": [
+            "assigned_member_id",
+            "started_at"
+          ],
+          "isUnique": false
+        },
+        "inbound_voice_calls_accepted_idx": {
+          "name": "inbound_voice_calls_accepted_idx",
+          "columns": [
+            "accepted_member_id",
+            "started_at"
+          ],
+          "isUnique": false
+        },
+        "inbound_voice_calls_status_idx": {
+          "name": "inbound_voice_calls_status_idx",
+          "columns": [
+            "status",
+            "started_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "inbound_voice_calls_assigned_member_id_portal_members_id_fk": {
+          "name": "inbound_voice_calls_assigned_member_id_portal_members_id_fk",
+          "tableFrom": "inbound_voice_calls",
+          "tableTo": "portal_members",
+          "columnsFrom": [
+            "assigned_member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "inbound_voice_calls_accepted_member_id_portal_members_id_fk": {
+          "name": "inbound_voice_calls_accepted_member_id_portal_members_id_fk",
+          "tableFrom": "inbound_voice_calls",
+          "tableTo": "portal_members",
+          "columnsFrom": [
+            "accepted_member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "inbound_voice_calls_line_type_check": {
+          "name": "inbound_voice_calls_line_type_check",
+          "value": "\"inbound_voice_calls\".\"line_type\" IN ('personal','shared')"
+        },
+        "inbound_voice_calls_stage_check": {
+          "name": "inbound_voice_calls_stage_check",
+          "value": "\"inbound_voice_calls\".\"routing_stage\" IN ('received','personal','team','mobile','voicemail','complete')"
+        },
+        "inbound_voice_calls_status_check": {
+          "name": "inbound_voice_calls_status_check",
+          "value": "\"inbound_voice_calls\".\"status\" IN ('received','offering','connected','completed','voicemail','failed')"
+        },
+        "inbound_voice_calls_cipher_check": {
+          "name": "inbound_voice_calls_cipher_check",
+          "value": "(\"inbound_voice_calls\".\"caller_ciphertext\" IS NULL AND \"inbound_voice_calls\".\"caller_cipher_iv\" IS NULL AND \"inbound_voice_calls\".\"caller_cipher_version\" IS NULL) OR (\"inbound_voice_calls\".\"caller_ciphertext\" IS NOT NULL AND \"inbound_voice_calls\".\"caller_cipher_iv\" IS NOT NULL AND \"inbound_voice_calls\".\"caller_cipher_version\" IS NOT NULL)"
+        }
+      }
+    },
+    "member_requests": {
+      "name": "member_requests",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "requested_by": {
+          "name": "requested_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "requested_role": {
+          "name": "requested_role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "summary": {
+          "name": "summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "detail": {
+          "name": "detail",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "decided_by": {
+          "name": "decided_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "decided_at": {
+          "name": "decided_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "decision_note": {
+          "name": "decision_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "outbound_dial_requests": {
+      "name": "outbound_dial_requests",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "request_id": {
+          "name": "request_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_email": {
+          "name": "actor_email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "mode": {
+          "name": "mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "destination_masked": {
+          "name": "destination_masked",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rate_bucket": {
+          "name": "rate_bucket",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'pending'"
+        },
+        "external_call_id": {
+          "name": "external_call_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "failure_code": {
+          "name": "failure_code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "outbound_dial_requests_request_idx": {
+          "name": "outbound_dial_requests_request_idx",
+          "columns": [
+            "request_id"
+          ],
+          "isUnique": true
+        },
+        "outbound_dial_requests_rate_bucket_idx": {
+          "name": "outbound_dial_requests_rate_bucket_idx",
+          "columns": [
+            "rate_bucket"
+          ],
+          "isUnique": true
+        },
+        "outbound_dial_requests_actor_idx": {
+          "name": "outbound_dial_requests_actor_idx",
+          "columns": [
+            "actor_email",
+            "created_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "outbound_dial_requests_mode_check": {
+          "name": "outbound_dial_requests_mode_check",
+          "value": "\"outbound_dial_requests\".\"mode\" IN ('agent_test','customer')"
+        },
+        "outbound_dial_requests_status_check": {
+          "name": "outbound_dial_requests_status_check",
+          "value": "\"outbound_dial_requests\".\"status\" IN ('pending','queued','failed')"
+        }
+      }
+    },
+    "portal_members": {
+      "name": "portal_members",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "email": {
+          "name": "email",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "subject_id": {
+          "name": "subject_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "display_name": {
+          "name": "display_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        },
+        "granted_by": {
+          "name": "granted_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "granted_at": {
+          "name": "granted_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status_note": {
+          "name": "status_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "portal_members_email_idx": {
+          "name": "portal_members_email_idx",
+          "columns": [
+            "email"
+          ],
+          "isUnique": true
+        },
+        "portal_members_subject_idx": {
+          "name": "portal_members_subject_idx",
+          "columns": [
+            "subject_id"
+          ],
+          "isUnique": true
+        },
+        "portal_members_role_idx": {
+          "name": "portal_members_role_idx",
+          "columns": [
+            "role"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "portal_members_role_check": {
+          "name": "portal_members_role_check",
+          "value": "\"portal_members\".\"role\" IN ('owner','admin','manager','agent','reviewer','support')"
+        },
+        "portal_members_status_check": {
+          "name": "portal_members_status_check",
+          "value": "\"portal_members\".\"status\" IN ('active','suspended','revoked')"
+        }
+      }
+    },
+    "voice_call_offers": {
+      "name": "voice_call_offers",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "voice_call_id": {
+          "name": "voice_call_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "stage": {
+          "name": "stage",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "attempt": {
+          "name": "attempt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 1
+        },
+        "member_id": {
+          "name": "member_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'queued'"
+        },
+        "offered_at": {
+          "name": "offered_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "resolved_at": {
+          "name": "resolved_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "voice_call_offers_once_idx": {
+          "name": "voice_call_offers_once_idx",
+          "columns": [
+            "voice_call_id",
+            "stage",
+            "attempt",
+            "member_id"
+          ],
+          "isUnique": true
+        },
+        "voice_call_offers_member_idx": {
+          "name": "voice_call_offers_member_idx",
+          "columns": [
+            "member_id",
+            "offered_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "voice_call_offers_voice_call_id_inbound_voice_calls_id_fk": {
+          "name": "voice_call_offers_voice_call_id_inbound_voice_calls_id_fk",
+          "tableFrom": "voice_call_offers",
+          "tableTo": "inbound_voice_calls",
+          "columnsFrom": [
+            "voice_call_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "voice_call_offers_member_id_portal_members_id_fk": {
+          "name": "voice_call_offers_member_id_portal_members_id_fk",
+          "tableFrom": "voice_call_offers",
+          "tableTo": "portal_members",
+          "columnsFrom": [
+            "member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "voice_call_offers_attempt_check": {
+          "name": "voice_call_offers_attempt_check",
+          "value": "\"voice_call_offers\".\"attempt\" > 0"
+        },
+        "voice_call_offers_stage_check": {
+          "name": "voice_call_offers_stage_check",
+          "value": "\"voice_call_offers\".\"stage\" IN ('received','personal','team','mobile','voicemail','complete')"
+        },
+        "voice_call_offers_status_check": {
+          "name": "voice_call_offers_status_check",
+          "value": "\"voice_call_offers\".\"status\" IN ('queued','ringing','answered','answered_elsewhere','missed','transfer_pending','sent_to_team')"
+        }
+      }
+    },
+    "voice_callback_tasks": {
+      "name": "voice_callback_tasks",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "voice_call_id": {
+          "name": "voice_call_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "assigned_member_id": {
+          "name": "assigned_member_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "claimed_by_member_id": {
+          "name": "claimed_by_member_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "voicemail_object_key": {
+          "name": "voicemail_object_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'open'"
+        },
+        "due_at": {
+          "name": "due_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "disposition": {
+          "name": "disposition",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "voice_callback_tasks_call_idx": {
+          "name": "voice_callback_tasks_call_idx",
+          "columns": [
+            "voice_call_id"
+          ],
+          "isUnique": true
+        },
+        "voice_callback_tasks_assignee_idx": {
+          "name": "voice_callback_tasks_assignee_idx",
+          "columns": [
+            "assigned_member_id",
+            "status",
+            "due_at"
+          ],
+          "isUnique": false
+        },
+        "voice_callback_tasks_claimant_idx": {
+          "name": "voice_callback_tasks_claimant_idx",
+          "columns": [
+            "claimed_by_member_id",
+            "status"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "voice_callback_tasks_voice_call_id_inbound_voice_calls_id_fk": {
+          "name": "voice_callback_tasks_voice_call_id_inbound_voice_calls_id_fk",
+          "tableFrom": "voice_callback_tasks",
+          "tableTo": "inbound_voice_calls",
+          "columnsFrom": [
+            "voice_call_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "voice_callback_tasks_assigned_member_id_portal_members_id_fk": {
+          "name": "voice_callback_tasks_assigned_member_id_portal_members_id_fk",
+          "tableFrom": "voice_callback_tasks",
+          "tableTo": "portal_members",
+          "columnsFrom": [
+            "assigned_member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "voice_callback_tasks_claimed_by_member_id_portal_members_id_fk": {
+          "name": "voice_callback_tasks_claimed_by_member_id_portal_members_id_fk",
+          "tableFrom": "voice_callback_tasks",
+          "tableTo": "portal_members",
+          "columnsFrom": [
+            "claimed_by_member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "voice_callback_tasks_status_check": {
+          "name": "voice_callback_tasks_status_check",
+          "value": "\"voice_callback_tasks\".\"status\" IN ('open','claimed','completed','dismissed')"
+        }
+      }
+    },
+    "voice_number_assignments": {
+      "name": "voice_number_assignments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "member_id": {
+          "name": "member_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "line_type": {
+          "name": "line_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "e164_number": {
+          "name": "e164_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "provider_number_id": {
+          "name": "provider_number_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "provider_subscriber_id": {
+          "name": "provider_subscriber_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "subscriber_reference": {
+          "name": "subscriber_reference",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "subscriber_address": {
+          "name": "subscriber_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'active'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "voice_number_assignments_number_idx": {
+          "name": "voice_number_assignments_number_idx",
+          "columns": [
+            "e164_number"
+          ],
+          "isUnique": true
+        },
+        "voice_number_assignments_provider_idx": {
+          "name": "voice_number_assignments_provider_idx",
+          "columns": [
+            "provider_number_id"
+          ],
+          "isUnique": true
+        },
+        "voice_number_assignments_provider_subscriber_idx": {
+          "name": "voice_number_assignments_provider_subscriber_idx",
+          "columns": [
+            "provider_subscriber_id"
+          ],
+          "isUnique": true
+        },
+        "voice_number_assignments_subscriber_idx": {
+          "name": "voice_number_assignments_subscriber_idx",
+          "columns": [
+            "subscriber_reference"
+          ],
+          "isUnique": true
+        },
+        "voice_number_assignments_member_idx": {
+          "name": "voice_number_assignments_member_idx",
+          "columns": [
+            "member_id",
+            "status"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "voice_number_assignments_member_id_portal_members_id_fk": {
+          "name": "voice_number_assignments_member_id_portal_members_id_fk",
+          "tableFrom": "voice_number_assignments",
+          "tableTo": "portal_members",
+          "columnsFrom": [
+            "member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "voice_number_assignments_line_type_check": {
+          "name": "voice_number_assignments_line_type_check",
+          "value": "\"voice_number_assignments\".\"line_type\" IN ('personal','shared')"
+        },
+        "voice_number_assignments_status_check": {
+          "name": "voice_number_assignments_status_check",
+          "value": "\"voice_number_assignments\".\"status\" IN ('active','suspended','retired')"
+        }
+      }
+    },
+    "voice_presence": {
+      "name": "voice_presence",
+      "columns": {
+        "member_id": {
+          "name": "member_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "browser_session_id": {
+          "name": "browser_session_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ready_state": {
+          "name": "ready_state",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'offline'"
+        },
+        "last_heartbeat_at": {
+          "name": "last_heartbeat_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "voice_presence_browser_session_idx": {
+          "name": "voice_presence_browser_session_idx",
+          "columns": [
+            "browser_session_id"
+          ],
+          "isUnique": true
+        },
+        "voice_presence_expiry_idx": {
+          "name": "voice_presence_expiry_idx",
+          "columns": [
+            "ready_state",
+            "expires_at"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "voice_presence_member_id_portal_members_id_fk": {
+          "name": "voice_presence_member_id_portal_members_id_fk",
+          "tableFrom": "voice_presence",
+          "tableTo": "portal_members",
+          "columnsFrom": [
+            "member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "voice_presence_state_check": {
+          "name": "voice_presence_state_check",
+          "value": "\"voice_presence\".\"ready_state\" IN ('offline','available','busy')"
+        }
+      }
+    },
+    "weekly_commitments": {
+      "name": "weekly_commitments",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "member_id": {
+          "name": "member_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "week_key": {
+          "name": "week_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lead_budget_cents": {
+          "name": "lead_budget_cents",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "call_target": {
+          "name": "call_target",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "weekly_commitments_member_week_idx": {
+          "name": "weekly_commitments_member_week_idx",
+          "columns": [
+            "member_id",
+            "week_key"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "weekly_commitments_member_id_portal_members_id_fk": {
+          "name": "weekly_commitments_member_id_portal_members_id_fk",
+          "tableFrom": "weekly_commitments",
+          "tableTo": "portal_members",
+          "columnsFrom": [
+            "member_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "weekly_commitments_week_key_check": {
+          "name": "weekly_commitments_week_key_check",
+          "value": "\"weekly_commitments\".\"week_key\" GLOB '[0-9][0-9][0-9][0-9]-W[0-9][0-9]'"
+        },
+        "weekly_commitments_lead_budget_check": {
+          "name": "weekly_commitments_lead_budget_check",
+          "value": "\"weekly_commitments\".\"lead_budget_cents\" >= 0 AND \"weekly_commitments\".\"lead_budget_cents\" <= 2000000"
+        },
+        "weekly_commitments_call_target_check": {
+          "name": "weekly_commitments_call_target_check",
+          "value": "\"weekly_commitments\".\"call_target\" >= 0 AND \"weekly_commitments\".\"call_target\" <= 2000"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

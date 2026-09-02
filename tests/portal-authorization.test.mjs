@@ -60,6 +60,16 @@ function sqlStatements(text) {
 
 const INIT_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0001_portal_init.sql"), "utf8"));
 const SEED_SQL = sqlStatements(readFileSync(join(ROOT, "db/sql/0002_portal_seed_owner.sql"), "utf8"));
+// Applied by the dashboard/check-in tests to THEIR OWN throwaway D1 — the
+// same way the voice suite applies 0011 to its Miniflare database. This is
+// the suite proving the migration files, not applying them anywhere real:
+// the live database takes 0013 by the founder's hand only (DEPLOYMENT.md).
+const VOICE_SQL = sqlStatements(
+  readFileSync(join(ROOT, "db/sql/0011_inbound_browser_voice.sql"), "utf8"),
+);
+const CHECKIN_SQL = sqlStatements(
+  readFileSync(join(ROOT, "db/sql/0013_weekly_commitments.sql"), "utf8"),
+);
 const SEEDED_OWNER_EMAIL = "bankerrunners@gmail.com";
 
 /**
@@ -214,9 +224,15 @@ test("a seeded owner signs in, binds their subject, and is audited", async () =>
     assert.equal(response.status, 200);
 
     const html = await response.text();
-    assert.match(html, /Capabilities held/);
-    assert.match(html, /members\.manage/, "owner holds the full capability set");
-    assert.match(html, /Leadership view/, "owner sees leadership panel");
+    // The 2026-09-02 dashboard rebuild replaced the capability list and the
+    // leadership panel this used to grep for. The property survives with new
+    // anchors, changed in the same commit as the page: the signed-in home
+    // renders, and the OWNER's menu carries the Administration entries — the
+    // exact hrefs the agent-menu test proves absent for an agent, so the two
+    // tests keep measuring both directions of the same capability filter.
+    assert.match(html, /Welcome back/);
+    assert.match(html, /href="\/portal\/members"/, "owner's menu carries the roster");
+    assert.match(html, /href="\/portal\/pay-rates"/, "owner's menu carries pay rates");
 
     const after = await portal.db
       .prepare("SELECT subject_id, last_seen_at FROM portal_members WHERE email = ?")
@@ -305,10 +321,18 @@ test("active members open Training with every slot labelled and awaiting languag
   }
 
   const visibleHtml = html.replaceAll("<!-- -->", "");
-  assert.ok(
-    agentHtml.indexOf('href="/portal/training"') < agentHtml.indexOf('href="/portal/book"'),
-    "Training stays above Book of Business for members who can see both",
-  );
+  // Re-anchored 2026-09-02, same commit as the IA consolidation: Book of
+  // Business left the grouped menu (its route survives, reached from the
+  // dashboard tile), so the old Training-above-Book comparison would read a
+  // -1. The order property itself stays measured: in the agent's rendered
+  // menu Training still sits above the next working surface, Calls. Both
+  // indexOf hits land in the menu — it renders before the dock and before
+  // any page content.
+  const trainingAt = agentHtml.indexOf('href="/portal/training"');
+  const callsAt = agentHtml.indexOf('href="/portal/calls"');
+  assert.ok(trainingAt >= 0, "the agent's menu lost its Training entry");
+  assert.ok(callsAt >= 0, "the agent's menu lost its Calls entry");
+  assert.ok(trainingAt < callsAt, "Training stays above Calls in the rendered menu");
 
   assert.match(html, /id="training"/);
   assert.match(html, /id="introductions"/);
@@ -2749,26 +2773,30 @@ test("My Stats is self-scoped and the leaderboard shows names, never emails", as
   );
 });
 
-test("the dashboard mission map carries every lane and respects capability filtering", async (t) => {
-  // The mission map is the dashboard's primary content and was previously
-  // pinned only by accident (one NAV description string). This pins the four
-  // lane titles, the newly-wired surfaces, external-tool rendering, and that
-  // leadership-gated items stay invisible to agents.
+test("the grouped menu carries every working surface and respects capability filtering", async (t) => {
+  // RESTRUCTURED 2026-09-02, same commit as the dashboard rebuild. This test
+  // sliced the dashboard's mission-map section; the IA consolidation
+  // dissolved the map (and its four lane headings) into the grouped menu, so
+  // the slicer is repointed there and every access-honesty pin that lived
+  // inside the map is re-expressed in the menu slice: the founder-only
+  // dialer stays unoffered to a non-founder owner, per-role label filtering
+  // is proven from both sides, and the SureLC contracting link keeps its
+  // new-tab external-anchor shape. The lane-name pins died with the markup
+  // they pinned; nothing that gates access was dropped.
   const portal = await startPortal();
   t.after(portal.dispose);
 
   await portal.addMember("owner-missions@example.com", "owner");
   await portal.addMember("agent-missions@example.com", "agent");
 
-  // Whole-page matching would be vacuous for labels that are ALSO menu NAV
-  // labels (Leaderboard, My Stats) — the grouped menu renders on every
-  // portal page and would satisfy the match with the mission map empty.
-  // Slice the page to the mission-map section (it contains no nested
-  // <section>) so every assertion speaks about the map itself.
-  const missionMap = (html) => {
-    const start = html.indexOf('id="mission-map"');
-    assert.ok(start >= 0, "the mission-map section must render");
-    const end = html.indexOf("</section>", start);
+  // Whole-page matching would be vacuous for per-role LABEL positives — some
+  // of these strings also appear in page content. Slice to the menu (one
+  // <aside class="portal-menu">…</aside>, no nested aside) so every label
+  // assertion speaks about the navigation surface itself.
+  const menuOf = (html) => {
+    const start = html.indexOf('class="portal-menu"');
+    assert.ok(start >= 0, "the grouped menu must render");
+    const end = html.indexOf("</aside>", start);
     return html.slice(start, end);
   };
 
@@ -2777,33 +2805,32 @@ test("the dashboard mission map carries every lane and respects capability filte
     email: "owner-missions@example.com",
   });
   assert.equal(ownerRes.status, 200);
-  const ownerMap = missionMap(await ownerRes.text());
+  const ownerHtml = await ownerRes.text();
+  const ownerMenu = menuOf(ownerHtml);
 
-  for (const lane of ["Operating Floor", "Signal &amp; Intelligence", "Economics Lab", "Governance Layer"]) {
-    assert.match(ownerMap, new RegExp(lane), `lane "${lane}" missing from the mission map`);
+  for (const label of ["Training", "Leaderboard", "My Stats", "Commission Schedule", "Quoter", "Script Vault"]) {
+    assert.match(ownerMenu, new RegExp(`>${label}<`), `"${label}" missing from the owner's menu`);
   }
-  for (const label of ["Leaderboard", "My Stats", "Commissions", "Contracting", "Quoter"]) {
-    assert.match(ownerMap, new RegExp(`>${label}<`), `"${label}" missing from the owner's mission map`);
-  }
-  // The Collab Dialer places billable calls and is founder-gated. It used to be
-  // asserted present here, which certified a dead link: an owner holding
-  // `calls.review` saw the tile and `requireFounder` turned them away. The
-  // absence is the assertion now — a tile that cannot be opened must not be
-  // shown, or the mission map is advertising access the portal will refuse.
+  // The Collab Dialer places billable calls and is founder-gated. The old
+  // mission map once advertised it to any owner holding `calls.review`, and
+  // the absence became the assertion — a surface that cannot be opened must
+  // not be shown. The consolidation removed the dialer from navigation
+  // entirely, so the pin widens to the whole page: no corner of a non-founder
+  // owner's dashboard may offer it. (The label still renders for the founder
+  // on /portal/calls, pinned elsewhere — this cannot pass by the string
+  // going extinct.)
   assert.doesNotMatch(
-    ownerMap,
+    ownerHtml,
     />Collab Dialer</,
     "a non-founder owner must not be offered the founder-only dialer",
   );
   // External tools render as hard anchors that leave the app in a new tab —
-  // asserted inside the map slice, so the sidebar's identical anchor cannot
-  // satisfy it.
-  // React escapes & as &amp; inside attributes, so match on the stable
-  // host + gaId rather than the exact raw URL.
+  // asserted inside the menu slice. React escapes & as &amp; inside
+  // attributes, so match on the stable host + gaId rather than the raw URL.
   assert.match(
-    ownerMap,
+    ownerMenu,
     /href="https:\/\/accounts\.surancebay\.com[^"]*gaId=505[^"]*"[^>]*target="_blank"/,
-    "SureLC must render as a new-tab external anchor in the mission map",
+    "SureLC must render as a new-tab external anchor in the menu",
   );
 
   const agentRes = await portal.get("/portal", {
@@ -2811,10 +2838,259 @@ test("the dashboard mission map carries every lane and respects capability filte
     email: "agent-missions@example.com",
   });
   assert.equal(agentRes.status, 200);
-  const agentMap = missionMap(await agentRes.text());
-  for (const label of ["Leaderboard", "My Stats", "Commissions", "Contracting"]) {
-    assert.match(agentMap, new RegExp(`>${label}<`), `"${label}" missing from the agent's mission map`);
+  const agentMenu = menuOf(await agentRes.text());
+  // The positive half of capability filtering: everything an agent's
+  // capabilities open is offered, including the same contracting link…
+  for (const label of ["Training", "Leaderboard", "My Stats", "Commission Schedule", "Quoter"]) {
+    assert.match(agentMenu, new RegExp(`>${label}<`), `"${label}" missing from the agent's menu`);
   }
+  assert.match(
+    agentMenu,
+    /href="https:\/\/accounts\.surancebay\.com[^"]*gaId=505[^"]*"[^>]*target="_blank"/,
+    "contracting must stay reachable for an agent",
+  );
+  // …and a label an agent's capabilities do NOT open is absent from the
+  // slice, which is what separates filtering from decoration. (The gated
+  // Administration hrefs are pinned whole-page in the agent-menu test.)
+  assert.doesNotMatch(
+    agentMenu,
+    />Script Vault</,
+    "an agent without scripts.manage must not be offered the Script Vault",
+  );
+});
+
+test("an agent's dashboard shows no admin surface and no other member's data", async (t) => {
+  // The rebuilt dashboard computes every number from THIS member's records:
+  // their answered calls, their stated weekly plan, the callback queue they
+  // may work. This seeds a second member with distinctive numbers everywhere
+  // a leak could come from, then reads the first member's page and asserts
+  // the leak did not happen — alongside the gated-href absences the menu
+  // test pins for its own surface, applied here to the whole rebuilt page.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+  for (const s of [...VOICE_SQL, ...CHECKIN_SQL]) await portal.db.prepare(s).run();
+  const { isoWeekKey } = await import(new URL("../app/portal/week.ts", import.meta.url).href);
+  const weekKey = isoWeekKey();
+
+  await portal.addMember("agent-dash-a@example.com", "agent");
+  await portal.addMember("agent-dash-b@example.com", "agent");
+  const memberId = async (email) =>
+    (await portal.db.prepare("SELECT id FROM portal_members WHERE email = ?").bind(email).first())
+      .id;
+  const aId = await memberId("agent-dash-a@example.com");
+  const bId = await memberId("agent-dash-b@example.com");
+
+  // Both members state a plan this week; B's numbers are distinctive in
+  // every rendered shape ($9,999.00, "of 777 calls").
+  const commit = (id, cents, target) =>
+    portal.db
+      .prepare(
+        "INSERT INTO weekly_commitments (member_id, week_key, lead_budget_cents, call_target) VALUES (?, ?, ?, ?)",
+      )
+      .bind(id, weekKey, cents, target)
+      .run();
+  await commit(aId, 60000, 50);
+  await commit(bId, 999900, 777);
+
+  // One answered inbound call each, this week. A's count must come out as
+  // exactly 1 — a 2 means B's call was summed into A's tile.
+  const nowIso = new Date().toISOString();
+  const call = (provider, caller, acceptedId, answered) =>
+    portal.db
+      .prepare(
+        `INSERT INTO inbound_voice_calls
+           (provider_call_id, line_type, called_number_masked, caller_number_masked,
+            accepted_member_id, routing_stage, status, started_at, answered_at)
+         VALUES (?, 'shared', '+1 (555) ***-0000', ?, ?, 'complete', 'completed', ?, ?)`,
+      )
+      .bind(provider, caller, acceptedId, nowIso, answered ? nowIso : null)
+      .run();
+  await call("dash-call-a", "+1 (555) ***-0101", aId, true);
+  await call("dash-call-b", "+1 (555) ***-0999", bId, true);
+
+  // Two open callbacks: one assigned to A (the tile's positive control) and
+  // one on B's PERSONAL queue, which must not surface for A at all.
+  const callback = async (provider, caller, assignedId) => {
+    await portal.db
+      .prepare(
+        `INSERT INTO inbound_voice_calls
+           (provider_call_id, line_type, called_number_masked, caller_number_masked,
+            routing_stage, status, started_at)
+         VALUES (?, 'shared', '+1 (555) ***-0000', ?, 'voicemail', 'voicemail', ?)`,
+      )
+      .bind(provider, caller, nowIso)
+      .run();
+    await portal.db
+      .prepare(
+        `INSERT INTO voice_callback_tasks (voice_call_id, assigned_member_id, status, due_at)
+         VALUES ((SELECT id FROM inbound_voice_calls WHERE provider_call_id = ?), ?, 'open', '2099-01-01 00:00:00')`,
+      )
+      .bind(provider, assignedId)
+      .run();
+  };
+  await callback("dash-vm-a", "+1 (555) ***-0111", aId);
+  await callback("dash-vm-b", "+1 (555) ***-0666", bId);
+
+  const response = await portal.get("/portal", {
+    subject: "subject-agent-dash-a",
+    email: "agent-dash-a@example.com",
+  });
+  assert.equal(response.status, 200);
+  const html = (await response.text()).replaceAll("<!-- -->", "");
+
+  // No admin surface anywhere in the rebuilt page — menu, tiles, or panel.
+  for (const gated of [
+    'href="/portal/leadership"',
+    'href="/portal/pay-rates"',
+    'href="/portal/members"',
+    'href="/portal/audit"',
+    'href="/portal/command"',
+  ]) {
+    assert.ok(!html.includes(gated), `${gated} must be absent from an agent's dashboard`);
+  }
+
+  // Positive controls first, so the absences below cannot pass on an empty
+  // page: the production grid rendered, A's own plan rendered, A's own
+  // callback rendered, and the plan arithmetic used A's own count and row.
+  assert.match(html, /class="portal-prod-grid"/);
+  assert.match(html, /\$600\.00 budgeted/, "A's own stated budget must render");
+  assert.match(html, /49 of 50 calls remaining/, "the calls bar must drain from A's own plan");
+  assert.ok(html.includes("+1 (555) ***-0111"), "A's own callback must be listed");
+  assert.match(html, /1 customer needs a callback/, "A's queue holds exactly A's task");
+
+  // A's calls-answered tile counts A's records exactly — never B's.
+  assert.match(html, /class="portal-prod-value">1</, "A answered exactly one call this week");
+  assert.match(html, /<strong>1<\/strong> answered this week/);
+  assert.doesNotMatch(html, /<strong>2<\/strong> answered this week/);
+
+  // And nothing of B's: not the personal callback, not the answered call's
+  // number, not the plan in either rendered shape.
+  assert.ok(!html.includes("***-0666"), "B's personal callback must not surface for A");
+  assert.ok(!html.includes("***-0999"), "B's caller must not surface for A");
+  assert.ok(!html.includes("$9,999.00"), "B's budget must not render on A's dashboard");
+  assert.ok(!html.includes("of 777 calls"), "B's call target must not render on A's dashboard");
+});
+
+test("the check-in route refuses anonymous and cross-subject writes", async (t) => {
+  // The commitment panel is the one member-writable surface on the
+  // dashboard, so its route carries the full presence-pattern chain. This
+  // proves the two properties that chain exists for: an anonymous POST
+  // writes nothing, and a signed-in POST can only ever write the session's
+  // OWN row for the CURRENT week — the body simply has no parameter through
+  // which another member or another week can be named.
+  const portal = await startPortal();
+  t.after(portal.dispose);
+  for (const s of CHECKIN_SQL) await portal.db.prepare(s).run();
+  const { isoWeekKey } = await import(new URL("../app/portal/week.ts", import.meta.url).href);
+
+  await portal.addMember("checkin-a@example.com", "agent");
+  await portal.addMember("checkin-b@example.com", "agent");
+  const aId = (
+    await portal.db
+      .prepare("SELECT id FROM portal_members WHERE email = ?")
+      .bind("checkin-a@example.com")
+      .first()
+  ).id;
+  const bId = (
+    await portal.db
+      .prepare("SELECT id FROM portal_members WHERE email = ?")
+      .bind("checkin-b@example.com")
+      .first()
+  ).id;
+  const a = { subject: "subject-checkin-a", email: "checkin-a@example.com" };
+
+  const post = (identity, fields) =>
+    portal.mf.dispatchFetch("http://localhost/portal/checkin", {
+      method: "POST",
+      redirect: "manual",
+      body: new URLSearchParams(fields).toString(),
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        origin: "http://localhost",
+        ...identityHeaders(identity),
+      },
+    });
+  const rows = async () =>
+    (
+      await portal.db
+        .prepare(
+          "SELECT member_id, week_key, lead_budget_cents, call_target FROM weekly_commitments ORDER BY id",
+        )
+        .all()
+    ).results;
+
+  // 1. Anonymous, with a perfectly valid body: refused before parsing, the
+  //    refusal reveals nothing, nothing is written, and the deny is audited.
+  const anon = await post(null, { lead_budget: "600", call_target: "50" });
+  assert.equal(anon.status, 401, "an anonymous check-in must be refused");
+  assert.equal(await anon.text(), '{"error":"Sign in required."}');
+  assert.equal((await rows()).length, 0, "an anonymous POST must write nothing");
+  assert.ok(
+    (await portal.audit()).some(
+      (r) =>
+        r.action === "portal.access" &&
+        r.decision === "deny" &&
+        r.reason === "anonymous" &&
+        r.request_path === "/portal/checkin",
+    ),
+    "the anonymous refusal is recorded",
+  );
+
+  // 2. A forged cross-subject write: the body ALSO names B's member id and a
+  //    back-dated week. Both fields must be ignored outright — the stored row
+  //    is A's, for the current week, because no parameter exists through
+  //    which anything else can be named.
+  const forged = await post(a, {
+    lead_budget: "600",
+    call_target: "50",
+    member_id: String(bId),
+    week_key: "2020-W01",
+  });
+  assert.equal(forged.status, 303);
+  assert.equal(forged.headers.get("location"), "/portal");
+  let stored = await rows();
+  assert.equal(stored.length, 1, "exactly one commitment row exists");
+  assert.equal(stored[0].member_id, aId, "the row belongs to the session's own member");
+  assert.equal(stored[0].week_key, isoWeekKey(), "the week is the server's current week");
+  assert.equal(stored[0].lead_budget_cents, 60000);
+  assert.equal(stored[0].call_target, 50);
+
+  // 3. Saving again UPDATES the same row — one row per member per week.
+  const again = await post(a, { lead_budget: "725.50", call_target: "60" });
+  assert.equal(again.status, 303);
+  stored = await rows();
+  assert.equal(stored.length, 1, "a second save must upsert, never append");
+  assert.equal(stored[0].lead_budget_cents, 72550);
+  assert.equal(stored[0].call_target, 60);
+
+  // 4. The allow trail names A and only A. (0013's own table-creation audit
+  //    row uses a different reason, so the filter cannot be satisfied by it.)
+  const audits = (await portal.audit()).filter(
+    (r) => r.action === "dashboard.checkin" && r.reason === "commitment_recorded",
+  );
+  assert.ok(audits.length >= 1, "the recorded commitment is audited");
+  assert.ok(
+    audits.every((r) => r.actor_email === "checkin-a@example.com"),
+    "no commitment may ever be recorded under another member's name",
+  );
+
+  // 5. Out-of-bounds numbers are refused, audited, and change nothing.
+  const invalid = await post(a, { lead_budget: "600", call_target: "99999" });
+  assert.equal(invalid.status, 303);
+  assert.equal(invalid.headers.get("location"), "/portal?checkin=invalid");
+  stored = await rows();
+  assert.equal(stored.length, 1);
+  assert.equal(stored[0].lead_budget_cents, 72550, "a refused save must change nothing");
+  assert.equal(stored[0].call_target, 60);
+  assert.ok(
+    (await portal.audit()).some(
+      (r) =>
+        r.action === "dashboard.checkin" &&
+        r.decision === "deny" &&
+        r.reason === "invalid_commitment",
+    ),
+    "the refused numbers are audited by name",
+  );
 });
 
 test("the commission schedule serves every active member from inside the bundle", async (t) => {

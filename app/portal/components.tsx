@@ -2,6 +2,7 @@ import { signOutPath } from "../google-auth";
 import { ThriveMark } from "../thrive-mark";
 import { JarvisCommandPrompt } from "./command-prompt";
 import Link from "next/link";
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { getDb } from "../../db";
 import { memberRequests } from "../../db/schema";
@@ -15,7 +16,7 @@ import {
   type Capability,
   type PortalSession,
 } from "./access";
-import { readRows } from "./read-guard";
+import { readRows, type ReadFault } from "./read-guard";
 import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
 import { PortalThemeControl } from "../theme-control";
@@ -52,7 +53,7 @@ type NavItem = {
   label: string;
   capability: Capability;
   icon: PortalIconName;
-  group: "Workspace" | "Calls" | "Team" | "API" | "Administration";
+  group: "Work" | "Resources" | "Administration";
   description: string;
   state: "live" | "pending";
   /** Set for third-party tools opened outside the portal. */
@@ -78,67 +79,27 @@ const NAV: readonly NavItem[] = [
     label: "Dashboard",
     capability: "dashboard.view.self",
     icon: "dashboard",
-    group: "Workspace",
+    group: "Work",
     description: "Your authenticated IMO command surface.",
     state: "live",
     stateLabel: "Available",
-  },
-  {
-    href: "/portal/announcements",
-    label: "Announcements",
-    capability: "dashboard.view.self",
-    icon: "announcements",
-    group: "Workspace",
-    description: "Releases, roadmap, and operating notes from the agency.",
-    state: "live",
-    stateLabel: "Available",
-  },
-  {
-    href: "/portal/library",
-    label: "Library",
-    capability: "dashboard.view.self",
-    icon: "library",
-    group: "Workspace",
-    description: "Who IMO is, what we believe, training, and the incentive plan.",
-    state: "live",
-    stateLabel: "Available",
-  },
-  {
-    href: "/portal/commission",
-    label: "Commission Schedule",
-    capability: "dashboard.view.self",
-    icon: "commission",
-    group: "Workspace",
-    description: "Every carrier's comp grid by contract level, with ladders and promotion rules.",
-    state: "live",
-    stateLabel: "All members",
   },
   {
     href: "/portal/training",
     label: "Training",
     capability: "dashboard.view.self",
     icon: "training",
-    group: "Calls",
+    group: "Work",
     description: "IMO-approved introductions, call angles, and training language.",
     state: "live",
     stateLabel: "Approved content",
-  },
-  {
-    href: "/portal/book",
-    label: "Book of Business",
-    capability: "book.view.self",
-    icon: "book",
-    group: "Team",
-    description: "Personal policy, placement, and retention intelligence.",
-    state: "pending",
-    stateLabel: "Source pending",
   },
   {
     href: "/portal/calls",
     label: "Calls",
     capability: "calls.answer",
     icon: "calls",
-    group: "Calls",
+    group: "Work",
     description: "Live browser calls, history, voicemail, authorized review, and founder outbound calling.",
     state: "live",
     stateLabel: "Voice workspace",
@@ -148,57 +109,67 @@ const NAV: readonly NavItem[] = [
     label: "Script Vault",
     capability: "scripts.manage",
     icon: "scripts",
-    group: "Calls",
+    group: "Work",
     description: "Governed, versioned conversation playbooks.",
     state: "pending",
     stateLabel: "Import pending",
-  },
-  {
-    href: "/portal/team",
-    label: "Team",
-    capability: "team.view",
-    icon: "team",
-    group: "Team",
-    description: "Assignments, coaching, and progression evidence.",
-    state: "pending",
-    stateLabel: "Model pending",
-  },
-  {
-    href: "/portal/leaderboard",
-    label: "Leaderboard",
-    capability: "dashboard.view.self",
-    icon: "leaderboard",
-    group: "Team",
-    description: "Team standings from real call production — no hand-entered numbers.",
-    state: "live",
-    stateLabel: "All members",
   },
   {
     href: "/portal/stats",
     label: "My Stats",
     capability: "dashboard.view.self",
     icon: "stats",
-    group: "Team",
+    group: "Work",
     description: "Your own production numbers, computed from the platform's records.",
     state: "live",
     stateLabel: "All members",
   },
   {
-    href: "/portal/leadership",
-    label: "Leadership",
-    capability: "leadership.view.all",
-    icon: "leadership",
-    group: "Team",
-    description: "Leadership view of company-wide operating evidence and exceptions.",
-    state: "pending",
-    stateLabel: "Sources pending",
+    href: "/portal/leaderboard",
+    label: "Leaderboard",
+    capability: "dashboard.view.self",
+    icon: "leaderboard",
+    group: "Work",
+    description: "Team standings from real call production — no hand-entered numbers.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  {
+    href: "/portal/announcements",
+    label: "Announcements",
+    capability: "dashboard.view.self",
+    icon: "announcements",
+    group: "Resources",
+    description: "Releases, roadmap, and operating notes from the agency.",
+    state: "live",
+    stateLabel: "Available",
+  },
+  {
+    href: "/portal/library",
+    label: "Library",
+    capability: "dashboard.view.self",
+    icon: "library",
+    group: "Resources",
+    description: "Who IMO is, what we believe, training, and the incentive plan.",
+    state: "live",
+    stateLabel: "Available",
+  },
+  {
+    href: "/portal/commission",
+    label: "Commission Schedule",
+    capability: "dashboard.view.self",
+    icon: "commission",
+    group: "Resources",
+    description: "Every carrier's comp grid by contract level, with ladders and promotion rules.",
+    state: "live",
+    stateLabel: "All members",
   },
   {
     href: "/portal/music",
     label: "Radio",
     capability: "dashboard.view.self",
     icon: "radio",
-    group: "Workspace",
+    group: "Resources",
     description: "Music for the floor. Owner-uploaded tracks only.",
     state: "live",
     stateLabel: "Available",
@@ -224,7 +195,7 @@ const NAV: readonly NavItem[] = [
     label: "Operations Deck",
     capability: "dashboard.view.self",
     icon: "gallery",
-    group: "Workspace",
+    group: "Resources",
     description: "Ten AI-made agent portraits. Select, build, and publish to Inkbox.",
     state: "live",
     stateLabel: "Available",
@@ -234,7 +205,7 @@ const NAV: readonly NavItem[] = [
     label: "Exchange",
     capability: "dashboard.view.self",
     icon: "shop",
-    group: "API",
+    group: "Resources",
     description: "Trade contract points for transferred calls and AI capacity.",
     state: "live",
     stateLabel: "Priced menu",
@@ -244,7 +215,7 @@ const NAV: readonly NavItem[] = [
     label: "Quoter",
     capability: "book.view.self",
     icon: "quoter",
-    group: "API",
+    group: "Resources",
     description: "Final expense quoting and underwriting — quote inline without leaving CORE.",
     state: "live",
     stateLabel: "Beta",
@@ -258,7 +229,7 @@ const NAV: readonly NavItem[] = [
     label: "SureLC — Heartland",
     capability: "dashboard.view.self",
     icon: "surelc",
-    group: "API",
+    group: "Resources",
     description:
       "Carrier contracting and licensing via SuranceBay. Opens in a new tab; sign in there separately.",
     state: "live",
@@ -270,7 +241,7 @@ const NAV: readonly NavItem[] = [
     label: "SureLC — Brenda Daly",
     capability: "dashboard.view.self",
     icon: "surelc",
-    group: "API",
+    group: "Resources",
     description:
       "Carrier contracting via SuranceBay, Brenda Daly branch. Opens in a new tab; sign in there separately.",
     state: "live",
@@ -282,7 +253,7 @@ const NAV: readonly NavItem[] = [
     label: "SureLC — Altura of America",
     capability: "dashboard.view.self",
     icon: "surelc",
-    group: "API",
+    group: "Resources",
     description:
       "Carrier contracting via SuranceBay, Altura of America. Opens in a new tab; sign in there separately.",
     state: "live",
@@ -294,7 +265,7 @@ const NAV: readonly NavItem[] = [
     label: "Reagan AI",
     capability: "dashboard.view.self",
     icon: "reagan",
-    group: "API",
+    group: "Resources",
     description:
       "The Reagan.ai agent portal. Opens in a new tab; sign in there separately.",
     state: "live",
@@ -306,7 +277,7 @@ const NAV: readonly NavItem[] = [
     label: "Tool Directory",
     capability: "dashboard.view.self",
     icon: "toolbox",
-    group: "API",
+    group: "Resources",
     description:
       "Every external tool in one categorized place — carriers, contracting, leads, quoting, documents.",
     state: "live",
@@ -361,100 +332,52 @@ const NAV: readonly NavItem[] = [
   },
 ];
 
-const NAV_GROUPS = ["Workspace", "Calls", "Team", "API", "Administration"] as const;
+const NAV_GROUPS = ["Work", "Resources", "Administration"] as const;
 
 /**
- * Subtitle shown under a section header. Only the three operations sections
- * carry one (owner order: three main sections with subtitles); Workspace and
- * Administration render their label alone.
+ * Subtitle shown under a section header. Work and Resources carry one;
+ * Administration renders its label alone.
  */
 const NAV_GROUP_SUBTITLES: Partial<Record<(typeof NAV_GROUPS)[number], string>> = {
-  Calls: "Answer, follow up, review & coach",
-  Team: "People, books & leadership",
-  API: "External sources & trades",
+  Work: "Answer, train & produce",
+  Resources: "References, tools & trades",
 };
 
-const MISSION_GROUPS = [
-  {
-    id: "operating-floor",
-    code: "01",
-    title: "Operating Floor",
-    description: "Move conversations, policy work, governed language, and team execution.",
-    routes: [
-      "/portal/training",
-      "/portal/calls",
-      "/portal/book",
-      "/portal/scripts",
-      "/portal/team",
-      "/portal/leaderboard",
-      "/portal/stats",
-    ],
-  },
-  {
-    id: "signal-intelligence",
-    code: "02",
-    title: "Signal & Intelligence",
-    description: "Read the source material, operating notes, and leadership-level exceptions.",
-    routes: [
-      "/portal/library",
-      "/portal/announcements",
-      "/portal/leadership",
-      "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
-    ],
-  },
-  {
-    id: "economics-lab",
-    code: "03",
-    title: "Economics Lab",
-    description: "Model capacity and compensation; any external tools stay visibly outside CORE.",
-    routes: [
-      "/portal/shop",
-      "/portal/pay-rates",
-      "/portal/commission",
-      "/portal/quoter",
-      "/portal/tools",
-    ],
-  },
-  {
-    id: "governance-layer",
-    code: "04",
-    title: "Governance Layer",
-    description: "Inspect membership, carrier contracting, founder audit access, and the readiness of approved sources.",
-    routes: [
-      "/portal/command",
-      "/portal/members",
-      "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D505&gaId=505&client_id=surecrmweb&response_type=code",
-      "/portal/audit",
-    ],
-    sourceReadiness: true,
-  },
-] as const;
+function visibleNav(session: PortalSession): NavItem[] {
+  return NAV.filter((item) =>
+    item.founderOnly
+      ? isFounder(session)
+      : item.commandOnly
+        ? isCommandCenter(session)
+        : can(session, item.capability),
+  );
+}
 
-const MISSION_LABELS: Readonly<Record<string, string>> = {
-  "/portal/gallery": "Operations Deck",
-  "/portal/command": "Command Center",
-  "/portal/command/cloud": "Cloud AI Command",
-  "/portal/training": "Training",
-  "/portal/calls": "Calls",
-  "/portal/book": "Book",
-  "/portal/scripts": "Scripts",
-  "/portal/team": "Team",
-  "/portal/library": "Library",
-  "/portal/announcements": "Announcements",
-  "/portal/leadership": "Leadership",
-  "/portal/shop": "Exchange",
-  "/portal/pay-rates": "Pay Rates",
-  "/portal/commission": "Commissions",
-  "/portal/quoter": "Quoter",
-  "https://accounts.surancebay.com/oauth/authorize?redirect_uri=https:%2F%2Fsurelc.surancebay.com%2Fproducer%2Foauth%3FreturnUrl%3D%252Fprofile%252Fcontact-info%253FgaId%253D505&gaId=505&client_id=surecrmweb&response_type=code":
-    "Contracting",
-  "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount": "Reagan AI",
-  "/portal/tools": "Tool Directory",
-  "/portal/members": "Membership",
-  "/portal/audit": "Audit",
-  "/portal/leaderboard": "Leaderboard",
-  "/portal/stats": "My Stats",
-};
+/** Requests waiting on THIS person. Fault ⇒ count 0 + fault set: an unreadable
+ *  table hides the badge and makes the card say so — never a confident zero.
+ *
+ *  `readRows` rather than a bare query: an unreadable table must not render
+ *  as "nothing pending". Wrapped in React's `cache` so the shell and any page
+ *  card share one query per request — a badge that says 3 next to a card
+ *  saying 5 is worse than no badge. */
+export const pendingRequestsFor = cache(
+  async (session: PortalSession): Promise<{ count: number; fault: ReadFault | null }> => {
+    const { rows, fault } = await readRows("member_requests", () =>
+      getDb()
+        .select({ requestedBy: memberRequests.requestedBy, requestedRole: memberRequests.requestedRole })
+        .from(memberRequests)
+        .where(eq(memberRequests.status, "pending")),
+    );
+    // You decide for your downline, never for yourself: a request you raised
+    // is not a request waiting on you.
+    const count = rows.filter(
+      (row) =>
+        normalizeEmail(row.requestedBy) !== normalizeEmail(session.email) &&
+        canSeeInRoster(session, { email: row.requestedBy, role: row.requestedRole as PortalSession["role"] }),
+    ).length;
+    return { count, fault: fault ?? null };
+  },
+);
 
 export async function PortalShell({
   session,
@@ -467,38 +390,12 @@ export async function PortalShell({
   section: string;
   children: React.ReactNode;
 }) {
-  // How many requests are waiting on THIS person to decide. Read here rather
-  // than per-page so the count cannot disagree with itself between surfaces —
-  // a badge that says 3 next to a page listing 5 is worse than no badge.
-  //
-  // `readRows` rather than a bare query: an unreadable table must not render
-  // as "nothing pending". It returns an empty list on fault, and an empty list
-  // hides the badge, which is the honest failure — a silent zero is a lie only
-  // when it is presented as a fact, and an absent badge asserts nothing.
-  const { rows: pending } = await readRows("member_requests", () =>
-    getDb()
-      .select({ requestedBy: memberRequests.requestedBy, requestedRole: memberRequests.requestedRole })
-      .from(memberRequests)
-      .where(eq(memberRequests.status, "pending")),
-  );
-  // You decide for your downline, never for yourself: a request you raised is
-  // not a request waiting on you.
-  const pendingRequests = pending.filter(
-    (row) =>
-      normalizeEmail(row.requestedBy) !== normalizeEmail(session.email) &&
-      canSeeInRoster(session, {
-        email: row.requestedBy,
-        role: row.requestedRole as PortalSession["role"],
-      }),
-  ).length;
+  // A silent zero is a lie only when it is presented as a fact, and an absent
+  // badge asserts nothing — the shared helper carries the fault alongside the
+  // count for surfaces that do have to say something.
+  const { count: pendingRequests } = await pendingRequestsFor(session);
 
-  const visible = NAV.filter((item) =>
-    item.founderOnly
-      ? isFounder(session)
-      : item.commandOnly
-        ? isCommandCenter(session)
-        : can(session, item.capability),
-  );
+  const visible = visibleNav(session);
 
   return (
     <div className="portal-shell">
@@ -760,7 +657,7 @@ function PortalMenuContent({
           if (groupItems.length === 0) return null;
 
           return (
-            <div className="portal-menu-group" key={group}>
+            <div className={`portal-menu-group portal-menu-group-${group.toLowerCase()}`} key={group}>
               <p className="portal-menu-group-label">{group}</p>
               {NAV_GROUP_SUBTITLES[group] ? (
                 <p className="portal-menu-group-sub">{NAV_GROUP_SUBTITLES[group]}</p>
@@ -788,7 +685,7 @@ function PortalMenuContent({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`portal-menu-item portal-menu-item-${item.icon}${item.state === "pending" ? " portal-menu-item-pending" : ""}`}
+                    className={`portal-menu-item portal-menu-item-${item.icon}`}
                     aria-current={item.href === current ? "page" : undefined}
                     title={item.label}
                   >
@@ -801,11 +698,6 @@ function PortalMenuContent({
                       <span className="portal-menu-label portal-menu-identity">
                         <strong>{session.displayName}</strong>
                         <small>{ROLE_LABELS[session.role]}</small>
-                      </span>
-                    ) : item.state === "pending" ? (
-                      <span className="portal-menu-label">
-                        <strong>{item.label}</strong>
-                        <small>{item.stateLabel}</small>
                       </span>
                     ) : (
                       <span className="portal-menu-label">{item.label}</span>
@@ -823,9 +715,6 @@ function PortalMenuContent({
                         </span>
                       </span>
                     ) : null}
-                    {item.state === "pending" ? (
-                      <span className="portal-pill portal-pill-pending">PENDING</span>
-                    ) : null}
                     {item.founderOnly || item.commandOnly ? (
                       <span className="portal-pill portal-pill-owner">OWNER ONLY</span>
                     ) : null}
@@ -841,6 +730,14 @@ function PortalMenuContent({
           );
         })}
       </nav>
+
+      {/* The three demoted stubs (decision 2026-09-02): named, not linked. Their
+          routes and guards live on untouched; they re-enter the menu when their
+          sources land. Plain text on purpose — no href, so the gated-absence tests
+          and the roster of refused doors stay clean. */}
+      <p className="portal-menu-coming">
+        Coming online: Book of Business · Team · Leadership
+      </p>
 
       <div className="portal-menu-foot">
         <span className="portal-menu-system">
@@ -956,87 +853,26 @@ export function PortalPlaceholderPage({
   );
 }
 
-export function PortalWorkspaceDirectory({ session }: { session: PortalSession }) {
-  const visible = NAV.filter((item) =>
-    item.founderOnly
-      ? isFounder(session)
-      : item.commandOnly
-        ? isCommandCenter(session)
-        : can(session, item.capability),
-  );
+const GO_ROUTES = ["/portal/training", "/portal/calls", "/portal/stats", "/portal/shop"] as const;
+/** Server-side display override: the founder-named tile label for the Exchange.
+ *  The menu keeps "Exchange" + the client-side relabel; the tile is born "Marketplace". */
+const GO_LABELS: Readonly<Record<string, string>> = { "/portal/shop": "Marketplace" };
 
+export function PortalGoRow({ session }: { session: PortalSession }) {
+  const visible = visibleNav(session);
   return (
-    <div className="portal-mission-grid">
-      {MISSION_GROUPS.map((group) => {
-        const items = group.routes
-          .map((href) => visible.find((item) => item.href === href))
-          .filter((item): item is NavItem => Boolean(item));
-        const sourceReadiness = "sourceReadiness" in group && group.sourceReadiness;
-        if (items.length === 0 && !sourceReadiness) return null;
-
+    <section className="portal-go-row" aria-label="Go">
+      {GO_ROUTES.map((href) => {
+        const item = visible.find((entry) => entry.href === href);
+        if (!item) return null;   // role-filtered: an unopenable tile is an absent tile
         return (
-          <article className="portal-mission-lane" key={group.id}>
-            <header className="portal-mission-lane-head">
-              <span className="portal-mission-code" aria-hidden="true">{group.code}</span>
-              <span>
-                <strong>{group.title}</strong>
-                <small>{group.description}</small>
-              </span>
-            </header>
-
-            <div className="portal-mission-routes">
-              {items.map((item) => {
-                const body = (
-                  <>
-                    <span className="portal-workspace-symbol" aria-hidden="true">
-                      <PortalNavMark name={item.icon} />
-                    </span>
-                    <span className="portal-workspace-copy">
-                      <strong>{MISSION_LABELS[item.href] ?? item.label}</strong>
-                      <small>{item.description}</small>
-                    </span>
-                    <span className="portal-workspace-meta">
-                      <span className={`portal-state portal-state-${item.state}`}>{item.stateLabel}</span>
-                      <span className="portal-workspace-action" aria-hidden="true">→</span>
-                    </span>
-                  </>
-                );
-
-                return item.external ? (
-                  <a
-                    className="portal-workspace-item"
-                    href={item.href}
-                    key={item.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {body}
-                  </a>
-                ) : (
-                  <Link className="portal-workspace-item" href={item.href} key={item.href}>
-                    {body}
-                  </Link>
-                );
-              })}
-
-              {sourceReadiness ? (
-                <a className="portal-workspace-item" href="#source-readiness">
-                  <span className="portal-workspace-symbol portal-workspace-symbol-readiness" aria-hidden="true">◎</span>
-                  <span className="portal-workspace-copy">
-                    <strong>Source readiness</strong>
-                    <small>See which protected systems are operational and which remain disconnected.</small>
-                  </span>
-                  <span className="portal-workspace-meta">
-                    <span className="portal-state portal-state-pending">Mixed state</span>
-                    <span className="portal-workspace-action" aria-hidden="true">↓</span>
-                  </span>
-                </a>
-              ) : null}
-            </div>
-          </article>
+          <Link key={item.href} className="portal-go-tile" href={item.href} title={item.label}>
+            <span className="portal-go-icon" aria-hidden="true"><PortalNavMark name={item.icon} /></span>
+            <span className="portal-go-label">{GO_LABELS[item.href] ?? item.label}</span>
+          </Link>
         );
       })}
-    </div>
+    </section>
   );
 }
 

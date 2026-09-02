@@ -2,8 +2,6 @@
 
 import { useEffect } from "react";
 
-const REAGAN_HREF = "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount";
-
 /**
  * Small compatibility layer for the existing static portal navigation.
  *
@@ -57,8 +55,6 @@ export function PortalNavigationUpgrade() {
         setLabel(node, "Reagan AI — Heartland");
       });
 
-      document.querySelectorAll<HTMLElement>(".thrive-inbound-nav").forEach((node) => node.remove());
-
       document.querySelectorAll<HTMLElement>(".portal-topbar-end").forEach((topbar) => {
         if (topbar.querySelector(".thrive-account-call-stack")) return;
         const stack = document.createElement("div");
@@ -84,16 +80,6 @@ export function PortalNavigationUpgrade() {
       });
 
       renderPhonePhase();
-
-      document.querySelectorAll<HTMLElement>('a[href="/portal/shop"] .portal-workspace-copy strong').forEach((node) => {
-        setLabel(node, "Marketplace");
-      });
-      document.querySelectorAll<HTMLElement>(`a[href="${REAGAN_HREF}"] .portal-workspace-copy strong`).forEach((node) => {
-        setLabel(node, "Reagan AI — Heartland");
-      });
-      document.querySelectorAll<HTMLElement>('a[href*="surancebay.com"] .portal-workspace-copy').forEach((node) => {
-        node.closest("a")?.remove();
-      });
     }
 
     upgrade();

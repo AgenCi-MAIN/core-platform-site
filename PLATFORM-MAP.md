@@ -7,70 +7,94 @@ inject the real workforce."* This file is that categorization, kept current
 so a plug-in never lands in the wrong place. When a surface is added, its
 row is added here in the same commit.
 
-## The five categories (sidebar groups) and their meaning
+**Reorganized 2026-09-02:** the menu consolidated from five sidebar groups to
+three, the dashboard's mission-lane map was retired with the old dashboard,
+and the dashboard itself was rebuilt as the founder's three-block layout.
+The five-category edition of this file lives in git history.
 
-| Category | Meaning | Who sees it |
+## The three menu groups and their meaning
+
+| Group | Subtitle in the menu | Meaning | Who sees it |
+|---|---|---|---|
+| **Work** | "Answer, train & produce" | The daily loop: dashboard, training, calls, scripts, your numbers | every member (per capability) |
+| **Resources** | "References, tools & trades" | Everything consulted rather than worked: content, external tools, the Exchange | every member (per capability) |
+| **Administration** | — | Governance: comp modeling, roster, audit, the Command Center | leadership / founder / Command Center set |
+
+The menu (`NAV` / `NAV_GROUPS` in `app/portal/components.tsx`) is the single
+categorization now — the dashboard mission lanes (`MISSION_GROUPS` /
+`MISSION_LABELS`) were deleted with the old dashboard. Three demoted stubs are
+named, unlinked, in the menu footer: **"Coming online: Book of Business ·
+Team · Leadership"** (decision 2026-09-02). Their routes and guards live on
+untouched and they re-enter the menu when their sources land; plain text on
+purpose, so the gated-absence tests stay clean.
+
+## The dashboard (rebuilt 2026-09-02 — founder's three blocks)
+
+`app/portal/page.tsx`, guard `dashboard.view.self`, plus server-only data
+assembly in `app/portal/dashboard-data.ts` and week arithmetic in
+`app/portal/week.ts`. Every rendered number is computed from records the
+platform holds for the signed-in member; a metric with no source says
+"source pending", and an unreadable table says so (`readRows` fail-closed) —
+never a zero, never an invented value.
+
+| Block | What it shows | Data source |
 |---|---|---|
-| **Workspace** | Daily home base: dashboard, reference, ambience | every member |
-| **Calls** | The work itself: training language, live call review, scripts | per capability |
-| **Team** | People and production: who we are, how we're doing | per capability |
-| **API** | External sources & tools — everything that talks to the outside | per capability |
-| **Administration** | Governance: roster, comp modeling, the audit trail | leadership / founder |
+| 1 — Production tiles (`portal-prod-grid`) | Policies sold · Calls answered · Active clients · Cost per policy, with day/week/month views and a week-over-week delta | Calls answered is LIVE: D1 `inbound_voice_calls` (answered, per member) + `dialer_transfers` (per agent email). The other three have **no source system** and render "source pending" |
+| 2 — Weekly commitment (`portal-week-panel`) | The member's own stated plan: lead budget + call target, bars and pace line; visually a lighter, dashed panel because it is PLAN, never actual | D1 `weekly_commitments` — **table pending `db/sql/0013`** (see DEPLOYMENT.md); until applied the panel renders the honest not-provisioned copy. Written only by `POST /portal/checkin` (self-scoped, current week only, audited) |
+| 3 — Book of Business tile (`portal-bob-tile`) | Open voicemail callbacks (count + three soonest-due, masked numbers), links to the Calls page | D1 `voice_callback_tasks` joined to `inbound_voice_calls`, bootstrap-route scoping (member sees own + shared queue only) |
 
-Dashboard **mission lanes** are the second categorization of the same
-surfaces (01 Operating Floor · 02 Signal & Intelligence · 03 Economics Lab ·
-04 Governance Layer), defined in `app/portal/components.tsx`
-(`MISSION_GROUPS` / `MISSION_LABELS`). A new surface gets BOTH a sidebar
-group and a lane (or a deliberate note that it's lane-exempt, like Radio).
+`POST /portal/checkin` is the commitment panel's one writer: presence-route
+guard pattern, capability every member holds, `member_id` and `week_key`
+decided server-side (forged body fields ignored), bounds mirrored by CHECK
+constraints in 0013, every outcome audited. Listed in `PROTECTED_ROUTES`;
+its GET redirects a signed-in member home and refuses anonymous like every
+guarded route.
 
 ## Surface inventory — file, guard, data source, plug-in step
 
-### Workspace
+### Work
 | Surface | Folder | Guard | Data source | To inject data |
 |---|---|---|---|---|
-| Dashboard | `app/portal/page.tsx` | `dashboard.view.self` | D1 (members, announcements) | live |
-| Command Center | `app/portal/command/` | `requireCommandCenter` (founder + Andrew, A13) | curated in-file | edit page content |
+| Dashboard | `app/portal/page.tsx` | `dashboard.view.self` | see the block table above | calls live; commitment pends 0013; the rest pend source decisions |
+| Training | `app/portal/training/` | `dashboard.view.self` | `library.ts` — HUMAN-APPROVED, byte-verbatim pinned | new scripts land as new approved slots in `library.ts`; the STEP/SCRIPT:/PURPOSE: format self-highlights; tests pin byte-fidelity |
+| Calls | `app/portal/calls/` | `calls.answer` (review areas `calls.review`) | D1 `inbound_voice_calls` / `voice_callback_tasks` / `dialer_transfers` + R2 recordings | SignalWire webhooks + dialer ingest (E7 counsel gate applies to recording) |
+| Script Vault | `app/portal/scripts/` | `scripts.manage` | pending import | governed script import |
+| My Stats | `app/portal/stats/` | `dashboard.view.self` (self-scoped query) | D1 `dialer_transfers` per `agent_email` | fills itself when call traffic flows |
+| Leaderboard | `app/portal/leaderboard/` | `dashboard.view.self` | same | same — no manual entry exists |
+
+### Resources
+| Surface | Folder / link | Guard | Data source | To inject data |
+|---|---|---|---|---|
 | Announcements | `app/portal/announcements/` | `dashboard.view.self` | curated in-file | edit page content |
 | Library | `app/portal/library/` | `dashboard.view.self` | curated in-file | edit page content |
-| Commission Schedule | `app/portal/commission/` (+ `document/`) | `dashboard.view.self` | `document/schedule.html` baked into the bundle | replace that HTML (keep `commission-site/index.html` — the public Vercel/Pages copy — byte-identical) |
-| Radio | `app/portal/music/` | `dashboard.view.self` | R2 `site-creator-r2` under `music/` | upload via the portal (owner) — old account's tracks need re-upload |
-
-### Calls
-| Surface | Folder | Guard | Data source | To inject data |
-|---|---|---|---|---|
-| Training | `app/portal/training/` | `dashboard.view.self` | `library.ts` — HUMAN-APPROVED, byte-verbatim pinned | new scripts land as new approved slots in `library.ts`; the STEP/SCRIPT:/PURPOSE: format self-highlights; tests pin byte-fidelity |
-| Call Lab | `app/portal/calls/` | `calls.review` | D1 `dialer_transfers` + R2 recordings | dialer webhook → transfers rows (E7 counsel gate applies to recording) |
-| Script Vault | `app/portal/scripts/` | `scripts.manage` | pending import | governed script import |
-
-### Team
-| Surface | Folder | Guard | Data source | To inject data |
-|---|---|---|---|---|
-| Book of Business | `app/portal/book/` | `book.view.self` | pending (E3: carrier statements + CPL) | source decision E3 |
-| Team | `app/portal/team/` | `team.view` | pending model | model decision |
-| Leaderboard | `app/portal/leaderboard/` | `dashboard.view.self` | D1 `dialer_transfers` per `agent_email` | fills itself when call traffic flows — no manual entry exists |
-| My Stats | `app/portal/stats/` | `dashboard.view.self` (self-scoped query) | same | same |
-| Leadership | `app/portal/leadership/` | `leadership.view.all` | pending sources | source decisions |
-
-### API — external sources & tools
-| Surface | Folder / link | Guard | Dormant until | To activate |
-|---|---|---|---|---|
-| LeadTech (GoHighLevel) | `app/portal/leadtech/` (3 tabs) | `leadership.view.all` | `LEADTECH_API_KEY` unset (E7b counsel gate) | `wrangler secret put LEADTECH_API_KEY` (v2 token, `pit-…`) + deploy |
-| Retreaver | `app/portal/retreaver/` | `leadership.view.all` | needs BOTH `RETREAVER_API_KEY` + `RETREAVER_COMPANY_ID` | two secret puts + deploy |
-| Twilio | `app/portal/twilio/` | `leadership.view.all` | needs `TWILIO_ACCOUNT_SID` + `TWILIO_AUTH_TOKEN` | two secret puts + deploy |
+| Commission Schedule | `app/portal/commission/` (+ `document/`) | `dashboard.view.self` | `document/schedule.html` baked into the bundle | replace that HTML (keep `commission-site/index.html` — the public copy — byte-identical) |
+| Radio | `app/portal/music/` | `dashboard.view.self` | R2 `site-creator-r2` under `music/` | upload via the portal (owner) |
+| Operations Deck | `app/portal/gallery/` | `dashboard.view.self` | curated portraits + Inkbox publish | — |
 | Exchange | `app/portal/shop/` | `dashboard.view.self` | live (priced menu) | — |
-| Quoter (external) | NAV link → insurancetoolkits | `book.view.self` | — | sign in there |
-| AI Underwriter (external) | NAV link → insurancetoolkits | `book.view.self` | — | sign in there; tile states advisory-only |
-| SureLC ×3 (external) | NAV links → surancebay OAuth (owner's exact links, 2026-08-18) | `dashboard.view.self` | — | gaId 505 = labeled Heartland (arrived unbranched — owner to confirm), 862 = Brenda Daly, 323 = Altura of America. One entry per upline, never a shared page |
-| Reagan AI (external) | NAV link → reagan.ai agent portal | `dashboard.view.self` | — | sign in there ("Reagan AI" decoded 2026-08-18) |
-| **Tool Directory** | `app/portal/tools/` | `dashboard.view.self` | curated in-file `TOOL_CATEGORIES` | THE home for every external tool that doesn't earn a sidebar tab: carrier portals (Aetna, Corebridge Connext, Occidental, Transamerica — session tokens stripped from supplied URLs, stable login pages kept), leads & CRM (Reagan, InteleLead, Salesforce), quoting, team Google docs, utilities (AudioConvert). Adding a tool = one entry in the array |
+| Quoter | `app/portal/quoter/` | `book.view.self` | client-side calculator (no persistence) | — |
+| SureLC ×3 (external) | NAV links → surancebay OAuth (owner's exact links, 2026-08-18) | `dashboard.view.self` | — | gaId 505 = labeled Heartland (owner to confirm), 862 = Brenda Daly, 323 = Altura of America. One entry per upline, never a shared page |
+| Reagan AI (external) | NAV link → reagan.ai agent portal | `dashboard.view.self` | — | sign in there |
+| **Tool Directory** | `app/portal/tools/` | `dashboard.view.self` | curated in-file `TOOL_CATEGORIES` | THE home for every external tool that doesn't earn a menu row: carrier portals, leads & CRM, quoting, team docs, utilities. Adding a tool = one entry in the array |
 
 ### Administration
 | Surface | Folder | Guard | Data source |
 |---|---|---|---|
 | Pay Rates | `app/portal/pay-rates/` | `leadership.view.all` | in-file model |
 | Members | `app/portal/members/` | `members.view` / writes `members.manage` | D1 `portal_members` |
-| Audit | `app/portal/audit/` | `requireFounder` | D1 `audit_events` (append-only) |
-| Investigator | `app/portal/investigator/` | `requireFounder` | deliberately unlisted in NAV — reached via the sidebar system dot, founder only |
+| Audit | `app/portal/audit/` | founder only | D1 `audit_events` (append-only) |
+| Command Center | `app/portal/command/` | Command Center set (founder + named helpers, A13) | curated in-file |
+
+### Live routes without a menu entry (guarded as ever; the menu hides doors, never rooms)
+| Route | Why unlisted | Guard |
+|---|---|---|
+| `/portal/book` | demoted stub — named in the "Coming online" footer until E3 sources land | `book.view.self` |
+| `/portal/team` | demoted stub — same footer, pending model | `team.view` |
+| `/portal/leadership` | demoted stub — same footer, pending sources | `leadership.view.all` |
+| `/portal/leadtech` | dormant integration (E7b) — activates with `LEADTECH_API_KEY` | `leadership.view.all` |
+| `/portal/retreaver` | dormant — needs `RETREAVER_API_KEY` + `RETREAVER_COMPANY_ID` | `leadership.view.all` |
+| `/portal/twilio` | dormant — needs `TWILIO_ACCOUNT_SID` + `TWILIO_AUTH_TOKEN` | `leadership.view.all` |
+| `/portal/investigator` | deliberately unlisted — reached via the menu system dot, founder only | founder only |
+| `/portal/checkin` | not a page — the commitment panel's POST target (see dashboard section) | capability + self-scope |
 
 ### Named but not yet built (owner to define)
 | Name (as spoken) | Status |
@@ -81,9 +105,9 @@ group and a lane (or a deliberate note that it's lane-exempt, like Radio).
 ## The rules that keep organization honest when plugging in
 
 1. **A new surface = one folder under `app/portal/<name>/`** with exactly one
-   guard, a NAV entry (group = its category), a mission-lane entry (or a
-   recorded exemption), a `PROTECTED_ROUTES` row, and a row in this file —
-   all in the same commit.
+   guard, a NAV entry (group = its category, or a recorded footer/unlisted
+   note), a `PROTECTED_ROUTES` row, and a row in this file — all in the same
+   commit.
 2. **External tools are NAV links, never pages** — `external: true`, open in
    a new tab, "sign in there separately" in the description. One tool, one
    entry; variants (multiple SureLCs) are separate entries.
