@@ -9,6 +9,8 @@
 
 export const PORTAL_THEME_STORAGE_KEY = "core-portal-theme";
 export const PORTAL_PERFORMANCE_STORAGE_KEY = "thrive-portal-performance";
+/** Mirrors NAV_PLACEMENT_STORAGE_KEY in app/nav-placement.ts (the boot cannot import). */
+export const PORTAL_NAV_STORAGE_KEY = "core-portal-nav";
 
 /**
  * Restores both the colour mode and the performance mode before first paint.
@@ -29,7 +31,16 @@ export const PORTAL_PERFORMANCE_STORAGE_KEY = "thrive-portal-performance";
 // page instead of guessing from the OS preference, which is not what chooses
 // the portal's theme. "thrive" keeps colorScheme light: its workspace is
 // light; the navy sidebar scopes its own dark color-scheme in globals.css.
-const THEME_BOOT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("${PORTAL_THEME_STORAGE_KEY}");var v=(t==="bright"||t==="dark")?t:"thrive";d.dataset.portalTheme=v;d.style.colorScheme=v==="dark"?"dark":"light";var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",v==="dark"?"#0b130f":v==="bright"?"#f3ecdf":"#eef2f9")}var p=localStorage.getItem("${PORTAL_PERFORMANCE_STORAGE_KEY}");d.dataset.portalPerformance=p==="boost"?"boost":"full"}catch(e){}})();`;
+//
+// NAVIGATION PLACEMENT rides the same boot (Dispatch R3, 2026-09-02): the
+// stored preference lands on `data-portal-nav` before first paint, so a
+// member who chose the left rail never sees the dock flash first. Exactly
+// "rail" opts in; anything else — nothing stored, junk, a retired value — is
+// the dock, the SAME rule app/nav-placement.ts's storedNavPlacement applies
+// and a test pins the two together. Only the PREFERENCE is restored here:
+// whether a rail actually renders is the stylesheet's decision at its
+// desktop breakpoint, so a phone gets the compact dock whatever is stored.
+const THEME_BOOT = `(function(){try{var d=document.documentElement;var t=localStorage.getItem("${PORTAL_THEME_STORAGE_KEY}");var v=(t==="bright"||t==="dark")?t:"thrive";d.dataset.portalTheme=v;d.style.colorScheme=v==="dark"?"dark":"light";var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute("content",v==="dark"?"#0b130f":v==="bright"?"#f3ecdf":"#eef2f9")}var p=localStorage.getItem("${PORTAL_PERFORMANCE_STORAGE_KEY}");d.dataset.portalPerformance=p==="boost"?"boost":"full";var n=localStorage.getItem("${PORTAL_NAV_STORAGE_KEY}");d.dataset.portalNav=n==="rail"?"rail":"dock"}catch(e){}})();`;
 
 /** Applies the saved theme and performance mode before first paint. */
 export function PortalThemeBoot() {

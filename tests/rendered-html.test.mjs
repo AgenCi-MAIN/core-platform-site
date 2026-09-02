@@ -2324,3 +2324,189 @@ test("the Dialer's temporary script bridge is a plain external anchor inside the
   // The Dialer guard is untouched: the panel renders only under outboundAuthorized.
   assert.match(workspace, /\{outboundAuthorized \? \(\s*<div className="calls-outbound-panel"[\s\S]*?<CollabDialer \/>/, "the CollabDialer stays inside the founder-authorized outbound panel");
 });
+
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Navigation placement + dock destinations (Dispatch R3, 2026-09-02) —
+ * source-level pins. Three files carry the placement rule by hand because
+ * the boot script runs before React exists and cannot import:
+ * app/nav-placement.ts (the resolver), app/portal-chrome.tsx (the boot),
+ * app/nav-control.tsx (the control); app/globals.css carries the width at
+ * which a stored rail is honoured. These tests pin the four against each
+ * other, prove the resolver fail-closed, and pin the dock tuple, the
+ * demotion of Calls, the inert dialer, and the Book drawer id check.
+ * Runtime counterparts live in portal-authorization.test.mjs.
+ * ──────────────────────────────────────────────────────────────────────── */
+const r3src = (rel) => readFile(new URL(rel, import.meta.url), "utf8");
+
+test("the resolver honours exactly one stored value, and only at desktop widths", async () => {
+  const {
+    DEFAULT_NAV_PLACEMENT,
+    NAV_PLACEMENTS,
+    NAV_PLACEMENT_STORAGE_KEY,
+    NAV_RAIL_MIN_WIDTH,
+    resolveNavPlacement,
+    storedNavPlacement,
+  } = await import(new URL("../app/nav-placement.ts", import.meta.url).href);
+
+  assert.deepEqual([...NAV_PLACEMENTS], ["dock", "rail"]);
+  assert.equal(DEFAULT_NAV_PLACEMENT, "dock");
+  assert.equal(NAV_PLACEMENT_STORAGE_KEY, "core-portal-nav");
+  assert.equal(NAV_RAIL_MIN_WIDTH, 960);
+
+  // Stored value: exactly "rail" opts in. Everything else — including the
+  // adversarial shapes a tampered localStorage can hold — is the dock.
+  assert.equal(storedNavPlacement("rail"), "rail");
+  for (const junk of [
+    undefined,
+    null,
+    "",
+    "dock",
+    "Rail",
+    "RAIL",
+    " rail",
+    "rail ",
+    "rail\n",
+    "sidebar",
+    "left",
+    1,
+    true,
+    {},
+    [],
+    ["rail"],
+    "true",
+    "__proto__",
+    "constructor",
+    "<script>rail</script>",
+  ]) {
+    assert.equal(storedNavPlacement(junk), "dock", `stored ${JSON.stringify(junk)} must fall back to the dock`);
+  }
+
+  // Viewport: the rail needs proof of width. Unknown, narrow, non-finite,
+  // and negative widths all resolve to the dock; the boundary is inclusive.
+  assert.equal(resolveNavPlacement("rail", 1440), "rail");
+  assert.equal(resolveNavPlacement("rail", 960), "rail", "the breakpoint itself honours the rail");
+  assert.equal(resolveNavPlacement("rail", 959), "dock", "one pixel under the breakpoint is the dock");
+  assert.equal(resolveNavPlacement("rail", 390), "dock");
+  assert.equal(resolveNavPlacement("rail", null), "dock", "no viewport (server) is the dock");
+  assert.equal(resolveNavPlacement("rail", Number.NaN), "dock");
+  assert.equal(resolveNavPlacement("rail", Number.POSITIVE_INFINITY), "dock", "a non-finite width is not a measured viewport");
+  assert.equal(resolveNavPlacement("rail", -1), "dock");
+  assert.equal(resolveNavPlacement("dock", 1440), "dock");
+  assert.equal(resolveNavPlacement("junk", 1440), "dock");
+  assert.equal(resolveNavPlacement(undefined, 1440), "dock");
+});
+
+test("the boot script, the control, and the stylesheet agree on the placement rule", async () => {
+  const boot = await r3src("../app/portal-chrome.tsx");
+  const control = await r3src("../app/nav-control.tsx");
+  const resolver = await r3src("../app/nav-placement.ts");
+  const css = (await r3src("../app/globals.css")).replace(/\/\*[\s\S]*?\*\//g, "");
+
+  // Storage key, duplicated by hand in the boot (it cannot import). A
+  // mismatch is total placement amnesia.
+  assert.match(boot, /PORTAL_NAV_STORAGE_KEY = "core-portal-nav"/);
+  assert.match(control, /const STORAGE_KEY: typeof NAV_PLACEMENT_STORAGE_KEY = "core-portal-nav"/);
+  assert.match(resolver, /NAV_PLACEMENT_STORAGE_KEY = "core-portal-nav"/);
+
+  // Boot: reads the key inside the same pre-paint try block as the theme,
+  // honours exactly "rail", and writes the PREFERENCE to data-portal-nav.
+  // No viewport test in the boot — that is the stylesheet's job, below.
+  assert.match(
+    boot,
+    /var n=localStorage\.getItem\("\$\{PORTAL_NAV_STORAGE_KEY\}"\);d\.dataset\.portalNav=n==="rail"\?"rail":"dock"\}catch\(e\)\{\}/,
+    "the boot must restore the nav preference before first paint with the exact rail|dock rule",
+  );
+  assert.doesNotMatch(boot, /innerWidth|matchMedia/, "the boot never decides the viewport; CSS does");
+
+  // Control: the server snapshot is the dock (what the boot paints for a
+  // first-time visitor), and the DOM read goes through the shared validator.
+  assert.match(control, /useSyncExternalStore\(subscribe, readPlacement, \(\) => DEFAULT_NAV_PLACEMENT\)/);
+  assert.match(control, /storedNavPlacement\(document\.documentElement\.dataset\.portalNav\)/);
+  assert.match(control, /^"use client";/m);
+  assert.doesNotMatch(control, /from "\.\/portal\/access"/, "the control must never import the server-only access module");
+
+  // Stylesheet: every rail rule lives inside a min-width media block at the
+  // resolver's breakpoint, and the control hides one pixel below it. A rail
+  // rule outside that block would honour a stored rail on a phone.
+  const railRules = [...css.matchAll(/html\[data-portal-nav="rail"\]/g)];
+  assert.ok(railRules.length >= 4, "the rail is styled by more than one rule");
+  const wide = css.indexOf("@media (min-width: 960px) {\n  html[data-portal-nav=\"rail\"]");
+  assert.ok(wide >= 0, "the rail block must open with @media (min-width: 960px)");
+  // Find the closing brace of that media block by depth-counting.
+  let depth = 0;
+  let end = -1;
+  for (let i = css.indexOf("{", wide); i < css.length; i++) {
+    if (css[i] === "{") depth++;
+    else if (css[i] === "}") {
+      depth--;
+      if (depth === 0) { end = i; break; }
+    }
+  }
+  assert.ok(end > wide, "the rail media block does not close");
+  const outside = css.slice(0, wide) + css.slice(end + 1);
+  assert.doesNotMatch(outside, /data-portal-nav="rail"/, "a rail rule exists outside the desktop media block");
+  assert.match(css, /@media \(max-width: 959px\) \{\s*\.portal-nav-control \{ display: none; \}/, "the control hides below the rail breakpoint");
+
+  // The base dock rule is untouched in the two ways the older pin measures.
+  const dock = css.match(/(?:^|\n)\.portal-dock \{([^}]*)\}/);
+  assert.ok(dock);
+  assert.match(dock[1], /position:\s*fixed/);
+  assert.match(dock[1], /env\(safe-area-inset-bottom\)/);
+});
+
+test("the dock carries five destinations, all of them menu rows, and Calls is not one of them", async () => {
+  const components = await r3src("../app/portal/components.tsx");
+
+  const declared = components.match(/export const DOCK_DESTINATIONS = \[([^\]]+)\] as const;/);
+  assert.ok(declared, "DOCK_DESTINATIONS must stay an exported literal tuple");
+  const dock = [...declared[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(dock, ["/portal", "/portal/book", "/portal/inbound", "/portal/team", "/portal/leadership"]);
+
+  // Every destination is a NAV row with a dockLabel, so the dock can never
+  // carry a door the menu lacks and every slot has its short word.
+  const nav = components.slice(components.indexOf("const NAV: readonly NavItem[]"), components.indexOf("function visibleNav("));
+  const expectedLabels = { "/portal": "Today", "/portal/book": "Book", "/portal/inbound": "Inbound", "/portal/team": "Team", "/portal/leadership": "Leadership" };
+  for (const href of dock) {
+    const at = nav.indexOf(`href: "${href}",`);
+    assert.ok(at >= 0, `${href} must be a NAV row`);
+    const entry = nav.slice(at, nav.indexOf("},", at));
+    assert.match(entry, new RegExp(`dockLabel: "${expectedLabels[href]}"`), `${href} carries dockLabel ${expectedLabels[href]}`);
+  }
+
+  // The dock renders from that tuple and from the SAME filtered list as the
+  // menu; the retired quick-link literal must be gone.
+  assert.match(components, /\{DOCK_DESTINATIONS\.map\(\(href\) => \{\s*const item = visible\.find\(\(entry\) => entry\.href === href\);\s*if \(!item\) return null;/);
+  assert.doesNotMatch(components, /\["\/portal", "\/portal\/calls", "\/portal\/music"\]/, "the old Today/Calls/Radio quick-link tuple must be retired");
+
+  // Calls keeps its menu row and its guard; it only left the dock. The
+  // Inbound row is the panel's door and shares the calls.answer guard.
+  const calls = nav.slice(nav.indexOf('href: "/portal/calls",'), nav.indexOf("},", nav.indexOf('href: "/portal/calls",')));
+  assert.match(calls, /capability: "calls\.answer"/);
+  assert.doesNotMatch(calls, /dockLabel/, "Calls must carry no dock slot");
+  const inbound = nav.slice(nav.indexOf('href: "/portal/inbound",'), nav.indexOf("},", nav.indexOf('href: "/portal/inbound",')));
+  assert.match(inbound, /capability: "calls\.answer"/);
+  assert.match(inbound, /group: "Today"/);
+
+  // The deferred dialer: inert by construction — a span with no href and no
+  // handler, rendered only inside the founder branch.
+  const deferred = components.slice(components.indexOf("{isFounder(session) ? (\n            <span\n              className=\"portal-dock-deferred\""), components.indexOf(") : null}", components.indexOf('className="portal-dock-deferred"')));
+  assert.ok(deferred.length > 0, "the deferred dialer slot must be rendered inside the founder branch");
+  assert.doesNotMatch(deferred, /href=|onClick|<Link|<a |<button/, "the deferred dialer must be inert");
+  assert.match(deferred, /aria-disabled="true"/);
+  assert.match(deferred, /portal-pill-deferred">Deferred</);
+});
+
+test("the Book drawer accepts only a small integer id and the panel views are a closed set", async () => {
+  const book = await r3src("../app/portal/book/page.tsx");
+  assert.match(book, /requireCapability\("book\.view\.self", "\/portal\/book"\)/, "the Book keeps its literal guard");
+  assert.match(book, /\/\^\\d\{1,9\}\$\/\.test\(value\)/, "customer ids are validated as small positive integers before any use");
+  assert.match(book, /rows\.find\(\(task\) => task\.id === requestedId\)/, "the drawer opens only for an id inside the member's own list — no second query");
+  assert.match(book, /const VIEWS = \["summary", "customers", "policies"\] as const;/);
+  assert.doesNotMatch(book, /getDb\(\)/, "the Book page runs no query of its own; it reuses the self-scoped callback loader");
+  // The inbound panel likewise keeps its guard literal and reads only self-scoped rows.
+  const inbound = await r3src("../app/portal/inbound/page.tsx");
+  assert.match(inbound, /requireCapability\("calls\.answer", "\/portal\/inbound"\)/);
+  assert.match(inbound, /eq\(voicePresence\.memberId, session\.memberId\)/, "presence is read for the session's own member only");
+  assert.doesNotMatch(inbound, /redirect\(/, "the route renders the panel now; it no longer redirects into Calls");
+});

@@ -20,6 +20,7 @@ import { readRows, type ReadFault } from "./read-guard";
 import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
 import { PortalThemeControl } from "../theme-control";
+import { PortalNavControl } from "../nav-control";
 
 type PortalIconName =
   | "dashboard"
@@ -70,6 +71,11 @@ type NavItem = {
    */
   commandOnly?: boolean;
   stateLabel: string;
+  /**
+   * The short word the dock uses for one of its five destinations. Only the
+   * rows in DOCK_DESTINATIONS carry one; the menu keeps the full label.
+   */
+  dockLabel?: string;
 };
 
 /**
@@ -103,8 +109,12 @@ const NAV: readonly NavItem[] = [
     description: "Your authenticated IMO command surface.",
     state: "live",
     stateLabel: "Available",
+    dockLabel: "Today",
   },
   {
+    // Demoted from the dock (Dispatch R3, 2026-09-02): the live voice
+    // workspace is reached from this menu row and from the Inbound Status
+    // panel, never from a dock slot. Route and calls.answer guard unchanged.
     href: "/portal/calls",
     label: "Calls",
     capability: "calls.answer",
@@ -113,6 +123,20 @@ const NAV: readonly NavItem[] = [
     description: "Live browser calls, history, voicemail, authorized review, and founder outbound calling.",
     state: "live",
     stateLabel: "Voice workspace",
+  },
+  {
+    // The daily inbound view (Dispatch R3): one focused panel of what rang,
+    // what is owed, and whether you are on the line. The route existed as a
+    // redirect into Calls; it now renders the panel behind the SAME guard.
+    href: "/portal/inbound",
+    label: "Inbound Status",
+    capability: "calls.answer",
+    icon: "calls",
+    group: "Today",
+    description: "Today's answered calls, callbacks owed, and your availability — one panel, no dialer.",
+    state: "live",
+    stateLabel: "Daily view",
+    dockLabel: "Inbound",
   },
   {
     href: "/portal/announcements",
@@ -180,6 +204,7 @@ const NAV: readonly NavItem[] = [
     description: "Client and policy records. No system of record is connected yet.",
     state: "pending",
     stateLabel: "Source not connected",
+    dockLabel: "Book",
   },
 
   // ── Selling ───────────────────────────────────────────────────────────
@@ -339,6 +364,7 @@ const NAV: readonly NavItem[] = [
     description: "Your downline and its standing. No team model is connected yet.",
     state: "pending",
     stateLabel: "Source not connected",
+    dockLabel: "Team",
   },
   {
     // A normal gated row to the live Leadership surface (Dispatch revision
@@ -351,6 +377,7 @@ const NAV: readonly NavItem[] = [
     description: "Leadership view across teams, for the roles that hold it.",
     state: "live",
     stateLabel: "Restricted",
+    dockLabel: "Leadership",
   },
   {
     href: "/portal/commission",
@@ -432,6 +459,19 @@ const NAV: readonly NavItem[] = [
     stateLabel: "Available",
   },
 ];
+
+/**
+ * The dock's five destinations, in dock order. Every entry is a NAV row —
+ * the dock never carries a door the menu lacks — and each survives the same
+ * capability filter as the menu before it renders. Pinned by test.
+ */
+export const DOCK_DESTINATIONS = [
+  "/portal",
+  "/portal/book",
+  "/portal/inbound",
+  "/portal/team",
+  "/portal/leadership",
+] as const;
 
 function visibleNav(session: PortalSession): NavItem[] {
   return NAV.filter((item) =>
@@ -595,6 +635,7 @@ export async function PortalShell({
 
           <div className="portal-topbar-end" aria-label={`Signed in as ${session.displayName}`}>
             <PortalThemeControl />
+            <PortalNavControl />
             <PortalPerformanceControl />
             <span className="portal-connection">
               <span aria-hidden="true" /> Secure session
@@ -667,7 +708,9 @@ export async function PortalShell({
           {isCommandCenter(session) ? (
             <label className="portal-dock-command" htmlFor="portal-command-bar-toggle">
               <span className="portal-dock-command-mark" aria-hidden="true">J</span>
-              Command
+              {/* Wrapped so the compact phone dock can drop the word and keep
+                  the mark, exactly as the destination slots drop theirs. */}
+              <span className="portal-dock-link-text">Command</span>
             </label>
           ) : null}
           <button
@@ -689,9 +732,18 @@ export async function PortalShell({
           >
             Menu
           </label>
-          {["/portal", "/portal/calls", "/portal/music"].map((href) => {
+          {/* FIVE STABLE DESTINATIONS (Dispatch R3, from the approved
+              Direction B artboards): Today, Book, Inbound, Team, Leadership.
+              Each opens exactly one focused panel. The list is filtered by
+              the same capability check as the menu, so a member without
+              team.view has no Team slot — absent, not disabled. Calls and
+              Radio left the dock: both stay in the menu, and Calls is also
+              the Inbound panel's own action. The word on each slot is the
+              row's dockLabel; the menu keeps the full label. */}
+          {DOCK_DESTINATIONS.map((href) => {
             const item = visible.find((entry) => entry.href === href);
             if (!item) return null;
+            const label = item.dockLabel ?? item.label;
             return (
               <Link
                 key={item.href}
@@ -703,10 +755,30 @@ export async function PortalShell({
                 <span className="portal-dock-link-icon" aria-hidden="true">
                   <PortalNavMark name={item.icon} />
                 </span>
-                <span className="portal-dock-link-text">{item.label}</span>
+                <span className="portal-dock-link-text">{label}</span>
               </Link>
             );
           })}
+          {/* THE DEFERRED DIALER. The owner parked outbound dialing; the
+              slot says so rather than vanishing, so the map stays honest.
+              It is inert on purpose — no href, no handler, aria-disabled —
+              and it renders ONLY in the founder's own markup: the dialer is
+              founder-gated server-side (/portal/dialer, requireFounder), so
+              nobody else has a slot to see. Un-deferring is an owner
+              decision recorded in the platform record, not a UI toggle. */}
+          {isFounder(session) ? (
+            <span
+              className="portal-dock-deferred"
+              aria-disabled="true"
+              title="Dialer — deferred by owner decision"
+            >
+              <span className="portal-dock-link-icon" aria-hidden="true">
+                <PortalNavMark name="dialer" />
+              </span>
+              <span className="portal-dock-link-text">Dialer</span>
+              <span className="portal-pill portal-pill-deferred">Deferred</span>
+            </span>
+          ) : null}
           {/* Honest hint: Esc genuinely closes the menu on both paths. */}
           <span className="portal-dock-hint" aria-hidden="true">
             <kbd>Esc</kbd> closes

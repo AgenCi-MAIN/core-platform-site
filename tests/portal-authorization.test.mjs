@@ -679,7 +679,17 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
     const callsHtml = await callsOk.text();
     assert.match(callsHtml, />Outbound</);
     assert.match(callsHtml, /Collab Dialer/);
-    assert.doesNotMatch(callsHtml, /href="\/portal\/(?:inbound|dialer)"/, "the sidebar exposes one Calls destination, not three competing links");
+    // Re-anchored 2026-09-02 (Dispatch R3): /portal/inbound is no longer an
+    // alias of Calls but the Inbound Status panel, a destination in its own
+    // right, so its menu row is expected exactly once. The dialer stays
+    // unlinked: it is deferred, and its only surface is inside Calls.
+    assert.doesNotMatch(callsHtml, /href="\/portal\/dialer"/, "no menu row links the deferred dialer");
+    const callsMenu = callsHtml.slice(callsHtml.indexOf('class="portal-menu"'), callsHtml.indexOf('class="portal-dock"'));
+    assert.equal(
+      (callsMenu.match(/href="\/portal\/inbound"/g) ?? []).length,
+      1,
+      "Inbound Status is one distinct menu destination beside Calls, not a competing alias",
+    );
 
     // The RETIRED founder identity (the seeded owner, Google account locked
     // 2026-08-17) keeps its owner membership for the historical record but
@@ -3932,4 +3942,258 @@ test("the Dialer's temporary script bridge is served only to the founder's outbo
   assert.equal(dials.n, 0);
   const rows = await portal.audit();
   assert.ok(!rows.some((r) => /calls\.dial|recording/.test(r.action) && r.decision === "allow"), "no dial or recording was authorized by rendering the bridge");
+});
+
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Dock & Panels (Dispatch R3, 2026-09-02) — runtime pins. The five dock
+ * destinations are filtered per role like the menu; Calls left the dock but
+ * not the menu; the deferred dialer is inert and founder-only; the Book
+ * drawer opens only for a record in the member's own list; the Inbound and
+ * Team panels render behind their unchanged guards; and the navigation
+ * placement preference cannot reach the server at all.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+function dockSlice(html) {
+  const start = html.indexOf('class="portal-dock"');
+  assert.ok(start >= 0, "no dock rendered");
+  return html.slice(start, html.indexOf("</nav>", start));
+}
+const hrefsIn = (slice) => [...slice.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+
+test("the dock carries the five destinations a role holds — never Calls or Radio — and the menu keeps Calls", async () => {
+  const portal = await startPortal();
+  try {
+    await portal.addMember("agent-dock@example.com", "agent");
+    await portal.addMember("support-dock@example.com", "support");
+    await portal.addMember("manager-dock@example.com", "manager");
+    const cases = [
+      [{ subject: "subject-owner-dock", email: SEEDED_OWNER_EMAIL }, ["/portal", "/portal/book", "/portal/inbound", "/portal/team", "/portal/leadership"]],
+      [{ subject: "subject-manager-dock", email: "manager-dock@example.com" }, ["/portal", "/portal/book", "/portal/inbound", "/portal/team", "/portal/leadership"]],
+      [{ subject: "subject-agent-dock", email: "agent-dock@example.com" }, ["/portal", "/portal/book", "/portal/inbound"]],
+      [{ subject: "subject-support-dock", email: "support-dock@example.com" }, ["/portal", "/portal/inbound", "/portal/team"]],
+    ];
+    for (const [identity, expected] of cases) {
+      const response = await portal.get("/portal", identity);
+      assert.equal(response.status, 200, `${identity.email} opens the dashboard`);
+      const html = await response.text();
+      const dock = dockSlice(html);
+      assert.deepEqual(hrefsIn(dock), expected, `${identity.email}: the dock carries exactly the destinations the role holds`);
+      assert.doesNotMatch(dock, /\/portal\/calls|\/portal\/music|Radio/, `${identity.email}: Calls and Radio must not be dock slots`);
+      // Off-dock access: the guarded live Calls route keeps its menu row.
+      const menu = html.slice(html.indexOf('class="portal-menu"'), html.indexOf('class="portal-dock"'));
+      assert.match(menu, /href="\/portal\/calls"/, `${identity.email}: Calls stays reachable from the menu`);
+      assert.match(menu, /href="\/portal\/inbound"/, `${identity.email}: Inbound Status is a menu row too`);
+      // Active state is text plus colour: aria-current names the current slot.
+      assert.match(dock, /href="\/portal"[^>]*aria-current="page"/, "the current destination is marked aria-current");
+    }
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("the deferred dialer is an inert, founder-only dock slot", async () => {
+  const portal = await startPortal();
+  try {
+    await portal.addMember("btcmao518@gmail.com", "owner");
+    const founder = await portal.get("/portal", { subject: "subject-founder-dock", email: "btcmao518@gmail.com" });
+    assert.equal(founder.status, 200);
+    const founderDock = dockSlice(await founder.text());
+    const slot = founderDock.match(/<span class="portal-dock-deferred"[\s\S]*?<\/span><\/span>/);
+    assert.ok(slot, "the founder's dock carries the deferred dialer slot");
+    assert.match(slot[0], /aria-disabled="true"/);
+    assert.match(slot[0], /Deferred/);
+    assert.doesNotMatch(slot[0], /href=|<a |<button|onclick/i, "the slot must be inert: no link, no button, no handler");
+    assert.doesNotMatch(founderDock, /href="\/portal\/dialer"/, "no dock slot links the dialer route");
+
+    // A second owner who is not the founder has no slot at all — absent, not disabled.
+    const owner = await portal.get("/portal", { subject: "subject-owner-dock2", email: SEEDED_OWNER_EMAIL });
+    assert.equal(owner.status, 200);
+    const ownerHtml = await owner.text();
+    assert.doesNotMatch(dockSlice(ownerHtml), /portal-dock-deferred|Dialer/, "a non-founder owner's dock has no dialer slot");
+    // The dialer route itself is unchanged: still founder-only.
+    const refused = await portal.get("/portal/dialer", { subject: "subject-owner-dock2", email: SEEDED_OWNER_EMAIL });
+    assert.equal(refused.status, 307, "the dialer route still refuses a non-founder owner");
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("the navigation placement preference cannot reach the server or change what it renders", async () => {
+  const portal = await startPortal();
+  try {
+    await portal.addMember("agent-nav@example.com", "agent");
+    const identity = { subject: "subject-agent-nav", email: "agent-nav@example.com" };
+    const plain = await portal.get("/portal", identity);
+    assert.equal(plain.status, 200);
+    const plainHtml = await plain.text();
+
+    // Adversarial: every channel a client could try to push "rail" (or a
+    // widened placement) through — a cookie, a header, a query string.
+    const hostile = await portal.mf.dispatchFetch("http://localhost/portal?nav=rail&portalNav=rail", {
+      redirect: "manual",
+      headers: {
+        accept: "text/html",
+        cookie: `${identityHeaders(identity).cookie}; core-portal-nav=rail; portal-nav=rail`,
+        "x-portal-nav": "rail",
+        "x-nav-placement": "rail",
+      },
+    });
+    assert.equal(hostile.status, 200);
+    const hostileHtml = await hostile.text();
+
+    // The attribute is written only by the boot script in the browser; the
+    // server never emits it, so it cannot be influenced by a request.
+    for (const html of [plainHtml, hostileHtml]) {
+      assert.doesNotMatch(html, /data-portal-nav=/, "the server never renders a placement attribute");
+      assert.match(html, /d\.dataset\.portalNav=n==="rail"\?"rail":"dock"/, "the boot script carries the exact placement rule");
+    }
+    // The dock is byte-identical under attack: same slots, same order.
+    assert.equal(dockSlice(hostileHtml), dockSlice(plainHtml), "the dock markup is unchanged by any placement input");
+    // And the preference is a control in the topbar, never a route or a form.
+    assert.match(plainHtml, /aria-label="Navigation placement \(desktop widths\)"/);
+    assert.doesNotMatch(plainHtml, /action="[^"]*nav/, "no form posts a placement anywhere");
+    assert.equal(
+      (await portal.get("/portal/nav", identity)).status,
+      404,
+      "there is no server route for placement",
+    );
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("the Book opens a drawer only for a callback in the member's own list, and every view is a closed set", async () => {
+  const portal = await startPortal();
+  try {
+    for (const s of VOICE_SQL) await portal.db.prepare(s).run();
+    await portal.addMember("book-a@example.com", "agent");
+    await portal.addMember("book-b@example.com", "agent");
+    const idOf = async (email) => (await portal.db.prepare("SELECT id FROM portal_members WHERE email = ?").bind(email).first()).id;
+    const aId = await idOf("book-a@example.com");
+    const bId = await idOf("book-b@example.com");
+    const nowIso = new Date().toISOString();
+    const callback = async (provider, caller, assignedId) => {
+      await portal.db
+        .prepare(
+          `INSERT INTO inbound_voice_calls
+             (provider_call_id, line_type, called_number_masked, caller_number_masked,
+              routing_stage, status, started_at)
+           VALUES (?, 'shared', '+1 (555) ***-0000', ?, 'voicemail', 'voicemail', ?)`,
+        )
+        .bind(provider, caller, nowIso)
+        .run();
+      await portal.db
+        .prepare(
+          `INSERT INTO voice_callback_tasks (voice_call_id, assigned_member_id, status, due_at)
+           VALUES ((SELECT id FROM inbound_voice_calls WHERE provider_call_id = ?), ?, 'open', '2099-01-01 00:00:00')`,
+        )
+        .bind(provider, assignedId)
+        .run();
+      return (await portal.db.prepare("SELECT id FROM voice_callback_tasks WHERE voice_call_id = (SELECT id FROM inbound_voice_calls WHERE provider_call_id = ?)").bind(provider).first()).id;
+    };
+    const aTask = await callback("book-vm-a", "+1 (555) ***-0111", aId);
+    const bTask = await callback("book-vm-b", "+1 (555) ***-0666", bId);
+    const a = { subject: "subject-book-a", email: "book-a@example.com" };
+
+    // Level one: A's list holds A's masked caller and not B's.
+    const list = await portal.get("/portal/book?view=customers", a);
+    assert.equal(list.status, 200);
+    const listHtml = await list.text();
+    assert.match(listHtml, /\+1 \(555\) \*\*\*-0111/, "A's own callback is listed, masked");
+    assert.doesNotMatch(listHtml, /\*\*\*-0666/, "B's personal callback is not in A's book");
+    // The shell's own drawer-era classes (portal-drawer-close, the fallback
+    // toggle) are always present; the record drawer is the exact class.
+    assert.doesNotMatch(listHtml, /class="portal-drawer"/, "no drawer without a customer id");
+    assert.match(listHtml, /class="portal-pill portal-pill-live">Live · masked</, "the list says what it is");
+
+    // Level two: A's own id opens the drawer, a dialog region with a close link.
+    const own = await portal.get(`/portal/book?view=customers&customer=${aTask}`, a);
+    assert.equal(own.status, 200);
+    const ownHtml = await own.text();
+    const drawer = ownHtml.match(/<section class="portal-drawer"[\s\S]*?<\/section>/);
+    assert.ok(drawer, "A's own callback opens the drawer");
+    assert.match(drawer[0], /role="dialog"/);
+    assert.match(drawer[0], /aria-labelledby="book-customer-title"/);
+    assert.match(drawer[0], /\*\*\*-0111/);
+    assert.match(drawer[0], /href="\/portal\/book\?view=customers"[^>]*aria-label="Close"/, "the close control is a link back to the list");
+    assert.match(drawer[0], /href="\/portal\/calls\?tab=voicemail"/, "the drawer's verb opens the guarded Calls route");
+    assert.match(drawer[0], /Not provisioned/, "policy sections say they have no source");
+    assert.doesNotMatch(drawer[0], /\$\d|premium: \$/i, "no money is invented");
+
+    // Fail-closed: B's id, a huge id, and hostile shapes open nothing and
+    // leak nothing — same status, same page, no drawer, no B data.
+    for (const probe of [String(bTask), "999999999", "1e3", "-1", "0x10", "../../etc", "1 OR 1=1", "%00", "1234567890"]) {
+      const res = await portal.get(`/portal/book?view=customers&customer=${encodeURIComponent(probe)}`, a);
+      assert.equal(res.status, 200, `probe ${probe} renders the list page`);
+      const html = await res.text();
+      assert.doesNotMatch(html, /class="portal-drawer"/, `probe ${probe} opens no drawer`);
+      assert.doesNotMatch(html, /\*\*\*-0666/, `probe ${probe} leaks nothing of B`);
+    }
+    const foreign = await (await portal.get(`/portal/book?view=customers&customer=${bTask}`, a)).text();
+    assert.match(foreign, /not in your book/, "a record outside the book is named as such, not looked up");
+
+    // Views are a closed set: junk is the summary.
+    const junk = await (await portal.get("/portal/book?view=%3Cscript%3E", a)).text();
+    assert.match(junk, /<h1 class="portal-panel-title">Book summary<\/h1>/);
+    const policies = await (await portal.get("/portal/book?view=policies", a)).text();
+    assert.match(policies, /No policy system connected/);
+    assert.match(policies, /portal-pill-pending">Not provisioned</);
+
+    // Self-only: a support member has no book at all (no book.view.self).
+    await portal.addMember("support-book@example.com", "support");
+    const refused = await portal.get("/portal/book", { subject: "subject-support-book", email: "support-book@example.com" });
+    assert.equal(refused.status, 307);
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("Inbound Status and Team render as focused panels behind their unchanged guards, saying Live and Not provisioned apart", async () => {
+  const portal = await startPortal();
+  try {
+    for (const s of VOICE_SQL) await portal.db.prepare(s).run();
+    await portal.addMember("agent-inbound@example.com", "agent");
+    await portal.addMember("support-team@example.com", "support");
+    const agent = { subject: "subject-agent-inbound", email: "agent-inbound@example.com" };
+    const support = { subject: "subject-support-team", email: "support-team@example.com" };
+
+    // Inbound: renders (no longer a redirect), both source states present,
+    // the guarded Calls route offered as the action, no dialer anywhere.
+    const inbound = await portal.get("/portal/inbound", agent);
+    assert.equal(inbound.status, 200, "inbound renders the panel for calls.answer holders");
+    const inboundHtml = await inbound.text();
+    assert.match(inboundHtml, /<h1 class="portal-panel-title">Inbound status<\/h1>/);
+    assert.match(inboundHtml, /portal-pill-live">Live</);
+    assert.match(inboundHtml, /portal-pill-pending">Not provisioned</);
+    assert.match(inboundHtml, /portal-pill-protected">Protected</, "team presence is named protected, not shown");
+    assert.match(inboundHtml, /href="\/portal\/calls\?tab=live"/, "off-dock access to the live Calls route");
+    assert.doesNotMatch(inboundHtml.slice(inboundHtml.indexOf("<main")), /dialer-button|originate/i, "no dialer control on the panel");
+    assert.match(
+      inboundHtml.replaceAll("<!-- -->", ""),
+      /You: Offline/,
+      "presence reads honestly as Offline for a member with no presence row",
+    );
+
+    // Team: renders for team.view (support holds it), refused for an agent.
+    const team = await portal.get("/portal/team", support);
+    assert.equal(team.status, 200);
+    const teamHtml = await team.text();
+    assert.match(teamHtml, /<h1 class="portal-panel-title">Team<\/h1>/);
+    assert.match(teamHtml, /Team operations not connected/);
+    assert.doesNotMatch(teamHtml.slice(teamHtml.indexOf("<main")), /@example\.com|@gmail\.com/, "no member identity is listed on the Team panel");
+    assert.equal((await portal.get("/portal/team", agent)).status, 307, "an agent is still refused Team");
+
+    // Every dock destination a role holds actually opens (no dead slots).
+    for (const [identity, routes] of [
+      [agent, ["/portal", "/portal/book", "/portal/inbound"]],
+      [support, ["/portal", "/portal/inbound", "/portal/team"]],
+    ]) {
+      for (const route of routes) {
+        assert.equal((await portal.get(route, identity)).status, 200, `${identity.email} opens ${route}`);
+      }
+    }
+  } finally {
+    await portal.dispose();
+  }
 });
