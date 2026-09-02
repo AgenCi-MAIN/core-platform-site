@@ -1,18 +1,27 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import { ROLE_LABELS, can, requireCapability } from "./access";
-import { PanelTiles, Tile } from "./panel";
+import { PanelTiles, SourcePill, Tile } from "./panel";
 import type { PortalRole } from "../../db/schema";
 import { ANNOUNCEMENTS } from "./announcements/content";
-import { JarvisCommandPrompt } from "./command-prompt";
 import { readFaultCopy, type ReadFault } from "./read-guard";
 import { EmptyState, PortalShell, PrototypeNotice } from "./components";
 import {
   loadCallbacks,
   loadCommitment,
+  loadPresence,
   loadProduction,
   type MetricSource,
 } from "./dashboard-data";
+import {
+  POLICY_STATUS_LABELS,
+  customerNext,
+  last4Label,
+  loadBook,
+  policiesOf,
+  policyPillState,
+  type BookData,
+} from "./book/data";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +61,23 @@ function dueLabel(dueAt: string): string {
     day: "numeric",
     timeZone: "UTC",
   }).format(parsed);
+}
+
+/** A plain YYYY-MM-DD → "Sep 6". */
+function dayOf(iso: string | null): string {
+  if (!iso) return "";
+  const parsed = new Date(`${iso}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(parsed);
+}
+
+/** "Tuesday · September 2" in the agency's own zone. */
+function todayLabel(now = new Date()): { weekday: string; date: string } {
+  const zone = "America/Chicago";
+  return {
+    weekday: new Intl.DateTimeFormat("en-US", { weekday: "long", timeZone: zone }).format(now),
+    date: new Intl.DateTimeFormat("en-US", { month: "long", day: "numeric", timeZone: zone }).format(now),
+  };
 }
 
 /** First sentence of the fault copy — the tile has one line of room. */
@@ -203,11 +229,13 @@ function ProdTile({
 }
 
 /**
- * The founder's three-block dashboard: production tiles, this week's
- * commitment, and the Book of Business. Every rendered number is computed
- * from records the platform holds for THIS session's member; a metric with
- * no source system says "source pending", and a table that could not be read
- * says so — never a zero, never an invented value.
+ * The Day Sheet home (owner direction 2026-09-02, from the approved
+ * artboard): today's numbers first, the book's next actions as cards that
+ * expand in place, then this week's production and commitment. Every
+ * rendered number is computed from records the platform holds for THIS
+ * session's member; a metric with no source system says "source pending",
+ * and a table that could not be read says so — never a zero, never an
+ * invented value.
  */
 export default async function PortalDashboard({
   searchParams,
@@ -227,6 +255,10 @@ export default async function PortalDashboard({
     production.callsAnswered.kind === "live" ? production.callsAnswered.week : null,
   );
   const callbacks = await loadCallbacks(session);
+  const presence = await loadPresence(session);
+  const book = await loadBook(session);
+  const hasBook = can(session, "book.view.self");
+  const hasCalls = can(session, "calls.answer");
 
   const row = commitment.state === "set" ? commitment.row : null;
   const callsAnsweredWeek = commitment.state === "set" ? commitment.callsAnsweredWeek : null;
@@ -239,63 +271,216 @@ export default async function PortalDashboard({
         )} calls a day across the five weekdays.`
       : null;
 
+  const today = todayLabel();
+  const answered = production.callsAnswered;
+
+  // Next actions from the book: customers with a dated next action, soonest
+  // first, three at a time. Only for a role holding a book; only from the
+  // member's own rows.
+  const bookNext =
+    book.kind === "ok"
+      ? book.customers
+          .map((customer) => ({ customer, next: customerNext(book, customer.id) }))
+          .filter((entry): entry is { customer: (typeof book.customers)[number]; next: NonNullable<ReturnType<typeof customerNext>> } => entry.next !== null)
+          .sort((a, b) => (a.next.on ?? "9999").localeCompare(b.next.on ?? "9999"))
+          .slice(0, 3)
+      : [];
+  const callbackCards = callbacks.kind === "ok" ? callbacks.top.slice(0, 3) : [];
+  const cardCount = bookNext.length + callbackCards.length;
+
   return (
-    <PortalShell session={session} current="/portal" section="Command">
-      <main className="portal-main portal-dashboard">
-        <section className="portal-command-arrival" aria-labelledby="command-arrival-title">
-          <div className="portal-command-copy">
-            <div className="portal-dashboard-meta" aria-label="Workspace state">
-              <span className="portal-state portal-state-live">Access controls active</span>
-              <span className="portal-state portal-state-pending">Business sources pending</span>
-            </div>
-            <p className="portal-eyebrow">J.A.R.V.I.S. / Command arrival</p>
-            <h1 id="command-arrival-title">
-              Welcome back, <span>{session.displayName}</span>.
+    <PortalShell session={session} current="/portal" section="Today">
+      <main className="portal-main portal-dashboard portal-panel">
+        {/* YOUR DAY — the day header: the date, the serif title, one line of
+            welcome, and the member's own line state as a pill that opens
+            Calls. Availability is CHANGED in Calls; this only shows it. */}
+        <section className="portal-day-hero" aria-labelledby="day-title">
+          <div className="portal-panel-copy">
+            <p className="portal-eyebrow">
+              {today.weekday} · {today.date}
+            </p>
+            <h1 id="day-title" className="portal-panel-title">
+              Your day
             </h1>
-            <p className="portal-command-lede">
-              Signed in as <strong>{roleLabel}</strong> · every surface below is filtered by your
-              server-enforced capabilities.
+            <p className="portal-lede">
+              Welcome back, <strong>{session.displayName}</strong>. Signed in as {roleLabel}.{" "}
+              <span className="portal-home-framing" data-role={session.role}>
+                {HOME_FRAMING[session.role]}
+              </span>
             </p>
-            <p className="portal-home-framing" data-role={session.role}>
-              {HOME_FRAMING[session.role]}
-            </p>
-            <JarvisCommandPrompt />
           </div>
+          {hasCalls ? (
+            presence.kind === "fault" ? (
+              <span className="portal-presence-pill">
+                <span className="portal-presence-dot" aria-hidden="true" />
+                Presence could not be read
+              </span>
+            ) : (
+              <Link
+                className={`portal-presence-pill portal-presence-pill-${presence.ready}`}
+                href="/portal/calls?tab=live"
+                title="Change your availability in Calls"
+              >
+                <span className="portal-presence-dot" aria-hidden="true" />
+                {presence.label}
+              </Link>
+            )
+          ) : null}
         </section>
 
-        {/* YOUR DAY — the Day Sheet framing (Dispatch R3, from the approved
-            artboard): today's numbers first, with doors to the Inbound Status
-            and Book panels. Every figure is the same self-scoped read the
-            production tiles below make; a metric with no source says so and
-            never shows a zero it did not count. */}
-        <section className="portal-day-strip" aria-labelledby="day-strip-title">
-          <div className="portal-day-head">
-            <h2 id="day-strip-title" className="portal-eyebrow portal-day-title">
-              Your day
-            </h2>
-            <nav className="portal-day-links" aria-label="Today's panels">
-              {can(session, "calls.answer") ? (
-                <Link href="/portal/inbound">Inbound status &rarr;</Link>
+        <PanelTiles label="Today's numbers">
+          <Tile
+            label="Answered"
+            value={answered.kind === "live" ? answered.day : null}
+            state={answered.kind === "pending" ? "pending" : "live"}
+            note={answered.kind === "fault" ? "could not be read just now" : "today"}
+          />
+          <Tile label="Missed" value={null} state="pending" note="no missed-call source" />
+          <Tile
+            label="Callbacks due"
+            value={callbacks.kind === "ok" ? callbacks.count : null}
+            state={callbacks.kind === "hidden" ? "pending" : "live"}
+            note={callbacks.kind === "fault" ? "could not be read just now" : undefined}
+          />
+          <Tile
+            label="Policies this week"
+            value={production.policiesSold.kind === "live" ? production.policiesSold.week : null}
+            state={production.policiesSold.kind === "live" ? "live" : "pending"}
+            note={
+              production.policiesSold.kind === "fault"
+                ? "could not be read just now"
+                : production.policiesSold.kind === "pending"
+                  ? hasBook
+                    ? "book not provisioned"
+                    : "no book for this role"
+                  : "entered in your book"
+            }
+          />
+        </PanelTiles>
+
+        {/* BOOK · NEXT ACTIONS — one card per thing that needs a hand today:
+            the book's dated next actions and the callbacks owed. A card
+            expands in place (native <details>); siblings stay put. The
+            first card opens by itself so the page arrives with one thing
+            to do, not a list of closed boxes. */}
+        {hasBook || hasCalls ? (
+          <section className="portal-next" aria-labelledby="next-title">
+            <header className="portal-next-head">
+              <h2 id="next-title" className="portal-h2">
+                Book · next actions
+              </h2>
+              {hasBook ? (
+                <nav className="portal-chips" aria-label="Book views">
+                  <Link className="portal-chip" href="/portal/book?view=customers">
+                    Customers
+                  </Link>
+                  <Link className="portal-chip" href="/portal/book?view=policies">
+                    Policies
+                  </Link>
+                </nav>
               ) : null}
-              {can(session, "book.view.self") ? <Link href="/portal/book">Book &rarr;</Link> : null}
-            </nav>
-          </div>
-          <PanelTiles label="Today's numbers">
-            <Tile
-              label="Answered today"
-              value={production.callsAnswered.kind === "live" ? production.callsAnswered.day : null}
-              state={production.callsAnswered.kind === "pending" ? "pending" : "live"}
-              note={production.callsAnswered.kind === "fault" ? "could not be read just now" : undefined}
-            />
-            <Tile
-              label="Callbacks waiting"
-              value={callbacks.kind === "ok" ? callbacks.count : null}
-              state={callbacks.kind === "hidden" ? "pending" : "live"}
-              note={callbacks.kind === "fault" ? "could not be read just now" : undefined}
-            />
-            <Tile label="Policies sold today" value={null} state="pending" />
-          </PanelTiles>
-        </section>
+            </header>
+
+            {book.kind === "fault" ? (
+              <div className="portal-action-card portal-action-card-static">
+                <EmptyState {...readFaultCopy(book.fault, "Book of Business")} />
+              </div>
+            ) : null}
+            {callbacks.kind === "fault" ? (
+              <div className="portal-action-card portal-action-card-static">
+                <EmptyState {...readFaultCopy(callbacks.fault, "Callback tasks")} />
+              </div>
+            ) : null}
+
+            {cardCount === 0 && book.kind !== "fault" && callbacks.kind !== "fault" ? (
+              <p className="portal-panel-note">
+                Nothing is waiting on you right now.
+                {hasBook && book.kind === "ok" && book.customers.length === 0 ? (
+                  <>
+                    {" "}
+                    Your book is empty — <Link href="/portal/book?view=customers">add your first customer</Link>.
+                  </>
+                ) : null}
+              </p>
+            ) : null}
+
+            {bookNext.map(({ customer, next }, index) => (
+              <details className="portal-action-card" key={`c-${customer.id}`} open={index === 0}>
+                <summary>
+                  <span className="portal-action-title">
+                    <strong>{customer.displayName}</strong>
+                    <span>
+                      {next.text}
+                      {next.on ? ` · ${dayOf(next.on)}` : ""}
+                    </span>
+                  </span>
+                  <SourcePill state={policyPillState(next.policy.status)} label={POLICY_STATUS_LABELS[next.policy.status]} />
+                  <span className="portal-action-hint" aria-hidden="true">
+                    Tap to expand
+                  </span>
+                </summary>
+                <div className="portal-action-body">
+                  <ul className="portal-action-lines">
+                    {policiesOf(book as Extract<BookData, { kind: "ok" }>, customer.id).map((policy) => (
+                      <li key={policy.id} className="portal-action-line">
+                        <span>
+                          Policy {last4Label(policy.policyLast4)} · {policy.carrier} · {policy.product}
+                        </span>
+                        <SourcePill state={policyPillState(policy.status)} label={POLICY_STATUS_LABELS[policy.status]} />
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="portal-action-actions">
+                    <Link className="portal-button portal-button-primary" href={`/portal/book?view=customers&customer=${customer.id}`}>
+                      Full record
+                    </Link>
+                    {hasCalls ? (
+                      <Link className="portal-button" href="/portal/calls?tab=voicemail">
+                        Open Calls
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
+              </details>
+            ))}
+
+            {callbackCards.map((task, index) => (
+              <details className="portal-action-card" key={`t-${task.id}`} open={bookNext.length === 0 && index === 0}>
+                <summary>
+                  <span className="portal-action-title">
+                    <strong>{task.callerNumberMasked}</strong>
+                    <span>Return the call · due {dueLabel(task.dueAt)}</span>
+                  </span>
+                  <SourcePill state={task.overdue ? "pending" : "live"} label={task.overdue ? "Past due" : "Callback owed"} />
+                  <span className="portal-action-hint" aria-hidden="true">
+                    Tap to expand
+                  </span>
+                </summary>
+                <div className="portal-action-body">
+                  <p className="portal-action-copy">
+                    A voicemail is waiting. The number is masked here; claim it and call back from Calls.
+                  </p>
+                  <div className="portal-action-actions">
+                    <Link className="portal-button portal-button-primary" href="/portal/calls?tab=voicemail">
+                      Open in Calls
+                    </Link>
+                    {hasBook ? (
+                      <Link className="portal-button" href="/portal/book?view=customers">
+                        Add to book
+                      </Link>
+                    ) : null}
+                  </div>
+                </div>
+              </details>
+            ))}
+
+            {hasBook ? (
+              <p className="portal-next-foot">
+                <Link href="/portal/book">Show the rest of the book &rarr;</Link>
+              </p>
+            ) : null}
+          </section>
+        ) : null}
 
         {LATEST_ANNOUNCEMENT ? (
           <Link
@@ -312,8 +497,8 @@ export default async function PortalDashboard({
             id="policies"
             label="Policies sold"
             metric={production.policiesSold}
-            liveNoun="sold"
-            pendingSentence="Source pending — connects with the Book of Business."
+            liveNoun="entered"
+            pendingSentence="Source pending — the book's tables are not provisioned yet."
           />
           <ProdTile
             id="calls"
@@ -324,17 +509,17 @@ export default async function PortalDashboard({
           />
           <ProdTile
             id="clients"
-            label="Active clients"
+            label="New clients"
             metric={production.activeClients}
-            liveNoun="active"
-            pendingSentence="Source pending — connects with the Book of Business."
+            liveNoun="added"
+            pendingSentence="Source pending — the book's tables are not provisioned yet."
           />
           <ProdTile
             id="cost"
             label="Cost per policy"
             metric={production.costPerPolicy}
             liveNoun="per policy"
-            pendingSentence="Lead spend ÷ policies sold — pending until both sources connect."
+            pendingSentence="Lead spend ÷ policies sold — pending until spend has a source."
           />
         </section>
 
@@ -469,49 +654,9 @@ export default async function PortalDashboard({
           )}
         </section>
 
-        {callbacks.kind === "hidden" ? null : callbacks.kind === "fault" ? (
-          <article className="portal-bob-tile portal-bob-tile-fault" aria-label="Book of Business">
-            <p className="portal-bob-kicker">Master Book of Business</p>
-            <EmptyState {...readFaultCopy(callbacks.fault, "Callback tasks")} />
-          </article>
-        ) : (
-          <Link className="portal-bob-tile" href="/portal/calls" aria-label="Open the callback list">
-            <p className="portal-bob-kicker">Master Book of Business</p>
-            <strong className="portal-bob-headline">
-              {callbacks.count === 0
-                ? "No callbacks waiting"
-                : `${callbacks.count} customer${callbacks.count === 1 ? "" : "s"} need${
-                    callbacks.count === 1 ? "s" : ""
-                  } a callback`}
-            </strong>
-            {callbacks.count === 0 ? (
-              <span className="portal-bob-empty">
-                Every voicemail has been answered or claimed.
-              </span>
-            ) : (
-              <ul className="portal-bob-list">
-                {callbacks.top.map((task) => (
-                  <li
-                    key={task.id}
-                    className={`portal-bob-row${task.overdue ? " portal-bob-overdue" : ""}`}
-                  >
-                    {/* No caller-name field exists anywhere: the masked number
-                        IS the identity the platform holds. Becomes a
-                        per-customer link when the Book of Business record
-                        route lands; until then, plain text. */}
-                    <span className="portal-bob-name">{task.callerNumberMasked}</span>
-                    <span className="portal-bob-due">due {dueLabel(task.dueAt)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <span className="portal-bob-open">Open the callback list &rarr;</span>
-          </Link>
-        )}
-
         <PrototypeNotice>
-          This portal uses real authentication, membership, and server-side authorization. It
-          does not yet contain production business data; disconnected areas remain clearly marked
+          This portal uses real authentication, membership, and server-side authorization. Every
+          number above is computed from your own records; disconnected areas remain clearly marked
           until approved systems of record are connected.
         </PrototypeNotice>
       </main>

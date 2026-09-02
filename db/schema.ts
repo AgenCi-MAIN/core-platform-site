@@ -608,3 +608,104 @@ export const weeklyCommitments = sqliteTable(
     ),
   ],
 );
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Book of Business entries (db/sql/0014, owner direction 2026-09-02).
+ * Self-scoped by member_id; masked phone and last-four policy number only.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+export const BOOK_CUSTOMER_STATUSES = ["active", "inactive"] as const;
+export type BookCustomerStatus = (typeof BOOK_CUSTOMER_STATUSES)[number];
+
+export const BOOK_POLICY_STATUSES = [
+  "applied",
+  "requirement",
+  "in_force",
+  "lapsed",
+  "declined",
+  "withdrawn",
+] as const;
+export type BookPolicyStatus = (typeof BOOK_POLICY_STATUSES)[number];
+
+export const bookCustomers = sqliteTable(
+  "book_customers",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    memberId: integer("member_id").notNull().references(() => portalMembers.id),
+    /** 1..80 characters, as the member typed it. */
+    displayName: text("display_name").notNull(),
+    /** "***-***-1234" — derived server-side from what was typed; never the full number. */
+    phoneMasked: text("phone_masked"),
+    phoneLast4: text("phone_last4"),
+    /** Two-letter US state, upper case, or null. */
+    state: text("state"),
+    /** Up to 500 characters. */
+    note: text("note"),
+    status: text("status").$type<BookCustomerStatus>().notNull().default("active"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    index("book_customers_member_idx").on(table.memberId, table.status),
+    check(
+      "book_customers_display_name_check",
+      sql`length(${table.displayName}) >= 1 AND length(${table.displayName}) <= 80`,
+    ),
+    check(
+      "book_customers_phone_last4_check",
+      sql`${table.phoneLast4} IS NULL OR ${table.phoneLast4} GLOB '[0-9][0-9][0-9][0-9]'`,
+    ),
+    check("book_customers_state_check", sql`${table.state} IS NULL OR ${table.state} GLOB '[A-Z][A-Z]'`),
+    check("book_customers_note_check", sql`${table.note} IS NULL OR length(${table.note}) <= 500`),
+    check(
+      "book_customers_status_check",
+      sql`${table.status} IN (${literalSet(BOOK_CUSTOMER_STATUSES)})`,
+    ),
+  ],
+);
+
+export const bookPolicies = sqliteTable(
+  "book_policies",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    memberId: integer("member_id").notNull().references(() => portalMembers.id),
+    customerId: integer("customer_id").notNull().references(() => bookCustomers.id),
+    carrier: text("carrier").notNull(),
+    product: text("product").notNull(),
+    /** Last four characters of the policy number, or null. Never the whole. */
+    policyLast4: text("policy_last4"),
+    status: text("status").$type<BookPolicyStatus>().notNull(),
+    /** Monthly premium, integer cents, 0..100,000,000. */
+    premiumCents: integer("premium_cents").notNull().default(0),
+    effectiveOn: text("effective_on"),
+    /** Up to 120 characters: the one next thing to do on this policy. */
+    nextAction: text("next_action"),
+    nextActionOn: text("next_action_on"),
+    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => [
+    index("book_policies_member_idx").on(table.memberId, table.status),
+    index("book_policies_customer_idx").on(table.customerId),
+    check("book_policies_carrier_check", sql`length(${table.carrier}) >= 1 AND length(${table.carrier}) <= 60`),
+    check("book_policies_product_check", sql`length(${table.product}) >= 1 AND length(${table.product}) <= 60`),
+    check(
+      "book_policies_policy_last4_check",
+      sql`${table.policyLast4} IS NULL OR ${table.policyLast4} GLOB '[A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9]'`,
+    ),
+    check("book_policies_status_check", sql`${table.status} IN (${literalSet(BOOK_POLICY_STATUSES)})`),
+    check(
+      "book_policies_premium_check",
+      sql`${table.premiumCents} >= 0 AND ${table.premiumCents} <= 100000000`,
+    ),
+    check(
+      "book_policies_effective_on_check",
+      sql`${table.effectiveOn} IS NULL OR ${table.effectiveOn} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`,
+    ),
+    check("book_policies_next_action_check", sql`${table.nextAction} IS NULL OR length(${table.nextAction}) <= 120`),
+    check(
+      "book_policies_next_action_on_check",
+      sql`${table.nextActionOn} IS NULL OR ${table.nextActionOn} GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`,
+    ),
+  ],
+);

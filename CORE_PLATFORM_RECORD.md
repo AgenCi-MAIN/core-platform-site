@@ -367,7 +367,7 @@ binding and the history of who they were.
 
 ## 6. Data model
 
-Twelve tables are defined in `db/schema.ts` (Drizzle), each mirrored as
+Fourteen tables are defined in `db/schema.ts` (Drizzle), each mirrored as
 hand-written DDL under `db/sql/` — verified from source 2026-09-02 (this
 paragraph read "Three tables" until then). The eleven platform
 tables: `portal_members`, `audit_events`, `dialer_transfers`, `command_passes`,
@@ -375,9 +375,15 @@ tables: `portal_members`, `audit_events`, `dialer_transfers`, `command_passes`,
 `voice_presence`, `inbound_voice_calls`, `voice_call_offers`,
 `voice_callback_tasks`. The twelfth, `weekly_commitments` (`db/sql/0013`), is
 present in source but **not applied to the live database as of 2026-09-02**
-(DEPLOYMENT.md, "db/sql/0013 exists and is NOT applied anywhere"). `_cf_KV` is
-Cloudflare's own D1 housekeeping table and is not defined by any migration in
-this repository.
+(DEPLOYMENT.md, "db/sql/0013 exists and is NOT applied anywhere"). The
+thirteenth and fourteenth, `book_customers` and `book_policies`
+(`db/sql/0014`, owner direction 2026-09-02, the member's own Book of Business
+entries, self-scoped, masked phone and last-four policy number only), are
+likewise **in source and not applied** (DEPLOYMENT.md, "db/sql/0014 exists and
+is NOT applied anywhere"). Writes to them assert the capability
+`book.edit.self`, held by exactly the roles that hold `book.view.self`.
+`_cf_KV` is Cloudflare's own D1 housekeeping table and is not defined by any
+migration in this repository.
 
 The first three, in detail:
 

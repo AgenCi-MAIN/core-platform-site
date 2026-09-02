@@ -100,6 +100,8 @@ const PROTECTED_ROUTES = [
   "/portal/announcements",
   "/portal/audit",
   "/portal/book",
+  "/portal/book/customers",
+  "/portal/book/policies",
   "/portal/calls",
   "/portal/command",
   "/portal/command/cloud",
@@ -905,7 +907,7 @@ test("the theme boot script and the theme control agree on the three themes", as
   // The stylesheet actually defines the third skin — token block and the
   // navy menu/dock chrome scope both present.
   assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \{/);
-  assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \.portal-menu \{/);
+  assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \.portal-rail \{/);
   // Every custom property the dark block overrides has a thrive counterpart
   // on the main scope — a partial skin silently inherits parchment values.
   const blockOf = (marker) => {
@@ -1202,96 +1204,98 @@ test("restricted data never reaches a public client chunk", async () => {
   }
 });
 
-test("the mobile navigation drawer ships both the popover and the checkbox fallback", async () => {
-  // The drawer opens through the Popover API on modern engines, but Safari
-  // 15.4-16.x and other pre-2023 browsers have no :popover-open — there the
-  // drawer never opens and every portal sub-page strands the member with no
-  // navigation at all. A visually-hidden checkbox (#portal-mobile-drawer),
-  // revealed via :has(...:checked), is the fallback. BOTH mechanisms must stay
-  // present and mutually @supports-guarded, or one class of browser silently
-  // loses navigation while the other has two drawers fighting. Pinned against
-  // the source because the portal shell renders only behind an authenticated
-  // session, so the built worker never emits this markup to an anonymous
-  // request.
-  const shell = await readFile(
-    new URL("../app/portal/components.tsx", import.meta.url),
-    "utf8",
-  );
+test("the group tabs are native disclosures — one open at a time, shut by an outside click or Escape — and the popout menu is gone", async () => {
+  // Owner direction 2026-09-02: "I don't want the whole menu to pop out when
+  // I click the menu button. I want each tab to have a little bit of options
+  // when I click them." The five groups are <details> tabs in the top bar,
+  // exclusive by the details `name` attribute on engines that honour it and
+  // by the inline script everywhere else. Pinned against the source because
+  // the shell renders only behind an authenticated session.
+  const shell = await readFile(new URL("../app/portal/components.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
 
-  assert.match(shell, /popover="auto"/, "the drawer is no longer a popover");
+  assert.match(shell, /<nav className="portal-menu" aria-label="Portal sections">/, "the tab bar keeps the .portal-menu name the access tests slice");
   assert.match(
     shell,
-    /popoverTarget="portal-mobile-navigation"/,
-    "the popover open control is gone",
+    /<details\s+className=\{`portal-menu-group portal-menu-group-\$\{group\.toLowerCase\(\)\}`\}\s+key=\{group\}\s+name="portal-tabs"/,
+    "each group is a <details> in the exclusive portal-tabs set",
   );
   assert.match(
     shell,
-    /id="portal-mobile-drawer"/,
-    "the checkbox fallback that lets pre-popover browsers open the drawer is gone",
+    /<summary className="portal-tab" aria-current=\{group === currentGroup \? "location" : undefined\}>/,
+    "the current page's group is named on its tab",
   );
-  assert.match(
-    shell,
-    /htmlFor="portal-mobile-drawer"/,
-    "no label is bound to the fallback checkbox — it can never be toggled",
-  );
+  assert.match(shell, /if \(groupItems\.length === 0\) return null;/, "a group with no rows a role can open is not rendered at all");
 
-  const css = await readFile(
-    new URL("../app/globals.css", import.meta.url),
-    "utf8",
-  );
+  // The popout and everything that opened it are retired.
+  for (const relic of [
+    'popover="auto"',
+    'popoverTarget="portal-mobile-navigation"',
+    'id="portal-mobile-drawer"',
+    'htmlFor="portal-mobile-drawer"',
+    "portal-dock-menu",
+    "portal-topbar-menu",
+    "PortalMenuContent",
+  ]) {
+    assert.ok(!shell.includes(relic), `${relic} must be retired with the popout menu`);
+  }
+  assert.doesNotMatch(css, /@supports selector\(:popover-open\)/, "no popover-guarded menu rules remain");
+  assert.doesNotMatch(css, /portal-mobile-drawer-toggle/, "the checkbox fallback's rules go with it");
 
-  assert.match(
-    css,
-    /@supports selector\(:popover-open\)/,
-    "the popover rules are no longer @supports-guarded — they fight the fallback",
-  );
-  assert.match(
-    css,
-    /@supports not selector\(:popover-open\)/,
-    "the checkbox fallback rules are gone — pre-popover browsers cannot open the drawer",
-  );
-  assert.match(
-    css,
-    /:has\(\.portal-mobile-drawer-toggle:checked\)/,
-    "the :has() rule that reveals the fallback drawer is gone",
-  );
-  assert.match(
-    css,
-    /\.portal-mobile-drawer-toggle \{|\.portal-mobile-drawer-toggle,/,
-    "the fallback checkbox is no longer visually hidden — it renders as a stray control",
-  );
+  // The one script: toggle observed in the capture phase (it does not
+  // bubble), siblings shut, outside click shuts, a consumed Escape is marked
+  // so the back control does not also fire. No network, no storage.
+  const script = shell.match(/const TABS_SCRIPT =\s*'([^']+)'/)?.[1] ?? "";
+  assert.ok(script.length > 0, "the tabs script must be an inline constant");
+  assert.match(script, /document\.addEventListener\("toggle",[\s\S]*?\},true\)/, "toggle is observed in the capture phase");
+  assert.match(script, /shut\(t\)/);
+  assert.match(script, /document\.addEventListener\("click",/);
+  assert.match(script, /e\.key!=="Escape"\|\|e\.defaultPrevented/);
+  assert.match(script, /if\(open\)e\.preventDefault\(\)/, "a consumed Escape must not also fire the back control");
+  assert.doesNotMatch(script, /fetch\(|XMLHttpRequest|localStorage|sessionStorage/, "the tabs script touches no network and no storage");
+
+  // Geometry: each dropdown is an opaque panel; tabs meet a 40px floor and
+  // rows inside keep the 44px touch floor.
+  assert.match(css, /\.portal-tab-panel \{[^}]*background-color: var\(--portal-panel\)/, "the dropdown paints a longhand colour that survives boost");
+  assert.match(css, /\.portal-menu-group > summary\.portal-tab \{[^}]*min-height: 40px/);
+  assert.match(css, /\.portal-tab-panel \.portal-menu-item \{ min-height: 44px; \}/);
 });
 
-test("the drawer checkbox is a tab stop only where it works, and Escape-back survives pre-popover engines", async () => {
-  // Two regressions pinned shut:
-  //
-  // 1. WCAG 2.4.7 — outside the @supports-not fallback branch the
-  //    #portal-mobile-drawer checkbox drives nothing, so left focusable it
-  //    is an invisible 1px tab stop with no focus indication. It must be
-  //    display: none by default and restored to the keyboard order ONLY
-  //    inside the fallback branch, mirroring the desktop collapse toggle
-  //    that goes display: none under 900px.
-  //
-  // 2. querySelector selector-list parsing is non-forgiving: one unknown
-  //    pseudo-class rejects the WHOLE list, so ":popover-open, dialog[open]"
-  //    threw SyntaxError on exactly the pre-Popover engines the checkbox
-  //    fallback exists for, killing Escape-to-go-back there. The
-  //    :popover-open probe must sit alone inside try/catch, and the shell's
-  //    Escape-close of the fallback drawer must preventDefault so one
-  //    keypress cannot both dismiss the drawer and navigate back.
-  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(
-    css,
-    /\.portal-mobile-drawer-toggle \{ display: none; \}/,
-    "the fallback checkbox is back in the keyboard order outside its functional window",
-  );
-  const fallbackBranch = css.split("@supports not selector(:popover-open)")[1] ?? "";
-  assert.match(
-    fallbackBranch,
-    /\.portal-mobile-drawer-toggle \{ display: inline-block; \}/,
-    "the fallback branch no longer restores the checkbox — pre-popover keyboard users cannot open the drawer",
-  );
+test("the rail is a real sidebar column shown only for the rail placement on desktop widths", async () => {
+  // Owner direction 2026-09-02: the rail "looks really weird with the little
+  // block" — it is now a full-height sidebar (brand, Command, the direct
+  // destinations, the account footer), not the dock re-laid. It renders in
+  // every member's markup and the stylesheet shows it only when the stored
+  // placement is rail AND the viewport is at least 960px; the dock hides in
+  // that arrangement. Both surfaces carry the same capability-filtered doors.
+  const shell = await readFile(new URL("../app/portal/components.tsx", import.meta.url), "utf8");
+  const css = (await readFile(new URL("../app/globals.css", import.meta.url), "utf8")).replace(/\/\*[\s\S]*?\*\//g, "");
 
+  assert.match(shell, /<aside className="portal-rail" aria-label="Destinations">/);
+  assert.match(shell, /const destinations = DOCK_DESTINATIONS\.map\(\(href\) => visible\.find\(\(entry\) => entry\.href === href\)\)/, "the rail's doors come from the same tuple and the same filtered list as the dock");
+  assert.match(shell, /className="portal-rail-link portal-rail-deferred" aria-disabled="true"/, "the founder's deferred dialer marker is inert in the rail too");
+  const railDeferred = shell.slice(shell.indexOf('className="portal-rail-link portal-rail-deferred"'), shell.indexOf("</span>\n          ) : null}", shell.indexOf('className="portal-rail-link portal-rail-deferred"')));
+  assert.doesNotMatch(railDeferred, /href=|onClick|<Link|<a |<button/);
+  assert.match(shell, /<a className="portal-signout portal-rail-signout" href=\{signOutPath\("\/"\)\}/, "sign-out stays a plain anchor — Link would prefetch it");
+
+  assert.match(css, /\.portal-rail \{\s*display: none;/, "the rail is hidden unless the rail media block shows it");
+  const wide = css.indexOf('@media (min-width: 960px) {\n  html[data-portal-nav="rail"]');
+  assert.ok(wide >= 0);
+  const block = css.slice(wide, css.indexOf("\n}\n", wide));
+  assert.match(block, /html\[data-portal-nav="rail"\] \.portal \.portal-rail \{ display: flex; \}/);
+  assert.match(block, /html\[data-portal-nav="rail"\] \.portal \.portal-dock \{ display: none; \}/);
+  assert.match(block, /html\[data-portal-nav="rail"\] \.portal \.portal-shell \{[^}]*grid-template-columns: 250px minmax\(0, 1fr\)/);
+  // The rail paints a longhand background colour (boost lesson) and the
+  // navy skin re-scopes it exactly as it does the dock.
+  assert.match(css, /\.portal-rail \{[^}]*background-color: var\(--portal-sidebar\)/);
+  assert.match(css, /html\[data-portal-theme="thrive"\] \.portal \.portal-dock,\s*html\[data-portal-theme="thrive"\] \.portal \.portal-rail \{/);
+});
+
+test("Escape-back survives pre-popover engines", async () => {
+  // querySelector selector-list parsing is non-forgiving: one unknown
+  // pseudo-class rejects the WHOLE list, so ":popover-open, dialog[open]"
+  // threw SyntaxError on pre-Popover engines, killing Escape-to-go-back
+  // there. The :popover-open probe must sit alone inside try/catch.
   const back = await readFile(
     new URL("../app/portal/back-control.tsx", import.meta.url),
     "utf8",
@@ -1305,16 +1309,6 @@ test("the drawer checkbox is a tab stop only where it works, and Escape-back sur
     back,
     /try \{\s*if \(document\.querySelector\("\[popover\]:popover-open"\)\) return;\s*\} catch \{/,
     "the :popover-open probe is no longer try/caught — pre-popover engines throw on every Escape",
-  );
-
-  const shell = await readFile(
-    new URL("../app/portal/components.tsx", import.meta.url),
-    "utf8",
-  );
-  assert.match(
-    shell,
-    /e\.key==="Escape"&&u\(\)\)\{e\.preventDefault\(\)\}/,
-    "the drawer's Escape-close no longer consumes the event — one keypress would dismiss AND navigate",
   );
 });
 
@@ -2177,7 +2171,9 @@ test("the route guards are invariant: same call sites, same capabilities, same r
     "app/portal/access.ts|requireFounder|audit.view,audit.view",
     "app/portal/announcements/page.tsx|requireCapability|dashboard.view.self,/portal/announcements",
     "app/portal/audit/page.tsx|requireFounder|/portal/audit",
+    "app/portal/book/customers/route.ts|requireCapability|book.view.self,/portal/book/customers",
     "app/portal/book/page.tsx|requireCapability|book.view.self,/portal/book",
+    "app/portal/book/policies/route.ts|requireCapability|book.view.self,/portal/book/policies",
     "app/portal/calls/page.tsx|requireCapability|calls.answer,/portal/calls",
     "app/portal/calls/review/[id]/page.tsx|requireCapability|calls.review",
     "app/portal/calls/review/page.tsx|requireCapability|calls.review,/portal/calls/review",
@@ -2211,15 +2207,26 @@ test("the route guards are invariant: same call sites, same capabilities, same r
     "app/portal/twilio/page.tsx|requireCapability|leadership.view.all,/portal/twilio",
   ], "a guard call site changed — this is an access-model change and needs its own review");
 
-  // The capability matrix itself is byte-stable across this change.
+  // The capability matrix is pinned byte for byte. It changed ONCE on
+  // 2026-09-02 by owner direction: `book.edit.self` joined exactly the roles
+  // that hold `book.view.self` (owner, admin, manager, agent), so a member
+  // can enter their own book. Any other change re-pins here on purpose.
   const access = await readFile(new URL("../app/portal/access.ts", import.meta.url), "utf8");
   const matrix = access.slice(access.indexOf("const ROLE_CAPABILITIES"), access.indexOf("};", access.indexOf("const ROLE_CAPABILITIES")) + 2);
   const { createHash } = await import("node:crypto");
   assert.equal(
     createHash("sha256").update(matrix).digest("hex"),
-    "baa0ca78051acfe2cbbb50501852a127f23c53ae337eeae93c6e8e2fd152e255",
+    "fc41e59d150f477ec870c45d0e8b1d8435eae8d3d9443e51932a18922138e403",
     "ROLE_CAPABILITIES changed — capabilities are governance, not a menu convenience",
   );
+  for (const role of ["owner", "admin", "manager", "agent"]) {
+    const block = matrix.slice(matrix.indexOf(`${role}: [`), matrix.indexOf("]", matrix.indexOf(`${role}: [`)));
+    assert.match(block, /"book\.view\.self",\s*"book\.edit\.self",/, `${role} edits exactly the book it can view`);
+  }
+  for (const role of ["reviewer", "support"]) {
+    const block = matrix.slice(matrix.indexOf(`${role}: [`), matrix.indexOf("]", matrix.indexOf(`${role}: [`)));
+    assert.doesNotMatch(block, /book\./, `${role} holds no book capability at all`);
+  }
 });
 
 test("the Script Vault library holds all 18 source tabs, in order, every one a labelled draft", async () => {
@@ -2490,7 +2497,7 @@ test("the dock carries five destinations, all of them menu rows, and Calls is no
 
   // The deferred dialer: inert by construction — a span with no href and no
   // handler, rendered only inside the founder branch.
-  const deferred = components.slice(components.indexOf("{isFounder(session) ? (\n            <span\n              className=\"portal-dock-deferred\""), components.indexOf(") : null}", components.indexOf('className="portal-dock-deferred"')));
+  const deferred = components.slice(components.indexOf("{founder ? (\n            <span\n              className=\"portal-dock-deferred\""), components.indexOf(") : null}", components.indexOf('className="portal-dock-deferred"')));
   assert.ok(deferred.length > 0, "the deferred dialer slot must be rendered inside the founder branch");
   assert.doesNotMatch(deferred, /href=|onClick|<Link|<a |<button/, "the deferred dialer must be inert");
   assert.match(deferred, /aria-disabled="true"/);
@@ -2501,9 +2508,25 @@ test("the Book drawer accepts only a small integer id and the panel views are a 
   const book = await r3src("../app/portal/book/page.tsx");
   assert.match(book, /requireCapability\("book\.view\.self", "\/portal\/book"\)/, "the Book keeps its literal guard");
   assert.match(book, /\/\^\\d\{1,9\}\$\/\.test\(value\)/, "customer ids are validated as small positive integers before any use");
-  assert.match(book, /rows\.find\(\(task\) => task\.id === requestedId\)/, "the drawer opens only for an id inside the member's own list — no second query");
+  assert.match(book, /customers\.find\(\(row\) => row\.id === requestedId\)/, "the drawer opens only for an id inside the member's own loaded list — no second query");
   assert.match(book, /const VIEWS = \["summary", "customers", "policies"\] as const;/);
-  assert.doesNotMatch(book, /getDb\(\)/, "the Book page runs no query of its own; it reuses the self-scoped callback loader");
+  assert.doesNotMatch(book, /getDb\(\)/, "the Book page runs no query of its own; it reuses the self-scoped loaders");
+  assert.match(book, /can\(session, "book\.edit\.self"\)/, "the entry forms render only for a role that may write");
+  // The two write routes: same-origin, capability-asserted, self-scoped,
+  // and they keep no full phone or policy number.
+  const customers = await r3src("../app/portal/book/customers/route.ts");
+  const policies = await r3src("../app/portal/book/policies/route.ts");
+  for (const [name, route] of [["customers", customers], ["policies", policies]]) {
+    assert.match(route, /assertCapability\(session, "book\.edit\.self"/, `${name}: the write asserts book.edit.self`);
+    assert.match(route, /if \(!isSameOrigin\(request\)\)/, `${name}: cross-origin posts are refused`);
+    assert.match(route, /memberId: session\.memberId/, `${name}: the row's owner is the session's own member, never a field`);
+    assert.doesNotMatch(route, /form\.get\("member_id"\)|field\(form, "member_id"\)/, `${name}: no member_id is ever read from the body`);
+  }
+  assert.match(customers, /phoneMasked = `\*\*\*-\*\*\*-\$\{phoneLast4\}`/, "the phone is masked before it is stored");
+  assert.doesNotMatch(customers, /phone: phoneRaw|phoneRaw\b[^;]*values/, "the raw phone never reaches the insert");
+  assert.match(policies, /policyLast4 = numberRaw === "" \? null : numberRaw\.slice\(-4\)/, "only the last four of a policy number are kept");
+  assert.match(policies, /await ownsCustomer\(session, policy\.customerId\)/, "a policy attaches only to the member's own customer");
+  assert.match(policies, /eq\(bookPolicies\.memberId, session\.memberId\)/, "a status change is scoped to the member's own rows");
   // The inbound panel likewise keeps its guard literal and reads only self-scoped rows.
   const inbound = await r3src("../app/portal/inbound/page.tsx");
   assert.match(inbound, /requireCapability\("calls\.answer", "\/portal\/inbound"\)/);

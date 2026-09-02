@@ -767,3 +767,33 @@ it also inserts one `audit_events` row recording the table's creation. Do
 NOT additionally apply the generated `drizzle/0004_*.sql` — same table, no
 `IF NOT EXISTS`, and the two paths must never both touch one database
 (CLAUDE.md rule).
+
+### db/sql/0014 exists and is NOT applied anywhere (2026-09-02, owner direction)
+
+The Book of Business rebuild added `db/sql/0014_book_of_business.sql` — the
+`book_customers` and `book_policies` tables behind the Book's entry forms
+(a member's own customers and policies, self-scoped by `member_id`, phone
+stored masked with the last four digits only, policy number as its last four
+characters only; written only by `POST /portal/book/customers` and
+`POST /portal/book/policies` behind the new `book.edit.self` capability).
+**The file has not been run against any database.** Applying it is the
+founder's move.
+
+Until it is applied the Book is *not provisioned, not broken, not fake*: the
+page says so, offers no form whose POST must fail, and a POST that arrives
+anyway is bounced to `/portal/book?view=customers&book=not_provisioned` with
+nothing written and the denial audited. The dashboard's "Policies this week"
+tile and the Policies sold / New clients production tiles read the same
+tables and say "book not provisioned" / "source pending" until then.
+
+Apply with (from the project directory, with Cloudflare auth):
+
+```powershell
+npx wrangler d1 execute site-creator-d1 --file=db/sql/0014_book_of_business.sql --remote
+```
+
+or paste the file's statements into the dashboard D1 console. The file is
+idempotent (`IF NOT EXISTS` throughout) and inserts one `audit_events` row
+recording the tables' creation. Do NOT additionally apply the generated
+`drizzle/0005_*.sql` — same tables, no `IF NOT EXISTS`, and the two paths
+must never both touch one database (CLAUDE.md rule).
