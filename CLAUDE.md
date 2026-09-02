@@ -23,6 +23,22 @@ closed: if the database is unreachable or unmigrated, access is refused rather
 than assumed. Every allow and deny is written to the append-only `audit_events`
 table.
 
+## Verified source state — 2026-09-02
+
+Verified read-only from source and the deploy record on 2026-09-02; re-verify
+before relying on it later.
+
+- Twelve tables are defined in `db/schema.ts`. Eleven platform tables:
+  `portal_members`, `audit_events`, `dialer_transfers`, `command_passes`,
+  `member_requests`, `outbound_dial_requests`, `voice_number_assignments`,
+  `voice_presence`, `inbound_voice_calls`, `voice_call_offers`,
+  `voice_callback_tasks`.
+- The twelfth, `weekly_commitments` (`db/sql/0013`), is present in source but
+  **not applied to the live database as of 2026-09-02** (DEPLOYMENT.md).
+  Applying it is the founder's move, never an agent session's.
+- `_cf_KV` is Cloudflare's own D1 housekeeping table and is not defined by any
+  migration in this repository.
+
 ## Rules that are load-bearing
 
 - **Never trust identity from a request header.** The retired
@@ -50,7 +66,8 @@ table.
   `assertCapability`.
 - **Do not apply both migration paths to one database.** `db/sql/0001` uses
   `CREATE TABLE IF NOT EXISTS`; the generated drizzle migration does not. The
-  live database used the `db/sql/` path.
+  live database used the `db/sql/` path. `db/sql/0013` and `drizzle/0004` both
+  define `weekly_commitments`; apply neither without founder approval.
 
 ## Owner shorthand
 

@@ -367,8 +367,19 @@ binding and the history of who they were.
 
 ## 6. Data model
 
-Three tables, defined in `db/schema.ts` (Drizzle) and mirrored as hand-written
-DDL in `db/sql/0001_portal_init.sql`.
+Twelve tables are defined in `db/schema.ts` (Drizzle), each mirrored as
+hand-written DDL under `db/sql/` — verified from source 2026-09-02 (this
+paragraph read "Three tables" until then). The eleven platform
+tables: `portal_members`, `audit_events`, `dialer_transfers`, `command_passes`,
+`member_requests`, `outbound_dial_requests`, `voice_number_assignments`,
+`voice_presence`, `inbound_voice_calls`, `voice_call_offers`,
+`voice_callback_tasks`. The twelfth, `weekly_commitments` (`db/sql/0013`), is
+present in source but **not applied to the live database as of 2026-09-02**
+(DEPLOYMENT.md, "db/sql/0013 exists and is NOT applied anywhere"). `_cf_KV` is
+Cloudflare's own D1 housekeeping table and is not defined by any migration in
+this repository.
+
+The first three, in detail:
 
 **`portal_members`** — the allowlist. Unique index on `email`, unique index on
 `subject_id`, index on `role`. CHECK constraints reject unknown roles and
