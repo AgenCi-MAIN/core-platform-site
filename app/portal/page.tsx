@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import Link from "next/link";
-import { ROLE_LABELS, requireCapability } from "./access";
+import { ROLE_LABELS, can, requireCapability } from "./access";
+import { PanelTiles, Tile } from "./panel";
 import type { PortalRole } from "../../db/schema";
 import { ANNOUNCEMENTS } from "./announcements/content";
 import { JarvisCommandPrompt } from "./command-prompt";
@@ -260,6 +261,40 @@ export default async function PortalDashboard({
             </p>
             <JarvisCommandPrompt />
           </div>
+        </section>
+
+        {/* YOUR DAY — the Day Sheet framing (Dispatch R3, from the approved
+            artboard): today's numbers first, with doors to the Inbound Status
+            and Book panels. Every figure is the same self-scoped read the
+            production tiles below make; a metric with no source says so and
+            never shows a zero it did not count. */}
+        <section className="portal-day-strip" aria-labelledby="day-strip-title">
+          <div className="portal-day-head">
+            <h2 id="day-strip-title" className="portal-eyebrow portal-day-title">
+              Your day
+            </h2>
+            <nav className="portal-day-links" aria-label="Today's panels">
+              {can(session, "calls.answer") ? (
+                <Link href="/portal/inbound">Inbound status &rarr;</Link>
+              ) : null}
+              {can(session, "book.view.self") ? <Link href="/portal/book">Book &rarr;</Link> : null}
+            </nav>
+          </div>
+          <PanelTiles label="Today's numbers">
+            <Tile
+              label="Answered today"
+              value={production.callsAnswered.kind === "live" ? production.callsAnswered.day : null}
+              state={production.callsAnswered.kind === "pending" ? "pending" : "live"}
+              note={production.callsAnswered.kind === "fault" ? "could not be read just now" : undefined}
+            />
+            <Tile
+              label="Callbacks waiting"
+              value={callbacks.kind === "ok" ? callbacks.count : null}
+              state={callbacks.kind === "hidden" ? "pending" : "live"}
+              note={callbacks.kind === "fault" ? "could not be read just now" : undefined}
+            />
+            <Tile label="Policies sold today" value={null} state="pending" />
+          </PanelTiles>
         </section>
 
         {LATEST_ANNOUNCEMENT ? (

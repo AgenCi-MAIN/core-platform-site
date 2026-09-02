@@ -49,11 +49,43 @@ Menu order within each group:
 
 | Group | Rows, in menu order |
 |---|---|
-| Today | Dashboard (`/portal`) · Calls (`/portal/calls`) · Announcements (`/portal/announcements`) · Radio (`/portal/music`) |
+| Today | Dashboard (`/portal`) · Calls (`/portal/calls`) · Inbound Status (`/portal/inbound`) · Announcements (`/portal/announcements`) · Radio (`/portal/music`) |
 | Clients | Callback Queue (`/portal/calls?tab=voicemail`) · Book of Business (`/portal/book`, placeholder) |
 | Selling | Training · Script Vault (`/portal/scripts`) · Quoter · Marketplace (`/portal/shop`) · Tool Directory (`/portal/tools`) · Aetna carrier portal (external) · Ethos carrier portal (external) · SureLC ×3 (external) |
 | Standing | My Stats · Leaderboard · Team (`/portal/team`, placeholder) · Leadership (`/portal/leadership`, live) · Commission Schedule (`/portal/commission`) · Library (`/portal/library`) |
 | Administration | Pay Rates · Members · Audit (founder only) · Command Center (Command Center set) · Operations Deck (`/portal/gallery`) |
+
+## The dock, the rail, and the placement preference (Dispatch R3, 2026-09-02)
+
+The fixed bottom dock carries **five stable destinations**, each opening one
+focused panel: Today (`/portal`), Book (`/portal/book`), Inbound
+(`/portal/inbound`), Team (`/portal/team`), Leadership (`/portal/leadership`).
+The tuple is `DOCK_DESTINATIONS` in `app/portal/components.tsx`; every entry
+is a menu row and passes the same capability filter as the menu before it
+renders, so a role without `team.view` has no Team slot rather than a
+disabled one. **Calls and Radio left the dock**: both stay in the Today group
+of the menu, and Calls is also the Inbound Status panel's own action. The
+founder's dock additionally shows an **inert "Dialer · Deferred" slot** — a
+span with no link and no handler, rendered only in the founder's markup —
+so the map stays honest about a parked surface without offering a door.
+
+**Navigation placement** is a member preference beside colour mode and
+performance mode, and it works exactly the way those two do:
+
+| | |
+|---|---|
+| Values | `dock` (default) · `rail` |
+| Storage | browser `localStorage`, key `core-portal-nav` — **local-only, never sent to the server, no table, no migration** |
+| Restored | by the pre-paint boot script in `app/portal-chrome.tsx`, onto `data-portal-nav`, so there is no flash |
+| Control | `app/nav-control.tsx`, in the topbar next to the theme control |
+| Rule | exactly `"rail"` opts in; anything else stored is the dock (`app/nav-placement.ts`, pinned in `tests/rendered-html.test.mjs`) |
+| Narrow widths | below **960px** the compact bottom dock is used whatever is stored — the rail rules live only inside `@media (min-width: 960px)`, and the control hides there |
+
+**Limitation, stated plainly:** a preference follows the browser profile,
+not the member. Two devices can disagree, a cleared profile forgets, and a
+private window starts from the default. That is how the colour mode already
+behaves; giving the preference a server-side home would be a new table and a
+migration, which is a governance decision this change does not make.
 
 ## The dashboard (rebuilt 2026-09-02 — founder's three blocks)
 
@@ -88,6 +120,7 @@ guarded route.
 |---|---|---|---|---|
 | Dashboard | `app/portal/page.tsx` | `dashboard.view.self` | see the block table above; the role-aware framing line reads the member's role only | calls live; commitment pends 0013; the rest pend source decisions |
 | Calls | `app/portal/calls/` | `calls.answer` (review areas `calls.review`) | D1 `inbound_voice_calls` / `voice_callback_tasks` / `dialer_transfers` + R2 recordings. The founder-gated Collab Dialer carries a temporary, clearly-labelled external link, **"Open Script Library (Temporary Hybrid)"**, to the canonical Google Doc `my script`: opens in a new tab, stores nothing, triggers no call, dial or recording. Script Vault remains the in-product copy | SignalWire webhooks + dialer ingest (E7 counsel gate applies to recording) |
+| Inbound Status | `app/portal/inbound/page.tsx` — the daily inbound panel (R3); formerly a redirect into Calls | `calls.answer` (unchanged) | the dashboard's self-scoped call and callback reads (`app/portal/dashboard-data.ts`) plus this member's own `voice_presence` row; team presence protected, not shown | fills itself with voice traffic; "Missed" and "Median answer" pend a timing source |
 | Announcements | `app/portal/announcements/` | `dashboard.view.self` | curated in-file | edit page content |
 | Radio | `app/portal/music/` | `dashboard.view.self` | R2 `site-creator-r2` under `music/` | upload via the portal (owner) |
 
@@ -95,7 +128,7 @@ guarded route.
 | Surface | Folder / link | Guard | Data source | To inject data |
 |---|---|---|---|---|
 | Callback Queue | `/portal/calls?tab=voicemail` — the existing Calls voicemail tab, not a new route | `calls.answer` | D1 `voice_callback_tasks` joined to `inbound_voice_calls` (same scoping as the Calls page) | fills itself when voicemail traffic flows |
-| Book of Business | `app/portal/book/` — gated PLACEHOLDER row with honest "source not connected" copy | `book.view.self` | none connected (E3 sources pending) | route and guard unchanged; fills in when E3 sources land |
+| Book of Business | `app/portal/book/` — the customer and policy workspace (R3): `?view=summary\|customers\|policies`, `?customer=<id>` opens the level-two drawer (bottom sheet on phones). Still a "source not connected" menu row: no policy system exists | `book.view.self` | Customers = the member's own open voicemail callbacks, masked (`loadCallbacks`, self-scoped); policies, requirements, persistence, money = Not provisioned. The drawer opens only for an id inside that list — fail-closed, no second query | route and guard unchanged; policy fields fill in when E3 sources land |
 
 ### Selling
 | Surface | Folder / link | Guard | Data source | To inject data |

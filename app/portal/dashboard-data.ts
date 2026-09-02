@@ -218,8 +218,14 @@ function isPastDue(dueAt: string, nowIso: string): boolean {
  * (the shared queue) — never another member's personal queue. The capability
  * check is the honest gate even though every role holds it today.
  */
-export async function loadCallbacks(session: PortalSession): Promise<CallbacksData> {
+export async function loadCallbacks(
+  session: PortalSession,
+  { limit = 3 }: { limit?: number } = {},
+): Promise<CallbacksData> {
   if (!can(session, "calls.answer")) return { kind: "hidden" };
+  // The list is a preview on the dashboard and the whole self-scoped queue on
+  // the Book and Inbound panels; the scope predicate is identical either way.
+  const rowLimit = Math.min(Math.max(Math.trunc(limit), 1), 100);
 
   const scope = isFounder(session)
     ? eq(voiceCallbackTasks.status, "open")
@@ -243,7 +249,7 @@ export async function loadCallbacks(session: PortalSession): Promise<CallbacksDa
       .innerJoin(inboundVoiceCalls, eq(voiceCallbackTasks.voiceCallId, inboundVoiceCalls.id))
       .where(scope)
       .orderBy(asc(voiceCallbackTasks.dueAt))
-      .limit(3),
+      .limit(rowLimit),
   );
   if (listRead.fault) return { kind: "fault", fault: listRead.fault };
 
