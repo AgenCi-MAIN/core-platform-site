@@ -162,17 +162,6 @@ export const LINE_ITEMS: readonly LineItem[] = [
     source: "",
   },
   {
-    id: "reagan-ai",
-    label: "Reagan AI — Heartland",
-    vendor: "Reagan AI",
-    basis: "per-seat",
-    cadence: "monthly",
-    amountUsd: null,
-    confidence: "unknown",
-    note: "Agent-facing tool reached from the Tool Directory.",
-    source: "",
-  },
-  {
     id: "surancebay",
     label: "SureLC / SuranceBay contracting",
     vendor: "SuranceBay",

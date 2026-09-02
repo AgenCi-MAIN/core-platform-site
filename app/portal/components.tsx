@@ -37,7 +37,6 @@ type PortalIconName =
   | "leaderboard"
   | "stats"
   | "surelc"
-  | "reagan"
   | "toolbox"
   | "scripts"
   | "team"
@@ -53,7 +52,7 @@ type NavItem = {
   label: string;
   capability: Capability;
   icon: PortalIconName;
-  group: "Work" | "Resources" | "Administration";
+  group: NavGroup;
   description: string;
   state: "live" | "pending";
   /** Set for third-party tools opened outside the portal. */
@@ -73,103 +72,64 @@ type NavItem = {
   stateLabel: string;
 };
 
+/**
+ * The five-group IA (Dispatch work order 1A, 2026-09-02): Today, Clients,
+ * Selling, Standing, Administration — in that order. Group order is
+ * NAV_GROUPS; row order within a group is array order here. A row appears in
+ * a member's menu only when `visibleNav` passes it, and a group with no
+ * surviving rows is not rendered at all (fail-closed suppression), so a role
+ * never sees an empty heading for a place it cannot go.
+ */
+export const NAV_GROUPS = ["Today", "Clients", "Selling", "Standing", "Administration"] as const;
+export type NavGroup = (typeof NAV_GROUPS)[number];
+
+/** Subtitle under each section header. Every group carries one. */
+export const NAV_GROUP_SUBTITLES: Record<NavGroup, string> = {
+  Today: "Answer, log & check in",
+  Clients: "Callbacks, book & follow-up",
+  Selling: "Train, quote & carrier tools",
+  Standing: "Numbers, rank & pay",
+  Administration: "Roster, audit & command",
+};
+
 const NAV: readonly NavItem[] = [
+  // ── Today ─────────────────────────────────────────────────────────────
   {
     href: "/portal",
     label: "Dashboard",
     capability: "dashboard.view.self",
     icon: "dashboard",
-    group: "Work",
+    group: "Today",
     description: "Your authenticated IMO command surface.",
     state: "live",
     stateLabel: "Available",
-  },
-  {
-    href: "/portal/training",
-    label: "Training",
-    capability: "dashboard.view.self",
-    icon: "training",
-    group: "Work",
-    description: "IMO-approved introductions, call angles, and training language.",
-    state: "live",
-    stateLabel: "Approved content",
   },
   {
     href: "/portal/calls",
     label: "Calls",
     capability: "calls.answer",
     icon: "calls",
-    group: "Work",
+    group: "Today",
     description: "Live browser calls, history, voicemail, authorized review, and founder outbound calling.",
     state: "live",
     stateLabel: "Voice workspace",
-  },
-  {
-    href: "/portal/scripts",
-    label: "Script Vault",
-    capability: "scripts.manage",
-    icon: "scripts",
-    group: "Work",
-    description: "Governed, versioned conversation playbooks.",
-    state: "pending",
-    stateLabel: "Import pending",
-  },
-  {
-    href: "/portal/stats",
-    label: "My Stats",
-    capability: "dashboard.view.self",
-    icon: "stats",
-    group: "Work",
-    description: "Your own production numbers, computed from the platform's records.",
-    state: "live",
-    stateLabel: "All members",
-  },
-  {
-    href: "/portal/leaderboard",
-    label: "Leaderboard",
-    capability: "dashboard.view.self",
-    icon: "leaderboard",
-    group: "Work",
-    description: "Team standings from real call production — no hand-entered numbers.",
-    state: "live",
-    stateLabel: "All members",
   },
   {
     href: "/portal/announcements",
     label: "Announcements",
     capability: "dashboard.view.self",
     icon: "announcements",
-    group: "Resources",
+    group: "Today",
     description: "Releases, roadmap, and operating notes from the agency.",
     state: "live",
     stateLabel: "Available",
-  },
-  {
-    href: "/portal/library",
-    label: "Library",
-    capability: "dashboard.view.self",
-    icon: "library",
-    group: "Resources",
-    description: "Who IMO is, what we believe, training, and the incentive plan.",
-    state: "live",
-    stateLabel: "Available",
-  },
-  {
-    href: "/portal/commission",
-    label: "Commission Schedule",
-    capability: "dashboard.view.self",
-    icon: "commission",
-    group: "Resources",
-    description: "Every carrier's comp grid by contract level, with ladders and promotion rules.",
-    state: "live",
-    stateLabel: "All members",
   },
   {
     href: "/portal/music",
     label: "Radio",
     capability: "dashboard.view.self",
     icon: "radio",
-    group: "Resources",
+    group: "Today",
     description: "Music for the floor. Owner-uploaded tracks only.",
     state: "live",
     stateLabel: "Available",
@@ -190,35 +150,121 @@ const NAV: readonly NavItem[] = [
    * quieter front door on a locked room, which is fine — and it would be
    * dangerous only if it were ever mistaken for the lock itself.
    */
+
+  // ── Clients ───────────────────────────────────────────────────────────
   {
-    href: "/portal/gallery",
-    label: "Operations Deck",
-    capability: "dashboard.view.self",
-    icon: "gallery",
-    group: "Resources",
-    description: "Ten AI-made agent portraits. Select, build, and publish to Inkbox.",
+    // The Calls page's voicemail tab, reached by its own door. Not a new
+    // route: /portal/calls keeps its calls.answer guard. The MENU row is
+    // gated on book.view.self because this group is the client book — a
+    // role without a book (reviewer, support) loses the whole Clients group
+    // by fail-closed suppression rather than seeing a heading with one row.
+    href: "/portal/calls?tab=voicemail",
+    label: "Callback Queue",
+    capability: "book.view.self",
+    icon: "calls",
+    group: "Clients",
+    description: "Voicemail callbacks waiting on you or the shared queue.",
     state: "live",
-    stateLabel: "Available",
+    stateLabel: "Voice workspace",
   },
   {
-    href: "/portal/shop",
-    label: "Exchange",
+    // Gated placeholder row (promoted from the retired menu footer,
+    // 2026-09-02). The route and its book.view.self guard are
+    // unchanged; the page behind it is the honest source-not-connected
+    // placeholder, and the row says so rather than promising a book.
+    href: "/portal/book",
+    label: "Book of Business",
+    capability: "book.view.self",
+    icon: "book",
+    group: "Clients",
+    description: "Client and policy records. No system of record is connected yet.",
+    state: "pending",
+    stateLabel: "Source not connected",
+  },
+
+  // ── Selling ───────────────────────────────────────────────────────────
+  {
+    href: "/portal/training",
+    label: "Training",
     capability: "dashboard.view.self",
-    icon: "shop",
-    group: "Resources",
-    description: "Trade contract points for transferred calls and AI capacity.",
+    icon: "training",
+    group: "Selling",
+    description: "IMO-approved introductions, call angles, and training language.",
     state: "live",
-    stateLabel: "Priced menu",
+    stateLabel: "Approved content",
+  },
+  {
+    href: "/portal/scripts",
+    label: "Script Vault",
+    capability: "scripts.manage",
+    icon: "scripts",
+    group: "Selling",
+    description: "Governed, versioned conversation playbooks. Imported drafts — licensed and compliance review required.",
+    state: "live",
+    stateLabel: "Draft — review required",
   },
   {
     href: "/portal/quoter",
     label: "Quoter",
     capability: "book.view.self",
     icon: "quoter",
-    group: "Resources",
+    group: "Selling",
     description: "Final expense quoting and underwriting — quote inline without leaving CORE.",
     state: "live",
     stateLabel: "Beta",
+  },
+  {
+    // Label-only rename from "Exchange" (2026-09-02). The route, guard,
+    // catalogue, and economics are untouched.
+    href: "/portal/shop",
+    label: "Marketplace",
+    capability: "dashboard.view.self",
+    icon: "shop",
+    group: "Selling",
+    description: "Trade contract points for transferred calls and AI capacity.",
+    state: "live",
+    stateLabel: "Priced menu",
+  },
+  {
+    href: "/portal/tools",
+    label: "Tool Directory",
+    capability: "dashboard.view.self",
+    icon: "toolbox",
+    group: "Selling",
+    description:
+      "Every external tool in one categorized place — carriers, leads, quoting, documents.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  // Two carrier agent portals (Dispatch work order 1A). Same external-link
+  // shape as every other outside tool: new tab, rel="noopener noreferrer",
+  // the member signs in there with their own credentials, and CORE stores
+  // nothing — no credential, cookie, token, or identity transaction. Plain
+  // login URLs only. Listing a portal is not a claim of appointment or
+  // affiliation with the carrier.
+  {
+    href: "https://www.aetna.com/aimmanageaccount/login",
+    label: "Aetna — carrier portal",
+    capability: "dashboard.view.self",
+    icon: "surelc",
+    group: "Selling",
+    description:
+      "Aetna's agent login. External — opens in a new tab; sign in there separately. No affiliation implied.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "https://agents.ethoslife.com/login",
+    label: "Ethos — carrier portal",
+    capability: "dashboard.view.self",
+    icon: "surelc",
+    group: "Selling",
+    description:
+      "Ethos's agent login. External — opens in a new tab; sign in there separately. No affiliation implied.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
   },
   // Three SureLC upline instances, each the owner's exact link (2026-08-18).
   // One entry per upline per PLATFORM-MAP rule 2 — never a shared page.
@@ -229,7 +275,7 @@ const NAV: readonly NavItem[] = [
     label: "SureLC — Heartland",
     capability: "dashboard.view.self",
     icon: "surelc",
-    group: "Resources",
+    group: "Selling",
     description:
       "Carrier contracting and licensing via SuranceBay. Opens in a new tab; sign in there separately.",
     state: "live",
@@ -241,7 +287,7 @@ const NAV: readonly NavItem[] = [
     label: "SureLC — Brenda Daly",
     capability: "dashboard.view.self",
     icon: "surelc",
-    group: "Resources",
+    group: "Selling",
     description:
       "Carrier contracting via SuranceBay, Brenda Daly branch. Opens in a new tab; sign in there separately.",
     state: "live",
@@ -253,36 +299,81 @@ const NAV: readonly NavItem[] = [
     label: "SureLC — Altura of America",
     capability: "dashboard.view.self",
     icon: "surelc",
-    group: "Resources",
+    group: "Selling",
     description:
       "Carrier contracting via SuranceBay, Altura of America. Opens in a new tab; sign in there separately.",
     state: "live",
     stateLabel: "External tool",
     external: true,
   },
+
+  // ── Standing ──────────────────────────────────────────────────────────
   {
-    href: "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
-    label: "Reagan AI",
+    href: "/portal/stats",
+    label: "My Stats",
     capability: "dashboard.view.self",
-    icon: "reagan",
-    group: "Resources",
-    description:
-      "The Reagan.ai agent portal. Opens in a new tab; sign in there separately.",
-    state: "live",
-    stateLabel: "External tool",
-    external: true,
-  },
-  {
-    href: "/portal/tools",
-    label: "Tool Directory",
-    capability: "dashboard.view.self",
-    icon: "toolbox",
-    group: "Resources",
-    description:
-      "Every external tool in one categorized place — carriers, contracting, leads, quoting, documents.",
+    icon: "stats",
+    group: "Standing",
+    description: "Your own production numbers, computed from the platform's records.",
     state: "live",
     stateLabel: "All members",
   },
+  {
+    href: "/portal/leaderboard",
+    label: "Leaderboard",
+    capability: "dashboard.view.self",
+    icon: "leaderboard",
+    group: "Standing",
+    description: "Team standings from real call production — no hand-entered numbers.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  {
+    // Gated placeholder row (promoted from the retired footer). Route and
+    // team.view guard unchanged; the page is the honest placeholder.
+    href: "/portal/team",
+    label: "Team",
+    capability: "team.view",
+    icon: "team",
+    group: "Standing",
+    description: "Your downline and its standing. No team model is connected yet.",
+    state: "pending",
+    stateLabel: "Source not connected",
+  },
+  {
+    // A normal gated row to the live Leadership surface (Dispatch revision
+    // 2026-09-02): route and leadership.view.all guard unchanged.
+    href: "/portal/leadership",
+    label: "Leadership",
+    capability: "leadership.view.all",
+    icon: "leadership",
+    group: "Standing",
+    description: "Leadership view across teams, for the roles that hold it.",
+    state: "live",
+    stateLabel: "Restricted",
+  },
+  {
+    href: "/portal/commission",
+    label: "Commission Schedule",
+    capability: "dashboard.view.self",
+    icon: "commission",
+    group: "Standing",
+    description: "Every carrier's comp grid by contract level, with ladders and promotion rules.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  {
+    href: "/portal/library",
+    label: "Library",
+    capability: "dashboard.view.self",
+    icon: "library",
+    group: "Standing",
+    description: "Who IMO is, what we believe, training, and the incentive plan.",
+    state: "live",
+    stateLabel: "Available",
+  },
+
+  // ── Administration ────────────────────────────────────────────────────
   {
     href: "/portal/pay-rates",
     label: "Pay Rates",
@@ -330,18 +421,17 @@ const NAV: readonly NavItem[] = [
     commandOnly: true,
     stateLabel: "Command Center only",
   },
+  {
+    href: "/portal/gallery",
+    label: "Operations Deck",
+    capability: "dashboard.view.self",
+    icon: "gallery",
+    group: "Administration",
+    description: "Ten AI-made agent portraits. Select, build, and publish to Inkbox.",
+    state: "live",
+    stateLabel: "Available",
+  },
 ];
-
-const NAV_GROUPS = ["Work", "Resources", "Administration"] as const;
-
-/**
- * Subtitle shown under a section header. Work and Resources carry one;
- * Administration renders its label alone.
- */
-const NAV_GROUP_SUBTITLES: Partial<Record<(typeof NAV_GROUPS)[number], string>> = {
-  Work: "Answer, train & produce",
-  Resources: "References, tools & trades",
-};
 
 function visibleNav(session: PortalSession): NavItem[] {
   return NAV.filter((item) =>
@@ -659,9 +749,7 @@ function PortalMenuContent({
           return (
             <div className={`portal-menu-group portal-menu-group-${group.toLowerCase()}`} key={group}>
               <p className="portal-menu-group-label">{group}</p>
-              {NAV_GROUP_SUBTITLES[group] ? (
-                <p className="portal-menu-group-sub">{NAV_GROUP_SUBTITLES[group]}</p>
-              ) : null}
+              <p className="portal-menu-group-sub">{NAV_GROUP_SUBTITLES[group]}</p>
               {/* Internal links navigate client-side ON PURPOSE. A plain
                   <a> is a full page load, which tears down the portal layout
                   — and the audio deck inside it, killing the radio on every
@@ -723,6 +811,12 @@ function PortalMenuContent({
                         LIVE
                       </span>
                     ) : null}
+                    {/* A placeholder row says so on the row itself. The
+                        destination is real and guarded; the SOURCE behind it
+                        is not connected, and the pill states exactly that. */}
+                    {item.state === "pending" ? (
+                      <span className="portal-pill portal-pill-pending">{item.stateLabel}</span>
+                    ) : null}
                   </Link>
                 ),
               )}
@@ -730,14 +824,6 @@ function PortalMenuContent({
           );
         })}
       </nav>
-
-      {/* The three demoted stubs (decision 2026-09-02): named, not linked. Their
-          routes and guards live on untouched; they re-enter the menu when their
-          sources land. Plain text on purpose — no href, so the gated-absence tests
-          and the roster of refused doors stay clean. */}
-      <p className="portal-menu-coming">
-        Coming online: Book of Business · Team · Leadership
-      </p>
 
       <div className="portal-menu-foot">
         <span className="portal-menu-system">
@@ -854,9 +940,6 @@ export function PortalPlaceholderPage({
 }
 
 const GO_ROUTES = ["/portal/training", "/portal/calls", "/portal/stats", "/portal/shop"] as const;
-/** Server-side display override: the founder-named tile label for the Exchange.
- *  The menu keeps "Exchange" + the client-side relabel; the tile is born "Marketplace". */
-const GO_LABELS: Readonly<Record<string, string>> = { "/portal/shop": "Marketplace" };
 
 export function PortalGoRow({ session }: { session: PortalSession }) {
   const visible = visibleNav(session);
@@ -868,7 +951,7 @@ export function PortalGoRow({ session }: { session: PortalSession }) {
         return (
           <Link key={item.href} className="portal-go-tile" href={item.href} title={item.label}>
             <span className="portal-go-icon" aria-hidden="true"><PortalNavMark name={item.icon} /></span>
-            <span className="portal-go-label">{GO_LABELS[item.href] ?? item.label}</span>
+            <span className="portal-go-label">{item.label}</span>
           </Link>
         );
       })}
@@ -992,13 +1075,6 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <path d="M15.5 19.5h5" />
     </>
   ),
-  // Target with an outbound arrow — the lead portal.
-  reagan: (
-    <>
-      <circle cx="11" cy="13" r="7" />
-      <path d="M11 13 20 4M20 4h-4.5M20 4v4.5" />
-    </>
-  ),
   // Toolbox — the external tool directory.
   toolbox: (
     <>
@@ -1030,7 +1106,7 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <path d="M6 4.8c4-2 8 2 12 0v8.7c-4 2-8-2-12 0" />
     </>
   ),
-  // Two-way trade arrows — the Exchange.
+  // Two-way trade arrows — the Marketplace.
   shop: (
     <>
       <path d="M7 8h13.5M17 4.5 20.5 8 17 11.5" />

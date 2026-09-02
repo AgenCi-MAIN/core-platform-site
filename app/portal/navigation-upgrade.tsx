@@ -48,13 +48,6 @@ export function PortalNavigationUpgrade() {
     function upgrade() {
       document.querySelectorAll<HTMLElement>(".portal-menu-item-surelc").forEach((node) => node.remove());
 
-      document.querySelectorAll<HTMLElement>(".portal-menu-item-shop .portal-menu-label").forEach((node) => {
-        setLabel(node, "Marketplace");
-      });
-      document.querySelectorAll<HTMLElement>(".portal-menu-item-reagan .portal-menu-label").forEach((node) => {
-        setLabel(node, "Reagan AI — Heartland");
-      });
-
       document.querySelectorAll<HTMLElement>(".portal-topbar-end").forEach((topbar) => {
         if (topbar.querySelector(".thrive-account-call-stack")) return;
         const stack = document.createElement("div");

@@ -12,21 +12,48 @@ three, the dashboard's mission-lane map was retired with the old dashboard,
 and the dashboard itself was rebuilt as the founder's three-block layout.
 The five-category edition of this file lives in git history.
 
-## The three menu groups and their meaning
+**Reorganized 2026-09-02 (second pass):** the menu moved from three groups
+(Work / Resources / Administration) to five — Today, Clients, Selling,
+Standing, Administration — grouped by what a member is doing rather than by
+kind of content. The "Coming online: Book of Business · Team · Leadership"
+footer is retired; Book of Business and Team are now gated placeholder rows
+inside the menu and Leadership is a normal gated row to its live surface
+(routes and guards unchanged). "Exchange" was relabelled "Marketplace"
+(label only; the route is still `/portal/shop`). Reagan AI was removed
+entirely — from the menu, from the Tool Directory's "Contracting &
+licensing" category, and from the client relabel. Script Vault received its
+first real content (see its row). The three-group edition lives in git
+history.
+
+## The five menu groups and their meaning
 
 | Group | Subtitle in the menu | Meaning | Who sees it |
 |---|---|---|---|
-| **Work** | "Answer, train & produce" | The daily loop: dashboard, training, calls, scripts, your numbers | every member (per capability) |
-| **Resources** | "References, tools & trades" | Everything consulted rather than worked: content, external tools, the Exchange | every member (per capability) |
-| **Administration** | — | Governance: comp modeling, roster, audit, the Command Center | leadership / founder / Command Center set |
+| **Today** | "Answer, log & check in" | The daily loop: dashboard, calls, announcements, radio | every member (per capability) |
+| **Clients** | "Callbacks, book & follow-up" | People already reached: the callback queue and the book of business | every member (per capability) |
+| **Selling** | "Train, quote & carrier tools" | Getting ready to sell and the tools used while selling: training, scripts, quoter, marketplace, tool directory, carrier and upline portals | every member (per capability) |
+| **Standing** | "Numbers, rank & pay" | Where a member stands: stats, leaderboard, team, leadership, commission, library | every member (per capability) |
+| **Administration** | "Roster, audit & command" | Governance: comp modeling, roster, audit, the Command Center, the Operations Deck | leadership / founder / Command Center set |
 
 The menu (`NAV` / `NAV_GROUPS` in `app/portal/components.tsx`) is the single
 categorization now — the dashboard mission lanes (`MISSION_GROUPS` /
-`MISSION_LABELS`) were deleted with the old dashboard. Three demoted stubs are
-named, unlinked, in the menu footer: **"Coming online: Book of Business ·
-Team · Leadership"** (decision 2026-09-02). Their routes and guards live on
-untouched and they re-enter the menu when their sources land; plain text on
-purpose, so the gated-absence tests stay clean.
+`MISSION_LABELS`) were deleted with the old dashboard. Book of Business
+(Clients) and Team (Standing) are **gated placeholder rows**: each carries
+honest "source not connected" copy, keeps its original route and guard, and
+fills in when its source lands. Leadership (Standing) is a normal gated row
+to its live surface.
+The old plain-text "Coming online" footer is gone (decision 2026-09-02,
+second pass).
+
+Menu order within each group:
+
+| Group | Rows, in menu order |
+|---|---|
+| Today | Dashboard (`/portal`) · Calls (`/portal/calls`) · Announcements (`/portal/announcements`) · Radio (`/portal/music`) |
+| Clients | Callback Queue (`/portal/calls?tab=voicemail`) · Book of Business (`/portal/book`, placeholder) |
+| Selling | Training · Script Vault (`/portal/scripts`) · Quoter · Marketplace (`/portal/shop`) · Tool Directory (`/portal/tools`) · Aetna carrier portal (external) · Ethos carrier portal (external) · SureLC ×3 (external) |
+| Standing | My Stats · Leaderboard · Team (`/portal/team`, placeholder) · Leadership (`/portal/leadership`, live) · Commission Schedule (`/portal/commission`) · Library (`/portal/library`) |
+| Administration | Pay Rates · Members · Audit (founder only) · Command Center (Command Center set) · Operations Deck (`/portal/gallery`) |
 
 ## The dashboard (rebuilt 2026-09-02 — founder's three blocks)
 
@@ -36,6 +63,10 @@ assembly in `app/portal/dashboard-data.ts` and week arithmetic in
 platform holds for the signed-in member; a metric with no source says
 "source pending", and an unreadable table says so (`readRows` fail-closed) —
 never a zero, never an invented value.
+
+Under the welcome sits a one-line, role-aware home framing line — a
+role-specific orientation sentence, derived from the member's role only. It
+introduces no new data source.
 
 | Block | What it shows | Data source |
 |---|---|---|
@@ -52,29 +83,44 @@ guarded route.
 
 ## Surface inventory — file, guard, data source, plug-in step
 
-### Work
+### Today
 | Surface | Folder | Guard | Data source | To inject data |
 |---|---|---|---|---|
-| Dashboard | `app/portal/page.tsx` | `dashboard.view.self` | see the block table above | calls live; commitment pends 0013; the rest pend source decisions |
-| Training | `app/portal/training/` | `dashboard.view.self` | `library.ts` — HUMAN-APPROVED, byte-verbatim pinned | new scripts land as new approved slots in `library.ts`; the STEP/SCRIPT:/PURPOSE: format self-highlights; tests pin byte-fidelity |
-| Calls | `app/portal/calls/` | `calls.answer` (review areas `calls.review`) | D1 `inbound_voice_calls` / `voice_callback_tasks` / `dialer_transfers` + R2 recordings | SignalWire webhooks + dialer ingest (E7 counsel gate applies to recording) |
-| Script Vault | `app/portal/scripts/` | `scripts.manage` | pending import | governed script import |
-| My Stats | `app/portal/stats/` | `dashboard.view.self` (self-scoped query) | D1 `dialer_transfers` per `agent_email` | fills itself when call traffic flows |
-| Leaderboard | `app/portal/leaderboard/` | `dashboard.view.self` | same | same — no manual entry exists |
+| Dashboard | `app/portal/page.tsx` | `dashboard.view.self` | see the block table above; the role-aware framing line reads the member's role only | calls live; commitment pends 0013; the rest pend source decisions |
+| Calls | `app/portal/calls/` | `calls.answer` (review areas `calls.review`) | D1 `inbound_voice_calls` / `voice_callback_tasks` / `dialer_transfers` + R2 recordings. The founder-gated Collab Dialer carries a temporary, clearly-labelled external link, **"Open Script Library (Temporary Hybrid)"**, to the canonical Google Doc `my script`: opens in a new tab, stores nothing, triggers no call, dial or recording. Script Vault remains the in-product copy | SignalWire webhooks + dialer ingest (E7 counsel gate applies to recording) |
+| Announcements | `app/portal/announcements/` | `dashboard.view.self` | curated in-file | edit page content |
+| Radio | `app/portal/music/` | `dashboard.view.self` | R2 `site-creator-r2` under `music/` | upload via the portal (owner) |
 
-### Resources
+### Clients
 | Surface | Folder / link | Guard | Data source | To inject data |
 |---|---|---|---|---|
-| Announcements | `app/portal/announcements/` | `dashboard.view.self` | curated in-file | edit page content |
-| Library | `app/portal/library/` | `dashboard.view.self` | curated in-file | edit page content |
-| Commission Schedule | `app/portal/commission/` (+ `document/`) | `dashboard.view.self` | `document/schedule.html` baked into the bundle | replace that HTML (keep `commission-site/index.html` — the public copy — byte-identical) |
-| Radio | `app/portal/music/` | `dashboard.view.self` | R2 `site-creator-r2` under `music/` | upload via the portal (owner) |
-| Operations Deck | `app/portal/gallery/` | `dashboard.view.self` | curated portraits + Inkbox publish | — |
-| Exchange | `app/portal/shop/` | `dashboard.view.self` | live (priced menu) | — |
+| Callback Queue | `/portal/calls?tab=voicemail` — the existing Calls voicemail tab, not a new route | `calls.answer` | D1 `voice_callback_tasks` joined to `inbound_voice_calls` (same scoping as the Calls page) | fills itself when voicemail traffic flows |
+| Book of Business | `app/portal/book/` — gated PLACEHOLDER row with honest "source not connected" copy | `book.view.self` | none connected (E3 sources pending) | route and guard unchanged; fills in when E3 sources land |
+
+### Selling
+| Surface | Folder / link | Guard | Data source | To inject data |
+|---|---|---|---|---|
+| Training | `app/portal/training/` | `dashboard.view.self` | `library.ts` — HUMAN-APPROVED, byte-verbatim pinned | new scripts land as new approved slots in `library.ts`; the STEP/SCRIPT:/PURPOSE: format self-highlights; tests pin byte-fidelity |
+| Script Vault | `app/portal/scripts/` | `scripts.manage` | 18 sections imported from the canonical Google Doc `my script` (id `1vV2_B6xix29g-k-IVpXZR5AcTcyjhjlx4S-tJca97WE`) into `app/portal/scripts/library.ts`, in the doc's tab order; every section is labelled DRAFT / LICENSED AND COMPLIANCE REVIEW REQUIRED; bodies are the verbatim export with only markdown backslash-escapes decoded; the page renders them with presentation-only formatting and a byte-fidelity test | a human re-imports from the doc; never AI-edited |
 | Quoter | `app/portal/quoter/` | `book.view.self` | client-side calculator (no persistence) | — |
-| SureLC ×3 (external) | NAV links → surancebay OAuth (owner's exact links, 2026-08-18) | `dashboard.view.self` | — | gaId 505 = labeled Heartland (owner to confirm), 862 = Brenda Daly, 323 = Altura of America. One entry per upline, never a shared page |
-| Reagan AI (external) | NAV link → reagan.ai agent portal | `dashboard.view.self` | — | sign in there |
+| Marketplace (was "Exchange") | `app/portal/shop/` — label-only rename, route unchanged | `dashboard.view.self` | live (priced menu) | — |
 | **Tool Directory** | `app/portal/tools/` | `dashboard.view.self` | curated in-file `TOOL_CATEGORIES` | THE home for every external tool that doesn't earn a menu row: carrier portals, leads & CRM, quoting, team docs, utilities. Adding a tool = one entry in the array |
+| Aetna carrier portal (external) | NAV link → `https://www.aetna.com/aimmanageaccount/login` | `dashboard.view.self` | — | sign in there; new tab, `rel="noopener noreferrer"`, stores nothing, no carrier-affiliation claim |
+| Ethos carrier portal (external) | NAV link → `https://agents.ethoslife.com/login` | `dashboard.view.self` | — | sign in there; new tab, `rel="noopener noreferrer"`, stores nothing, no carrier-affiliation claim |
+| SureLC ×3 (external) | NAV links → surancebay OAuth (owner's exact links, 2026-08-18; unchanged) | `dashboard.view.self` | — | gaId 505 = labeled Heartland (owner to confirm), 862 = Brenda Daly, 323 = Altura of America. One entry per upline, never a shared page |
+
+External rows open in a new tab with `rel="noopener noreferrer"`, store
+nothing, and make no claim of carrier affiliation.
+
+### Standing
+| Surface | Folder | Guard | Data source | To inject data |
+|---|---|---|---|---|
+| My Stats | `app/portal/stats/` | `dashboard.view.self` (self-scoped query) | D1 `dialer_transfers` per `agent_email` | fills itself when call traffic flows |
+| Leaderboard | `app/portal/leaderboard/` | `dashboard.view.self` | same | same — no manual entry exists |
+| Team | `app/portal/team/` — gated placeholder row | `team.view` | none connected (model pending) | route and guard unchanged; fills in when the model lands |
+| Leadership | `app/portal/leadership/` | `leadership.view.all` | the live Leadership surface (playbook and leadership view) | route and guard unchanged; a normal gated row, not a placeholder |
+| Commission Schedule | `app/portal/commission/` (+ `document/`) | `dashboard.view.self` | `document/schedule.html` baked into the bundle | replace that HTML (keep `commission-site/index.html` — the public copy — byte-identical) |
+| Library | `app/portal/library/` | `dashboard.view.self` | curated in-file | edit page content |
 
 ### Administration
 | Surface | Folder | Guard | Data source |
@@ -83,23 +129,24 @@ guarded route.
 | Members | `app/portal/members/` | `members.view` / writes `members.manage` | D1 `portal_members` |
 | Audit | `app/portal/audit/` | founder only | D1 `audit_events` (append-only) |
 | Command Center | `app/portal/command/` | Command Center set (founder + named helpers, A13) | curated in-file |
+| Operations Deck | `app/portal/gallery/` | `dashboard.view.self` | curated portraits + Inkbox publish |
 
 ### Live routes without a menu entry (guarded as ever; the menu hides doors, never rooms)
 | Route | Why unlisted | Guard |
 |---|---|---|
-| `/portal/book` | demoted stub — named in the "Coming online" footer until E3 sources land | `book.view.self` |
-| `/portal/team` | demoted stub — same footer, pending model | `team.view` |
-| `/portal/leadership` | demoted stub — same footer, pending sources | `leadership.view.all` |
 | `/portal/leadtech` | dormant integration (E7b) — activates with `LEADTECH_API_KEY` | `leadership.view.all` |
 | `/portal/retreaver` | dormant — needs `RETREAVER_API_KEY` + `RETREAVER_COMPANY_ID` | `leadership.view.all` |
 | `/portal/twilio` | dormant — needs `TWILIO_ACCOUNT_SID` + `TWILIO_AUTH_TOKEN` | `leadership.view.all` |
 | `/portal/investigator` | deliberately unlisted — reached via the menu system dot, founder only | founder only |
 | `/portal/checkin` | not a page — the commitment panel's POST target (see dashboard section) | capability + self-scope |
 
+`/portal/book`, `/portal/team` and `/portal/leadership` left this table on
+2026-09-02 (second pass): they are now listed in the menu as gated
+placeholder rows, guards unchanged.
+
 ### Named but not yet built (owner to define)
 | Name (as spoken) | Status |
 |---|---|
-| "Reagan AI" / "Ringy AI"(?) | awaiting the owner's definition — what it is decides its category (API tool link vs. built surface). Do NOT build until defined |
 | Additional SureLC uplines | awaiting each upline's branded link; pattern defined above |
 
 ## The rules that keep organization honest when plugging in

@@ -492,18 +492,25 @@ test("Training is guarded, ordered at the top of Work, and stays server-only", a
     "utf8",
   );
 
-  // The order pin used to read "Training above Book of Business". Book left
-  // the menu in the 2026-09-02 IA consolidation (its route survives, guarded,
-  // reached from the dashboard's Book of Business tile), so that half of the
-  // pin died with the entry — this commit says so. The pin is re-anchored,
-  // not deleted: Training must still exist in NAV and still sit above the
-  // next working surface, Calls, so it stays the first thing after the
-  // identity row rather than drifting down the menu unmeasured.
+  // The order pin has moved twice, and says so each time. It first read
+  // "Training above Book of Business", then "Training above Calls" when the
+  // 2026-09-02 consolidation put both in one Work group. The five-group IA
+  // (work order 1A, same day) puts Calls in Today and Training in Selling, so
+  // the two are no longer in one group and their relative array position
+  // means nothing. Re-anchored, not deleted: Training must still exist in NAV,
+  // must be assigned to Selling, and must be the FIRST row of Selling — above
+  // the Script Vault — so it stays the first thing an agent sees when they
+  // open the group they train in.
   const trainingNav = navigation.indexOf('href: "/portal/training"');
-  const callsNav = navigation.indexOf('href: "/portal/calls"');
+  const scriptsNav = navigation.indexOf('href: "/portal/scripts"');
   assert.ok(trainingNav >= 0, "Training is missing from portal navigation");
-  assert.ok(callsNav >= 0, "Calls is missing from portal navigation");
-  assert.ok(trainingNav < callsNav, "Training must stay above Calls in the Work group");
+  assert.ok(scriptsNav >= 0, "Script Vault is missing from portal navigation");
+  assert.ok(trainingNav < scriptsNav, "Training must stay the first row of Selling, above the Script Vault");
+  assert.match(
+    navigation.slice(trainingNav, scriptsNav),
+    /group: "Selling"/,
+    "Training must be assigned to the Selling group",
+  );
   assert.match(
     page,
     /requireCapability\("dashboard\.view\.self", "\/portal\/training"\)/,
@@ -1561,15 +1568,28 @@ test("the dock and menu stay where the founder put them", async () => {
       "approved — a thumb must be able to land on every row of the only navigation surface",
   );
 
-  // Structure: three groups, this order. Read from the source of truth rather
-  // than from rendered HTML, so it holds for every role's filtered view.
+  // Structure: FIVE groups, this order (Dispatch work order 1A, 2026-09-02;
+  // the three-group pin this replaces is re-anchored, not deleted). Read from
+  // the source of truth rather than from rendered HTML, so it holds for every
+  // role's filtered view.
   const components = await readFile(new URL("../app/portal/components.tsx", import.meta.url), "utf8");
   const declared = components.match(/const NAV_GROUPS = \[([^\]]+)\]/);
   assert.ok(declared, "NAV_GROUPS has been renamed or restructured — the menu's section list is no longer readable");
+  const groups = declared[1].match(/"([^"]+)"/g)?.map((s) => s.slice(1, -1));
   assert.deepEqual(
-    declared[1].match(/"([^"]+)"/g)?.map((s) => s.slice(1, -1)),
-    ["Work", "Resources", "Administration"],
-    "the menu's three sections are the ones the founder approved and the ones PLATFORM-MAP.md documents",
+    groups,
+    ["Today", "Clients", "Selling", "Standing", "Administration"],
+    "the menu's five sections are the ones Dispatch ordered and the ones PLATFORM-MAP.md documents",
+  );
+  // Every group carries a subtitle, and the subtitle table is keyed by the
+  // same five names — a sixth group cannot be added without a subtitle, and a
+  // subtitle cannot be orphaned by renaming a group.
+  const subtitles = components.match(/const NAV_GROUP_SUBTITLES: Record<NavGroup, string> = \{([^}]+)\}/);
+  assert.ok(subtitles, "NAV_GROUP_SUBTITLES must stay a Record keyed by NavGroup");
+  assert.deepEqual(
+    [...subtitles[1].matchAll(/^\s*(\w+): "([^"]+)",?$/gm)].map((m) => m[1]),
+    groups,
+    "each of the five groups carries exactly one subtitle, in group order",
   );
 
   // A grid that grows must be told where to put the surplus. The menu's
@@ -1999,4 +2019,308 @@ test("week arithmetic holds across year boundaries and Sundays", async () => {
   assert.match(isoWeekKey(now), /^\d{4}-W\d{2}$/);
   assert.match(isoWeekStart(now), /^\d{4}-\d{2}-\d{2}$/);
   assert.equal(isoWeekKey(now), isoWeekKey(new Date(`${isoWeekStart(now)}T00:00:00Z`)));
+});
+
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Five-group IA, carrier portals, lead-portal removal, Marketplace label, the
+ * Script Vault import, and the Dialer's temporary bridge — source-level pins
+ * (Dispatch work order 1A/1B, 2026-09-02). Runtime counterparts live in
+ * portal-authorization.test.mjs.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+async function readTree(dir, exts) {
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const out = [];
+  const walk = (d) => {
+    for (const entry of readdirSync(d)) {
+      const full = join(d, entry);
+      if (statSync(full).isDirectory()) walk(full);
+      else if (exts.some((ext) => entry.endsWith(ext))) out.push([full, readFileSync(full, "utf8")]);
+    }
+  };
+  walk(dir);
+  return out;
+}
+
+test("the retired lead-portal link is gone from every source file, every test, and every asset", async () => {
+  const { fileURLToPath } = await import("node:url");
+  const files = [
+    ...(await readTree(fileURLToPath(new URL("../app", import.meta.url)), [".ts", ".tsx", ".css"])),
+    ...(await readTree(fileURLToPath(new URL("../public", import.meta.url)), [".js", ".html", ".json", ".svg"])),
+    ...(await readTree(fileURLToPath(new URL("../scripts", import.meta.url)), [".mjs"])),
+    ...(await readTree(fileURLToPath(new URL("../tests", import.meta.url)), [".mjs"])),
+  ];
+  // The needle is assembled so this file cannot match itself.
+  const needle = new RegExp("re" + "agan", "i");
+  const hits = files.filter(([, src]) => needle.test(src)).map(([path]) => path);
+  assert.deepEqual(hits, [], `the retired lead portal must have no entry, label, icon, relabel, link, or test pin: ${hits.join(", ")}`);
+});
+
+test("the carrier portals are plain login links in Selling, and the long Aetna query URL exists nowhere", async () => {
+  const components = await readFile(new URL("../app/portal/components.tsx", import.meta.url), "utf8");
+  const nav = components.slice(components.indexOf("const NAV: readonly NavItem[]"), components.indexOf("function visibleNav("));
+
+  for (const [label, href] of [
+    ["Aetna — carrier portal", "https://www.aetna.com/aimmanageaccount/login"],
+    ["Ethos — carrier portal", "https://agents.ethoslife.com/login"],
+  ]) {
+    const at = nav.indexOf(`href: "${href}"`);
+    assert.ok(at >= 0, `${label} must link to exactly ${href}`);
+    const entry = nav.slice(at, nav.indexOf("},", at));
+    assert.match(entry, new RegExp(`label: "${label}"`), `${label} must be labelled as a carrier portal`);
+    assert.match(entry, /group: "Selling"/, `${label} belongs in Selling`);
+    assert.match(entry, /capability: "dashboard\.view\.self"/, `${label} reuses the existing external-link guard, unwidened`);
+    assert.match(entry, /external: true/, `${label} must take the external-anchor path (new tab, noopener noreferrer)`);
+    assert.match(entry, /No affiliation implied/, `${label} must not claim carrier affiliation`);
+  }
+  // The external-anchor path itself: one shape for every external item.
+  assert.match(
+    components,
+    /item\.external \? \(\s*<a[\s\S]{0,400}target="_blank"\s+rel="noopener noreferrer"/,
+    "external menu items must open in a new tab with rel=noopener noreferrer",
+  );
+
+  // The long Aetna identity-transaction URL supplied during design must
+  // appear nowhere: source, tests, assets, scripts. The needle is assembled
+  // so this assertion cannot match its own text.
+  const { fileURLToPath } = await import("node:url");
+  const everywhere = [
+    ...(await readTree(fileURLToPath(new URL("../app", import.meta.url)), [".ts", ".tsx", ".css", ".html"])),
+    ...(await readTree(fileURLToPath(new URL("../public", import.meta.url)), [".js", ".html", ".json"])),
+    ...(await readTree(fileURLToPath(new URL("../scripts", import.meta.url)), [".mjs"])),
+    ...(await readTree(fileURLToPath(new URL("../tests", import.meta.url)), [".mjs"])),
+  ];
+  const forbidden = new RegExp("identity" + "Transaction", "i");
+  const leaks = everywhere.filter(([, src]) => forbidden.test(src)).map(([path]) => path);
+  assert.deepEqual(leaks, [], `the long Aetna query URL must not exist anywhere: ${leaks.join(", ")}`);
+  // And no Aetna URL other than the plain login page, anywhere in app/.
+  const aetnaUrls = new Set();
+  for (const [, src] of everywhere) {
+    for (const m of src.matchAll(/https?:\/\/[^\s"'`<>]*aetna\.com[^\s"'`<>]*/gi)) aetnaUrls.add(m[0]);
+  }
+  assert.deepEqual([...aetnaUrls], ["https://www.aetna.com/aimmanageaccount/login"], "only the plain Aetna login URL may appear");
+});
+
+test("Marketplace is the one label for /portal/shop, and the Coming-online footer is retired", async () => {
+  const components = await readFile(new URL("../app/portal/components.tsx", import.meta.url), "utf8");
+  const upgrade = await readFile(new URL("../app/portal/navigation-upgrade.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  const shop = components.slice(components.indexOf('href: "/portal/shop"'));
+  assert.match(shop.slice(0, 400), /label: "Marketplace"/, "the shop row is labelled Marketplace server-side");
+  assert.doesNotMatch(components, /label: "Exchange"/, "no menu row may still be labelled Exchange");
+  assert.doesNotMatch(components, /GO_LABELS/, "the go-row no longer needs a label override — the label is the label");
+  assert.doesNotMatch(upgrade, /Marketplace"\)/, "no client-side relabel remains; the server renders the final label");
+  // The route is unchanged: label-only.
+  assert.match(components, /href: "\/portal\/shop"/, "the Marketplace route stays /portal/shop");
+
+  // The footer is gone — and its former stubs are real, gated rows now.
+  assert.doesNotMatch(components, /portal-menu-coming|Coming online/, "the Coming-online footer must be retired");
+  assert.doesNotMatch(css, /\.portal-menu-coming/, "the footer's CSS rule goes with it");
+  for (const [href, capability] of [
+    ["/portal/book", "book.view.self"],
+    ["/portal/team", "team.view"],
+  ]) {
+    const at = components.indexOf(`href: "${href}"`);
+    assert.ok(at >= 0, `${href} must be a menu row`);
+    const entry = components.slice(at, components.indexOf("},", at));
+    assert.match(entry, new RegExp(`capability: "${capability.replace(/\./g, "\\.")}"`), `${href} keeps its guard`);
+    assert.match(entry, /state: "pending"/, `${href} is a placeholder row`);
+    assert.match(entry, /stateLabel: "Source not connected"/, `${href} says honestly that its source is not connected`);
+  }
+  // Leadership is a live surface (Dispatch revision 2026-09-02): a normal
+  // gated Standing row, never a placeholder, guard unchanged.
+  {
+    const at = components.indexOf('href: "/portal/leadership"');
+    assert.ok(at >= 0, "/portal/leadership must be a menu row");
+    const entry = components.slice(at, components.indexOf("},", at));
+    assert.match(entry, /capability: "leadership\.view\.all"/, "Leadership keeps its guard");
+    assert.match(entry, /group: "Standing"/, "Leadership sits in Standing");
+    assert.match(entry, /state: "live"/, "Leadership links the live surface, not a placeholder");
+    assert.doesNotMatch(entry, /Source not connected/, "Leadership must not be labelled as unconnected");
+  }
+  // The Callback Queue is a door to the existing Calls voicemail tab, gated
+  // on the book so roles without one lose the whole Clients group.
+  const queue = components.slice(components.indexOf('href: "/portal/calls?tab=voicemail"'));
+  assert.match(queue.slice(0, 400), /label: "Callback Queue"[\s\S]*capability: "book\.view\.self"[\s\S]*group: "Clients"/);
+  // Empty-group suppression is the mechanism that keeps a suppressed group
+  // from rendering a bare heading; pin the line that does it.
+  assert.match(components, /if \(groupItems\.length === 0\) return null;/, "fail-closed empty-group suppression must stay");
+});
+
+test("the route guards are invariant: same call sites, same capabilities, same routes as before the IA change", async () => {
+  // Work order 1A/1B forbids any access-guard change. This is the evidence:
+  // every guard call in app/ (page, route, and the definitions in access.ts),
+  // with its literal arguments, pinned as a sorted list. A widened guard, a
+  // dropped guard, a moved route, or a new guarded surface changes this list
+  // and fails here — and MUST be reviewed as a governance change, not a nit.
+  const { fileURLToPath } = await import("node:url");
+  const { relative } = await import("node:path");
+  const appDir = fileURLToPath(new URL("../app", import.meta.url));
+  const root = fileURLToPath(new URL("..", import.meta.url));
+  const actual = [];
+  for (const [path, src] of await readTree(appDir, [".ts", ".tsx"])) {
+    for (const m of src.matchAll(/\b(requireCapability|requireFounder|requireCommandCenter)\(([\s\S]*?)\)/g)) {
+      const literals = [...m[2].matchAll(/"([^"]*)"/g)].map((x) => x[1]);
+      actual.push(`${relative(root, path).replace(/\\/g, "/")}|${m[1]}|${literals.join(",")}`);
+    }
+  }
+  actual.sort();
+  assert.deepEqual(actual, [
+    "app/go/desk/route.ts|requireFounder|/go/desk,go.desk",
+    "app/go/hq/route.ts|requireFounder|/go/hq,go.hq",
+    "app/go/routines/route.ts|requireFounder|/go/routines,go.routines",
+    "app/portal/access.ts|requireCapability|",
+    "app/portal/access.ts|requireCommandCenter|command.view",
+    "app/portal/access.ts|requireFounder|audit.view,audit.view",
+    "app/portal/announcements/page.tsx|requireCapability|dashboard.view.self,/portal/announcements",
+    "app/portal/audit/page.tsx|requireFounder|/portal/audit",
+    "app/portal/book/page.tsx|requireCapability|book.view.self,/portal/book",
+    "app/portal/calls/page.tsx|requireCapability|calls.answer,/portal/calls",
+    "app/portal/calls/review/[id]/page.tsx|requireCapability|calls.review",
+    "app/portal/calls/review/page.tsx|requireCapability|calls.review,/portal/calls/review",
+    "app/portal/checkin/route.ts|requireCapability|dashboard.view.self,/portal/checkin",
+    "app/portal/command/cloud/page.tsx|requireCommandCenter|/portal/command/cloud,command.cloud",
+    "app/portal/command/lodge/page.tsx|requireCapability|dashboard.view.self,/portal/command/lodge",
+    "app/portal/command/page.tsx|requireCommandCenter|/portal/command,command.view",
+    "app/portal/command/personal/page.tsx|requireFounder|/portal/command/personal,command.personal.view",
+    "app/portal/commission/document/route.ts|requireCapability|dashboard.view.self,/portal/commission/document",
+    "app/portal/commission/page.tsx|requireCapability|dashboard.view.self,/portal/commission",
+    "app/portal/dialer/page.tsx|requireFounder|/portal/dialer,calls.dial",
+    "app/portal/gallery/page.tsx|requireCapability|dashboard.view.self,/portal/gallery",
+    "app/portal/inbound/page.tsx|requireCapability|calls.answer,/portal/inbound",
+    "app/portal/investigator/page.tsx|requireFounder|/portal/investigator,investigator.view",
+    "app/portal/leaderboard/page.tsx|requireCapability|dashboard.view.self,/portal/leaderboard",
+    "app/portal/leadership/page.tsx|requireCapability|leadership.view.all,/portal/leadership",
+    "app/portal/leadtech/page.tsx|requireCapability|leadership.view.all,/portal/leadtech",
+    "app/portal/library/page.tsx|requireCapability|dashboard.view.self,/portal/library",
+    "app/portal/members/page.tsx|requireCapability|members.view,/portal/members",
+    "app/portal/music/page.tsx|requireCapability|dashboard.view.self,/portal/music",
+    "app/portal/page.tsx|requireCapability|dashboard.view.self,/portal",
+    "app/portal/pay-rates/page.tsx|requireCapability|leadership.view.all,/portal/pay-rates",
+    "app/portal/quoter/page.tsx|requireCapability|book.view.self,/portal/quoter",
+    "app/portal/retreaver/page.tsx|requireCapability|leadership.view.all,/portal/retreaver",
+    "app/portal/scripts/page.tsx|requireCapability|scripts.manage,/portal/scripts",
+    "app/portal/shop/page.tsx|requireCapability|dashboard.view.self,/portal/shop",
+    "app/portal/stats/page.tsx|requireCapability|dashboard.view.self,/portal/stats",
+    "app/portal/team/page.tsx|requireCapability|team.view,/portal/team",
+    "app/portal/tools/page.tsx|requireCapability|dashboard.view.self,/portal/tools",
+    "app/portal/training/page.tsx|requireCapability|dashboard.view.self,/portal/training",
+    "app/portal/twilio/page.tsx|requireCapability|leadership.view.all,/portal/twilio",
+  ], "a guard call site changed — this is an access-model change and needs its own review");
+
+  // The capability matrix itself is byte-stable across this change.
+  const access = await readFile(new URL("../app/portal/access.ts", import.meta.url), "utf8");
+  const matrix = access.slice(access.indexOf("const ROLE_CAPABILITIES"), access.indexOf("};", access.indexOf("const ROLE_CAPABILITIES")) + 2);
+  const { createHash } = await import("node:crypto");
+  assert.equal(
+    createHash("sha256").update(matrix).digest("hex"),
+    "baa0ca78051acfe2cbbb50501852a127f23c53ae337eeae93c6e8e2fd152e255",
+    "ROLE_CAPABILITIES changed — capabilities are governance, not a menu convenience",
+  );
+});
+
+test("the Script Vault library holds all 18 source tabs, in order, every one a labelled draft", async () => {
+  const { CALL_SCRIPTS, SCRIPT_STATUS_LABELS, SCRIPT_VAULT_SOURCE } = await import(
+    new URL("../app/portal/scripts/library.ts", import.meta.url).href
+  );
+  const { plainText, formatBody } = await import(new URL("../app/portal/scripts/format.ts", import.meta.url).href);
+  const { SCRIPT_VAULT_SOURCE_URL } = await import(new URL("../app/portal/scripts/source.ts", import.meta.url).href);
+
+  assert.deepEqual(
+    CALL_SCRIPTS.map((s) => s.title),
+    [
+      "Direct Carrier Question Intro",
+      "Client States Problem First Intro",
+      "Death Claim Discovery Intro",
+      "Non life Discovery Intro",
+      "Cancelation intro",
+      "Quote Shopper Intro for CS calls",
+      "Intro Tips and Tricks",
+      "Standard To Preferred",
+      "Term To perm",
+      "Cash Surrender",
+      "Loan Forgiveness",
+      "Death Claim Extension",
+      "Non Insurance Extension",
+      "Consolidation",
+      "Work Policy",
+      "Quote Shopper Angle",
+      "Three Option Close",
+      "Billing page",
+    ],
+    "the 18 sections must be the source document's 18 top-level tabs, in its order",
+  );
+  assert.deepEqual(CALL_SCRIPTS.map((s) => s.order), Array.from({ length: 18 }, (_, i) => i + 1));
+  assert.equal(new Set(CALL_SCRIPTS.map((s) => s.id)).size, 18, "ids are unique");
+  for (const script of CALL_SCRIPTS) {
+    assert.equal(script.status, "draft_compliance_review", `${script.title} must be a draft`);
+    assert.equal(script.sourceTab, script.title, `${script.title} must name its source tab`);
+    assert.ok(script.body.trim().length > 200, `${script.title} must carry its full body, not a stub`);
+    assert.ok(!script.body.includes("\\_"), `${script.title} must have the export's backslash escapes decoded`);
+    // The projection is stable and never longer than the body: markers are
+    // removed, never added.
+    const plain = plainText(script.body);
+    assert.ok(plain.length <= script.body.length && plain.length > 0);
+    assert.equal(plainText(plain), plain, "plainText is idempotent — a second pass changes nothing");
+    assert.equal(formatBody(script.body).length, script.body.split("\n").length, "one formatted line per source line");
+  }
+  assert.equal(SCRIPT_STATUS_LABELS.draft_compliance_review, "DRAFT / LICENSED AND COMPLIANCE REVIEW REQUIRED");
+  assert.equal(SCRIPT_VAULT_SOURCE.url, SCRIPT_VAULT_SOURCE_URL, "the server module and the client-safe URL module name the same document");
+  assert.equal(SCRIPT_VAULT_SOURCE.documentId, "1vV2_B6xix29g-k-IVpXZR5AcTcyjhjlx4S-tJca97WE");
+
+  // The formatter's contract on hand-picked shapes from the export.
+  assert.equal(plainText("**STEP 1 — Reassure**"), "STEP 1 — Reassure");
+  assert.equal(plainText("# **TERM TO PERM ANGLE**"), "TERM TO PERM ANGLE");
+  assert.equal(plainText("### SCRIPT"), "SCRIPT");
+  assert.equal(plainText("*PURPOSE:**  "), "*PURPOSE:**  ", "an unbalanced marker run is shown, not eaten");
+  // Every blank the export rendered as `$***` survives, in every body: the
+  // rule may never read a placeholder as a marker pair.
+  for (const script of CALL_SCRIPTS) {
+    for (const line of script.body.split("\n")) {
+      const blanks = (line.match(/\$\*\*\*/g) ?? []).length;
+      if (blanks) assert.equal((plainText(line).match(/\$\*\*\*/g) ?? []).length, blanks, `${script.title}: a $*** blank was eaten in: ${line}`);
+    }
+  }
+  assert.equal(
+    plainText("“Well ***, I'm assuming if you knew you could have **received a tax-free check for around $*** and still”"),
+    "“Well ***, I'm assuming if you knew you could have **received a tax-free check for around $*** and still”",
+    "a pair that would swallow a blank is not a pair",
+  );
+  assert.equal(plainText("• Secure their own **life insurance protection****  "), "• Secure their own **life insurance protection****  ", "a run touching another asterisk is left alone");
+  assert.equal(plainText("**(pause 3 seconds)**"), "(pause 3 seconds)");
+  assert.equal(plainText("*This reveals the issue* ***did not*** plain"), "This reveals the issue did not plain");
+
+  // Server-only: the bodies must never reach a client bundle.
+  const library = await readFile(new URL("../app/portal/scripts/library.ts", import.meta.url), "utf8");
+  const page = await readFile(new URL("../app/portal/scripts/page.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(`${library}\n${page}`, /^["']use client["'];/m);
+  assert.match(page, /requireCapability\("scripts\.manage", "\/portal\/scripts"\)/, "the Script Vault keeps its literal guard");
+  assert.match(page, /SCRIPT_STATUS_LABELS\[script\.status\]/, "every card renders the draft label from the one source of truth");
+  // Nothing in the vault may claim approval.
+  assert.doesNotMatch(library, /"approved"/, "no imported script may be marked approved");
+});
+
+test("the Dialer's temporary script bridge is a plain external anchor inside the founder-gated panel, and nothing more", async () => {
+  const dialer = await readFile(new URL("../app/portal/dialer/collab-dialer.tsx", import.meta.url), "utf8");
+  const source = await readFile(new URL("../app/portal/scripts/source.ts", import.meta.url), "utf8");
+  const workspace = await readFile(new URL("../app/portal/calls/workspace.tsx", import.meta.url), "utf8");
+
+  const anchor = dialer.match(/<a\s+className="dialer-button secondary dialer-script-bridge-link"[\s\S]*?<\/a>/);
+  assert.ok(anchor, "the bridge must render as a plain <a>");
+  assert.match(anchor[0], /href=\{SCRIPT_VAULT_SOURCE_URL\}/, "the bridge links the one canonical document constant");
+  assert.match(anchor[0], /target="_blank"/);
+  assert.match(anchor[0], /rel="noopener noreferrer"/);
+  assert.match(anchor[0], /Open Script Library \(Temporary Hybrid\)/, "the exact ordered label");
+  assert.doesNotMatch(anchor[0], /onClick|onPointer|onMouse|fetch\(|send\(|getUserMedia|originate|record/i, "the bridge has no handler and triggers nothing");
+  assert.match(dialer, /Temporary; external; stores nothing here\./, "the panel says it is temporary and external");
+  assert.match(source, /^export const SCRIPT_VAULT_SOURCE_URL =\s*\n?\s*"https:\/\/docs\.google\.com\/document\/d\/1vV2_B6xix29g-k-IVpXZR5AcTcyjhjlx4S-tJca97WE";/m);
+  assert.doesNotMatch(source, /^import /m, "the client-safe URL module imports nothing — never the script bodies");
+  // The only fetch in the dialer is the pre-existing originate call; the
+  // bridge added none.
+  assert.equal((dialer.match(/fetch\(/g) ?? []).length, 1, "the dialer still makes exactly one fetch — originate — and the bridge added none");
+  // The Dialer guard is untouched: the panel renders only under outboundAuthorized.
+  assert.match(workspace, /\{outboundAuthorized \? \(\s*<div className="calls-outbound-panel"[\s\S]*?<CollabDialer \/>/, "the CollabDialer stays inside the founder-authorized outbound panel");
 });

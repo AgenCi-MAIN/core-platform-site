@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import { ROLE_LABELS, requireCapability } from "./access";
+import type { PortalRole } from "../../db/schema";
 import { ANNOUNCEMENTS } from "./announcements/content";
 import { JarvisCommandPrompt } from "./command-prompt";
 import { readFaultCopy, type ReadFault } from "./read-guard";
@@ -76,6 +77,22 @@ function weekDelta(metric: Extract<MetricSource, { kind: "live" }>): {
   if (moved < 0) return { dir: "down", glyph: "▼", text: `${-moved} vs last week` };
   return { dir: "flat", glyph: "—", text: "even with last week" };
 }
+
+/**
+ * Role-aware home framing (work order 1A). One sentence per role naming the
+ * groups that role's menu actually opens — derived from the session's role
+ * only, never from a data source, so it can never assert a number. It orients;
+ * it grants nothing. The menu's capability filter is still the only thing
+ * that decides what a role sees.
+ */
+const HOME_FRAMING: Record<PortalRole, string> = {
+  owner: "Today, your clients, selling tools, standing, and the roster are all yours to open.",
+  admin: "Today, your clients, selling tools, and standing — plus the roster and the Script Vault.",
+  manager: "Today, your clients, selling tools, and your team's standing.",
+  reviewer: "Today and the selling tools — including the Script Vault you coach from.",
+  agent: "Answer, log the sale, check in. Your clients and your standing are one tap away.",
+  support: "Answer and follow up. Your standing is one tap away.",
+};
 
 const RANGES = [
   { key: "day", label: "Day" },
@@ -237,6 +254,9 @@ export default async function PortalDashboard({
             <p className="portal-command-lede">
               Signed in as <strong>{roleLabel}</strong> · every surface below is filtered by your
               server-enforced capabilities.
+            </p>
+            <p className="portal-home-framing" data-role={session.role}>
+              {HOME_FRAMING[session.role]}
             </p>
             <JarvisCommandPrompt />
           </div>
