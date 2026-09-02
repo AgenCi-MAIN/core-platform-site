@@ -2754,3 +2754,85 @@ is actually refusing them. Both facts point at the same next action, which
 only the founder can take: open Zero Trust, find out why the policy is not
 enforcing, and confirm `ray@inkbox.ai` is on the allow list before trimming
 the other three off it.
+
+## 20. Decision Log
+
+A structured record of bounded decisions, approved changes, and their verification.
+Each entry is dated and cross-references supporting evidence.
+
+### D-016. Worker D pack second Dispatch review; v0.2 redraft order issued — 2026-09-02 22:55
+
+**Decision:** Worker D — Local Observer proposal-only configuration pack v0.1.0-proposal has been reviewed by Dispatch. Five blocking defects and eight major defects have been confirmed by independent execution and code analysis. The pack is classified as DRAFT / NOT ACTIVE. M-Office has been assigned a bounded document-only redraft order (WD-V02-DRAFT-01) to produce v0.2 as an architecture/configuration specification.
+
+**Verdict:** READY FOR M-OFFICE (document-only redraft). No implementation, file rendering, or repository write authority granted.
+
+**Evidence:**
+- Lane 1 (Inventory): lane1-inventory.md, 100% source read, 42,472 bytes, no unresolved contradictions in blocking-defect list
+- Lane 2 (Technical): lane2-technical.md, independent JSON validation, regex compilation test, five consensus blocking defects confirmed by execution
+- Lane 3 (Governance): lane3-governance.md, authority map, role definitions, 22 one-line owner decisions extracted, M-Office definition reconciled per D-011
+- Dispatch return: DISPATCH-RETURN-worker-d-pack.md, sections A-H, bounded M-Office order WD-V02-DRAFT-01 attached
+
+**Blocking defects confirmed (Lane 2, execution):**
+1. Model output schema missing required fields (7 fields fail validation)
+2. Sample event fails schema validation on 5 hash fields
+3. Redaction layer has no input path defined
+4. Manifest hash coverage is hollow (no chain verification)
+5. Event TTL breaks audit chain (truncates without witness)
+
+**Major defects identified (Lane 2, code analysis):**
+1. OneDrive waiver option technically ineffective (does not stop sync)
+2. Sweep requires scheduled process; spec says process does not exist
+3. PAUSE state has no defined resume path
+4. Prior-frame hash undefined after drop decision
+5. Category mapping gaps (11 categories vs. 16 reported routes)
+6. Rate-limit exhaustion unhandled (no backoff or queue)
+7. Stale prior-frame use (timestamp check missing)
+8. Keyword rejection on benign text (RX-FIN-01 match sensitivity)
+
+**Next actions:**
+- M-Office produces v0.2 specification (document only, not executable)
+- Owner decides on 22 identified decision points before implementation
+- No code commit, deployment, or production change until v0.2 specification is approved and owner decisions are resolved
+
+**Timestamp:** 2026-09-02, 22:55 UTC
+
+---
+
+### D-017. PR #143 merged; R3 UI and tab consolidation landed — 2026-09-02 22:55
+
+**Decision:** Pull request #143 ("portal: group tabs, sidebar rail, Day Sheet home, Book of Business entry") has been merged to origin/main. This represents the R3 UI and tab consolidation work completed on `vera-central-control-system` branch.
+
+**Verdict:** LANDED. No production change, deployment, or migration application. Testing verified (161/161 local tests + CI verify passed).
+
+**Evidence:**
+- PR #143: github.com/AgenCi-MAIN/core-platform-site/pull/143
+- Base commit: 05d4817
+- Head commit (merged): d8ce0aa
+- Merge commit: 2b64a35 (both parents: 05d4817 and d8ce0aa)
+- Status: Merged to origin/main at 2026-09-02 22:55 UTC
+- CI job "verify": completed with success at 22:55:09 UTC
+- Local test run: 161/161 tests passing (Worker B report verified)
+
+**Scope (22 files, 4807 insertions, 832 deletions):**
+- `app/portal/tabs.tsx` (new)
+- `app/portal/sidebar-rail.tsx` (new)
+- `app/portal/day-sheet-home.tsx` (new)
+- `app/portal/book-of-business-entry.tsx` (new)
+- Supporting component and hook files
+- Test and type definition updates
+- No migrations applied
+- No production data changes
+- No scratchpad, evidence bundles, or binaries in tree
+
+**Exclusions recorded:**
+- No production deployment
+- No migration application (migration 0014 exists in source but not applied)
+- No Drizzle migration (drizzle 0005 exists in source but not applied)
+- No permission or membership changes
+- No database schema changes
+
+**Next actions:**
+- Founder decides whether to apply migrations 0014 and drizzle 0005 (separate action)
+- Weekly commitments table (migration 0013) and Book of Business tables (migration 0014) remain in source but unapplied on live database
+
+**Timestamp:** 2026-09-02, 22:55 UTC
