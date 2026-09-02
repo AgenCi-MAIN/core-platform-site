@@ -1,9 +1,12 @@
 import { and, asc, eq, isNull, or, sql } from "drizzle-orm";
 import { getDb } from "../../db";
 import {
+  bookCustomers,
+  bookPolicies,
   inboundVoiceCalls,
   dialerTransfers,
   voiceCallbackTasks,
+  voicePresence,
   weeklyCommitments,
 } from "../../db/schema";
 import { can, isFounder, type PortalSession } from "./access";
@@ -124,12 +127,81 @@ export async function loadProduction(session: PortalSession): Promise<Production
     };
   }
 
+  // Policies sold and new clients read the member's OWN book (db/sql/0014,
+  // owner direction 2026-09-02): a policy counts in the window it was
+  // entered, unless it was declined or withdrawn; a client counts in the
+  // window they were added. Until 0014 is applied the tables do not exist,
+  // which is the honest "pending" — not a fault, not a zero. Cost per policy
+  // stays pending: it divides ACTUAL spend, which still has no source.
+  const p = bookPolicies;
+  const policiesRead = await readRows("book_policies", () =>
+    getDb()
+      .select({
+        day: sql<number>`count(case when ${p.createdAt} >= ${todayStr} then 1 end)`,
+        week: sql<number>`count(case when ${p.createdAt} >= ${weekStartStr} then 1 end)`,
+        month: sql<number>`count(case when ${p.createdAt} >= ${monthStartStr} then 1 end)`,
+        prevWeek: sql<number>`count(case when ${p.createdAt} >= ${prevWeekStartStr} and ${p.createdAt} < ${weekStartStr} then 1 end)`,
+      })
+      .from(p)
+      .where(
+        and(
+          eq(p.memberId, session.memberId),
+          sql`${p.status} NOT IN ('declined','withdrawn')`,
+        ),
+      ),
+  );
+  const k = bookCustomers;
+  const clientsRead = await readRows("book_customers", () =>
+    getDb()
+      .select({
+        day: sql<number>`count(case when ${k.createdAt} >= ${todayStr} then 1 end)`,
+        week: sql<number>`count(case when ${k.createdAt} >= ${weekStartStr} then 1 end)`,
+        month: sql<number>`count(case when ${k.createdAt} >= ${monthStartStr} then 1 end)`,
+        prevWeek: sql<number>`count(case when ${k.createdAt} >= ${prevWeekStartStr} and ${k.createdAt} < ${weekStartStr} then 1 end)`,
+      })
+      .from(k)
+      .where(eq(k.memberId, session.memberId)),
+  );
+  const bookMetric = (read: { rows: WindowCounts[]; fault: ReadFault | null }): MetricSource => {
+    if (read.fault === "not_provisioned") return { kind: "pending" };
+    if (read.fault) return { kind: "fault", fault: read.fault };
+    const w = read.rows[0] ?? ZERO_WINDOWS;
+    return { kind: "live", day: w.day, week: w.week, month: w.month, prevWeek: w.prevWeek, faultless: true };
+  };
+
   return {
-    policiesSold: { kind: "pending" },
-    activeClients: { kind: "pending" },
+    policiesSold: can(session, "book.view.self") ? bookMetric(policiesRead) : { kind: "pending" },
+    activeClients: can(session, "book.view.self") ? bookMetric(clientsRead) : { kind: "pending" },
     costPerPolicy: { kind: "pending" },
     callsAnswered,
   };
+}
+
+export type PresenceState =
+  | { kind: "fault" }
+  | { kind: "live"; label: string; on: boolean; ready: "offline" | "busy" | "ready" };
+
+/**
+ * The member's OWN line state, from their one voice_presence row. The same
+ * read the Inbound Status panel makes, self-scoped; the dashboard's day
+ * header wears it as the presence pill.
+ */
+export async function loadPresence(session: PortalSession): Promise<PresenceState> {
+  const { rows, fault } = await readRows("voice_presence", () =>
+    getDb()
+      .select({ readyState: voicePresence.readyState, expiresAt: voicePresence.expiresAt })
+      .from(voicePresence)
+      .where(eq(voicePresence.memberId, session.memberId))
+      .limit(1),
+  );
+  if (fault) return { kind: "fault" };
+  const row = rows[0];
+  if (!row) return { kind: "live", label: "Offline", on: false, ready: "offline" };
+  const iso = row.expiresAt.includes("T") ? row.expiresAt : `${row.expiresAt.replace(" ", "T")}Z`;
+  const alive = iso > new Date().toISOString();
+  if (!alive || row.readyState === "offline") return { kind: "live", label: "Offline", on: false, ready: "offline" };
+  if (row.readyState === "busy") return { kind: "live", label: "On a call", on: true, ready: "busy" };
+  return { kind: "live", label: "Available for inbound", on: true, ready: "ready" };
 }
 
 export type CommitmentRow = { leadBudgetCents: number; callTarget: number };

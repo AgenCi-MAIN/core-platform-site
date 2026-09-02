@@ -55,19 +55,39 @@ Menu order within each group:
 | Standing | My Stats · Leaderboard · Team (`/portal/team`, placeholder) · Leadership (`/portal/leadership`, live) · Commission Schedule (`/portal/commission`) · Library (`/portal/library`) |
 | Administration | Pay Rates · Members · Audit (founder only) · Command Center (Command Center set) · Operations Deck (`/portal/gallery`) |
 
-## The dock, the rail, and the placement preference (Dispatch R3, 2026-09-02)
+## The group tabs, the rail, the dock, and the placement preference (owner direction 2026-09-02, on Dispatch R3)
 
-The fixed bottom dock carries **five stable destinations**, each opening one
-focused panel: Today (`/portal`), Book (`/portal/book`), Inbound
-(`/portal/inbound`), Team (`/portal/team`), Leadership (`/portal/leadership`).
-The tuple is `DOCK_DESTINATIONS` in `app/portal/components.tsx`; every entry
-is a menu row and passes the same capability filter as the menu before it
-renders, so a role without `team.view` has no Team slot rather than a
-disabled one. **Calls and Radio left the dock**: both stay in the Today group
-of the menu, and Calls is also the Inbound Status panel's own action. The
-founder's dock additionally shows an **inert "Dialer · Deferred" slot** — a
-span with no link and no handler, rendered only in the founder's markup —
-so the map stays honest about a parked surface without offering a door.
+**There is no popout menu.** The five groups are **tabs in the top bar** —
+Today, Clients, Selling, Standing, Administration — each a native `<details>`
+whose dropdown lists that group's rows (`PortalGroupTabs` in
+`app/portal/components.tsx`, container class `portal-menu`). A row appears
+only when it passes the capability filter, and a group with no surviving rows
+is not rendered at all, so a role never sees a heading for a place it cannot
+go. One tab is open at a time; an outside click or Escape shuts it (one
+inline script, no hydration, no storage, no network). The tabs sit inline
+with the brand at ≥1700px and take their own full-width row below that; on a
+phone the strip scrolls sideways and the dropdown pins to the viewport.
+
+The **direct destinations** are the five doors a member goes straight to:
+Today (`/portal`), Book of Business (`/portal/book`), Inbound Status
+(`/portal/inbound`), Team (`/portal/team`), Leadership (`/portal/leadership`)
+— the tuple `DOCK_DESTINATIONS`, filtered by the same capability check, so a
+role without `team.view` has no Team slot rather than a disabled one. They
+render in **two arrangements of the same doors**, and the stylesheet shows
+exactly one:
+
+- the **rail** (`aside.portal-rail`): a real full-height left sidebar —
+  brand, the Command opener (Command Center holders), the destinations, the
+  founder's inert "Dialer · Deferred" marker, and the account footer with
+  Sign out — shown when the stored placement is `rail` **and** the viewport
+  is at least 960px; the shell becomes a two-column grid;
+- the **dock** (`nav.portal-dock`): the fixed bottom strip — Command, the
+  destinations, the deferred marker — everywhere else.
+
+**Calls and Radio are not destinations**: both stay in the Today tab, and
+Calls is also the Inbound Status panel's own action. The deferred dialer is a
+span with no link and no handler, rendered only in the founder's markup, in
+both arrangements.
 
 **Navigation placement** is a member preference beside colour mode and
 performance mode, and it works exactly the way those two do:
@@ -77,7 +97,7 @@ performance mode, and it works exactly the way those two do:
 | Values | `dock` (default) · `rail` |
 | Storage | browser `localStorage`, key `core-portal-nav` — **local-only, never sent to the server, no table, no migration** |
 | Restored | by the pre-paint boot script in `app/portal-chrome.tsx`, onto `data-portal-nav`, so there is no flash |
-| Control | `app/nav-control.tsx`, in the topbar next to the theme control |
+| Control | `app/nav-control.tsx`, in the topbar next to the theme control (Dock · Rail) |
 | Rule | exactly `"rail"` opts in; anything else stored is the dock (`app/nav-placement.ts`, pinned in `tests/rendered-html.test.mjs`) |
 | Narrow widths | below **960px** the compact bottom dock is used whatever is stored — the rail rules live only inside `@media (min-width: 960px)`, and the control hides there |
 
@@ -87,24 +107,28 @@ private window starts from the default. That is how the colour mode already
 behaves; giving the preference a server-side home would be a new table and a
 migration, which is a governance decision this change does not make.
 
-## The dashboard (rebuilt 2026-09-02 — founder's three blocks)
+## The dashboard — "Your day" (Day Sheet, owner direction 2026-09-02, on the founder's three blocks)
 
 `app/portal/page.tsx`, guard `dashboard.view.self`, plus server-only data
-assembly in `app/portal/dashboard-data.ts` and week arithmetic in
-`app/portal/week.ts`. Every rendered number is computed from records the
-platform holds for the signed-in member; a metric with no source says
-"source pending", and an unreadable table says so (`readRows` fail-closed) —
-never a zero, never an invented value.
+assembly in `app/portal/dashboard-data.ts`, the Book's loader in
+`app/portal/book/data.ts`, and week arithmetic in `app/portal/week.ts`. Every
+rendered number is computed from records the platform holds for the signed-in
+member; a metric with no source says "source pending", and an unreadable
+table says so (`readRows` fail-closed) — never a zero, never an invented
+value.
 
-Under the welcome sits a one-line, role-aware home framing line — a
-role-specific orientation sentence, derived from the member's role only. It
-introduces no new data source.
+The page opens with the day header — weekday and date (America/Chicago), the
+serif "Your day", one welcome line carrying the role-aware framing sentence
+(derived from the member's role only), and the member's own **presence pill**
+(their `voice_presence` row: Available for inbound · On a call · Offline),
+which opens Calls, where availability is actually changed.
 
 | Block | What it shows | Data source |
 |---|---|---|
-| 1 — Production tiles (`portal-prod-grid`) | Policies sold · Calls answered · Active clients · Cost per policy, with day/week/month views and a week-over-week delta | Calls answered is LIVE: D1 `inbound_voice_calls` (answered, per member) + `dialer_transfers` (per agent email). The other three have **no source system** and render "source pending" |
+| 0 — Today's tiles (`portal-tiles`) | Answered · Missed · Callbacks due · Policies this week | Answered and Callbacks due LIVE (below); Missed has no source; Policies this week reads the member's own `book_policies` (pending until `db/sql/0014` is applied) |
+| 0b — Book · next actions (`portal-next`) | One card per thing that needs a hand today: the book's dated next actions (soonest three) and the callbacks owed (three); a card expands in place, the first opens by itself; "Show the rest of the book" | `book_customers` + `book_policies` (self-scoped) and `voice_callback_tasks` joined to `inbound_voice_calls` (own + shared queue) |
+| 1 — Production tiles (`portal-prod-grid`) | Policies sold · Calls answered · New clients · Cost per policy, with day/week/month views and a week-over-week delta | Calls answered is LIVE: D1 `inbound_voice_calls` (answered, per member) + `dialer_transfers` (per agent email). Policies sold and New clients are LIVE from the member's own book once 0014 is applied (policies entered in the window, not declined or withdrawn; customers added in the window) and "source pending" before. Cost per policy divides actual spend, which still has **no source** |
 | 2 — Weekly commitment (`portal-week-panel`) | The member's own stated plan: lead budget + call target, bars and pace line; visually a lighter, dashed panel because it is PLAN, never actual | D1 `weekly_commitments` — **table pending `db/sql/0013`** (see DEPLOYMENT.md); until applied the panel renders the honest not-provisioned copy. Written only by `POST /portal/checkin` (self-scoped, current week only, audited) |
-| 3 — Book of Business tile (`portal-bob-tile`) | Open voicemail callbacks (count + three soonest-due, masked numbers), links to the Calls page | D1 `voice_callback_tasks` joined to `inbound_voice_calls`, bootstrap-route scoping (member sees own + shared queue only) |
 
 `POST /portal/checkin` is the commitment panel's one writer: presence-route
 guard pattern, capability every member holds, `member_id` and `week_key`
@@ -118,7 +142,7 @@ guarded route.
 ### Today
 | Surface | Folder | Guard | Data source | To inject data |
 |---|---|---|---|---|
-| Dashboard | `app/portal/page.tsx` | `dashboard.view.self` | see the block table above; the role-aware framing line reads the member's role only | calls live; commitment pends 0013; the rest pend source decisions |
+| Dashboard ("Your day") | `app/portal/page.tsx` | `dashboard.view.self` | see the block table above; the role-aware framing line reads the member's role only | calls live; book tiles and cards live once 0014 is applied; commitment pends 0013; Missed and cost per policy pend source decisions |
 | Calls | `app/portal/calls/` | `calls.answer` (review areas `calls.review`) | D1 `inbound_voice_calls` / `voice_callback_tasks` / `dialer_transfers` + R2 recordings. The founder-gated Collab Dialer carries a temporary, clearly-labelled external link, **"Open Script Library (Temporary Hybrid)"**, to the canonical Google Doc `my script`: opens in a new tab, stores nothing, triggers no call, dial or recording. Script Vault remains the in-product copy | SignalWire webhooks + dialer ingest (E7 counsel gate applies to recording) |
 | Inbound Status | `app/portal/inbound/page.tsx` — the daily inbound panel (R3); formerly a redirect into Calls | `calls.answer` (unchanged) | the dashboard's self-scoped call and callback reads (`app/portal/dashboard-data.ts`) plus this member's own `voice_presence` row; team presence protected, not shown | fills itself with voice traffic; "Missed" and "Median answer" pend a timing source |
 | Announcements | `app/portal/announcements/` | `dashboard.view.self` | curated in-file | edit page content |
@@ -128,7 +152,7 @@ guarded route.
 | Surface | Folder / link | Guard | Data source | To inject data |
 |---|---|---|---|---|
 | Callback Queue | `/portal/calls?tab=voicemail` — the existing Calls voicemail tab, not a new route | `calls.answer` | D1 `voice_callback_tasks` joined to `inbound_voice_calls` (same scoping as the Calls page) | fills itself when voicemail traffic flows |
-| Book of Business | `app/portal/book/` — the customer and policy workspace (R3): `?view=summary\|customers\|policies`, `?customer=<id>` opens the level-two drawer (bottom sheet on phones). Still a "source not connected" menu row: no policy system exists | `book.view.self` | Customers = the member's own open voicemail callbacks, masked (`loadCallbacks`, self-scoped); policies, requirements, persistence, money = Not provisioned. The drawer opens only for an id inside that list — fail-closed, no second query | route and guard unchanged; policy fields fill in when E3 sources land |
+| Book of Business | `app/portal/book/` — the member's own customers and policies (owner direction 2026-09-02, on the R3 panel): `?view=summary\|customers\|policies`, `?customer=<id>` opens the level-two drawer (bottom sheet on phones) with the customer's policies, a status form per policy, an add-policy form, and the note. **Entry forms** on the Customers and Policies views (`app/portal/book/forms.tsx`) post to `POST /portal/book/customers` and `POST /portal/book/policies` (`intent=add\|status`). The menu row still says "Source not connected" because no system of record feeds it — the member's own hand does | page `book.view.self`; writes assert `book.edit.self` (owner, admin, manager, agent — exactly the roles holding view) | D1 `book_customers` + `book_policies` (`db/sql/0014`, **pending founder application**; until then the page says "not provisioned" and offers no form), read and written self-scoped by `member_id`; phone stored MASKED with last four only, policy number as last four only; the drawer opens only for an id inside the member's own loaded list — fail-closed, no second query. Callbacks stay the masked voice-table rows and are not matched to customers | apply 0014; a CRM or carrier feed later widens the tables by its own migration and review |
 
 ### Selling
 | Surface | Folder / link | Guard | Data source | To inject data |

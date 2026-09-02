@@ -70,6 +70,12 @@ const VOICE_SQL = sqlStatements(
 const CHECKIN_SQL = sqlStatements(
   readFileSync(join(ROOT, "db/sql/0013_weekly_commitments.sql"), "utf8"),
 );
+// The Book's tables (owner direction 2026-09-02) — applied by the Book tests
+// to their own throwaway D1 exactly as 0013 is; the live database takes 0014
+// by the founder's hand only.
+const BOOK_SQL = sqlStatements(
+  readFileSync(join(ROOT, "db/sql/0014_book_of_business.sql"), "utf8"),
+);
 const SEEDED_OWNER_EMAIL = "bankerrunners@gmail.com";
 
 /**
@@ -2809,7 +2815,7 @@ test("the grouped menu carries every working surface and respects capability fil
   const menuOf = (html) => {
     const start = html.indexOf('class="portal-menu"');
     assert.ok(start >= 0, "the grouped menu must render");
-    const end = html.indexOf("</aside>", start);
+    const end = html.indexOf("</nav>", start);
     return html.slice(start, end);
   };
 
@@ -2969,7 +2975,15 @@ test("an agent's dashboard shows no admin surface and no other member's data", a
   assert.match(html, /\$600\.00 budgeted/, "A's own stated budget must render");
   assert.match(html, /49 of 50 calls remaining/, "the calls bar must drain from A's own plan");
   assert.ok(html.includes("+1 (555) ***-0111"), "A's own callback must be listed");
-  assert.match(html, /1 customer needs a callback/, "A's queue holds exactly A's task");
+  // The Day Sheet home (owner direction 2026-09-02): the queue is a tile
+  // count and one next-action card per callback, so "exactly A's task" is
+  // the tile reading 1 and the one card carrying A's masked caller.
+  assert.match(
+    html,
+    /<span class="portal-tile-label">Callbacks due<\/span><strong class="portal-tile-value">1<\/strong>/,
+    "A's queue holds exactly A's task",
+  );
+  assert.match(html, /Return the call · due/, "the callback renders as a next-action card");
 
   // A's calls-answered tile counts A's records exactly — never B's.
   assert.match(html, /class="portal-prod-value">1</, "A answered exactly one call this week");
@@ -3688,7 +3702,7 @@ test("the command bar collapses without trapping keyboard focus", () => {
 function menuSlice(html) {
   const start = html.indexOf('class="portal-menu"');
   assert.ok(start >= 0, "the grouped menu must render");
-  return html.slice(start, html.indexOf("</aside>", start));
+  return html.slice(start, html.indexOf("</nav>", start));
 }
 
 /** Group labels in render order, read from the menu's own group headings. */
@@ -3832,7 +3846,8 @@ test("the five groups render in order, per role, and a group a role cannot use i
 
   // Role-aware home framing: one sentence, keyed by the session's own role.
   for (const role of ROLES) {
-    assert.match(pages[role], new RegExp(`<p class="portal-home-framing" data-role="${role}">`), `${role}: framing is keyed to the role`);
+    // A <span> inside the Day Sheet's welcome line (owner direction 2026-09-02); same class, same role key.
+    assert.match(pages[role], new RegExp(`<span class="portal-home-framing" data-role="${role}">`), `${role}: framing is keyed to the role`);
   }
   assert.match(pages.agent, /Answer, log the sale, check in\./, "the agent framing is the agent's");
   assert.doesNotMatch(pages.agent, /and the roster are all yours/, "the agent is not framed as an owner");
@@ -4063,87 +4078,238 @@ test("the navigation placement preference cannot reach the server or change what
   }
 });
 
-test("the Book opens a drawer only for a callback in the member's own list, and every view is a closed set", async () => {
+/** A form POST to a Book route, same-origin, as a browser would send it. */
+function bookPost(portal, identity, path, fields) {
+  return portal.mf.dispatchFetch(`http://localhost${path}`, {
+    method: "POST",
+    redirect: "manual",
+    body: new URLSearchParams(fields).toString(),
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      origin: "http://localhost",
+      ...identityHeaders(identity),
+    },
+  });
+}
+const clean = (html) => html.replaceAll("<!-- -->", "");
+
+test("before 0014 is applied the Book says not provisioned, offers no form, and refuses to write", async () => {
   const portal = await startPortal();
   try {
     for (const s of VOICE_SQL) await portal.db.prepare(s).run();
+    await portal.addMember("book-np@example.com", "agent");
+    const a = { subject: "subject-book-np", email: "book-np@example.com" };
+
+    const html = clean(await (await portal.get("/portal/book?view=customers", a)).text());
+    assert.match(html, /Book of Business is not provisioned/, "the missing table is named as not provisioned, never as empty");
+    assert.doesNotMatch(html, /action="\/portal\/book\/customers"/, "no form is offered whose POST must fail");
+    assert.doesNotMatch(html, /class="portal-drawer"/);
+
+    const res = await bookPost(portal, a, "/portal/book/customers", { display_name: "Pat Example" });
+    assert.equal(res.status, 303);
+    assert.equal(res.headers.get("location"), "/portal/book?view=customers&book=not_provisioned");
+    const policy = await bookPost(portal, a, "/portal/book/policies", { intent: "add", customer_id: "1", carrier: "C", product: "P", status: "applied" });
+    assert.equal(policy.status, 303);
+    assert.equal(policy.headers.get("location"), "/portal/book?view=policies&book=foreign", "no customer can be owned when the table is absent");
+
+    // The home says the same thing in its own words and shows no number.
+    const dash = clean(await (await portal.get("/portal", a)).text());
+    assert.match(dash, /book not provisioned/);
+    assert.match(dash, /Your day/);
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("the Book takes a member's own customers and policies, opens a drawer only for their own record, and never touches another member's", async () => {
+  const portal = await startPortal();
+  try {
+    for (const s of VOICE_SQL) await portal.db.prepare(s).run();
+    for (const s of BOOK_SQL) await portal.db.prepare(s).run();
     await portal.addMember("book-a@example.com", "agent");
     await portal.addMember("book-b@example.com", "agent");
+    await portal.addMember("book-support@example.com", "support");
     const idOf = async (email) => (await portal.db.prepare("SELECT id FROM portal_members WHERE email = ?").bind(email).first()).id;
     const aId = await idOf("book-a@example.com");
     const bId = await idOf("book-b@example.com");
-    const nowIso = new Date().toISOString();
-    const callback = async (provider, caller, assignedId) => {
-      await portal.db
-        .prepare(
-          `INSERT INTO inbound_voice_calls
-             (provider_call_id, line_type, called_number_masked, caller_number_masked,
-              routing_stage, status, started_at)
-           VALUES (?, 'shared', '+1 (555) ***-0000', ?, 'voicemail', 'voicemail', ?)`,
-        )
-        .bind(provider, caller, nowIso)
-        .run();
-      await portal.db
-        .prepare(
-          `INSERT INTO voice_callback_tasks (voice_call_id, assigned_member_id, status, due_at)
-           VALUES ((SELECT id FROM inbound_voice_calls WHERE provider_call_id = ?), ?, 'open', '2099-01-01 00:00:00')`,
-        )
-        .bind(provider, assignedId)
-        .run();
-      return (await portal.db.prepare("SELECT id FROM voice_callback_tasks WHERE voice_call_id = (SELECT id FROM inbound_voice_calls WHERE provider_call_id = ?)").bind(provider).first()).id;
-    };
-    const aTask = await callback("book-vm-a", "+1 (555) ***-0111", aId);
-    const bTask = await callback("book-vm-b", "+1 (555) ***-0666", bId);
     const a = { subject: "subject-book-a", email: "book-a@example.com" };
+    const b = { subject: "subject-book-b", email: "book-b@example.com" };
+    const support = { subject: "subject-book-support", email: "book-support@example.com" };
+    const count = async (table) => (await portal.db.prepare(`SELECT count(*) AS n FROM ${table}`).first()).n;
 
-    // Level one: A's list holds A's masked caller and not B's.
-    const list = await portal.get("/portal/book?view=customers", a);
-    assert.equal(list.status, 200);
-    const listHtml = await list.text();
-    assert.match(listHtml, /\+1 \(555\) \*\*\*-0111/, "A's own callback is listed, masked");
-    assert.doesNotMatch(listHtml, /\*\*\*-0666/, "B's personal callback is not in A's book");
-    // The shell's own drawer-era classes (portal-drawer-close, the fallback
-    // toggle) are always present; the record drawer is the exact class.
+    // Refused before parsing: anonymous (401), a signed-in POST with no
+    // Origin (403), and a role that holds no book (403, audited deny).
+    const anon = await bookPost(portal, null, "/portal/book/customers", { display_name: "Nobody" });
+    assert.equal(anon.status, 401);
+    const noOrigin = await portal.mf.dispatchFetch("http://localhost/portal/book/customers", {
+      method: "POST",
+      redirect: "manual",
+      body: "display_name=Nobody",
+      headers: { "content-type": "application/x-www-form-urlencoded", ...identityHeaders(a) },
+    });
+    assert.equal(noOrigin.status, 403, "a cross-origin form post is refused");
+    const denied = await bookPost(portal, support, "/portal/book/customers", { display_name: "Nobody" });
+    assert.equal(denied.status, 403);
+    assert.equal(await count("book_customers"), 0, "nothing was written by any refused post");
+    assert.ok(
+      (await portal.audit()).some((r) => r.action === "book.edit.self" && r.decision === "deny" && r.reason === "capability_not_held"),
+      "the support role's refusal is audited",
+    );
+
+    // A adds a customer. The forged member_id is ignored; the phone is
+    // stored MASKED and as its last four only; the state is normalised.
+    const add = await bookPost(portal, a, "/portal/book/customers", {
+      display_name: "Ada Client",
+      phone: "(555) 010-2299",
+      state: "tx",
+      note: "Prefers mornings",
+      member_id: String(bId),
+    });
+    assert.equal(add.status, 303);
+    const aCustomerId = Number(add.headers.get("location").match(/customer=(\d+)$/)[1]);
+    const stored = await portal.db
+      .prepare("SELECT member_id, display_name, phone_masked, phone_last4, state, note FROM book_customers WHERE id = ?")
+      .bind(aCustomerId)
+      .first();
+    assert.equal(stored.member_id, aId, "the row belongs to the session's own member");
+    assert.equal(stored.phone_masked, "***-***-2299");
+    assert.equal(stored.phone_last4, "2299");
+    assert.equal(stored.state, "TX");
+    assert.equal(stored.note, "Prefers mornings");
+    const customerDump = JSON.stringify((await portal.db.prepare("SELECT * FROM book_customers").all()).results);
+    assert.doesNotMatch(customerDump, /5550102299|010-2299|\(555\)/, "the full phone number is never stored");
+    const addB = await bookPost(portal, b, "/portal/book/customers", { display_name: "Bea Other" });
+    const bCustomerId = Number(addB.headers.get("location").match(/customer=(\d+)$/)[1]);
+
+    // Shapes the table would refuse are refused first, audited, and land
+    // back on the form with the flag — nothing written.
+    for (const bad of [
+      { display_name: "" },
+      { display_name: "x".repeat(81) },
+      { display_name: "Ok", phone: "123" },
+      { display_name: "Ok", state: "Texas" },
+      { display_name: "Ok", note: "n".repeat(501) },
+    ]) {
+      const r = await bookPost(portal, a, "/portal/book/customers", bad);
+      assert.equal(r.status, 303);
+      assert.equal(r.headers.get("location"), "/portal/book?view=customers&book=invalid", `refused: ${JSON.stringify(bad).slice(0, 40)}`);
+    }
+    assert.equal(await count("book_customers"), 2);
+
+    // A policy attaches only to A's own customer: B's id is foreign.
+    const foreign = await bookPost(portal, a, "/portal/book/policies", {
+      intent: "add", customer_id: String(bCustomerId), carrier: "Aetna", product: "Final expense", status: "applied",
+    });
+    assert.equal(foreign.headers.get("location"), "/portal/book?view=policies&book=foreign");
+    assert.equal(await count("book_policies"), 0);
+    const addPolicy = await bookPost(portal, a, "/portal/book/policies", {
+      intent: "add",
+      customer_id: String(aCustomerId),
+      carrier: "Aetna",
+      product: "Final expense",
+      policy_number: "AET-88812207",
+      status: "requirement",
+      premium: "64.50",
+      effective_on: "2026-09-01",
+      next_action: "Med records",
+      next_action_on: "2026-09-06",
+      member_id: String(bId),
+    });
+    assert.equal(addPolicy.status, 303);
+    assert.equal(addPolicy.headers.get("location"), `/portal/book?view=customers&customer=${aCustomerId}`);
+    const policy = await portal.db.prepare("SELECT id, member_id, customer_id, policy_last4, premium_cents, status FROM book_policies").first();
+    assert.equal(policy.member_id, aId);
+    assert.equal(policy.customer_id, aCustomerId);
+    assert.equal(policy.policy_last4, "2207", "only the last four characters of the policy number are kept");
+    assert.equal(policy.premium_cents, 6450, "money is integer cents");
+    assert.doesNotMatch(JSON.stringify((await portal.db.prepare("SELECT * FROM book_policies").all()).results), /88812207/);
+    for (const bad of [{ status: "sold" }, { effective_on: "2026-02-30" }, { premium: "1000000" }, { next_action_on: "tomorrow" }]) {
+      const r = await bookPost(portal, a, "/portal/book/policies", {
+        intent: "add", customer_id: String(aCustomerId), carrier: "C", product: "P", status: "applied", ...bad,
+      });
+      assert.equal(r.headers.get("location"), "/portal/book?view=policies&book=invalid", `refused: ${JSON.stringify(bad)}`);
+    }
+    assert.equal(await count("book_policies"), 1);
+
+    // A status change moves only the member's own policy. B naming A's
+    // policy id changes nothing and is told so.
+    const bMove = await bookPost(portal, b, "/portal/book/policies", { intent: "status", policy_id: String(policy.id), status: "in_force" });
+    assert.equal(bMove.headers.get("location"), "/portal/book?view=policies&book=foreign");
+    assert.equal((await portal.db.prepare("SELECT status FROM book_policies WHERE id = ?").bind(policy.id).first()).status, "requirement");
+    const aMove = await bookPost(portal, a, "/portal/book/policies", {
+      intent: "status", policy_id: String(policy.id), status: "in_force", customer_id: String(aCustomerId),
+    });
+    assert.equal(aMove.headers.get("location"), `/portal/book?view=customers&customer=${aCustomerId}`);
+    assert.equal((await portal.db.prepare("SELECT status FROM book_policies WHERE id = ?").bind(policy.id).first()).status, "in_force");
+
+    // Level one: A's list holds Ada and not Bea, masked, with the form offered.
+    const listHtml = clean(await (await portal.get("/portal/book?view=customers", a)).text());
+    assert.match(listHtml, /Ada Client/);
+    assert.doesNotMatch(listHtml, /Bea Other/, "B's customer is not in A's book");
+    assert.match(listHtml, /action="\/portal\/book\/customers"/, "the add-customer form is offered to a book holder");
     assert.doesNotMatch(listHtml, /class="portal-drawer"/, "no drawer without a customer id");
-    assert.match(listHtml, /class="portal-pill portal-pill-live">Live · masked</, "the list says what it is");
+    // Level one carries no contact detail at all — not even the masked number.
+    assert.doesNotMatch(listHtml, /2299/, "the list row shows no phone digits, masked or not");
 
-    // Level two: A's own id opens the drawer, a dialog region with a close link.
-    const own = await portal.get(`/portal/book?view=customers&customer=${aTask}`, a);
-    assert.equal(own.status, 200);
-    const ownHtml = await own.text();
+    // Level two: A's own id opens the drawer — a dialog region with the
+    // policy, its status form, and a close link back to the list.
+    const ownHtml = clean(await (await portal.get(`/portal/book?view=customers&customer=${aCustomerId}`, a)).text());
     const drawer = ownHtml.match(/<section class="portal-drawer"[\s\S]*?<\/section>/);
-    assert.ok(drawer, "A's own callback opens the drawer");
+    assert.ok(drawer, "A's own customer opens the drawer");
     assert.match(drawer[0], /role="dialog"/);
     assert.match(drawer[0], /aria-labelledby="book-customer-title"/);
-    assert.match(drawer[0], /\*\*\*-0111/);
+    assert.match(drawer[0], /Ada Client/);
+    assert.match(drawer[0], /•••• 2207/);
+    assert.match(drawer[0], /\$64\.50\/mo/);
+    assert.match(drawer[0], /In force/);
+    assert.match(drawer[0], /Med records/);
+    assert.match(drawer[0], /\*\*\*-\*\*\*-2299/, "level two shows the masked number, which is all that is stored");
+    assert.match(drawer[0], new RegExp(`name="policy_id" value="${policy.id}"`), "the status form names the policy");
     assert.match(drawer[0], /href="\/portal\/book\?view=customers"[^>]*aria-label="Close"/, "the close control is a link back to the list");
-    assert.match(drawer[0], /href="\/portal\/calls\?tab=voicemail"/, "the drawer's verb opens the guarded Calls route");
-    assert.match(drawer[0], /Not provisioned/, "policy sections say they have no source");
-    assert.doesNotMatch(drawer[0], /\$\d|premium: \$/i, "no money is invented");
+    assert.doesNotMatch(drawer[0], /88812207|Bea Other|5550102299/);
 
     // Fail-closed: B's id, a huge id, and hostile shapes open nothing and
     // leak nothing — same status, same page, no drawer, no B data.
-    for (const probe of [String(bTask), "999999999", "1e3", "-1", "0x10", "../../etc", "1 OR 1=1", "%00", "1234567890"]) {
+    for (const probe of [String(bCustomerId), "999999999", "1e3", "-1", "0x10", "../../etc", "1 OR 1=1", "%00", "1234567890"]) {
       const res = await portal.get(`/portal/book?view=customers&customer=${encodeURIComponent(probe)}`, a);
       assert.equal(res.status, 200, `probe ${probe} renders the list page`);
       const html = await res.text();
       assert.doesNotMatch(html, /class="portal-drawer"/, `probe ${probe} opens no drawer`);
-      assert.doesNotMatch(html, /\*\*\*-0666/, `probe ${probe} leaks nothing of B`);
+      assert.doesNotMatch(html, /Bea Other/, `probe ${probe} leaks nothing of B`);
     }
-    const foreign = await (await portal.get(`/portal/book?view=customers&customer=${bTask}`, a)).text();
-    assert.match(foreign, /not in your book/, "a record outside the book is named as such, not looked up");
+    const foreignHtml = await (await portal.get(`/portal/book?view=customers&customer=${bCustomerId}`, a)).text();
+    assert.match(foreignHtml, /not in your book/, "a record outside the book is named as such, not looked up");
 
-    // Views are a closed set: junk is the summary.
-    const junk = await (await portal.get("/portal/book?view=%3Cscript%3E", a)).text();
+    // Views are a closed set: junk is the summary. The policies view lists
+    // A's policy for A and an honest empty state for B.
+    const junk = clean(await (await portal.get("/portal/book?view=%3Cscript%3E", a)).text());
     assert.match(junk, /<h1 class="portal-panel-title">Book summary<\/h1>/);
-    const policies = await (await portal.get("/portal/book?view=policies", a)).text();
-    assert.match(policies, /No policy system connected/);
-    assert.match(policies, /portal-pill-pending">Not provisioned</);
+    const policies = clean(await (await portal.get("/portal/book?view=policies", a)).text());
+    assert.match(policies, /Aetna · Final expense/);
+    assert.match(policies, /action="\/portal\/book\/policies"/, "the add-policy form is offered once a customer exists");
+    const bPolicies = clean(await (await portal.get("/portal/book?view=policies", b)).text());
+    assert.match(bPolicies, /No policies yet/);
+    assert.doesNotMatch(bPolicies, /Aetna · Final expense|Ada Client/);
+
+    // The home reads the same book: Ada's next action is today's first card,
+    // and the week's policy count is a real 1.
+    const dash = clean(await (await portal.get("/portal", a)).text());
+    assert.match(dash, /Ada Client/);
+    assert.match(dash, /Med records/);
+    assert.match(dash, /Policies this week/);
+    const bDash = clean(await (await portal.get("/portal", b)).text());
+    assert.doesNotMatch(bDash, /Ada Client|Med records/, "B's home shows nothing of A's book");
 
     // Self-only: a support member has no book at all (no book.view.self).
-    await portal.addMember("support-book@example.com", "support");
-    const refused = await portal.get("/portal/book", { subject: "subject-support-book", email: "support-book@example.com" });
-    assert.equal(refused.status, 307);
+    assert.equal((await portal.get("/portal/book", support)).status, 307);
+
+    // Audit rows name ids only — never a customer's name, note, or number.
+    const trail = (await portal.db.prepare("SELECT action, decision, reason, resource, detail FROM audit_events WHERE action LIKE 'book.%'").all()).results;
+    assert.ok(trail.some((r) => r.action === "book.customer.add" && r.decision === "allow"));
+    assert.ok(trail.some((r) => r.action === "book.policy.add" && r.decision === "allow"));
+    assert.ok(trail.some((r) => r.action === "book.policy.status" && r.decision === "allow" && r.reason === "status_in_force"));
+    assert.ok(trail.some((r) => r.action === "book.policy.status" && r.decision === "deny" && r.reason === "not_in_book"));
+    assert.doesNotMatch(JSON.stringify(trail), /Ada Client|Bea Other|2299|Prefers|88812207/);
   } finally {
     await portal.dispose();
   }

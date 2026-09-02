@@ -35,6 +35,13 @@ export const CAPABILITIES = [
   "portal.access",
   "dashboard.view.self",
   "book.view.self",
+  // Enter and update the member's OWN book of business — customers and
+  // policies under their own member_id (owner direction 2026-09-02: the book
+  // fills from the member's hand until an approved feed exists). Held by
+  // exactly the roles that hold book.view.self. The two write routes under
+  // /portal/book assert it and scope every row to the session's own
+  // membership; the capability alone never names whose book.
+  "book.edit.self",
   // Browser answering is intentionally broad across portal roles but remains
   // inert without an active number/subscriber assignment. Capability + active
   // membership + assignment + live primary-browser presence are all required.
@@ -77,6 +84,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "portal.access",
     "dashboard.view.self",
     "book.view.self",
+    "book.edit.self",
     "calls.answer",
     "calls.review",
     "calls.review.self",
@@ -93,6 +101,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "portal.access",
     "dashboard.view.self",
     "book.view.self",
+    "book.edit.self",
     "calls.answer",
     "calls.review.self",
     "calls.recording.delete",
@@ -108,6 +117,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "portal.access",
     "dashboard.view.self",
     "book.view.self",
+    "book.edit.self",
     "calls.answer",
     "calls.review.self",
     "team.view",
@@ -128,6 +138,7 @@ const ROLE_CAPABILITIES: Record<PortalRole, readonly Capability[]> = {
     "portal.access",
     "dashboard.view.self",
     "book.view.self",
+    "book.edit.self",
     "calls.answer",
     "calls.review.self",
     "pet.chat",
