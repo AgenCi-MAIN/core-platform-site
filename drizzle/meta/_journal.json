@@ -29,6 +29,13 @@
       "when": 1787216187432,
       "tag": "0003_organic_nick_fury",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1788319486058,
+      "tag": "0004_true_squadron_sinister",
+      "breakpoints": true
     }
   ]
 }

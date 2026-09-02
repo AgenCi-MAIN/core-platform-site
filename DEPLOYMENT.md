@@ -736,3 +736,34 @@ corresponded to `5c67d18b`. That remains unreconciled and is worth nothing more
 alarming than "someone deployed a working tree", which the CLI permits and which
 this project has done. The suspicious-looking source line was the weaker half of
 the case and is withdrawn.
+
+### db/sql/0013 exists and is NOT applied anywhere (2026-09-02)
+
+The dashboard rebuild added `db/sql/0013_weekly_commitments.sql` — the
+`weekly_commitments` table behind the dashboard's weekly commitment panel
+(lead budget + call target, one row per member per ISO week, written only by
+`POST /portal/checkin`). **The file has not been run against any database:
+not the remote, not a local copy.** No agent session may apply it; that is
+the founder's move.
+
+Until it is applied, the panel is *empty, not broken, not fake*: every read
+of the table goes through the classified read wrapper, which turns the
+missing table into a `not_provisioned` fault, and the panel renders the
+honest "not provisioned" copy in place of bars and form. A member who POSTs
+a check-in before the migration lands is bounced back to
+`/portal?checkin=unavailable` with nothing written and the denial audited.
+Like `db/sql/0009` before it, this failure mode is honest **and invisible** —
+nothing will nag about it, so this note is the reminder.
+
+Apply with (from the project directory, with Cloudflare auth):
+
+```powershell
+npx wrangler d1 execute site-creator-d1 --file=db/sql/0013_weekly_commitments.sql --remote
+```
+
+or paste the file's statements into the dashboard D1 console, as 0001/0002
+were. The file is idempotent (`IF NOT EXISTS` throughout) and safe to re-run;
+it also inserts one `audit_events` row recording the table's creation. Do
+NOT additionally apply the generated `drizzle/0004_*.sql` — same table, no
+`IF NOT EXISTS`, and the two paths must never both touch one database
+(CLAUDE.md rule).

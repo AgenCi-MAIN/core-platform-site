@@ -809,9 +809,6 @@ button, .button, .nav-cta, .text-link {
   --portal-pill-live-ink: #0f6a3d;
   --portal-pill-live-bg: #e2f2e6;
   --portal-pill-live-line: #9cc9ad;
-  --portal-pill-pending-ink: #7a5200;
-  --portal-pill-pending-bg: #f6ecd4;
-  --portal-pill-pending-line: #cfb27a;
   --portal-pill-owner-ink: #806018;
   --portal-pill-owner-line: #b39a5c;
   --portal-dock-shadow: 0 4px 14px rgba(43, 54, 40, .14), 0 18px 48px rgba(43, 54, 40, .12);
@@ -1196,9 +1193,6 @@ button, .button, .nav-cta, .text-link {
 .portal-facts dt span { color: #6d7480; }
 .portal-facts dd { margin: 5px 0 0; overflow-wrap: anywhere; font-size: var(--portal-type-title); font-weight: 680; }
 
-.portal-caps { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
-.portal-caps code { display: inline-block; padding: 6px 9px; border: 1px solid var(--portal-line); border-radius: 7px; background: var(--portal-raised); color: var(--portal-text); font: inherit; font-size: var(--portal-type-label); letter-spacing: .02em; }
-
 .portal-status,
 .portal-decision { display: inline-flex; align-items: center; padding: 4px 8px; border: 1px solid currentColor; border-radius: 999px; font-size: var(--portal-type-label); font-weight: 850; letter-spacing: .1em; line-height: 1; text-transform: uppercase; }
 .portal-status-active,
@@ -1232,37 +1226,20 @@ button, .button, .nav-cta, .text-link {
 .portal-cell-detail { max-width: 340px; color: var(--portal-muted); font-size: var(--portal-type-label); overflow-wrap: anywhere; }
 
 /* Dashboard workspace: dense, honest operational overview. */
-.portal-dashboard { display: grid; gap: 16px; }
+/* Block spacing on the dashboard comes from the single margin rule further
+   down (the three-block rebuild) — no gap here, or the two would stack. */
+.portal-dashboard { display: grid; }
 .portal-dashboard-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
 .portal-dashboard-header .portal-intro { margin-bottom: 0; }
 .portal-dashboard-meta { flex: 0 0 auto; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; padding-top: 2px; }
 .portal-dashboard-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 16px; align-items: start; }
 .portal-dashboard-primary,
 .portal-dashboard-side { min-width: 0; display: grid; gap: 16px; }
-.portal-metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
 .portal-metric { min-width: 0; display: grid; align-content: start; gap: 5px; min-height: 94px; padding: 14px; border: 1px solid var(--portal-line); border-radius: var(--portal-radius); background: var(--portal-raised); }
 .portal-metric-label { color: var(--portal-muted); font-size: 10px; font-weight: 800; letter-spacing: .08em; line-height: 1.25; text-transform: uppercase; }
 .portal-metric-value { overflow-wrap: anywhere; color: var(--portal-text); font-size: clamp(20px, 2.1vw, 27px); font-weight: 760; letter-spacing: -.035em; line-height: 1.05; }
 .portal-metric-detail { color: var(--portal-muted); font-size: 11px; line-height: 1.35; }
-.portal-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
-.portal-section-heading h2 { margin: 0; font-size: 15px; font-weight: 760; letter-spacing: -.01em; line-height: 1.3; }
-.portal-section-kicker { margin: 0 0 3px; color: var(--portal-muted); font-size: 9px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-.portal-workspace-list,
-.portal-readiness-list,
-.portal-identity-list { margin: 0; padding: 0; list-style: none; }
-.portal-workspace-list { border: 1px solid var(--portal-line); border-radius: var(--portal-radius); overflow: hidden; }
-.portal-workspace-item { min-width: 0; min-height: 55px; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 9px 11px; background: var(--portal-panel); border-bottom: 1px solid var(--portal-line); }
-.portal-workspace-item:last-child { border-bottom: 0; }
-.portal-workspace-item:hover { background: var(--portal-raised); }
-.portal-workspace-symbol { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 7px; background: var(--portal-soft); color: var(--portal-muted); }
-.portal-workspace-symbol .portal-nav-symbol { width: 15px; height: 15px; }
-.portal-workspace-copy { min-width: 0; display: grid; gap: 2px; }
-.portal-workspace-copy strong { overflow: hidden; color: var(--portal-text); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.portal-workspace-copy small,
-.portal-workspace-meta { color: var(--portal-muted); font-size: 10px; line-height: 1.35; }
-.portal-workspace-meta { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-.portal-workspace-action { display: inline-flex; align-items: center; min-height: 30px; padding: 5px 8px; border: 1px solid var(--portal-line-strong); border-radius: 6px; color: var(--portal-text); font-size: 10px; font-weight: 750; white-space: nowrap; }
-.portal-workspace-action:hover { border-color: var(--portal-accent); color: var(--portal-accent-strong); background: var(--portal-accent-soft); }
+.portal-readiness-list { margin: 0; padding: 0; list-style: none; }
 .portal-readiness-list { display: grid; }
 .portal-readiness-item { min-width: 0; display: grid; grid-template-columns: 7px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--portal-line); }
 .portal-readiness-item:first-child { padding-top: 0; }
@@ -1271,17 +1248,7 @@ button, .button, .nav-cta, .text-link {
 .portal-readiness-copy strong { font-size: 12px; line-height: 1.3; }
 .portal-readiness-copy small { color: var(--portal-muted); font-size: 10px; line-height: 1.35; }
 .portal-readiness-status { justify-self: end; }
-.portal-identity-list { display: grid; }
-.portal-identity-row { min-width: 0; display: grid; grid-template-columns: minmax(92px, .7fr) minmax(0, 1.3fr); gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--portal-line); }
-.portal-identity-row:first-child { padding-top: 0; }
-.portal-identity-row:last-child { padding-bottom: 0; border-bottom: 0; }
-.portal-identity-key { color: var(--portal-muted); font-size: 10px; font-weight: 700; }
-.portal-identity-value { min-width: 0; overflow-wrap: anywhere; text-align: right; font-size: 11px; font-weight: 650; }
-.portal-capability-summary { margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--portal-line); color: var(--portal-muted); font-size: 10px; line-height: 1.45; }
-.portal-capability-summary summary { width: fit-content; color: var(--portal-text); font-weight: 750; cursor: pointer; }
-.portal-capability-summary[open] .portal-caps { margin-top: 10px; }
 .portal-system-dot-pending { background: #b98219; box-shadow: 0 0 0 3px #fff2cf; }
-.portal-system-dot-neutral { background: #777f89; box-shadow: 0 0 0 3px #eceef1; }
 
 /* The fallback backdrop exists only for the checkbox path; the popover path
    uses the native ::backdrop. Shown solely inside the @supports not branch. */
@@ -1458,9 +1425,6 @@ html[data-portal-theme="dark"] .portal {
   --portal-pill-live-ink: #7ef0ae;
   --portal-pill-live-bg: #12301f;
   --portal-pill-live-line: #2c5c40;
-  --portal-pill-pending-ink: #e6c37a;
-  --portal-pill-pending-bg: #2b2312;
-  --portal-pill-pending-line: #5c4b24;
   --portal-pill-owner-ink: #d9a63a;
   --portal-pill-owner-line: #6f592e;
   --portal-dock-shadow: 0 6px 18px rgba(0, 0, 0, .5), 0 24px 60px rgba(0, 0, 0, .35);
@@ -1484,7 +1448,6 @@ html[data-portal-theme="dark"] .portal-call-consent-restricted,
 html[data-portal-theme="dark"] .portal-call-status-failed { color: #ff9c94; border-color: #6e3f3c; background: #331d1c; }
 html[data-portal-theme="dark"] .portal-state-restricted { color: #c1cbc4; border-color: #4a5c50; background: #212b24; }
 html[data-portal-theme="dark"] .portal-system-dot-pending { background: #d89d3f; box-shadow: 0 0 0 3px #49391e; }
-html[data-portal-theme="dark"] .portal-system-dot-neutral { background: #9ba5b1; box-shadow: 0 0 0 3px #303640; }
 html[data-portal-theme="dark"] .portal-theme-control button[aria-pressed="true"] { box-shadow: 0 1px 4px rgba(0, 0, 0, .45); }
 
 /* ==========================================================================
@@ -1527,9 +1490,6 @@ html[data-portal-theme="thrive"] .portal {
   --portal-pill-live-ink: #157347;
   --portal-pill-live-bg: #e3f3ea;
   --portal-pill-live-line: #a3cfb6;
-  --portal-pill-pending-ink: #8a5700;
-  --portal-pill-pending-bg: #f8eed6;
-  --portal-pill-pending-line: #d6b97e;
   --portal-pill-owner-ink: #1d4ed8;
   --portal-pill-owner-line: #93a9c6;
   --portal-dock-shadow: 0 6px 16px rgba(7, 26, 49, .22), 0 22px 56px rgba(7, 26, 49, .18);
@@ -1569,9 +1529,6 @@ html[data-portal-theme="thrive"] .portal .portal-menu {
   --portal-pill-live-ink: #8ef0bd;
   --portal-pill-live-bg: #12301f;
   --portal-pill-live-line: #2c5c40;
-  --portal-pill-pending-ink: #f0cd82;
-  --portal-pill-pending-bg: #3a2f14;
-  --portal-pill-pending-line: #6d5827;
   --portal-pill-owner-ink: #cbe0ff;
   --portal-pill-owner-line: #3a5c88;
   color-scheme: dark;
@@ -1581,7 +1538,8 @@ html[data-portal-theme="thrive"] .portal .portal-menu {
    `font-family: inherit` by design elsewhere; under thrive it goes truly
    mono so tables read like the schedule. */
 html[data-portal-theme="thrive"] .portal .portal-cell-mono,
-html[data-portal-theme="thrive"] .portal .portal-metric-value {
+html[data-portal-theme="thrive"] .portal .portal-metric-value,
+html[data-portal-theme="thrive"] .portal .portal-prod-value {
   font-variant-numeric: tabular-nums;
 }
 html[data-portal-theme="thrive"] .portal .portal-cell-mono {
@@ -1617,12 +1575,6 @@ html[data-portal-theme="thrive"] .portal-command-prompt button { color: #ffffff;
    ink above is for the PORTAL prompt's blue button and would render
    white-on-gold (1.9:1) inside .fcc-prompt without this counter. */
 html[data-portal-theme="thrive"] .fcc-prompt .portal-command-prompt button { color: #241b10; }
-html[data-portal-theme="thrive"] .portal-command-core {
-  /* Starts at #2563eb, not a lighter blue: white ink must clear 4.5:1 on
-     the gradient's lightest stop. */
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #ffffff;
-}
 html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true"] { box-shadow: 0 1px 3px rgba(16, 32, 56, .16); }
 
 .portal :where(a, label, input, button, select, textarea, summary, [tabindex]):focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
@@ -1631,7 +1583,6 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
   .portal-main { width: min(100% - 36px, 1040px); }
   .portal-topbar { padding-inline: 20px; }
   .portal-dashboard-grid { grid-template-columns: minmax(0, 1.65fr) minmax(250px, 1fr); }
-  .portal-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .portal-dialer-grid { grid-template-columns: minmax(0, 1fr) minmax(250px, 290px); }
 }
 
@@ -1675,12 +1626,7 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
   .portal-dashboard-header { display: grid; gap: 10px; }
   .portal-dashboard-meta { justify-content: flex-start; }
   .portal-dashboard-side { grid-template-columns: 1fr; }
-  .portal-metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .portal-metric { min-height: 86px; padding: 12px; }
-  .portal-workspace-item { grid-template-columns: 30px minmax(0, 1fr); }
-  .portal-workspace-action { grid-column: 2; justify-self: start; }
-  .portal-workspace-meta { display: none; }
-  .portal-identity-row { grid-template-columns: minmax(78px, .7fr) minmax(0, 1.3fr); }
   .portal-dialer-heading { display: grid; gap: 9px; }
   .portal-beta-badge { width: fit-content; }
   .portal-dialer-metrics { grid-template-columns: 1fr; }
@@ -1690,7 +1636,6 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
 
 @media (max-width: 390px) {
   .portal-status { padding-inline: 6px; letter-spacing: .05em; }
-  .portal-metric-grid { grid-template-columns: 1fr; }
   .portal-card-header { grid-template-columns: 28px minmax(0, 1fr); }
   .portal-card-icon { width: 28px; height: 28px; }
 }
@@ -2499,42 +2444,6 @@ html[data-portal-theme="dark"] .announce-tag-recognition { color: #79dfad; borde
 
 html[data-portal-performance="boost"] .announce-card-pinned { box-shadow: 0 1px 2px rgba(16,24,40,.06); }
 
-.portal-dashboard-announcement {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 16px;
-  color: inherit;
-  text-decoration: none;
-  border-color: color-mix(in srgb, var(--portal-accent) 45%, var(--portal-line));
-  background: linear-gradient(120deg, var(--portal-accent-soft), var(--portal-panel) 48%);
-}
-.portal-dashboard-announcement:hover { border-color: var(--portal-accent); transform: translateY(-1px); }
-.portal-dashboard-announcement-mark {
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: var(--portal-accent);
-  color: var(--portal-bg);   /* ground-token ink: white fails on dark's light mint accent */
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: -.03em;
-  box-shadow: 0 10px 22px -15px var(--portal-accent);
-}
-.portal-dashboard-announcement-copy { display: grid; gap: 3px; min-width: 0; }
-.portal-dashboard-announcement-kicker { color: var(--portal-accent-strong); font-size: 9px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
-.portal-dashboard-announcement-copy > strong { font-size: 16px; line-height: 1.2; }
-.portal-dashboard-announcement-copy > small { display: -webkit-box; overflow: hidden; color: var(--portal-muted); font-size: 11px; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.portal-dashboard-announcement-action { display: inline-flex; align-items: center; gap: 7px; color: var(--portal-accent-strong); font-size: 10px; font-weight: 850; white-space: nowrap; }
-.portal-dashboard-announcement-action span { font-size: 17px; }
-
-@media (max-width: 720px) {
-  .portal-dashboard-announcement { grid-template-columns: auto minmax(0, 1fr); align-items: start; }
-  .portal-dashboard-announcement-action { grid-column: 2; }
-}
-
 /* --- J.A.R.V.I.S. mark + system announcements -------------- */
 .jarvis-mark { display: block; border-radius: 50%; flex: none; }
 .jarvis-mark-image { object-fit: cover; }
@@ -3070,8 +2979,7 @@ html { scroll-behavior: smooth; }
 .site-cta,
 .access-submit,
 .audio-deck-button,
-.portal-nav a,
-.portal-workspace-item {
+.portal-nav a {
   transition:
     transform .28s var(--ease),
     box-shadow .28s var(--ease),
@@ -3157,8 +3065,7 @@ html[data-portal-performance="boost"] .rank-card,
 html[data-portal-performance="boost"] .site-pillar,
 html[data-portal-performance="boost"] .library-index-item,
 html[data-portal-performance="boost"] .tour-surface,
-html[data-portal-performance="boost"] .music-list li,
-html[data-portal-performance="boost"] .portal-workspace-item { transition: none; }
+html[data-portal-performance="boost"] .music-list li { transition: none; }
 
 /* ============================================================
    IMO MARK
@@ -3362,9 +3269,9 @@ html[data-portal-performance="boost"] .button:hover .key-glyph { transform: none
 .rank-medallion-obsidian { filter: drop-shadow(0 3px 10px rgba(123, 107, 176, .40)); }
 
 /* ============================================================
-   DASHBOARD METRIC STATES
-   Green means good, amber means partial, red means absent. The
-   card carries the colour so it reads before the words do.
+   METRIC TILE STATES (Pay Rates studio)
+   The card's left edge carries the colour so it reads before
+   the words do: red for a losing model, gold for the flagship.
    ============================================================ */
 
 .portal-metric { position: relative; overflow: hidden; }
@@ -3374,36 +3281,18 @@ html[data-portal-performance="boost"] .button:hover .key-glyph { transform: none
   background: var(--portal-line-strong);
 }
 
-.portal-metric-good::before { background: linear-gradient(180deg, #2fbf71 0%, #157347 100%); }
-.portal-metric-warn::before { background: linear-gradient(180deg, #e0a72c 0%, #8a5700 100%); }
 .portal-metric-bad::before  { background: linear-gradient(180deg, #e5544b 0%, #a52620 100%); }
 
-.portal-metric-good .portal-metric-value { color: #157347; }
-.portal-metric-warn .portal-metric-value { color: #8a5700; }
 .portal-metric-bad  .portal-metric-value { color: var(--portal-danger); }
 
-html[data-portal-theme="dark"] .portal-metric-good .portal-metric-value { color: #79dfad; }
-html[data-portal-theme="dark"] .portal-metric-warn .portal-metric-value { color: #f0c775; }
 html[data-portal-theme="dark"] .portal-metric-bad  .portal-metric-value { color: #f28b84; }
-
-/* ACTIVE, shouted. */
-.portal-metric-shout {
-  text-transform: uppercase;
-  letter-spacing: .04em;
-  font-weight: 850;
-}
 
 .portal-metric-of {
   font-size: .5em; font-weight: 800; letter-spacing: .02em;
   color: var(--portal-subtle); margin-left: 2px;
 }
 
-/* --- The role card, struck in its metal --------------------- */
-.portal-metric-rank { display: flex; align-items: center; gap: 11px; }
-.portal-metric-rank .portal-metric-value { margin: 0; }
-
-.portal-metric-metal::before { width: 4px; }
-
+/* --- The flagship tile, struck in gold ----------------------- */
 .portal-metric-gold::before {
   background: linear-gradient(180deg, var(--m-gold-light) 0%, var(--m-gold) 45%, var(--m-gold-deep) 100%);
 }
@@ -3427,26 +3316,6 @@ html[data-portal-theme="dark"] .portal-metric-gold .portal-metric-value {
   background-clip: text;
   color: transparent;
 }
-
-.portal-metric-diamond::before { background: linear-gradient(180deg, var(--m-diamond-light) 0%, var(--m-diamond) 45%, var(--m-diamond-deep) 100%); }
-.portal-metric-diamond .portal-metric-value { color: var(--m-diamond-deep); }
-html[data-portal-theme="dark"] .portal-metric-diamond .portal-metric-value { color: var(--m-diamond); }
-
-.portal-metric-silver::before { background: linear-gradient(180deg, var(--m-silver-light) 0%, var(--m-silver) 45%, var(--m-silver-deep) 100%); }
-.portal-metric-silver .portal-metric-value { color: var(--m-silver-deep); }
-html[data-portal-theme="dark"] .portal-metric-silver .portal-metric-value { color: var(--m-silver); }
-
-.portal-metric-bronze::before { background: linear-gradient(180deg, var(--m-bronze-light) 0%, var(--m-bronze) 45%, var(--m-bronze-deep) 100%); }
-.portal-metric-bronze .portal-metric-value { color: var(--m-bronze-deep); }
-html[data-portal-theme="dark"] .portal-metric-bronze .portal-metric-value { color: var(--m-bronze-light); }
-
-.portal-metric-obsidian::before { background: linear-gradient(180deg, var(--m-obsidian-light) 0%, var(--m-obsidian) 45%, var(--m-obsidian-deep) 100%); }
-.portal-metric-obsidian .portal-metric-value { color: var(--m-obsidian); }
-html[data-portal-theme="dark"] .portal-metric-obsidian .portal-metric-value { color: var(--m-obsidian-light); }
-
-.portal-metric-steel::before { background: linear-gradient(180deg, var(--m-steel-light) 0%, var(--m-steel) 45%, var(--m-steel-deep) 100%); }
-.portal-metric-steel .portal-metric-value { color: var(--m-steel-deep); }
-html[data-portal-theme="dark"] .portal-metric-steel .portal-metric-value { color: var(--m-steel-light); }
 
 /* ============================================================
    RANK CARDS on the public overview
@@ -4657,14 +4526,12 @@ html[data-portal-theme="dark"] .portal-card {
   background-image: linear-gradient(180deg, rgba(241, 199, 92, .027), transparent 46%);
 }
 
-/* Authenticated arrival. The orbit is a navigation metaphor only; it carries
-   no invented production metrics and is hidden when space is scarce. */
-.portal-dashboard { gap: 18px; }
+/* Authenticated arrival. */
 .portal-command-arrival {
   position: relative;
   min-height: 350px;
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(300px, .65fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: 32px;
   padding: clamp(26px, 4vw, 48px);
@@ -4698,13 +4565,6 @@ html[data-portal-theme="dark"] .portal-card {
   letter-spacing: -.055em;
 }
 .portal-command-copy h1 span { color: var(--portal-accent-strong); }
-.portal-command-question {
-  margin: 18px 0 0;
-  color: var(--portal-text);
-  font-size: clamp(21px, 2.5vw, 30px);
-  font-weight: 680;
-  letter-spacing: -.025em;
-}
 .portal-command-lede { max-width: 68ch; margin: 11px 0 0; color: var(--portal-muted); font-size: 13px; line-height: 1.65; }
 .portal-command-prompt {
   width: min(100%, 660px);
@@ -4742,103 +4602,309 @@ html[data-portal-theme="dark"] .portal-card {
 }
 .portal-command-prompt small { grid-column: 1 / -1; color: var(--portal-subtle); font-size: 10px; line-height: 1.45; }
 
-.portal-command-orbit {
-  position: relative;
-  z-index: 1;
-  width: min(30vw, 330px);
-  aspect-ratio: 1;
-  justify-self: center;
-  border: 1px solid var(--portal-line-strong);
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 48px color-mix(in srgb, var(--portal-accent) 2.5%, transparent);
+#source-readiness { scroll-margin-top: 86px; }
+
+/* === Founder dashboard (three blocks, 2026-09-02) ======================= */
+
+/* The one-line announcement card under the hero. */
+.portal-dash-announcement {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--portal-line);
+  border-radius: var(--portal-radius);
+  background: var(--portal-panel);
+  color: inherit;
+  text-decoration: none;
+  font-size: 12px;
 }
-.portal-command-orbit::before,
-.portal-command-orbit::after {
-  content: "";
-  position: absolute;
-  inset: 17%;
-  border: 1px dashed color-mix(in srgb, var(--portal-accent) 42%, transparent);
-  border-radius: 50%;
+.portal-dash-announcement strong { color: var(--portal-text); }
+.portal-dash-announcement:hover { background: var(--portal-hover); }
+
+/* === BLOCK 1 — this week's production ==================================== */
+.portal-prod-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
 }
-.portal-command-orbit::after { inset: 35%; border-style: solid; }
-.portal-command-core {
-  position: absolute;
-  inset: 50% auto auto 50%;
-  width: 58px;
-  height: 58px;
+.portal-prod-tile {
+  min-width: 0;
+  border: 1px solid var(--portal-line);
+  border-radius: var(--portal-radius);
+  background: var(--portal-raised);
+  box-shadow: var(--portal-shadow);
+}
+/* Same visually-hidden control mechanism as .portal-command-bar-toggle. */
+.portal-prod-expand,
+.portal-prod-range {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.portal-prod-face {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-height: 44px;          /* touch floor; real height comes from content */
+  padding: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.portal-prod-label {
+  color: var(--portal-subtle);
+  font-size: var(--portal-type-label);
+  font-weight: 750;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.portal-prod-value {
+  color: var(--portal-text);
+  font-size: clamp(30px, 3.4vw, 40px);   /* LARGE — the founder's word */
+  font-weight: 850;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+.portal-prod-value-pending { color: var(--portal-subtle); font-weight: 700; }
+.portal-prod-delta { font-size: 12px; font-weight: 750; }
+.portal-prod-delta-up { color: var(--portal-success); }
+/* NEVER var(--portal-danger): a slow week is not a failure. */
+.portal-prod-delta-down,
+.portal-prod-delta-flat { color: var(--portal-muted); }
+.portal-prod-pending {
+  color: var(--portal-subtle);
+  font-size: 11px;
+  font-style: italic;
+}
+.portal-prod-caret {
+  justify-self: end;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--portal-muted);
+  border-bottom: 2px solid var(--portal-muted);
+  transform: rotate(45deg);
+  transition: transform .18s ease;
+}
+/* Closed: hidden AND inert (visibility, not just height — no tab stops into
+   a shut panel; same reasoning as .portal-command-bar-body). */
+.portal-prod-detail {
+  visibility: hidden;
+  max-height: 0;
+  overflow: hidden;
+  padding: 0 14px;
+  transition: max-height .2s ease, padding .2s ease;
+}
+.portal-prod-tile:has(.portal-prod-expand:checked) .portal-prod-detail {
+  visibility: visible;
+  max-height: 220px;
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--portal-line);
+}
+.portal-prod-tile:has(.portal-prod-expand:checked) .portal-prod-caret {
+  transform: rotate(225deg);
+}
+.portal-prod-expand:focus-visible + .portal-prod-face {
+  outline: 2px solid var(--portal-accent);
+  outline-offset: -2px;
+}
+/* Range switch: segmented labels, 44px targets, radio-driven. */
+.portal-prod-views { display: flex; gap: 6px; padding-top: 12px; }
+.portal-prod-views label {
   display: grid;
   place-items: center;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: linear-gradient(135deg, #f1c75c, #bd861c);
-  color: #241b10;
-  font-size: 23px;
-  font-weight: 900;
-  box-shadow: 0 0 34px color-mix(in srgb, var(--portal-accent) 32%, transparent);
-}
-.portal-command-node {
-  position: absolute;
-  padding: 5px 8px;
-  border: 1px solid var(--portal-line-strong);
-  border-radius: 999px;
-  background: var(--portal-panel);
+  min-height: 44px;
+  min-width: 60px;
+  padding: 0 10px;
+  border: 1px solid var(--portal-line);
+  border-radius: var(--portal-radius-sm);
   color: var(--portal-muted);
-  font-size: 9px;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  user-select: none;
+}
+.portal-prod-tile:has(.portal-prod-range-day:checked)   label[for$="-day"],
+.portal-prod-tile:has(.portal-prod-range-week:checked)  label[for$="-week"],
+.portal-prod-tile:has(.portal-prod-range-month:checked) label[for$="-month"] {
+  color: var(--portal-accent-strong);
+  border-color: var(--portal-line-strong);
+  background: var(--portal-accent-soft);
+}
+.portal-prod-range:focus-visible ~ .portal-prod-views label,
+.portal-prod-range:focus-visible + label {
+  outline: 2px solid var(--portal-accent);
+  outline-offset: 2px;
+}
+/* Exactly one figure visible, radio-selected; inline, no navigation. */
+.portal-prod-figure { display: none; margin: 10px 0 0; color: var(--portal-muted); font-size: 12px; }
+.portal-prod-figure strong { color: var(--portal-text); font-size: 16px; font-variant-numeric: tabular-nums; }
+.portal-prod-tile:has(.portal-prod-range-day:checked)   .portal-prod-figure-day,
+.portal-prod-tile:has(.portal-prod-range-week:checked)  .portal-prod-figure-week,
+.portal-prod-tile:has(.portal-prod-range-month:checked) .portal-prod-figure-month { display: block; }
+
+/* === BLOCK 2 — the weekly commitment ====================================
+   Plan, never actual: LIGHTER ground than the production tiles (panel over
+   raised — lighter in all three themes) plus a dashed border, so the plan
+   panel can never be misread as a score panel. */
+.portal-week-panel {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px dashed var(--portal-line-strong);
+  border-radius: var(--portal-radius);
+  background: var(--portal-panel);
+}
+.portal-week-kicker {
+  margin: 0;
+  color: var(--portal-subtle);
+  font-family: var(--portal-mono);
+  font-size: 10px;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
-.portal-command-node-one { top: 3%; left: 50%; transform: translateX(-50%); }
-.portal-command-node-two { top: 49%; right: -6%; transform: translateY(-50%); }
-.portal-command-node-three { bottom: 3%; left: 50%; transform: translateX(-50%); }
-.portal-command-node-four { top: 49%; left: -7%; transform: translateY(-50%); }
-
-/* Four-page-equivalent mission structure, assembled only from existing routes. */
-.portal-mission-map { padding: clamp(20px, 3vw, 28px); }
-.portal-mission-map-head { align-items: center; margin-bottom: 18px; }
-.portal-mission-map-head .portal-lede { margin-top: 6px; }
-/* align-items: start — without it, stretch paints the shorter lane's dead
-   space INSIDE its raised card (a visible tan slab, 54% of the card for a
-   reviewer's Signal lane); started lanes leave ragged bottoms on the map
-   background instead, which reads as deliberate whitespace. */
-.portal-mission-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: start; }
-.portal-mission-lane {
-  min-width: 0;
+.portal-week-title { margin: 2px 0 0; font-size: var(--portal-type-title); }
+.portal-week-goals { display: grid; gap: 14px; }
+.portal-week-goal { display: grid; gap: 6px; }
+.portal-week-goal-label {
+  color: var(--portal-subtle);
+  font-size: var(--portal-type-label);
+  font-weight: 750;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+/* THIN — the founder's word. 6px track, token colours only. */
+.portal-week-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--portal-soft);
   overflow: hidden;
+}
+.portal-week-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--portal-accent);
+  transition: width .3s ease;
+}
+/* Spend actuals have no source: an empty track states exactly nothing. */
+.portal-week-bar-pending { background: var(--portal-soft); }
+.portal-week-goal-detail { color: var(--portal-text); font-size: 12px; font-weight: 650; }
+.portal-week-goal-note { color: var(--portal-subtle); font-style: italic; font-weight: 500; }
+/* One small grey line — a soft hint, never a demand. */
+.portal-week-pace { margin: 0; color: var(--portal-muted); font-size: 11px; }
+.portal-week-invite { margin: 0; color: var(--portal-muted); font-size: 12px; }
+.portal-week-error { margin: 0 0 4px; color: var(--portal-warning); font-size: 12px; font-weight: 650; }
+/* Edit Week disclosure: same hidden-checkbox mechanism; button is a real
+   44px target via the shared .portal-button primitives. */
+.portal-week-edit-toggle {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.portal-week-edit { justify-self: start; min-height: 44px; cursor: pointer; }
+.portal-week-edit-toggle:focus-visible ~ .portal-week-edit {
+  outline: 2px solid var(--portal-accent);
+  outline-offset: 2px;
+}
+.portal-week-form {
+  visibility: hidden;
+  max-height: 0;
+  overflow: hidden;
+  display: grid;
+  gap: 10px;
+  transition: max-height .2s ease;
+}
+.portal-week-panel:has(.portal-week-edit-toggle:checked) .portal-week-form {
+  visibility: visible;
+  max-height: 420px;
+  padding-top: 4px;
+}
+.portal-week-panel:has(.portal-week-edit-toggle:checked) .portal-week-edit::after {
+  content: " \2715";      /* the open button reads as a close affordance */
+}
+.portal-week-field { display: grid; gap: 4px; font-size: 12px; color: var(--portal-muted); }
+.portal-week-field input {
+  min-height: 44px;
+  padding: 0 12px;
   border: 1px solid var(--portal-line);
-  border-radius: 14px;
+  border-radius: var(--portal-radius-sm);
   background: var(--portal-raised);
+  color: var(--portal-text);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
 }
-.portal-mission-lane-head {
-  min-height: 92px;
+
+/* === BLOCK 3 — Book of Business, full width ============================= */
+.portal-bob-tile {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
+  gap: 8px;
+  width: 100%;               /* FULL WIDTH — spans the main column */
   padding: 16px;
-  border-bottom: 1px solid var(--portal-line);
-  background: linear-gradient(120deg, color-mix(in srgb, var(--portal-accent) 9%, var(--portal-panel)), var(--portal-panel));
+  border: 1px solid var(--portal-line);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-raised);
+  box-shadow: var(--portal-shadow);
+  color: inherit;
+  text-decoration: none;
 }
-.portal-mission-code {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--portal-line-strong);
-  border-radius: 50%;
-  color: var(--portal-accent-strong);
-  font-size: 11px;
-  font-weight: 900;
+a.portal-bob-tile:hover { background: var(--portal-hover); }
+.portal-bob-kicker {
+  margin: 0;
+  color: var(--portal-subtle);
+  font-family: var(--portal-mono);
+  font-size: 10px;
   letter-spacing: .08em;
+  text-transform: uppercase;
 }
-.portal-mission-lane-head > span:last-child { min-width: 0; display: grid; gap: 4px; }
-.portal-mission-lane-head strong { font-size: 15px; letter-spacing: -.01em; }
-.portal-mission-lane-head small { color: var(--portal-muted); font-size: 11px; line-height: 1.5; }
-.portal-mission-routes { display: grid; }
-.portal-mission-routes .portal-workspace-item { min-height: 66px; }
-.portal-workspace-symbol-readiness { color: var(--portal-accent-strong); font-size: 18px; font-weight: 800; }
-.portal-dashboard-support { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 16px; align-items: start; }
-#source-readiness { scroll-margin-top: 86px; }
+.portal-bob-headline {
+  font-family: var(--portal-serif);
+  font-size: clamp(20px, 2.6vw, 28px);
+  line-height: 1.15;
+  color: var(--portal-text);
+}
+.portal-bob-list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.portal-bob-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 28px;
+  align-items: center;
+  font-size: 13px;
+}
+.portal-bob-name { color: var(--portal-text); font-weight: 650; font-variant-numeric: tabular-nums; }
+.portal-bob-due { color: var(--portal-muted); font-size: 12px; }
+/* Overdue is urgency, not failure: warning amber, never --portal-danger. */
+.portal-bob-overdue .portal-bob-due { color: var(--portal-warning); font-weight: 700; }
+.portal-bob-empty { color: var(--portal-muted); font-size: 12px; }
+.portal-bob-open { color: var(--portal-accent-strong); font-size: 12px; font-weight: 750; }
+
+/* Block spacing on the dashboard main column. */
+.portal-dashboard > * + * { margin-top: 14px; }
+
+/* --- Mobile stacking --- */
+@media (max-width: 1100px) {
+  .portal-prod-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 560px) {
+  .portal-prod-grid { grid-template-columns: 1fr; }   /* four tiles stack singly */
+  .portal-prod-value { font-size: 32px; }
+  .portal-week-panel { padding: 14px; }
+  .portal-bob-row { flex-wrap: wrap; }
+}
+
+/* --- Reduced motion: every transition introduced above goes still --- */
+@media (prefers-reduced-motion: reduce) {
+  .portal-prod-detail,
+  .portal-prod-caret,
+  .portal-week-form,
+  .portal-week-bar-fill { transition: none; }
+}
 
 /* J.A.R.V.I.S. alone owns cool blue/violet interaction accents.
    The border-colour rules that used to live here went with the outlines;
@@ -4861,16 +4927,8 @@ html[data-portal-theme="thrive"] .presence {
   --presence-depth: 1.25;
 }
 
-@media (max-width: 1100px) {
-  .portal-command-arrival { grid-template-columns: minmax(0, 1fr) 280px; }
-  .portal-command-orbit { width: 270px; }
-}
-
 @media (max-width: 899px) {
   .portal-command-arrival { grid-template-columns: 1fr; min-height: 0; }
-  .portal-command-orbit { display: none; }
-  .portal-mission-grid,
-  .portal-dashboard-support { grid-template-columns: 1fr; }
   .portal-sidebar-mobile .portal-nav a,
   .portal-sidebar-mobile .portal-signout { min-height: 48px; }
 }
@@ -4881,9 +4939,6 @@ html[data-portal-theme="thrive"] .presence {
   .portal-command-prompt { grid-template-columns: 1fr; }
   .portal-command-prompt button { width: 100%; }
   .portal-command-prompt small { grid-column: 1; }
-  .portal-mission-map-head { align-items: flex-start; }
-  .portal-mission-map-head > .portal-state { display: none; }
-  .portal-mission-routes .portal-workspace-item { min-height: 72px; }
   /* A 44px finger target with negative outer margins preserves the same
      34px flex footprint, so the compact topbar gains reach without overflow. */
   .portal-menu-button-mobile { width: 44px; height: 44px; margin: -5px; }
@@ -4896,14 +4951,10 @@ html[data-portal-theme="thrive"] .presence {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .portal-command-arrival,
-  .portal-command-orbit,
-  .portal-command-core,
-  .portal-mission-lane { animation: none; transition: none; }
+  .portal-command-arrival { animation: none; transition: none; }
 }
 
 html[data-portal-performance="boost"] .portal-command-arrival,
-html[data-portal-performance="boost"] .portal-mission-lane,
 html[data-portal-performance="boost"] .portal-sidebar {
   background-image: none;
 }
@@ -7352,11 +7403,6 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   background: var(--portal-pill-live-bg);
   border-color: var(--portal-pill-live-line);
 }
-.portal-pill-pending {
-  color: var(--portal-pill-pending-ink);
-  background: var(--portal-pill-pending-bg);
-  border-color: var(--portal-pill-pending-line);
-}
 .portal-pill-owner {
   color: var(--portal-pill-owner-ink);
   background: transparent;
@@ -7633,6 +7679,14 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   gap: 18px 22px;
   align-items: start;                /* grid-stretch row inflation lesson */
 }
+/* Three-group IA (2026-09-02): when the Administration column is present it is
+   deliberately narrower — four short governance rows never need a Work-width
+   track. Roles without an Administration group fall back to auto-fit. */
+@media (min-width: 640px) {
+  .portal-menu-columns:has(.portal-menu-group-administration) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(0, 0.75fr);
+  }
+}
 .portal-menu-group { display: grid; gap: 2px; align-content: start; }
 .portal-menu-group-label {
   font-family: var(--portal-mono);
@@ -7661,7 +7715,6 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
 .portal-menu-item:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: -2px; }
 .portal-menu-item[aria-current="page"] { background: var(--portal-accent-soft); color: var(--portal-accent-strong); }
 .portal-menu-dot { width: 7px; height: 7px; border-radius: 50%; flex: none; background: var(--portal-pill-live-ink); }
-.portal-menu-item-pending .portal-menu-dot { background: var(--portal-pill-pending-ink); }
 .portal-menu-label { flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
 .portal-menu-label small { color: var(--portal-subtle); font-size: 11px; }
 .portal-menu-badge {
@@ -7670,6 +7723,20 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   font-family: var(--portal-mono); font-size: 10.5px; text-align: center;
 }
 .portal-menu-external { color: var(--portal-subtle); font-size: 11px; }   /* holds the ↗ glyph */
+.portal-menu-coming {
+  margin: 12px 0 0;
+  padding: 10px 10px 0;
+  border-top: 1px dashed var(--portal-line);
+  color: var(--portal-subtle);
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .portal-menu-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; padding: 12px 10px 0; border-top: 1px solid var(--portal-line); }
 .portal-menu-system {
   display: inline-flex;
@@ -7753,8 +7820,6 @@ html[data-portal-performance="boost"] .portal-menu {
 .script-meta dt,
 .portal-metric-label,
 .portal-metric-detail,
-.portal-section-kicker,
-.portal-dashboard-announcement-kicker,
 .portal-notice > span,
 .announce-date,
 .announce-tag,
@@ -7784,36 +7849,12 @@ html[data-portal-performance="boost"] .portal-menu {
 /* --- Stat tiles: mono tabular numerals ---------------------- */
 .portal-metric-value { font-family: var(--portal-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 
-/* --- Dashboard command arrival + identity panel -------------- */
+/* --- Dashboard command arrival ------------------------------- */
 .portal-main .portal-command-copy h1 {
   font-size: clamp(36px, 5vw, 64px);
   font-weight: 400;
   line-height: 1.0;
   letter-spacing: -0.02em;
-}
-.portal-command-question { font-family: var(--portal-serif); font-weight: 400; letter-spacing: -0.01em; }
-.portal-identity-key {
-  font-family: var(--portal-mono);
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.portal-identity-value { font-variant-numeric: tabular-nums; }
-
-/* --- Dashboard mission map: flat lanes, serif titles, mono codes -- */
-.portal-mission-lane { border-radius: 14px; background: var(--portal-panel); }
-.portal-mission-lane-head { background: var(--portal-panel); }
-.portal-mission-lane-head strong {
-  font-family: var(--portal-serif);
-  font-size: 18px;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-}
-.portal-mission-code {
-  font-family: var(--portal-mono);
-  font-weight: 500;
-  font-size: 11px;
-  letter-spacing: 0.08em;
 }
 
 /* --- Announcements + Library article heads ------------------ */
