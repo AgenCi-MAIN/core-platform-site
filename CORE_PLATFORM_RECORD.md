@@ -379,8 +379,8 @@ present in source but **not applied to the live database as of 2026-09-02**
 thirteenth and fourteenth, `book_customers` and `book_policies`
 (`db/sql/0014`, owner direction 2026-09-02, the member's own Book of Business
 entries, self-scoped, masked phone and last-four policy number only), are
-likewise **in source and not applied** (DEPLOYMENT.md, "db/sql/0014 exists and
-is NOT applied anywhere"). Writes to them assert the capability
+**applied to the live database by the founder on 2026-09-02** (DEPLOYMENT.md,
+"db/sql/0014 — APPLIED", with the D1 bookmark). Writes to them assert the capability
 `book.edit.self`, held by exactly the roles that hold `book.view.self`.
 `_cf_KV` is Cloudflare's own D1 housekeeping table and is not defined by any
 migration in this repository.
