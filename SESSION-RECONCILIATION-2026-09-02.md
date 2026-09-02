@@ -27,6 +27,26 @@ that every discussed integration is implemented, deployed, or automatic.
 - **Shawn:** final human authority for consequential actions and owner-level
   decisions.
 
+## Worker A home — the Main Office project
+
+Recorded 2026-09-02, later the same day, on the owner's instruction
+("connect to the office for now"):
+
+- Worker A / Dispatch lives in the Claude project **"Worker A (M Office)"**,
+  described as **"Main Office"**:
+  `https://claude.ai/project/01a061f2-ffb4-725d-8c03-0dbf2a52203e`.
+- This Claude Code session on `vera-central-control-system`
+  (`https://claude.ai/code/session_01K4o78iujDSfbUreEWCMSZf`, signed in as
+  `bankerrunners@gmail.com`) reports to that office for now. "For now" is the
+  owner's phrase: the attachment is provisional and the owner may re-route it.
+- A Claude Code session cannot open a Claude project page; the project URL
+  returned 403 from every tool available here. Any instruction or file the
+  Main Office project holds reaches this session only when the owner pastes
+  it into the active session. Nothing in the project was read for this record.
+- This attachment changes routing only. It grants no capability, membership,
+  deploy, merge, or spending authority, and it does not alter the Worker C
+  lane or the Vera courier path described below.
+
 ## Workflow exercised
 
 The controlled courier path was exercised in this order:
