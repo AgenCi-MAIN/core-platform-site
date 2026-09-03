@@ -14,6 +14,8 @@ export const PERSONAS = [
     monogram: "V",
     voice: "Calm, measured, continuity-first. Distinguishes verified state from plans and unknowns.",
     mandate: "Preserve the approved objective, source provenance, decision history, and unresolved gaps across handoffs.",
+    claudeModel: "claude-opus-5",
+    modelReason: "Deep reasoning for institutional continuity.",
   },
   {
     id: "recon",
@@ -28,6 +30,8 @@ export const PERSONAS = [
     monogram: "R",
     voice: "Curious, alert, concise. Surfaces overlooked evidence, alternative explanations, and uncertainty.",
     mandate: "Find missing signals and defensible alternatives without presenting speculation as fact.",
+    claudeModel: "claude-sonnet-5",
+    modelReason: "Balance of reasoning and efficiency for signal analysis.",
   },
   {
     id: "terraform",
@@ -42,6 +46,8 @@ export const PERSONAS = [
     monogram: "T",
     voice: "Architectural, practical, systems-minded. Turns goals into coherent structures and staged implementation.",
     mandate: "Design bounded product, data, and workflow architecture that can be verified and safely operated.",
+    claudeModel: "claude-opus-5",
+    modelReason: "Complex architecture requires deep reasoning and consistency.",
   },
   {
     id: "meridian",
@@ -56,6 +62,8 @@ export const PERSONAS = [
     monogram: "M",
     voice: "Composed, visual, decisive. Explains hierarchy, accessibility, tone, and presentation tradeoffs.",
     mandate: "Set an original, accessible visual direction while keeping claims and interface state truthful.",
+    claudeModel: "claude-haiku-4-5-20251001",
+    modelReason: "Routine morning brief (admin summary). Haiku sufficient, 80% cost savings.",
   },
   {
     id: "lattice",
@@ -70,6 +78,8 @@ export const PERSONAS = [
     monogram: "L",
     voice: "Analytical, structured, quietly exacting. Converts ambiguity into dimensions, rules, and decision trees.",
     mandate: "Classify requirements, expose dependencies, and route work without inventing authority or data.",
+    claudeModel: "claude-sonnet-5",
+    modelReason: "Structured analysis benefits from Sonnet balance.",
   },
   {
     id: "cipher",
@@ -84,6 +94,8 @@ export const PERSONAS = [
     monogram: "C",
     voice: "Precise, economical, instruction-aware. Writes explicit inputs, outputs, constraints, and acceptance tests.",
     mandate: "Translate approved intent into safe prompts, schemas, contracts, and reviewable handoffs.",
+    claudeModel: "claude-haiku-4-5-20251001",
+    modelReason: "Routine prompt engineering and schema translation. Haiku sufficient.",
   },
   {
     id: "lumen",
@@ -98,6 +110,8 @@ export const PERSONAS = [
     monogram: "Lu",
     voice: "Visual, tactile, production-aware. Makes image direction concrete without claiming unperformed generation.",
     mandate: "Develop original visual concepts, generation briefs, and asset specifications for human-approved production.",
+    claudeModel: "claude-sonnet-5",
+    modelReason: "Visual concept work benefits from Sonnet capability.",
   },
   {
     id: "index",
@@ -112,6 +126,8 @@ export const PERSONAS = [
     monogram: "I",
     voice: "Discerning, organized, provenance-first. Compares artifacts by explicit criteria and preserves rejected alternatives.",
     mandate: "Organize, compare, and select work while keeping sources, versions, and approval status visible.",
+    claudeModel: "claude-haiku-4-5-20251001",
+    modelReason: "Routine PR curation and comparison. Haiku sufficient for standard reviews.",
   },
   {
     id: "assay",
@@ -126,6 +142,8 @@ export const PERSONAS = [
     monogram: "A",
     voice: "Skeptical, evidence-led, adversarial without being theatrical. Names severity and the exact failing condition.",
     mandate: "Test quality, security, accessibility, compliance boundaries, and completion claims before release.",
+    claudeModel: "claude-opus-5",
+    modelReason: "Security-critical work requires advanced reasoning. Keep Opus.",
   },
   {
     id: "ledger",
@@ -140,11 +158,22 @@ export const PERSONAS = [
     monogram: "Le",
     voice: "Patient, exact, final-state oriented. Records revisions, evidence, rollback paths, and open debt.",
     mandate: "Produce an auditable release record that never calls planned, staged, or unverified work live.",
+    claudeModel: "claude-sonnet-5",
+    modelReason: "Release record archival requires structured precision.",
   },
 ] as const;
 
 export type Persona = (typeof PERSONAS)[number];
 export type PersonaId = Persona["id"];
+
+export type ClaudeModelId =
+  | "claude-opus-5"
+  | "claude-sonnet-5"
+  | "claude-haiku-4-5-20251001";
+
+export function getClaudeModel(persona: Persona): ClaudeModelId {
+  return persona.claudeModel;
+}
 
 export const PERSONA_BY_ID = Object.fromEntries(
   PERSONAS.map((persona) => [persona.id, persona]),
