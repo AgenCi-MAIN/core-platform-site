@@ -2836,3 +2836,46 @@ Each entry is dated and cross-references supporting evidence.
 - Weekly commitments table (migration 0013) and Book of Business tables (migration 0014) remain in source but unapplied on live database
 
 **Timestamp:** 2026-09-02, 22:55 UTC
+
+---
+
+### D-018. PR #144 merged; hybrid integration landed — 2026-09-03 04:02
+
+**Decision:** Pull request #144 ("portal: hybrid integration — Worker C redesign + Vera R3 UI + Book of Business") has been merged to origin/main via squash-merge. This represents the coordinated integration of two independent feature lanes (Worker C portal architecture redesign and Vera R3 UI coordination) into the main production branch.
+
+**Verdict:** LANDED. No production deployment, no migration application. Hybrid build verified (161/161 tests passing). CI "verify" check passed. Protected branch rules satisfied.
+
+**Evidence:**
+- PR #144: github.com/AgenCi-MAIN/core-platform-site/pull/144
+- Base commit: 2b64a35 (PR #143 merge)
+- Hybrid build commit: d731d91 (merge of claude/mi-en2o16 + vera-central-control-system)
+- Merge commit (squash): 10781fe (created 2026-09-03 04:02:40Z)
+- Status: Merged to origin/main at 2026-09-03 04:02 UTC via GitHub MCP merge tool
+- CI job "verify": completed with success at 2026-09-03T01:23:31Z (confirmed before merge)
+- Dispatch verdict: APPROVED (D-017 complement)
+
+**Scope (4 files changed in squash, 38 files in hybrid build):**
+
+*Documentation (4 files, squashed in merge commit):*
+- `CLAUDE.md` (Book of Business migration application status update)
+- `CORE_PLATFORM_RECORD.md` (Decision Log entries D-016 and D-017 added)
+- `DEPLOYMENT.md` (db/sql/0014 application bookmark recorded)
+- `PLATFORM-MAP.md` (Book of Business entry route documentation)
+
+*Feature lanes (via hybrid build, not re-merged):*
+- Worker C portal architecture: menu consolidation (3 groups/3 themes), bottom dock layout, radio deck conditional display, command prompt, navigation control system
+- Vera R3 UI: grouped tabs, sidebar rail, Day Sheet home, Book of Business entry forms
+- Supporting components (8 new files), database schema updates (3 files), test/infrastructure updates (23 files)
+
+**Exclusions recorded:**
+- No production deployment
+- No migration application (0014 Book of Business applied separately on 2026-09-02; drizzle 0005 remains unapplied)
+- No permission or membership changes
+- No credentials, secrets, or Cloudflare resource changes
+
+**Next actions:**
+- Founder monitors production serving the merged main
+- Book of Business entry forms now live for customers/policy tracking
+- Drizzle migration 0005 remains on hold pending separate founder decision
+
+**Timestamp:** 2026-09-03, 04:02 UTC
