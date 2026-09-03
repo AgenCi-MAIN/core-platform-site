@@ -30,17 +30,6 @@ const TOOL_CATEGORIES: readonly {
     ],
   },
   {
-    title: "Contracting & licensing",
-    blurb: "Heartland contracting now routes through the Reagan AI agent portal.",
-    tools: [
-      {
-        label: "Reagan AI — Heartland",
-        href: "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
-        note: "Heartland agent portal",
-      },
-    ],
-  },
-  {
     title: "Leads & CRM",
     blurb: "Lead sources and the systems that track them.",
     tools: [
@@ -94,7 +83,7 @@ export default async function ToolsPage() {
         <PortalPageIntro
           eyebrow="External tools"
           title={<>Tool <em>directory</em></>}
-          subtitle="Every third-party tool in one place, by category. Each opens in a new tab and has its own sign-in — nothing here runs inside CORE or shares its data."
+          subtitle="Every third-party tool in one place, by category. Each opens in a new tab and has its own sign-in — nothing here runs inside CORE or shares its data. Listing a portal is not a claim of appointment or affiliation."
           compact
         />
 

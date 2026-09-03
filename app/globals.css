@@ -862,14 +862,6 @@ button, .button, .nav-cta, .text-link {
    indication, which fails WCAG 2.4.7. It goes display: none here and is
    restored solely inside the pre-Popover fallback branch — the one place its
    :has(...:checked) rules exist. */
-.portal-mobile-drawer-toggle {
-  position: fixed;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-.portal-mobile-drawer-toggle { display: none; }
 
 .portal-sidebar {
   position: sticky;
@@ -1507,7 +1499,7 @@ html[data-portal-theme="thrive"] .portal {
    background-color to transparent, leaving light text floating on the light
    workspace. Pill triples are retuned for the navy ground. */
 html[data-portal-theme="thrive"] .portal .portal-dock,
-html[data-portal-theme="thrive"] .portal .portal-menu {
+html[data-portal-theme="thrive"] .portal .portal-rail {
   color: var(--portal-text);
   background-color: var(--portal-sidebar);
   --portal-panel: #16304f;
@@ -1850,6 +1842,25 @@ html[data-portal-theme="thrive"] .portal-theme-control button[aria-pressed="true
    language and a runtime test compares the rendered text to the constant.
    The highlighter marks the SPOKEN lines — what an agent actually says. */
 .training-line-step { font-weight: 800; }
+/* Script Vault (imported drafts): markers become structure only. */
+.script-vault-body { white-space: pre-wrap; }
+.script-vault-h { display: inline; font-weight: 800; color: var(--portal-text); }
+.script-vault-h1 { font-size: 1.05em; }
+.script-vault-h2 { font-size: 1em; }
+.script-vault-h3, .script-vault-h4, .script-vault-h5, .script-vault-h6 { letter-spacing: .04em; text-transform: uppercase; font-size: .86em; color: var(--portal-muted); }
+.script-governance-draft .script-governance-tag { color: var(--portal-pill-owner-ink); border-color: var(--portal-pill-owner-line); }
+.script-draft-label { text-transform: uppercase; letter-spacing: .08em; }
+.script-vault-order, .script-vault-index-order { color: var(--portal-muted); font-family: var(--portal-mono); font-weight: 600; margin-right: 6px; }
+.script-vault-index ol { margin: 0; padding: 0 0 0 4px; list-style: none; display: grid; gap: 6px; }
+.script-vault-index li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; min-height: 32px; }
+.script-vault-index a { color: var(--portal-text); text-decoration: none; }
+.script-vault-index a:hover { text-decoration: underline; }
+.script-vault-index small { color: var(--portal-subtle); font-size: 11px; }
+/* Role-aware home framing: one orienting sentence under the welcome. */
+.portal-home-framing { margin: 6px 0 0; color: var(--portal-muted); font-size: var(--portal-type-body); }
+/* Temporary hybrid script bridge in the founder-gated dialer. */
+.dialer-script-bridge { border-style: dashed; }
+.dialer-script-bridge-link { text-decoration: none; }
 .training-line-purpose { font-style: italic; color: var(--portal-muted); }
 .training-mark {
   background: #ffe867;
@@ -7494,8 +7505,6 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   text-transform: uppercase;
   color: var(--portal-text);
 }
-.portal-topbar .portal-topbar-menu,
-.portal-topbar .portal-topbar-menu-fallback { min-height: 44px; }
 
 /* --- Bottom dock ------------------------------------------- */
 .portal-dock {
@@ -7510,7 +7519,7 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   min-height: 56px;
   /* The lateral safe-area insets join the 20px gutter so a notched phone in
      landscape never tucks the end pills under the housing. */
-  max-width: min(560px, calc(100vw - 20px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  max-width: min(880px, calc(100vw - 20px - env(safe-area-inset-left) - env(safe-area-inset-right)));
   padding: 6px;
   border-radius: 999px;
   border: 1px solid var(--portal-line);
@@ -7561,10 +7570,6 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   font-size: 10px;
   font-weight: 700;
 }
-.portal-dock-menu,
-.portal-dock-menu-fallback {
-  border-color: var(--portal-line-strong);
-}
 .portal-dock-link small { display: none; }    /* reserved; links are label-only */
 .portal-dock-link-icon {
   flex: none;
@@ -7598,12 +7603,6 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   .portal-dock-hint { display: none; }
   .portal-dock a span.portal-dock-link-text { display: none; } /* icon-only quick links on phones */
 }
-/* Each @supports branch below shows exactly one opener per surface; the
-   fallback pair stays hidden by default so pre-@supports-selector engines
-   never render two Menu controls side by side. Compound selectors on purpose:
-   they must outrank the `.portal-dock label` display rule above. */
-.portal-dock .portal-dock-menu-fallback,
-.portal-topbar .portal-topbar-menu-fallback { display: none; }
 
 /* Bespoke command-console docks win their pages — the global dock yields,
    and the audio deck reverts to its shipped offset on those routes. */
@@ -7614,78 +7613,32 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
 .portal:has(.cacc-thumb-dock) .audio-deck,
 .portal:has(.pcc-mobile-dock) .audio-deck { bottom: 14px; }
 
-/* --- Slide-up grouped menu --------------------------------- */
+/* --- Group tabs (the menu) ---------------------------------
+   Owner direction 2026-09-02: no whole-menu popout. The five groups are
+   tabs in the top bar; each is a native <details> whose dropdown lists
+   that group's rows. `.portal-menu` stays the container's name — it is
+   the navigation surface the access tests slice — and each group keeps
+   `.portal-menu-group`; only the shape changed. Base rules here, theme
+   and width rules at the end of the file. */
 .portal-menu {
-  position: fixed;
-  left: 50%;
-  bottom: calc(84px + env(safe-area-inset-bottom));  /* anchored above the dock */
-  transform: translateX(-50%);
-  width: min(980px, calc(100vw - 24px));
-  max-height: calc(100dvh - 140px);
-  overflow-y: auto;                 /* NO overscroll-behavior — test ban */
-  margin: 0;
-  padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
-  border: 1px solid var(--portal-line);
-  border-radius: 20px;
-  background-color: var(--portal-sidebar);   /* longhand — boost lesson */
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--portal-text);
-  box-shadow: var(--portal-dock-shadow);
-  z-index: 70;                       /* fallback path; popover path is top layer */
+  background-color: var(--portal-sidebar);   /* longhand — boost lesson; the tab bar itself is transparent below */
 }
-/* Hidden by default so an engine that understands neither @supports branch
-   never paints a permanently open panel; each branch below restores its own
-   open state — the same proven pattern as the retired drawer. */
-.portal-menu { display: none; }
-.portal-menu::backdrop { background: rgba(4, 10, 7, .45); }
-@supports selector(:popover-open) {
-  .portal-menu { opacity: 0; transform: translate(-50%, 14px); transition: opacity .2s ease, transform .2s ease, overlay .2s allow-discrete, display .2s allow-discrete; }
-  .portal-menu:popover-open { display: block; opacity: 1; transform: translate(-50%, 0); }
-  @starting-style { .portal-menu:popover-open { opacity: 0; transform: translate(-50%, 14px); } }
-  .portal-menu .portal-drawer-close-fallback { display: none; }
-}
-/* Fallback open state (checkbox path) — engines without the Popover API. */
-@supports not selector(:popover-open) {
-  .portal-menu { display: none; }
-  .portal-shell:has(.portal-mobile-drawer-toggle:checked) .portal-menu { display: block; }
-  .portal-shell:has(.portal-mobile-drawer-toggle:checked) .portal-drawer-backdrop {
-    display: block; position: fixed; inset: 0; z-index: 60; border: 0; background: rgba(4, 10, 7, .45);
-  }
-  /* The one window where the fallback checkbox works: restore it to the
-     keyboard order here. Everywhere else it stays display: none (base rule)
-     so it is never a focusable control with no visible effect. */
-  .portal-mobile-drawer-toggle { display: inline-block; }
-  .portal-dock .portal-dock-menu,
-  .portal-topbar .portal-topbar-menu,
-  .portal-menu .portal-drawer-close-popover { display: none; }
-  .portal-dock .portal-dock-menu-fallback,
-  .portal-topbar .portal-topbar-menu-fallback { display: inline-flex; }
-  .portal-mobile-drawer-toggle:focus-visible ~ .portal-workspace .portal-topbar-menu-fallback,
-  .portal-mobile-drawer-toggle:focus-visible ~ .portal-workspace .portal-dock-menu-fallback { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .portal-menu { transition: none; }
-}
-/* 44px, not the topbar-era 32: the menu is a touch surface and its close
-   control has to meet the same floor as every row. The × strokes are grid
-   items, so they re-centre with the box on their own. */
-.portal-menu .portal-drawer-close { position: absolute; top: 16px; right: 16px; z-index: 2; width: 44px; height: 44px; }
-.portal-menu-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 6px 14px; border-bottom: 1px solid var(--portal-line); margin-bottom: 14px; }
-.portal-menu-head { padding-right: 64px; }   /* clears the absolute close control */
-.portal-menu-head .portal-brand { min-height: 44px; padding: 0; border-bottom: 0; }
-.portal-menu-head .portal-brand-copy strong { font-family: var(--portal-serif); font-weight: 700; letter-spacing: .02em; }
+.portal-topbar .portal-menu { background-color: transparent; }
 .portal-menu-columns {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 18px 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 4px;
   align-items: start;                /* grid-stretch row inflation lesson */
 }
-/* Three-group IA (2026-09-02): when the Administration column is present it is
-   deliberately narrower — four short governance rows never need a Work-width
-   track. Roles without an Administration group fall back to auto-fit. */
-@media (min-width: 640px) {
-  .portal-menu-columns:has(.portal-menu-group-administration) {
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr) minmax(0, 0.75fr);
-  }
+/* Five-group IA (2026-09-02, second pass): auto-fit places however many groups
+   survive the role filter — five for an owner, three for support — without a
+   fixed track count that would leave an empty column for a suppressed group.
+   Wide screens get all five side by side; narrower ones wrap. */
+@media (min-width: 960px) {
+  .portal-menu-columns { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
 }
 .portal-menu-group { display: grid; gap: 2px; align-content: start; }
 .portal-menu-group-label {
@@ -7701,8 +7654,10 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
 .portal-menu-group-sub { font-size: 11px; color: var(--portal-subtle); padding: 0 10px 6px; margin: 0; }
 .portal-menu-item {
   display: flex;
+  flex-wrap: wrap;                   /* five narrower columns: a state pill that no longer fits beside
+                                        its label wraps under it instead of overlapping it */
   align-items: center;
-  gap: 10px;
+  gap: 2px 10px;
   min-height: 44px;                  /* touch floor — deliberate change from the 40px rail ceiling */
   padding: 6px 10px;
   border-radius: 10px;
@@ -7723,20 +7678,15 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   font-family: var(--portal-mono); font-size: 10.5px; text-align: center;
 }
 .portal-menu-external { color: var(--portal-subtle); font-size: 11px; }   /* holds the ↗ glyph */
-.portal-menu-coming {
-  margin: 12px 0 0;
-  padding: 10px 10px 0;
-  border-top: 1px dashed var(--portal-line);
+/* A gated placeholder row's honest state ("Source not connected"): dashed and
+   muted so a row that leads to a placeholder never reads as a live surface. */
+.portal-pill-pending {
   color: var(--portal-subtle);
-  font-family: var(--portal-mono);
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  border-style: dashed;
+  border-color: var(--portal-line);
+  background: transparent;
 }
+.portal-pill-pending::before { background: transparent; border: 1px dashed currentColor; width: 5px; height: 5px; }
 .portal-menu-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; padding: 12px 10px 0; border-top: 1px solid var(--portal-line); }
 .portal-menu-system {
   display: inline-flex;
@@ -7985,36 +7935,8 @@ html[data-portal-performance="boost"] .portal-menu {
    and the last accent-fill inks move onto tokens. Nothing here changes who
    sees what — presentation only. */
 
-/* --- Phone menu: full-width bottom sheet -------------------- */
-@media (max-width: 560px) {
-  .portal-menu {
-    left: 0;
-    bottom: 0;
-    transform: none;
-    width: 100%;
-    max-height: calc(100dvh - 56px);
-    /* The sheet touches the screen edges, so the lateral insets move from
-       the viewport gutter into the sheet's own padding. */
-    padding-inline: calc(16px + env(safe-area-inset-left)) calc(16px + env(safe-area-inset-right));
-    border-radius: 20px 20px 0 0;
-    border-left: 0;
-    border-right: 0;
-    border-bottom: 0;
-  }
-  /* The close control anchors to the sheet's border box, which is now the
-     screen edge — the right inset keeps it out of a landscape notch. */
-  .portal-menu .portal-drawer-close { right: calc(16px + env(safe-area-inset-right)); }
-  /* The centering transform is gone in sheet mode, so the slide re-expresses
-     as a plain Y offset. Same 200ms, same reduced-motion and boost outs —
-     those kill the transition property itself, which this block never sets. */
-  @supports selector(:popover-open) {
-    .portal-menu { transform: translateY(16px); }
-    .portal-menu:popover-open { transform: translateY(0); }
-    @starting-style {
-      .portal-menu:popover-open { opacity: 0; transform: translateY(16px); }
-    }
-  }
-}
+/* (The phone bottom-sheet menu retired with the popout, 2026-09-02: the
+   group tabs wrap under the brand at narrow widths instead.) */
 
 /* --- Founder's system dot: 44px reach, same 7px light -------- */
 /* Vertical negative margins only: the row is 44px tall already, so height is
@@ -8042,4 +7964,747 @@ html[data-portal-theme="thrive"] .portal .portal-dock .portal-dock-command-mark 
   .portal-dock a,
   .portal-dock button,
   .portal-dock label { transition: none; }
+}
+
+/* =====================================================================
+   Dock & Panels (Dispatch R3, 2026-09-02) — navigation placement, the five
+   dock destinations, focused panels, and level-two disclosure. Token-only:
+   every colour is a --portal-* variable so all three themes carry it.
+   ===================================================================== */
+
+/* --- Dock: five destinations + the inert deferred dialer ---------------- */
+.portal-dock-deferred {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px dashed var(--portal-line-strong);
+  background: transparent;
+  color: var(--portal-subtle);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: not-allowed;
+  user-select: none;
+}
+.portal-dock-deferred .portal-pill { margin-left: 2px; }
+@media (max-width: 560px) {
+  .portal-dock-deferred .portal-dock-link-text,
+  .portal-dock-deferred .portal-pill { display: none; }
+}
+
+/* --- Source-state pills ------------------------------------------------ */
+.portal-pill-protected {
+  color: var(--portal-pill-owner-ink);
+  background: transparent;
+  border-color: var(--portal-pill-owner-line);
+}
+.portal-pill-protected::before { background: transparent; border: 1px solid currentColor; width: 5px; height: 5px; }
+.portal-pill-deferred {
+  color: var(--portal-subtle);
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--portal-line-strong);
+}
+.portal-pill-deferred::before { display: none; }
+
+/* --- Navigation placement control -------------------------------------- */
+/* Inherits .portal-theme-control. Hidden below the rail breakpoint: there
+   the compact dock is used whatever is stored, so the control would offer a
+   choice with no visible effect. */
+@media (max-width: 959px) {
+  .portal-nav-control { display: none; }
+}
+
+/* --- Left rail (desktop widths only) ----------------------------------- */
+/* A real sidebar column (owner direction 2026-09-02), not the dock re-laid:
+   the shell becomes a two-column grid, the rail shows, the dock hides.
+   Below 960px this whole block is inert, which is the narrow-width override:
+   a stored "rail" renders the bottom dock on a phone with no script
+   involved. The base .portal-dock rule keeps position: fixed and the
+   safe-area offset (pinned by test). */
+@media (min-width: 960px) {
+  html[data-portal-nav="rail"] .portal .portal-shell {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    align-items: start;
+  }
+  html[data-portal-nav="rail"] .portal .portal-rail { display: flex; }
+  html[data-portal-nav="rail"] .portal .portal-dock { display: none; }
+  /* The brand lives in the rail; the top bar keeps only the section name. */
+  html[data-portal-nav="rail"] .portal .portal-topbar-brand { display: none; }
+  /* No dock to clear at the bottom in rail mode. */
+  html[data-portal-nav="rail"] .portal .portal-main { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+}
+
+/* --- Focused panel ------------------------------------------------------ */
+.portal-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 18px;
+  margin-bottom: 18px;
+}
+.portal-panel-copy { min-width: 0; max-width: 760px; }
+.portal-panel-copy .portal-eyebrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.portal-panel-title {
+  margin: 0;
+  font-family: var(--portal-serif);
+  font-weight: 500;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.15;
+  letter-spacing: -.01em;
+}
+.portal-panel-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.portal-panel-actions .portal-button { text-decoration: none; }
+
+.portal-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.portal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--portal-line-strong);
+  background: var(--portal-raised);
+  color: var(--portal-text);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+.portal-chip:hover { background: var(--portal-hover); }
+.portal-chip:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
+/* Active: text AND colour — the current chip is also named by aria-current. */
+.portal-chip[aria-current="page"] {
+  border-color: var(--portal-accent);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent-strong);
+}
+.portal-chip[aria-disabled="true"] { color: var(--portal-subtle); border-style: dashed; cursor: default; }
+@media (pointer: coarse) { .portal-chip { min-height: 44px; } }
+
+.portal-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.portal-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--portal-line);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-panel);
+}
+.portal-tile-label {
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--portal-subtle);
+}
+.portal-tile-value {
+  font-family: var(--portal-serif);
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.portal-tile-value-pending { color: var(--portal-subtle); }
+.portal-tile-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--portal-muted); font-size: 11px; }
+
+.portal-panel-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.portal-panel-card { display: flex; flex-direction: column; gap: 12px; }
+.portal-panel-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.portal-panel-card-head h2 { margin: 0; font-size: var(--portal-type-title); font-weight: 700; }
+.portal-panel-foot { margin: 0; color: var(--portal-muted); font-size: 12px; }
+.portal-panel-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 10px; border-top: 1px solid var(--portal-line); font-size: var(--portal-type-body); }
+.portal-panel-note {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border: 1px dashed var(--portal-line-strong);
+  border-radius: var(--portal-radius);
+  color: var(--portal-muted);
+  font-size: 12.5px;
+}
+.portal-panel-card .portal-panel-note { margin-bottom: 0; }
+
+.portal-presence-line { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0; font-size: var(--portal-type-body); }
+.portal-presence-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--portal-line-strong); flex: none; }
+.portal-presence-line-on .portal-presence-dot { background: var(--portal-success); }
+
+/* --- Records (level one) ----------------------------------------------- */
+.portal-records {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--portal-line);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-panel);
+  overflow: hidden;
+}
+.portal-records li + li { border-top: 1px solid var(--portal-line); }
+.portal-record {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  padding: 10px 14px;
+  color: inherit;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+.portal-record:hover { background: var(--portal-hover); }
+.portal-record:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: -2px; }
+.portal-record[aria-current="true"] { background: var(--portal-accent-soft); }
+.portal-record-main { flex: 1 1 auto; min-width: 0; display: grid; gap: 2px; }
+.portal-record-title { font-weight: 600; font-variant-numeric: tabular-nums; }
+.portal-record-meta { color: var(--portal-muted); font-size: 12px; }
+.portal-record-caret { color: var(--portal-icon); font-size: 18px; line-height: 1; }
+
+/* --- Drawer (level two): side drawer ≥ 900px, bottom sheet below ------- */
+.portal-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 34;                       /* under the dock (35): the dock stays reachable */
+  width: min(460px, 100vw);
+  overflow-y: auto;
+  padding: 22px 24px calc(120px + env(safe-area-inset-bottom));
+  background-color: var(--portal-panel);   /* longhand — boost strips images, colour must survive */
+  border-left: 1px solid var(--portal-line-strong);
+  box-shadow: var(--portal-dock-shadow);
+}
+.portal-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.portal-drawer-head h2 { margin: 4px 0 0; font-family: var(--portal-serif); font-weight: 500; font-size: 24px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.portal-drawer-close {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--portal-line);
+  background: var(--portal-raised);
+  color: var(--portal-text);
+  font-size: 20px;
+  text-decoration: none;
+}
+.portal-drawer-close:hover { background: var(--portal-hover); }
+.portal-drawer-close:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
+.portal-drawer-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.portal-drawer-actions .portal-button { text-decoration: none; }
+@media (max-width: 899px) {
+  .portal-drawer {
+    top: auto;
+    left: 0;
+    right: 0;
+    width: auto;
+    max-height: 78dvh;
+    padding-top: 10px;
+    border-left: 0;
+    border-top: 1px solid var(--portal-line-strong);
+    border-radius: 18px 18px 0 0;
+  }
+  .portal-drawer::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 4px;
+    margin: 0 auto 12px;
+    border-radius: 2px;
+    background: var(--portal-line-strong);
+  }
+}
+
+/* --- Disclosure sections ----------------------------------------------- */
+.portal-disclosure {
+  border: 1px solid var(--portal-line);
+  border-radius: var(--portal-radius);
+  background: var(--portal-panel);
+}
+.portal-disclosure + .portal-disclosure { margin-top: 8px; }
+.portal-disclosure summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 14px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+.portal-disclosure summary::-webkit-details-marker { display: none; }
+.portal-disclosure summary:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: -2px; border-radius: var(--portal-radius); }
+.portal-disclosure-title { flex: 1 1 auto; min-width: 0; }
+.portal-disclosure-caret {
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform .15s ease;
+  flex: none;
+}
+.portal-disclosure[open] > summary .portal-disclosure-caret { transform: rotate(45deg); }
+.portal-disclosure-body { padding: 0 14px 14px; color: var(--portal-muted); font-size: var(--portal-type-body); }
+.portal-disclosure-body p { margin: 0; }
+.portal-disclosure-body p + p { margin-top: 8px; }
+
+/* --- Tables ------------------------------------------------------------- */
+.portal-table-wrap { overflow-x: auto; }
+.portal-panel-table { width: 100%; border-collapse: collapse; }
+.portal-panel-table th {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--portal-line-strong);
+  font-family: var(--portal-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--portal-subtle);
+  white-space: nowrap;
+}
+.portal-panel-table td { padding: 10px; vertical-align: top; }
+
+/* --- Day strip on the dashboard --------------------------------------- */
+.portal-day-strip { margin-bottom: 18px; }
+.portal-day-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.portal-day-title { margin: 0; }
+.portal-day-links { display: flex; flex-wrap: wrap; gap: 14px; font-size: var(--portal-type-body); font-weight: 600; }
+.portal-day-links a { text-decoration: none; }
+.portal-day-links a:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-disclosure-caret { transition: none; }
+}
+
+/* --- Compact phone dock ----------------------------------------------- */
+/* The approved Direction B phone artboard: mark, Menu, and icon-only
+   destinations, nothing else. Five slots plus Command must fit a 390px
+   viewport inside the dock's 20px gutter, so the gaps and paddings tighten
+   here, Command keeps its mark and drops its word (the same rule the slots
+   follow), and the founder's deferred-dialer marker — desktop evidence of a
+   parked surface, never a door — does not spend a phone's width. */
+@media (max-width: 560px) {
+  .portal-dock { gap: 4px; }
+  .portal-dock a,
+  .portal-dock button,
+  .portal-dock label { padding: 0 10px; }
+  .portal-dock label span.portal-dock-link-text { display: none; }
+  .portal-dock-deferred { display: none; }
+}
+/* The "Esc closes" hint is decorative (aria-hidden). When the founder's
+   deferred-dialer marker is in the row there is no width to spare for it. */
+.portal-dock:has(.portal-dock-deferred) .portal-dock-hint { display: none; }
+
+/* =====================================================================
+   Owner direction 2026-09-02 — "make the actual product like the
+   screenshots": group tabs in the top bar, a real sidebar rail, the Day
+   Sheet home, and the Book's entry forms. Token-only, so all three themes
+   carry it. Base rules for the tabs live beside the dock rules above; this
+   block is their geometry and the new surfaces.
+   ===================================================================== */
+
+/* --- Top bar: brand, section, tabs, controls ---------------------------- */
+.portal-topbar { min-height: 56px; padding: 6px 18px; gap: 8px 16px; }
+.portal-topbar-start { gap: 10px; }
+.portal-topbar-end { gap: 8px; margin-left: auto; }
+.portal-topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 0 6px 0 0;
+  border-bottom: 0;
+  color: var(--portal-text);
+  text-decoration: none;
+}
+.portal-topbar-brand .portal-brand-mark { flex: 0 0 26px; width: 26px; height: 26px; border-radius: 8px; }
+.portal-topbar-brand strong { font-family: var(--portal-serif); font-weight: 700; font-size: 15px; letter-spacing: .06em; }
+.portal-topbar-brand:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; border-radius: 8px; }
+.portal-connection-text { white-space: nowrap; }
+
+/* --- Group tabs ------------------------------------------------------- */
+.portal-menu-group { position: relative; display: grid; align-content: start; }
+.portal-menu-group > summary.portal-tab {
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 13px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  color: var(--portal-muted);
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+.portal-menu-group > summary.portal-tab::-webkit-details-marker { display: none; }
+.portal-menu-group > summary.portal-tab:hover { color: var(--portal-text); background: var(--portal-hover); }
+.portal-menu-group > summary.portal-tab:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
+/* The current page's group: text AND colour, also named by aria-current. */
+.portal-menu-group[data-current="true"] > summary.portal-tab {
+  color: var(--portal-accent-strong);
+  background: var(--portal-accent-soft);
+}
+.portal-menu-group[open] > summary.portal-tab {
+  color: var(--portal-text);
+  background: var(--portal-panel);
+  border-color: var(--portal-line-strong);
+}
+.portal-tab-caret {
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  opacity: .7;
+  flex: none;
+}
+.portal-menu-group[open] > summary .portal-tab-caret { transform: rotate(-135deg); margin-top: 3px; }
+/* The dropdown: one group's rows, anchored under its tab. Longhand
+   background-color — boost strips images and the colour must survive. */
+.portal-tab-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 60;
+  min-width: 268px;
+  max-width: min(380px, calc(100vw - 24px));
+  padding: 12px 8px 8px;
+  border: 1px solid var(--portal-line-strong);
+  border-radius: 14px;
+  background-color: var(--portal-panel);
+  color: var(--portal-text);
+  box-shadow: var(--portal-dock-shadow);
+}
+/* The last two tabs open toward the left so the panel stays on screen. */
+.portal-menu-group:nth-last-child(-n+2) .portal-tab-panel { left: auto; right: 0; }
+.portal-tab-panel .portal-menu-group-label { padding: 0 10px 2px; }
+.portal-tab-panel .portal-menu-group-sub { padding: 0 10px 8px; margin-bottom: 6px; border-bottom: 1px solid var(--portal-line); }
+.portal-tab-panel .portal-menu-item { min-height: 44px; }
+.portal-menu-identity { display: grid; line-height: 1.2; }
+.portal-menu-identity small { color: var(--portal-subtle); font-size: 11px; }
+@media (max-width: 899px) {
+  /* The tab strip takes its own row under the brand on narrow widths. */
+  .portal-topbar .portal-menu { order: 5; flex-basis: 100%; }
+  .portal-connection-text,
+  .portal-topbar .portal-status { display: none; }
+}
+@media (max-width: 560px) {
+  .portal-menu-group > summary.portal-tab { padding: 0 10px; font-size: 12px; }
+  .portal-tab-panel { position: fixed; left: 12px; right: 12px; top: auto; max-width: none; margin-top: 6px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .portal-tab-caret { transition: transform .15s ease; }
+}
+
+/* --- The rail (shown by the media block above when placement is rail) --- */
+.portal-rail {
+  display: none;                       /* the rail media block turns this on */
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: 100dvh;
+  min-height: 0;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 12px 12px;
+  overflow: hidden;
+  color: var(--portal-text);
+  background-color: var(--portal-sidebar);   /* longhand — boost strips images, colour must survive */
+  border-right: 1px solid var(--portal-line);
+}
+.portal-rail-brand { padding: 0 8px 13px; text-decoration: none; color: inherit; }
+.portal-rail-brand .portal-brand-copy strong { font-family: var(--portal-serif); font-weight: 700; font-size: 15px; letter-spacing: .06em; }
+.portal-rail-brand:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; border-radius: 8px; }
+.portal-rail-command {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  margin: 12px 0 4px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--portal-accent);
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent-strong);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.portal-rail-command:hover { filter: brightness(.98); }
+.portal-rail-label {
+  margin: 14px 10px 4px;
+  font-family: var(--portal-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--portal-subtle);
+}
+.portal-rail-nav { flex: 1 1 auto; min-height: 0; display: grid; align-content: start; gap: 2px; overflow-y: auto; scrollbar-width: thin; }
+.portal-rail-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  color: var(--portal-text);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+.portal-rail-link:hover { background: var(--portal-hover); }
+.portal-rail-link:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
+.portal-rail-link[aria-current="page"] { background: var(--portal-accent-soft); color: var(--portal-accent-strong); }
+.portal-rail-icon { flex: none; width: 18px; height: 18px; display: grid; place-items: center; color: var(--portal-icon); }
+.portal-rail-link[aria-current="page"] .portal-rail-icon { color: var(--portal-accent); }
+.portal-rail-text { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.portal-rail-deferred { color: var(--portal-subtle); border-style: dashed; border-color: var(--portal-line-strong); cursor: not-allowed; user-select: none; }
+.portal-rail-deferred:hover { background: transparent; }
+.portal-rail-foot {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--portal-line);
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 8px 10px;
+  align-items: center;
+}
+.portal-rail-foot .portal-member-name { text-align: left; padding-left: 0; }
+.portal-rail-signout {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  margin: 0;
+  padding: 0 12px;
+  border: 1px solid var(--portal-line-strong);
+  border-radius: 999px;
+  color: var(--portal-text);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.portal-rail-signout:hover { background: var(--portal-hover); }
+html[data-portal-performance="boost"] .portal-rail,
+html[data-portal-performance="boost"] .portal-tab-panel { box-shadow: none; transition: none; }
+
+/* --- The Day Sheet home -------------------------------------------- */
+.portal-day-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 18px;
+  margin-bottom: 18px;
+}
+.portal-day-hero .portal-lede { margin-top: 8px; }
+.portal-presence-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--portal-line-strong);
+  background: var(--portal-raised);
+  color: var(--portal-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.portal-presence-pill:hover { background: var(--portal-hover); }
+.portal-presence-pill:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
+.portal-presence-pill-ready { border-color: var(--portal-pill-live-line); background: var(--portal-pill-live-bg); color: var(--portal-pill-live-ink); }
+.portal-presence-pill-ready .portal-presence-dot,
+.portal-presence-pill-busy .portal-presence-dot { background: var(--portal-success); }
+.portal-presence-pill-busy { border-color: var(--portal-secondary); }
+.portal-next { margin-bottom: 18px; }
+.portal-next-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 12px; margin-bottom: 10px; }
+.portal-h2 { margin: 0; font-family: var(--portal-serif); font-weight: 500; font-size: 20px; line-height: 1.25; }
+.portal-action-card {
+  border: 1px solid var(--portal-line);
+  border-radius: 14px;
+  background: var(--portal-panel);
+}
+.portal-action-card + .portal-action-card { margin-top: 10px; }
+.portal-action-card[open] { border-color: var(--portal-accent); }
+.portal-action-card-static { padding: 14px 18px; }
+.portal-action-card-static + .portal-action-card { margin-top: 10px; }
+.portal-action-card > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 12px 18px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.portal-action-card > summary::-webkit-details-marker { display: none; }
+.portal-action-card > summary:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: -2px; border-radius: 14px; }
+.portal-action-title { flex: 1 1 auto; min-width: 0; display: grid; gap: 3px; }
+.portal-action-title strong { font-family: var(--portal-serif); font-weight: 500; font-size: 17px; line-height: 1.2; }
+.portal-action-title span { color: var(--portal-muted); font-size: 12.5px; }
+.portal-action-hint { color: var(--portal-subtle); font-size: 11.5px; white-space: nowrap; }
+.portal-action-card[open] .portal-action-hint { display: none; }
+.portal-action-body { padding: 0 18px 16px; border-top: 1px solid var(--portal-line); }
+.portal-action-lines { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.portal-action-line { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 10px; font-size: 13px; }
+.portal-action-copy { margin: 12px 0 0; color: var(--portal-muted); font-size: 13px; }
+.portal-action-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.portal-action-actions .portal-button { text-decoration: none; }
+.portal-next-foot { margin: 12px 0 0; text-align: center; font-size: 13px; }
+.portal-next-foot a { text-decoration: none; font-weight: 600; }
+.portal-dashboard .portal-panel-note { margin-bottom: 0; }
+.portal-dashboard .portal-panel-note a { font-weight: 600; }
+
+/* --- Book entry forms ---------------------------------------------- */
+.portal-book-add {
+  margin-top: 16px;
+  border: 1px solid var(--portal-line);
+  border-radius: var(--portal-radius-lg);
+  background: var(--portal-panel);
+}
+.portal-book-add > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 18px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.portal-book-add > summary::-webkit-details-marker { display: none; }
+.portal-book-add > summary:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: -2px; border-radius: var(--portal-radius-lg); }
+.portal-book-add-title { flex: 1 1 auto; min-width: 0; font-family: var(--portal-serif); font-weight: 500; font-size: 18px; }
+.portal-book-add[open] > summary .portal-disclosure-caret { transform: rotate(45deg); }
+.portal-book-add-body { padding: 0 18px 18px; border-top: 1px solid var(--portal-line); }
+.portal-book-form { display: grid; gap: 14px; padding-top: 14px; }
+.portal-book-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px 14px; }
+.portal-book-field { display: grid; gap: 5px; min-width: 0; align-content: start; }
+.portal-book-field-wide { grid-column: 1 / -1; }
+.portal-book-field > span {
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--portal-subtle);
+}
+.portal-book-field input,
+.portal-book-field select,
+.portal-book-field textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--portal-line-strong);
+  border-radius: 10px;
+  background: var(--portal-raised);
+  color: var(--portal-text);
+  font: inherit;
+  font-size: 13.5px;
+}
+.portal-book-field textarea { min-height: 64px; resize: vertical; }
+.portal-book-field input:focus-visible,
+.portal-book-field select:focus-visible,
+.portal-book-field textarea:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 1px; }
+.portal-book-field small { color: var(--portal-muted); font-size: 11.5px; line-height: 1.35; }
+.portal-book-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.portal-book-form-actions small { color: var(--portal-muted); font-size: 12px; }
+.portal-book-status { display: flex; align-items: center; gap: 6px; }
+.portal-book-status select {
+  min-height: 34px;
+  padding: 4px 8px;
+  border: 1px solid var(--portal-line-strong);
+  border-radius: 8px;
+  background: var(--portal-raised);
+  color: var(--portal-text);
+  font: inherit;
+  font-size: 12.5px;
+}
+.portal-book-status .portal-button { min-height: 34px; padding: 0 10px; font-size: 12.5px; }
+.portal-panel-note-error { border-style: solid; border-color: var(--portal-danger); color: var(--portal-danger); }
+.portal-panel-note-quiet { border-style: solid; }
+.portal-muted { color: var(--portal-muted); }
+
+/* --- Customer drawer: policies and their status ----------------------- */
+.portal-drawer-meta { margin: -8px 0 12px; color: var(--portal-muted); font-size: 12.5px; }
+.portal-drawer-policies { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.portal-drawer-policy {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--portal-line);
+  border-radius: 10px;
+  background: var(--portal-raised);
+}
+.portal-drawer-policy-main { flex: 1 1 200px; min-width: 0; display: grid; gap: 3px; color: var(--portal-text); font-size: 12.5px; }
+.portal-drawer-policy-main strong { font-size: 13px; }
+.portal-drawer-policy-next { color: var(--portal-muted); }
+.portal-drawer-policy-side { display: grid; gap: 6px; justify-items: end; align-content: start; flex: none; }
+
+/* --- Top bar rows -----------------------------------------------------
+   One line holds Back, the brand/section, the Calls stack, the controls and
+   the avatar; the five tabs sit inline only when there is room (≥1700px)
+   and otherwise take a full-width second row — a deliberate tab strip, not
+   a wrap. Narrow widths thin the controls to icons. */
+@media (max-width: 1699px) {
+  .portal-topbar { flex-wrap: wrap; row-gap: 2px; }
+  .portal-topbar .portal-menu { order: 5; flex: 0 0 100%; width: 100%; }
+  .portal-topbar .portal-menu-columns { padding: 2px 0 0; }
+  .portal-theme-label { display: none; }
+  .portal-theme-control button { width: 30px; justify-content: center; padding-inline: 4px; }
+  .portal-connection-text,
+  .portal-topbar .portal-status { display: none; }
+}
+@media (max-width: 899px) {
+  .portal-topbar .portal-menu-columns { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .portal-topbar .portal-menu-columns::-webkit-scrollbar { display: none; }
+}
+@media (max-width: 620px) {
+  /* The phone bar keeps wrapping so the tab strip gets its own row. */
+  .portal-topbar { flex-wrap: wrap; }
+  .portal-topbar-start { flex: 1 1 auto; min-width: 0; }
+  .portal-topbar-end { flex: 0 0 auto; }
+  .portal-topbar-copy { display: none; }
+  .portal-topbar-brand strong { display: none; }
+  .portal-topbar-brand { padding-right: 0; }
+  .portal-nav-control { display: none; }
 }

@@ -20,6 +20,7 @@ import { readRows, type ReadFault } from "./read-guard";
 import { PortalBackControl } from "./back-control";
 import { PortalPerformanceControl } from "../performance-control";
 import { PortalThemeControl } from "../theme-control";
+import { PortalNavControl } from "../nav-control";
 
 type PortalIconName =
   | "dashboard"
@@ -37,7 +38,6 @@ type PortalIconName =
   | "leaderboard"
   | "stats"
   | "surelc"
-  | "reagan"
   | "toolbox"
   | "scripts"
   | "team"
@@ -53,7 +53,7 @@ type NavItem = {
   label: string;
   capability: Capability;
   icon: PortalIconName;
-  group: "Work" | "Resources" | "Administration";
+  group: NavGroup;
   description: string;
   state: "live" | "pending";
   /** Set for third-party tools opened outside the portal. */
@@ -71,105 +71,89 @@ type NavItem = {
    */
   commandOnly?: boolean;
   stateLabel: string;
+  /**
+   * The short word the dock uses for one of its five destinations. Only the
+   * rows in DOCK_DESTINATIONS carry one; the menu keeps the full label.
+   */
+  dockLabel?: string;
+};
+
+/**
+ * The five-group IA (Dispatch work order 1A, 2026-09-02): Today, Clients,
+ * Selling, Standing, Administration — in that order. Group order is
+ * NAV_GROUPS; row order within a group is array order here. A row appears in
+ * a member's menu only when `visibleNav` passes it, and a group with no
+ * surviving rows is not rendered at all (fail-closed suppression), so a role
+ * never sees an empty heading for a place it cannot go.
+ */
+export const NAV_GROUPS = ["Today", "Clients", "Selling", "Standing", "Administration"] as const;
+export type NavGroup = (typeof NAV_GROUPS)[number];
+
+/** Subtitle under each section header. Every group carries one. */
+export const NAV_GROUP_SUBTITLES: Record<NavGroup, string> = {
+  Today: "Answer, log & check in",
+  Clients: "Callbacks, book & follow-up",
+  Selling: "Train, quote & carrier tools",
+  Standing: "Numbers, rank & pay",
+  Administration: "Roster, audit & command",
 };
 
 const NAV: readonly NavItem[] = [
+  // ── Today ─────────────────────────────────────────────────────────────
   {
     href: "/portal",
     label: "Dashboard",
     capability: "dashboard.view.self",
     icon: "dashboard",
-    group: "Work",
+    group: "Today",
     description: "Your authenticated IMO command surface.",
     state: "live",
     stateLabel: "Available",
+    dockLabel: "Today",
   },
   {
-    href: "/portal/training",
-    label: "Training",
-    capability: "dashboard.view.self",
-    icon: "training",
-    group: "Work",
-    description: "IMO-approved introductions, call angles, and training language.",
-    state: "live",
-    stateLabel: "Approved content",
-  },
-  {
+    // Demoted from the dock (Dispatch R3, 2026-09-02): the live voice
+    // workspace is reached from this menu row and from the Inbound Status
+    // panel, never from a dock slot. Route and calls.answer guard unchanged.
     href: "/portal/calls",
     label: "Calls",
     capability: "calls.answer",
     icon: "calls",
-    group: "Work",
+    group: "Today",
     description: "Live browser calls, history, voicemail, authorized review, and founder outbound calling.",
     state: "live",
     stateLabel: "Voice workspace",
   },
   {
-    href: "/portal/scripts",
-    label: "Script Vault",
-    capability: "scripts.manage",
-    icon: "scripts",
-    group: "Work",
-    description: "Governed, versioned conversation playbooks.",
-    state: "pending",
-    stateLabel: "Import pending",
-  },
-  {
-    href: "/portal/stats",
-    label: "My Stats",
-    capability: "dashboard.view.self",
-    icon: "stats",
-    group: "Work",
-    description: "Your own production numbers, computed from the platform's records.",
+    // The daily inbound view (Dispatch R3): one focused panel of what rang,
+    // what is owed, and whether you are on the line. The route existed as a
+    // redirect into Calls; it now renders the panel behind the SAME guard.
+    href: "/portal/inbound",
+    label: "Inbound Status",
+    capability: "calls.answer",
+    icon: "calls",
+    group: "Today",
+    description: "Today's answered calls, callbacks owed, and your availability — one panel, no dialer.",
     state: "live",
-    stateLabel: "All members",
-  },
-  {
-    href: "/portal/leaderboard",
-    label: "Leaderboard",
-    capability: "dashboard.view.self",
-    icon: "leaderboard",
-    group: "Work",
-    description: "Team standings from real call production — no hand-entered numbers.",
-    state: "live",
-    stateLabel: "All members",
+    stateLabel: "Daily view",
+    dockLabel: "Inbound",
   },
   {
     href: "/portal/announcements",
     label: "Announcements",
     capability: "dashboard.view.self",
     icon: "announcements",
-    group: "Resources",
+    group: "Today",
     description: "Releases, roadmap, and operating notes from the agency.",
     state: "live",
     stateLabel: "Available",
-  },
-  {
-    href: "/portal/library",
-    label: "Library",
-    capability: "dashboard.view.self",
-    icon: "library",
-    group: "Resources",
-    description: "Who IMO is, what we believe, training, and the incentive plan.",
-    state: "live",
-    stateLabel: "Available",
-  },
-  {
-    href: "/portal/commission",
-    label: "Commission Schedule",
-    capability: "dashboard.view.self",
-    icon: "commission",
-    group: "Resources",
-    description: "Every carrier's comp grid by contract level, with ladders and promotion rules.",
-    state: "live",
-    stateLabel: "All members",
   },
   {
     href: "/portal/music",
     label: "Radio",
     capability: "dashboard.view.self",
     icon: "radio",
-    group: "Resources",
+    group: "Today",
     description: "Music for the floor. Owner-uploaded tracks only.",
     state: "live",
     stateLabel: "Available",
@@ -190,35 +174,122 @@ const NAV: readonly NavItem[] = [
    * quieter front door on a locked room, which is fine — and it would be
    * dangerous only if it were ever mistaken for the lock itself.
    */
+
+  // ── Clients ───────────────────────────────────────────────────────────
   {
-    href: "/portal/gallery",
-    label: "Operations Deck",
-    capability: "dashboard.view.self",
-    icon: "gallery",
-    group: "Resources",
-    description: "Ten AI-made agent portraits. Select, build, and publish to Inkbox.",
+    // The Calls page's voicemail tab, reached by its own door. Not a new
+    // route: /portal/calls keeps its calls.answer guard. The MENU row is
+    // gated on book.view.self because this group is the client book — a
+    // role without a book (reviewer, support) loses the whole Clients group
+    // by fail-closed suppression rather than seeing a heading with one row.
+    href: "/portal/calls?tab=voicemail",
+    label: "Callback Queue",
+    capability: "book.view.self",
+    icon: "calls",
+    group: "Clients",
+    description: "Voicemail callbacks waiting on you or the shared queue.",
     state: "live",
-    stateLabel: "Available",
+    stateLabel: "Voice workspace",
   },
   {
-    href: "/portal/shop",
-    label: "Exchange",
+    // Gated placeholder row (promoted from the retired menu footer,
+    // 2026-09-02). The route and its book.view.self guard are
+    // unchanged; the page behind it is the honest source-not-connected
+    // placeholder, and the row says so rather than promising a book.
+    href: "/portal/book",
+    label: "Book of Business",
+    capability: "book.view.self",
+    icon: "book",
+    group: "Clients",
+    description: "Client and policy records. No system of record is connected yet.",
+    state: "pending",
+    stateLabel: "Source not connected",
+    dockLabel: "Book",
+  },
+
+  // ── Selling ───────────────────────────────────────────────────────────
+  {
+    href: "/portal/training",
+    label: "Training",
     capability: "dashboard.view.self",
-    icon: "shop",
-    group: "Resources",
-    description: "Trade contract points for transferred calls and AI capacity.",
+    icon: "training",
+    group: "Selling",
+    description: "IMO-approved introductions, call angles, and training language.",
     state: "live",
-    stateLabel: "Priced menu",
+    stateLabel: "Approved content",
+  },
+  {
+    href: "/portal/scripts",
+    label: "Script Vault",
+    capability: "scripts.manage",
+    icon: "scripts",
+    group: "Selling",
+    description: "Governed, versioned conversation playbooks. Imported drafts — licensed and compliance review required.",
+    state: "live",
+    stateLabel: "Draft — review required",
   },
   {
     href: "/portal/quoter",
     label: "Quoter",
     capability: "book.view.self",
     icon: "quoter",
-    group: "Resources",
+    group: "Selling",
     description: "Final expense quoting and underwriting — quote inline without leaving CORE.",
     state: "live",
     stateLabel: "Beta",
+  },
+  {
+    // Label-only rename from "Exchange" (2026-09-02). The route, guard,
+    // catalogue, and economics are untouched.
+    href: "/portal/shop",
+    label: "Marketplace",
+    capability: "dashboard.view.self",
+    icon: "shop",
+    group: "Selling",
+    description: "Trade contract points for transferred calls and AI capacity.",
+    state: "live",
+    stateLabel: "Priced menu",
+  },
+  {
+    href: "/portal/tools",
+    label: "Tool Directory",
+    capability: "dashboard.view.self",
+    icon: "toolbox",
+    group: "Selling",
+    description:
+      "Every external tool in one categorized place — carriers, leads, quoting, documents.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  // Two carrier agent portals (Dispatch work order 1A). Same external-link
+  // shape as every other outside tool: new tab, rel="noopener noreferrer",
+  // the member signs in there with their own credentials, and CORE stores
+  // nothing — no credential, cookie, token, or identity transaction. Plain
+  // login URLs only. Listing a portal is not a claim of appointment or
+  // affiliation with the carrier.
+  {
+    href: "https://www.aetna.com/aimmanageaccount/login",
+    label: "Aetna — carrier portal",
+    capability: "dashboard.view.self",
+    icon: "surelc",
+    group: "Selling",
+    description:
+      "Aetna's agent login. External — opens in a new tab; sign in there separately. No affiliation implied.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
+  },
+  {
+    href: "https://agents.ethoslife.com/login",
+    label: "Ethos — carrier portal",
+    capability: "dashboard.view.self",
+    icon: "surelc",
+    group: "Selling",
+    description:
+      "Ethos's agent login. External — opens in a new tab; sign in there separately. No affiliation implied.",
+    state: "live",
+    stateLabel: "External tool",
+    external: true,
   },
   // Three SureLC upline instances, each the owner's exact link (2026-08-18).
   // One entry per upline per PLATFORM-MAP rule 2 — never a shared page.
@@ -229,7 +300,7 @@ const NAV: readonly NavItem[] = [
     label: "SureLC — Heartland",
     capability: "dashboard.view.self",
     icon: "surelc",
-    group: "Resources",
+    group: "Selling",
     description:
       "Carrier contracting and licensing via SuranceBay. Opens in a new tab; sign in there separately.",
     state: "live",
@@ -241,7 +312,7 @@ const NAV: readonly NavItem[] = [
     label: "SureLC — Brenda Daly",
     capability: "dashboard.view.self",
     icon: "surelc",
-    group: "Resources",
+    group: "Selling",
     description:
       "Carrier contracting via SuranceBay, Brenda Daly branch. Opens in a new tab; sign in there separately.",
     state: "live",
@@ -253,36 +324,83 @@ const NAV: readonly NavItem[] = [
     label: "SureLC — Altura of America",
     capability: "dashboard.view.self",
     icon: "surelc",
-    group: "Resources",
+    group: "Selling",
     description:
       "Carrier contracting via SuranceBay, Altura of America. Opens in a new tab; sign in there separately.",
     state: "live",
     stateLabel: "External tool",
     external: true,
   },
+
+  // ── Standing ──────────────────────────────────────────────────────────
   {
-    href: "https://reagan.ai/Account/Login?ReturnUrl=%2FAgentPortal%2FManage%2FAccount",
-    label: "Reagan AI",
+    href: "/portal/stats",
+    label: "My Stats",
     capability: "dashboard.view.self",
-    icon: "reagan",
-    group: "Resources",
-    description:
-      "The Reagan.ai agent portal. Opens in a new tab; sign in there separately.",
-    state: "live",
-    stateLabel: "External tool",
-    external: true,
-  },
-  {
-    href: "/portal/tools",
-    label: "Tool Directory",
-    capability: "dashboard.view.self",
-    icon: "toolbox",
-    group: "Resources",
-    description:
-      "Every external tool in one categorized place — carriers, contracting, leads, quoting, documents.",
+    icon: "stats",
+    group: "Standing",
+    description: "Your own production numbers, computed from the platform's records.",
     state: "live",
     stateLabel: "All members",
   },
+  {
+    href: "/portal/leaderboard",
+    label: "Leaderboard",
+    capability: "dashboard.view.self",
+    icon: "leaderboard",
+    group: "Standing",
+    description: "Team standings from real call production — no hand-entered numbers.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  {
+    // Gated placeholder row (promoted from the retired footer). Route and
+    // team.view guard unchanged; the page is the honest placeholder.
+    href: "/portal/team",
+    label: "Team",
+    capability: "team.view",
+    icon: "team",
+    group: "Standing",
+    description: "Your downline and its standing. No team model is connected yet.",
+    state: "pending",
+    stateLabel: "Source not connected",
+    dockLabel: "Team",
+  },
+  {
+    // A normal gated row to the live Leadership surface (Dispatch revision
+    // 2026-09-02): route and leadership.view.all guard unchanged.
+    href: "/portal/leadership",
+    label: "Leadership",
+    capability: "leadership.view.all",
+    icon: "leadership",
+    group: "Standing",
+    description: "Leadership view across teams, for the roles that hold it.",
+    state: "live",
+    stateLabel: "Restricted",
+    dockLabel: "Leadership",
+  },
+  {
+    href: "/portal/commission",
+    label: "Commission Schedule",
+    capability: "dashboard.view.self",
+    icon: "commission",
+    group: "Standing",
+    description: "Every carrier's comp grid by contract level, with ladders and promotion rules.",
+    state: "live",
+    stateLabel: "All members",
+  },
+  {
+    href: "/portal/library",
+    label: "Library",
+    capability: "dashboard.view.self",
+    icon: "library",
+    group: "Standing",
+    description: "Who IMO is, what we believe, training, and the incentive plan.",
+    state: "live",
+    stateLabel: "Available",
+  },
+
+  // ── Administration ────────────────────────────────────────────────────
   {
     href: "/portal/pay-rates",
     label: "Pay Rates",
@@ -330,18 +448,30 @@ const NAV: readonly NavItem[] = [
     commandOnly: true,
     stateLabel: "Command Center only",
   },
+  {
+    href: "/portal/gallery",
+    label: "Operations Deck",
+    capability: "dashboard.view.self",
+    icon: "gallery",
+    group: "Administration",
+    description: "Ten AI-made agent portraits. Select, build, and publish to Inkbox.",
+    state: "live",
+    stateLabel: "Available",
+  },
 ];
 
-const NAV_GROUPS = ["Work", "Resources", "Administration"] as const;
-
 /**
- * Subtitle shown under a section header. Work and Resources carry one;
- * Administration renders its label alone.
+ * The dock's five destinations, in dock order. Every entry is a NAV row —
+ * the dock never carries a door the menu lacks — and each survives the same
+ * capability filter as the menu before it renders. Pinned by test.
  */
-const NAV_GROUP_SUBTITLES: Partial<Record<(typeof NAV_GROUPS)[number], string>> = {
-  Work: "Answer, train & produce",
-  Resources: "References, tools & trades",
-};
+export const DOCK_DESTINATIONS = [
+  "/portal",
+  "/portal/book",
+  "/portal/inbound",
+  "/portal/team",
+  "/portal/leadership",
+] as const;
 
 function visibleNav(session: PortalSession): NavItem[] {
   return NAV.filter((item) =>
@@ -379,6 +509,18 @@ export const pendingRequestsFor = cache(
   },
 );
 
+/**
+ * The group tabs' one script (owner direction 2026-09-02): the five tabs are
+ * native <details>, so they open, close, and announce their state with no
+ * JavaScript at all. This listener adds only the courtesies a menu bar is
+ * expected to have — one tab open at a time, close on an outside click,
+ * close on Escape — and marks the Escape it consumed so the shell's
+ * back control does not also fire on the same keypress. Inline for the same
+ * reason as PortalThemeBoot: no props, no state, nothing worth hydrating.
+ */
+const TABS_SCRIPT =
+  '(function(){if(window.__coreTabs)return;window.__coreTabs=1;function all(){return document.querySelectorAll("details.portal-menu-group")}function shut(except){all().forEach(function(d){if(d!==except&&d.open)d.open=false})}document.addEventListener("toggle",function(e){var t=e.target;if(!(t instanceof HTMLDetailsElement)||!t.classList.contains("portal-menu-group")||!t.open)return;shut(t)},true);document.addEventListener("click",function(e){var t=e.target instanceof Element?e.target:null;if(t&&t.closest("details.portal-menu-group")&&!t.closest("a"))return;shut(null)});document.addEventListener("keydown",function(e){if(e.key!=="Escape"||e.defaultPrevented)return;var open=false;all().forEach(function(d){if(d.open){d.open=false;open=true}});if(open)e.preventDefault()})})();';
+
 export async function PortalShell({
   session,
   current,
@@ -396,127 +538,131 @@ export async function PortalShell({
   const { count: pendingRequests } = await pendingRequestsFor(session);
 
   const visible = visibleNav(session);
+  const currentGroup = visible.find((item) => item.href === current)?.group ?? null;
+  const commandCenter = isCommandCenter(session);
+  const founder = isFounder(session);
+
+  // The direct destinations, in dock order, filtered by the SAME capability
+  // check as the menu — a member without team.view has no Team slot,
+  // absent, not disabled. Rendered twice (rail and dock); CSS shows one.
+  const destinations = DOCK_DESTINATIONS.map((href) => visible.find((entry) => entry.href === href)).filter(
+    (item): item is NavItem => item !== undefined,
+  );
 
   return (
     <div className="portal-shell">
-      {/* Fallback menu state for engines without the Popover API (Safari
-          15.4–16.x and other pre-2023 builds): a visually-hidden checkbox,
-          driven by <label> open controls and :has(...:checked) in globals.css.
-          Without it those browsers cannot open the navigation menu at all,
-          which strands the member with no navigation on every portal sub-page.
-          Modern browsers use the popover and leave this untouched. */}
-      <input
-        className="portal-mobile-drawer-toggle"
-        id="portal-mobile-drawer"
-        type="checkbox"
-        aria-label="Toggle mobile navigation"
-      />
+      <script dangerouslySetInnerHTML={{ __html: TABS_SCRIPT }} />
 
-      {/* Nav links are client-side now, so tapping one no longer reloads the
-          page — which also means the mobile drawer no longer closes itself.
-          One delegated listener closes it on any link tap inside it. Inline
-          for the same reason as PortalThemeBoot: no props, no state, no
-          hydration boundary worth shipping. When Escape actually closes the
-          checkbox-fallback drawer, the listener preventDefaults so
-          PortalBackControl's defaultPrevented guard treats that Escape as
-          consumed — one keypress must never both dismiss and navigate. */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html:
-            '(function(){if(window.__thriveDrawerClose)return;window.__thriveDrawerClose=1;function u(){var c=document.getElementById("portal-mobile-drawer");if(c&&c.checked){c.checked=false;return true}return false}document.addEventListener("click",function(e){var t=e.target instanceof Element?e.target:null;if(!t)return;var p=t.closest("#portal-mobile-navigation");if(p&&t.closest("a")){if(typeof p.hidePopover==="function"){p.hidePopover()}u()}});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&u()){e.preventDefault()}})})();',
-        }}
-      />
-
-      {/* The one navigation surface at every width: a slide-up grouped menu,
-          anchored above the bottom dock, opened as a popover where the engine
-          has one and through the checkbox fallback where it does not. */}
-      <aside
-        className="portal-menu"
-        id="portal-mobile-navigation"
-        aria-label="Portal navigation"
-        popover="auto"
-      >
-        <button
-          className="portal-drawer-close portal-drawer-close-popover"
-          type="button"
-          popoverTarget="portal-mobile-navigation"
-          popoverTargetAction="hide"
-        >
-          <span aria-hidden="true">×</span>
-          <span className="sr-only">Close navigation</span>
-        </button>
-        {/* Fallback close: unchecking #portal-mobile-drawer slides the menu
-            shut where the popover hide button is inert. */}
-        <label
-          className="portal-drawer-close portal-drawer-close-fallback"
-          htmlFor="portal-mobile-drawer"
-          title="Close navigation"
-        >
-          <span aria-hidden="true">×</span>
-          <span className="sr-only">Close navigation</span>
-        </label>
-        <PortalMenuContent
-          session={session}
-          current={current}
-          visible={visible}
-          pendingRequests={pendingRequests}
-        />
+      {/* THE RAIL — the left sidebar a member gets when they choose the
+          "Rail" placement on a desktop width (owner direction 2026-09-02:
+          "the actual product like the screenshots"). A real full-height
+          column, not a floating block: brand, the Command opener, the
+          direct destinations, the deferred dialer marker for the founder,
+          and the account footer. Hidden by the stylesheet unless the rail
+          placement is on AND the viewport is wide; the bottom dock is the
+          other arrangement of the same doors. */}
+      <aside className="portal-rail" aria-label="Destinations">
+        <Link className="portal-brand portal-rail-brand" href="/portal" aria-label="CORE portal home">
+          <span className="portal-brand-mark" aria-hidden="true"><ThriveMark size={19} /></span>
+          <span className="portal-brand-copy">
+            <strong>CORE</strong>
+            <small>Operating portal</small>
+          </span>
+        </Link>
+        {commandCenter ? (
+          <label className="portal-rail-command" htmlFor="portal-command-bar-toggle">
+            <span className="portal-dock-command-mark" aria-hidden="true">J</span>
+            <span>Command</span>
+          </label>
+        ) : null}
+        <p className="portal-rail-label">Destinations</p>
+        <nav className="portal-rail-nav" aria-label="Direct destinations">
+          {destinations.map((item) => (
+            <Link
+              key={item.href}
+              className={`portal-rail-link portal-rail-link-${item.icon}`}
+              href={item.href}
+              aria-current={item.href === current ? "page" : undefined}
+              title={item.label}
+            >
+              <span className="portal-rail-icon" aria-hidden="true">
+                <PortalNavMark name={item.icon} />
+              </span>
+              <span className="portal-rail-text">{item.href === "/portal" ? (item.dockLabel ?? item.label) : item.label}</span>
+            </Link>
+          ))}
+          {founder ? (
+            <span className="portal-rail-link portal-rail-deferred" aria-disabled="true" title="Dialer — deferred by owner decision">
+              <span className="portal-rail-icon" aria-hidden="true">
+                <PortalNavMark name="dialer" />
+              </span>
+              <span className="portal-rail-text">Dialer</span>
+              <span className="portal-pill portal-pill-deferred">Deferred</span>
+            </span>
+          ) : null}
+        </nav>
+        <div className="portal-rail-foot">
+          <span className="portal-account-avatar" aria-hidden="true">{initials(session.displayName)}</span>
+          <span className="portal-member-name">
+            <strong>{session.displayName}</strong>
+            <small>{ROLE_LABELS[session.role]}</small>
+          </span>
+          {/* Deliberately a plain <a>, never <Link>: Link may prefetch its
+              target, and prefetching /auth/signout would sign the member
+              out for merely rendering the rail. */}
+          <a className="portal-signout portal-rail-signout" href={signOutPath("/")} title="Sign out">
+            Sign out
+          </a>
+        </div>
       </aside>
-
-      {/* Backdrop for the checkbox fallback: the popover path gets a native
-          ::backdrop, this gives the fallback the same dimmed click-to-close
-          overlay. Hidden unless there is no popover support and the drawer is
-          open. */}
-      <label
-        className="portal-drawer-backdrop"
-        htmlFor="portal-mobile-drawer"
-        aria-hidden="true"
-      />
 
       <div className="portal-workspace">
         <header className="portal-topbar">
           <div className="portal-topbar-start">
             <PortalBackControl />
-            {/* Secondary menu opener: the dock hides on the three bespoke
-                command-console routes, so navigation must never depend on it.
-                CSS shows exactly one of these two per @supports branch. */}
-            <button
-              className="portal-topbar-menu portal-button portal-button-quiet"
-              type="button"
-              popoverTarget="portal-mobile-navigation"
-              popoverTargetAction="toggle"
-              aria-label="Open navigation menu"
-            >
-              Menu
-            </button>
-            <label
-              className="portal-topbar-menu-fallback portal-button portal-button-quiet"
-              htmlFor="portal-mobile-drawer"
-              aria-label="Open navigation menu"
-              title="Open navigation menu"
-            >
-              Menu
-            </label>
+            <Link className="portal-brand portal-topbar-brand" href="/portal" aria-label="CORE portal home">
+              <span className="portal-brand-mark" aria-hidden="true"><ThriveMark size={17} /></span>
+              <strong>CORE</strong>
+            </Link>
             <span className="portal-topbar-copy">
               <strong className="portal-section-name">J.A.R.V.I.S. / {section}</strong>
               <small className="portal-section-context">Private operations · IMO</small>
             </span>
           </div>
 
+          {/* THE GROUP TABS (owner direction 2026-09-02: "each tab has a
+              little bit of options when I click them"). Five tabs — Today,
+              Clients, Selling, Standing, Administration — each a native
+              <details> whose dropdown lists that group's rows. A row appears
+              only when `visibleNav` passes it, and a group with no surviving
+              rows is not rendered at all (fail-closed suppression), so a
+              role never sees a heading for a place it cannot go. The tab of
+              the current page's group is marked. */}
+          <PortalGroupTabs session={session} current={current} currentGroup={currentGroup} visible={visible} pendingRequests={pendingRequests} />
+
           <div className="portal-topbar-end" aria-label={`Signed in as ${session.displayName}`}>
             <PortalThemeControl />
+            <PortalNavControl />
             <PortalPerformanceControl />
             <span className="portal-connection">
-              <span aria-hidden="true" /> Secure session
+              {/* Wordless hidden control. For everyone it is just the status
+                  light; for the founder alone it is the entrance to
+                  INVESTIGATOR's console. Rendered as a link ONLY in the
+                  founder's own server-rendered markup, so for anyone else
+                  there is no element to find, inspect, or reach.
+                  /portal/investigator re-checks the founder identity: the
+                  control is convenience, the server guard is the boundary. */}
+              {founder ? (
+                <Link className="portal-system-dot-link" href="/portal/investigator" aria-label="Investigator console">
+                  <span className="portal-system-dot" aria-hidden="true" />
+                </Link>
+              ) : (
+                <span className="portal-system-dot" aria-hidden="true" />
+              )}
+              <span className="portal-connection-text">Secure session</span>
             </span>
-            <span className={`portal-status portal-status-${session.status}`}>
-              {session.status}
-            </span>
-            <span className="portal-member-name">
-              <strong>{session.displayName}</strong>
-              <small>{ROLE_LABELS[session.role]}</small>
-            </span>
-            <span className="portal-topbar-avatar" aria-hidden="true">
+            <span className={`portal-status portal-status-${session.status}`}>{session.status}</span>
+            <span className="portal-topbar-avatar" title={`${session.displayName} · ${ROLE_LABELS[session.role]}`} aria-hidden="true">
               {initials(session.displayName)}
             </span>
           </div>
@@ -524,23 +670,22 @@ export async function PortalShell({
 
         {/* THE COMMAND BAR — sticky, collapsible, and gated.
             Founder, 2026-08-27: "i want it on top of the screen constanly."
-            The prompt used to live on one page you had to navigate to; here it
-            rides the shell, so it is at the top of every portal surface.
+            It rides the shell, so it is at the top of every portal surface.
 
             GATED to Command Center holders, not merely rendered. Showing an
             agent a command prompt that refuses them is worse than not showing
             one — it advertises a door and then holds it shut.
 
-            COLLAPSED BY DEFAULT, and that is the point of the collapse: sticky
-            furniture is permanent furniture, and a phone has little enough
-            height without a text field occupying it on every scroll. Shut, it
-            is one 44px line; open, it is the same prompt as the console.
+            COLLAPSED BY DEFAULT: sticky furniture is permanent furniture, and
+            a phone has little enough height without a text field occupying
+            it on every scroll. Shut, it is one 44px line; open, it is the
+            same prompt as the console.
 
-            CSS-only, via the same visually-hidden checkbox + :has(:checked)
-            mechanism as #portal-mobile-drawer above. No client component and
-            no hydration for what is a disclosure widget. The dock's Command
-            control is a second label for this same checkbox. */}
-        {isCommandCenter(session) ? (
+            CSS-only, via a visually-hidden checkbox + :has(:checked). No
+            client component and no hydration for a disclosure widget. The
+            rail's and the dock's Command controls are second labels for
+            this same checkbox. */}
+        {commandCenter ? (
           <>
             <input
               className="portal-command-bar-toggle"
@@ -549,10 +694,7 @@ export async function PortalShell({
               aria-label="Open the command prompt"
             />
             <div className="portal-command-bar">
-              <label
-                className="portal-command-bar-tab"
-                htmlFor="portal-command-bar-toggle"
-              >
+              <label className="portal-command-bar-tab" htmlFor="portal-command-bar-toggle">
                 <span className="portal-command-bar-mark" aria-hidden="true">J</span>
                 <span className="portal-command-bar-label">Command</span>
                 <span className="portal-command-bar-hint">Ask about this workspace</span>
@@ -567,41 +709,28 @@ export async function PortalShell({
 
         {children}
 
-        {/* THE DOCK — the fixed bottom strip that replaced the left rail.
-            Quick links render only when their route survived the same
-            capability filter as the menu; the Command opener is a second
-            label for the very same #portal-command-bar-toggle checkbox the
-            sticky bar uses, rendered in the same gated branch as the bar
-            itself so the string never reaches markup for non-holders. */}
+        {/* THE DOCK — the fixed bottom strip: Command (gated), the five
+            direct destinations, the founder's deferred-dialer marker. The
+            group tabs in the top bar are the menu; the dock carries no
+            menu button of its own. */}
         <nav className="portal-dock" aria-label="Quick actions">
-          {isCommandCenter(session) ? (
+          {commandCenter ? (
             <label className="portal-dock-command" htmlFor="portal-command-bar-toggle">
               <span className="portal-dock-command-mark" aria-hidden="true">J</span>
-              Command
+              {/* Wrapped so the compact phone dock can drop the word and keep
+                  the mark, exactly as the destination slots drop theirs. */}
+              <span className="portal-dock-link-text">Command</span>
             </label>
           ) : null}
-          <button
-            className="portal-dock-menu"
-            type="button"
-            popoverTarget="portal-mobile-navigation"
-            popoverTargetAction="toggle"
-            aria-label="Open navigation menu"
-          >
-            Menu
-          </button>
-          {/* Fallback opener for engines without the Popover API. CSS shows
-              exactly one of these two per @supports branch. */}
-          <label
-            className="portal-dock-menu-fallback"
-            htmlFor="portal-mobile-drawer"
-            aria-label="Open navigation menu"
-            title="Open navigation menu"
-          >
-            Menu
-          </label>
-          {["/portal", "/portal/calls", "/portal/music"].map((href) => {
+          {/* FIVE STABLE DESTINATIONS (Dispatch R3, from the approved
+              Direction B artboards): Today, Book, Inbound, Team, Leadership.
+              Each opens exactly one focused panel. Filtered by the same
+              capability check as the menu. Calls and Radio stay in the
+              Today tab. The word on each slot is the row's dockLabel. */}
+          {DOCK_DESTINATIONS.map((href) => {
             const item = visible.find((entry) => entry.href === href);
             if (!item) return null;
+            const label = item.dockLabel ?? item.label;
             return (
               <Link
                 key={item.href}
@@ -613,11 +742,31 @@ export async function PortalShell({
                 <span className="portal-dock-link-icon" aria-hidden="true">
                   <PortalNavMark name={item.icon} />
                 </span>
-                <span className="portal-dock-link-text">{item.label}</span>
+                <span className="portal-dock-link-text">{label}</span>
               </Link>
             );
           })}
-          {/* Honest hint: Esc genuinely closes the menu on both paths. */}
+          {/* THE DEFERRED DIALER. The owner parked outbound dialing; the
+              slot says so rather than vanishing, so the map stays honest.
+              It is inert on purpose — no href, no handler, aria-disabled —
+              and it renders ONLY in the founder's own markup: the dialer is
+              founder-gated server-side (/portal/dialer, requireFounder), so
+              nobody else has a slot to see. Un-deferring is an owner
+              decision recorded in the platform record, not a UI toggle. */}
+          {founder ? (
+            <span
+              className="portal-dock-deferred"
+              aria-disabled="true"
+              title="Dialer — deferred by owner decision"
+            >
+              <span className="portal-dock-link-icon" aria-hidden="true">
+                <PortalNavMark name="dialer" />
+              </span>
+              <span className="portal-dock-link-text">Dialer</span>
+              <span className="portal-pill portal-pill-deferred">Deferred</span>
+            </span>
+          ) : null}
+          {/* Honest hint: Esc closes an open tab, then steps back. */}
           <span className="portal-dock-hint" aria-hidden="true">
             <kbd>Esc</kbd> closes
           </span>
@@ -627,148 +776,122 @@ export async function PortalShell({
   );
 }
 
-function PortalMenuContent({
+/**
+ * The five group tabs. `class="portal-menu"` is kept on the container on
+ * purpose: it is the navigation surface every access-honesty test slices,
+ * and the surface it names is still "every working door, filtered by
+ * capability" — only its shape changed, from a slide-up sheet to a tab bar.
+ */
+function PortalGroupTabs({
   session,
   current,
+  currentGroup,
   visible,
   pendingRequests,
 }: {
   session: PortalSession;
   current: string;
+  currentGroup: NavGroup | null;
   visible: readonly NavItem[];
   pendingRequests: number;
 }) {
   return (
-    <>
-      <div className="portal-menu-head">
-        <Link className="portal-brand" href="/portal" aria-label="IMO portal dashboard">
-          <span className="portal-brand-mark" aria-hidden="true"><ThriveMark size={19} /></span>
-          <span className="portal-brand-copy">
-            <strong>IMO</strong>
-            <small>Operating portal</small>
-          </span>
-        </Link>
-        <span className="portal-brand-kicker">Protected workspace</span>
-      </div>
-
-      <nav className="portal-menu-columns" aria-label="Portal sections">
+    <nav className="portal-menu" aria-label="Portal sections">
+      <div className="portal-menu-columns">
         {NAV_GROUPS.map((group) => {
           const groupItems = visible.filter((item) => item.group === group);
           if (groupItems.length === 0) return null;
 
           return (
-            <div className={`portal-menu-group portal-menu-group-${group.toLowerCase()}`} key={group}>
-              <p className="portal-menu-group-label">{group}</p>
-              {NAV_GROUP_SUBTITLES[group] ? (
+            <details
+              className={`portal-menu-group portal-menu-group-${group.toLowerCase()}`}
+              key={group}
+              name="portal-tabs"
+              data-current={group === currentGroup ? "true" : undefined}
+            >
+              <summary className="portal-tab" aria-current={group === currentGroup ? "location" : undefined}>
+                <span className="portal-tab-text">{group}</span>
+                <span className="portal-tab-caret" aria-hidden="true" />
+              </summary>
+              <div className="portal-tab-panel">
+                <p className="portal-menu-group-label">{group}</p>
                 <p className="portal-menu-group-sub">{NAV_GROUP_SUBTITLES[group]}</p>
-              ) : null}
-              {/* Internal links navigate client-side ON PURPOSE. A plain
-                  <a> is a full page load, which tears down the portal layout
-                  — and the audio deck inside it, killing the radio on every
-                  page switch. <Link> keeps the layout (and the playing
-                  <audio> element) alive across navigations. */}
-              {groupItems.map((item) =>
-                item.external ? (
-                  <a
-                    key={item.href}
-                    href={item.href}
-                    className={`portal-menu-item portal-menu-item-${item.icon}`}
-                    title={`${item.label} — opens in a new tab`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span className="portal-menu-dot" aria-hidden="true" />
-                    <span className="portal-menu-label">{item.label}</span>
-                    <span className="portal-menu-external" aria-hidden="true">↗</span>
-                  </a>
-                ) : (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`portal-menu-item portal-menu-item-${item.icon}`}
-                    aria-current={item.href === current ? "page" : undefined}
-                    title={item.label}
-                  >
-                    <span className="portal-menu-dot" aria-hidden="true" />
-                    {/* The dashboard row wears the member's own name and rank
-                        instead of the word "Dashboard" (founder 2026-08-18).
-                        It is the same destination; the first row of the menu
-                        answers "who am I signed in as". */}
-                    {item.href === "/portal" ? (
-                      <span className="portal-menu-label portal-menu-identity">
-                        <strong>{session.displayName}</strong>
-                        <small>{ROLE_LABELS[session.role]}</small>
-                      </span>
-                    ) : (
+                {/* Internal links navigate client-side ON PURPOSE. A plain
+                    <a> is a full page load, which tears down the portal
+                    layout — and the audio deck inside it, killing the radio
+                    on every page switch. <Link> keeps the layout (and the
+                    playing <audio> element) alive across navigations. */}
+                {groupItems.map((item) =>
+                  item.external ? (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className={`portal-menu-item portal-menu-item-${item.icon}`}
+                      title={`${item.label} — opens in a new tab`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className="portal-menu-dot" aria-hidden="true" />
                       <span className="portal-menu-label">{item.label}</span>
-                    )}
-                    {/* The count of things waiting on THIS person. Rendered
-                        only when there is something to see: a badge that is
-                        permanently present but usually zero teaches people to
-                        stop looking at badges. */}
-                    {item.href === "/portal" && pendingRequests > 0 ? (
-                      <span className="portal-menu-badge">
-                        {pendingRequests > 99 ? "99+" : pendingRequests}
-                        <span className="sr-only">
-                          {" "}
-                          request{pendingRequests === 1 ? "" : "s"} waiting on you
+                      <span className="portal-menu-external" aria-hidden="true">↗</span>
+                    </a>
+                  ) : (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`portal-menu-item portal-menu-item-${item.icon}`}
+                      aria-current={item.href === current ? "page" : undefined}
+                      title={item.label}
+                    >
+                      <span className="portal-menu-dot" aria-hidden="true" />
+                      {/* The dashboard row wears the member's own name and rank
+                          instead of the word "Dashboard" (founder 2026-08-18).
+                          It is the same destination; the first row of Today
+                          answers "who am I signed in as". */}
+                      {item.href === "/portal" ? (
+                        <span className="portal-menu-label portal-menu-identity">
+                          <strong>{session.displayName}</strong>
+                          <small>{ROLE_LABELS[session.role]}</small>
                         </span>
-                      </span>
-                    ) : null}
-                    {item.founderOnly || item.commandOnly ? (
-                      <span className="portal-pill portal-pill-owner">OWNER ONLY</span>
-                    ) : null}
-                    {item.icon === "shop" ? (
-                      <span className="portal-pill portal-pill-live" aria-hidden="true">
-                        LIVE
-                      </span>
-                    ) : null}
-                  </Link>
-                ),
-              )}
-            </div>
+                      ) : (
+                        <span className="portal-menu-label">{item.label}</span>
+                      )}
+                      {/* The count of things waiting on THIS person. Rendered
+                          only when there is something to see: a badge that is
+                          permanently present but usually zero teaches people
+                          to stop looking at badges. */}
+                      {item.href === "/portal" && pendingRequests > 0 ? (
+                        <span className="portal-menu-badge">
+                          {pendingRequests > 99 ? "99+" : pendingRequests}
+                          <span className="sr-only">
+                            {" "}
+                            request{pendingRequests === 1 ? "" : "s"} waiting on you
+                          </span>
+                        </span>
+                      ) : null}
+                      {item.founderOnly || item.commandOnly ? (
+                        <span className="portal-pill portal-pill-owner">OWNER ONLY</span>
+                      ) : null}
+                      {item.icon === "shop" ? (
+                        <span className="portal-pill portal-pill-live" aria-hidden="true">
+                          LIVE
+                        </span>
+                      ) : null}
+                      {/* A placeholder row says so on the row itself. The
+                          destination is real and guarded; the SOURCE behind it
+                          is not connected, and the pill states exactly that. */}
+                      {item.state === "pending" ? (
+                        <span className="portal-pill portal-pill-pending">{item.stateLabel}</span>
+                      ) : null}
+                    </Link>
+                  ),
+                )}
+              </div>
+            </details>
           );
         })}
-      </nav>
-
-      {/* The three demoted stubs (decision 2026-09-02): named, not linked. Their
-          routes and guards live on untouched; they re-enter the menu when their
-          sources land. Plain text on purpose — no href, so the gated-absence tests
-          and the roster of refused doors stay clean. */}
-      <p className="portal-menu-coming">
-        Coming online: Book of Business · Team · Leadership
-      </p>
-
-      <div className="portal-menu-foot">
-        <span className="portal-menu-system">
-          {/* Wordless hidden control. For everyone it is just the status
-              light; for the founder alone it is the entrance to
-              INVESTIGATOR's console. Rendered as a link ONLY in the founder's
-              own server-rendered menu, so for anyone else there is no element
-              to find, inspect, or reach. /portal/investigator re-checks the
-              founder identity: the button is convenience, the server guard is
-              the boundary. */}
-          {isFounder(session) ? (
-            <Link
-              className="portal-system-dot-link"
-              href="/portal/investigator"
-              aria-label="Investigator console"
-            >
-              <span className="portal-system-dot" aria-hidden="true" />
-            </Link>
-          ) : (
-            <span className="portal-system-dot" aria-hidden="true" />
-          )}
-          <span>Access controls active</span>
-        </span>
-        {/* Deliberately a plain <a>, never <Link>: Link may prefetch its
-            target, and prefetching /auth/signout would sign the member out
-            for merely rendering the menu. */}
-        <a className="portal-signout portal-menu-signout" href={signOutPath("/")} title="Sign out">
-          Sign out
-        </a>
       </div>
-    </>
+    </nav>
   );
 }
 
@@ -854,9 +977,6 @@ export function PortalPlaceholderPage({
 }
 
 const GO_ROUTES = ["/portal/training", "/portal/calls", "/portal/stats", "/portal/shop"] as const;
-/** Server-side display override: the founder-named tile label for the Exchange.
- *  The menu keeps "Exchange" + the client-side relabel; the tile is born "Marketplace". */
-const GO_LABELS: Readonly<Record<string, string>> = { "/portal/shop": "Marketplace" };
 
 export function PortalGoRow({ session }: { session: PortalSession }) {
   const visible = visibleNav(session);
@@ -868,7 +988,7 @@ export function PortalGoRow({ session }: { session: PortalSession }) {
         return (
           <Link key={item.href} className="portal-go-tile" href={item.href} title={item.label}>
             <span className="portal-go-icon" aria-hidden="true"><PortalNavMark name={item.icon} /></span>
-            <span className="portal-go-label">{GO_LABELS[item.href] ?? item.label}</span>
+            <span className="portal-go-label">{item.label}</span>
           </Link>
         );
       })}
@@ -992,13 +1112,6 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <path d="M15.5 19.5h5" />
     </>
   ),
-  // Target with an outbound arrow — the lead portal.
-  reagan: (
-    <>
-      <circle cx="11" cy="13" r="7" />
-      <path d="M11 13 20 4M20 4h-4.5M20 4v4.5" />
-    </>
-  ),
   // Toolbox — the external tool directory.
   toolbox: (
     <>
@@ -1030,7 +1143,7 @@ const NAV_MARKS: Record<PortalIconName, React.ReactNode> = {
       <path d="M6 4.8c4-2 8 2 12 0v8.7c-4 2-8-2-12 0" />
     </>
   ),
-  // Two-way trade arrows — the Exchange.
+  // Two-way trade arrows — the Marketplace.
   shop: (
     <>
       <path d="M7 8h13.5M17 4.5 20.5 8 17 11.5" />

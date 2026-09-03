@@ -70,6 +70,12 @@ const VOICE_SQL = sqlStatements(
 const CHECKIN_SQL = sqlStatements(
   readFileSync(join(ROOT, "db/sql/0013_weekly_commitments.sql"), "utf8"),
 );
+// The Book's tables (owner direction 2026-09-02) — applied by the Book tests
+// to their own throwaway D1 exactly as 0013 is; the live database takes 0014
+// by the founder's hand only.
+const BOOK_SQL = sqlStatements(
+  readFileSync(join(ROOT, "db/sql/0014_book_of_business.sql"), "utf8"),
+);
 const SEEDED_OWNER_EMAIL = "bankerrunners@gmail.com";
 
 /**
@@ -321,18 +327,21 @@ test("active members open Training with every slot labelled and awaiting languag
   }
 
   const visibleHtml = html.replaceAll("<!-- -->", "");
-  // Re-anchored 2026-09-02, same commit as the IA consolidation: Book of
-  // Business left the grouped menu (its route survives, reached from the
-  // dashboard tile), so the old Training-above-Book comparison would read a
-  // -1. The order property itself stays measured: in the agent's rendered
-  // menu Training still sits above the next working surface, Calls. Both
-  // indexOf hits land in the menu — it renders before the dock and before
-  // any page content.
+  // Re-anchored twice, and says so each time. 2026-09-02 (first pass): Book
+  // of Business left the grouped menu, so the Training-above-Book comparison
+  // became Training-above-Calls. 2026-09-02 (second pass, work order 1A):
+  // the five-group IA puts Calls in Today and Training in Selling, so the
+  // two are no longer neighbours and the Calls comparison would measure
+  // group order, not Training's place. The order property itself stays
+  // measured, inside Training's own group: in the agent's rendered menu
+  // Training sits above the next Selling row an agent holds, the Quoter.
+  // Both indexOf hits land in the menu — it renders before the dock and
+  // before any page content.
   const trainingAt = agentHtml.indexOf('href="/portal/training"');
-  const callsAt = agentHtml.indexOf('href="/portal/calls"');
+  const quoterAt = agentHtml.indexOf('href="/portal/quoter"');
   assert.ok(trainingAt >= 0, "the agent's menu lost its Training entry");
-  assert.ok(callsAt >= 0, "the agent's menu lost its Calls entry");
-  assert.ok(trainingAt < callsAt, "Training stays above Calls in the rendered menu");
+  assert.ok(quoterAt >= 0, "the agent's menu lost its Quoter entry");
+  assert.ok(trainingAt < quoterAt, "Training stays the first Selling row, above the Quoter, in the rendered menu");
 
   assert.match(html, /id="training"/);
   assert.match(html, /id="introductions"/);
@@ -676,7 +685,17 @@ test("the INVESTIGATOR console answers the seeded founder identity and no one el
     const callsHtml = await callsOk.text();
     assert.match(callsHtml, />Outbound</);
     assert.match(callsHtml, /Collab Dialer/);
-    assert.doesNotMatch(callsHtml, /href="\/portal\/(?:inbound|dialer)"/, "the sidebar exposes one Calls destination, not three competing links");
+    // Re-anchored 2026-09-02 (Dispatch R3): /portal/inbound is no longer an
+    // alias of Calls but the Inbound Status panel, a destination in its own
+    // right, so its menu row is expected exactly once. The dialer stays
+    // unlinked: it is deferred, and its only surface is inside Calls.
+    assert.doesNotMatch(callsHtml, /href="\/portal\/dialer"/, "no menu row links the deferred dialer");
+    const callsMenu = callsHtml.slice(callsHtml.indexOf('class="portal-menu"'), callsHtml.indexOf('class="portal-dock"'));
+    assert.equal(
+      (callsMenu.match(/href="\/portal\/inbound"/g) ?? []).length,
+      1,
+      "Inbound Status is one distinct menu destination beside Calls, not a competing alias",
+    );
 
     // The RETIRED founder identity (the seeded owner, Google account locked
     // 2026-08-17) keeps its owner membership for the historical record but
@@ -2796,7 +2815,7 @@ test("the grouped menu carries every working surface and respects capability fil
   const menuOf = (html) => {
     const start = html.indexOf('class="portal-menu"');
     assert.ok(start >= 0, "the grouped menu must render");
-    const end = html.indexOf("</aside>", start);
+    const end = html.indexOf("</nav>", start);
     return html.slice(start, end);
   };
 
@@ -2956,7 +2975,15 @@ test("an agent's dashboard shows no admin surface and no other member's data", a
   assert.match(html, /\$600\.00 budgeted/, "A's own stated budget must render");
   assert.match(html, /49 of 50 calls remaining/, "the calls bar must drain from A's own plan");
   assert.ok(html.includes("+1 (555) ***-0111"), "A's own callback must be listed");
-  assert.match(html, /1 customer needs a callback/, "A's queue holds exactly A's task");
+  // The Day Sheet home (owner direction 2026-09-02): the queue is a tile
+  // count and one next-action card per callback, so "exactly A's task" is
+  // the tile reading 1 and the one card carrying A's masked caller.
+  assert.match(
+    html,
+    /<span class="portal-tile-label">Callbacks due<\/span><strong class="portal-tile-value">1<\/strong>/,
+    "A's queue holds exactly A's task",
+  );
+  assert.match(html, /Return the call · due/, "the callback renders as a next-action card");
 
   // A's calls-answered tile counts A's records exactly — never B's.
   assert.match(html, /class="portal-prod-value">1</, "A answered exactly one call this week");
@@ -3662,4 +3689,677 @@ test("the command bar collapses without trapping keyboard focus", () => {
   // more than that.
   const tab = css.match(/\.portal-command-bar-tab \{[^}]*\}/s)?.[0] ?? "";
   assert.match(tab, /min-height:\s*44px/, "the collapsed bar must meet the 44px touch floor");
+});
+
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Five-group IA and the Script Vault import, at runtime against real workerd
+ * (Dispatch work order 1A/1B, 2026-09-02). Source-level pins live in
+ * rendered-html.test.mjs; these prove what each ROLE is actually served.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+/** The <aside class="portal-menu"> slice of a page — the navigation surface itself. */
+function menuSlice(html) {
+  const start = html.indexOf('class="portal-menu"');
+  assert.ok(start >= 0, "the grouped menu must render");
+  return html.slice(start, html.indexOf("</nav>", start));
+}
+
+/** Group labels in render order, read from the menu's own group headings. */
+function groupOrder(menu) {
+  return [...menu.matchAll(/<p class="portal-menu-group-label">([^<]+)<\/p>/g)].map((m) => m[1]);
+}
+
+test("the five groups render in order, per role, and a group a role cannot use is not rendered at all", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  const ROLES = ["owner", "admin", "manager", "reviewer", "agent", "support"];
+  for (const role of ROLES) await portal.addMember(`ia-${role}@example.com`, role);
+
+  const pages = {};
+  for (const role of ROLES) {
+    const res = await portal.get("/portal", { subject: `subject-ia-${role}`, email: `ia-${role}@example.com` });
+    assert.equal(res.status, 200, `${role} holds dashboard.view.self`);
+    pages[role] = (await res.text()).replaceAll("<!-- -->", "");
+  }
+
+  // Order and subtitles, on the fullest menu (a non-founder owner).
+  const ownerMenu = menuSlice(pages.owner);
+  assert.deepEqual(
+    groupOrder(ownerMenu),
+    ["Today", "Clients", "Selling", "Standing", "Administration"],
+    "an owner's menu renders all five groups in the ordered sequence",
+  );
+  for (const [group, subtitle] of [
+    ["Today", "Answer, log &amp; check in"],
+    ["Clients", "Callbacks, book &amp; follow-up"],
+    ["Selling", "Train, quote &amp; carrier tools"],
+    ["Standing", "Numbers, rank &amp; pay"],
+    ["Administration", "Roster, audit &amp; command"],
+  ]) {
+    assert.match(
+      ownerMenu,
+      new RegExp(`<p class="portal-menu-group-label">${group}</p><p class="portal-menu-group-sub">${subtitle}</p>`),
+      `${group} carries its subtitle directly under its heading`,
+    );
+  }
+
+  // Role filtering with fail-closed empty-group suppression: the groups each
+  // role is served, exactly. A role that cannot open ANY row of a group must
+  // not be shown the group's heading — a heading over nothing is a map of
+  // doors the member is refused from.
+  const expected = {
+    owner: ["Today", "Clients", "Selling", "Standing", "Administration"],
+    admin: ["Today", "Clients", "Selling", "Standing", "Administration"],
+    manager: ["Today", "Clients", "Selling", "Standing", "Administration"],
+    // reviewer and support hold no book.view.self: no Callback Queue, no
+    // Book of Business, so Clients is suppressed whole. Administration
+    // survives for every role because the ordered placement put the
+    // Operations Deck (an all-member surface) in it — the group renders
+    // with that one row and NO gated href (asserted below), which is the
+    // honest result of the placement, not a leak.
+    reviewer: ["Today", "Selling", "Standing", "Administration"],
+    agent: ["Today", "Clients", "Selling", "Standing", "Administration"],
+    support: ["Today", "Selling", "Standing", "Administration"],
+  };
+  for (const role of ROLES) {
+    assert.deepEqual(groupOrder(menuSlice(pages[role])), expected[role], `${role} is served exactly its groups, in order`);
+  }
+  for (const role of ["reviewer", "support"]) {
+    assert.doesNotMatch(menuSlice(pages[role]), /portal-menu-group-clients|>Clients</, `${role} must not see a Clients heading`);
+    assert.doesNotMatch(pages[role], /href="\/portal\/book"|href="\/portal\/calls\?tab=voicemail"/, `${role} must not be offered a Clients door`);
+  }
+  // Administration for the non-leadership roles is exactly one open row.
+  for (const role of ["reviewer", "agent", "support"]) {
+    const menu = menuSlice(pages[role]);
+    const admin = menu.slice(menu.indexOf("portal-menu-group-administration"));
+    const rows = [...admin.matchAll(/href="([^"]+)"/g)].map((m) => m[1]).filter((h) => h !== "/auth/signout?return_to=%2F");
+    assert.deepEqual(rows, ["/portal/gallery"], `${role}: Administration holds only the Operations Deck`);
+  }
+
+  // Gated placeholder rows: present with honest copy for the roles that hold
+  // the guard, absent as hrefs for the roles that do not. Guards unchanged.
+  const pending = (menu, href) =>
+    new RegExp(`href="${href.replace(/[?]/g, "\\?")}"[^>]*>[\\s\\S]*?<span class="portal-pill portal-pill-pending">Source not connected</span>`).test(menu);
+  assert.ok(pending(ownerMenu, "/portal/book"), "owner: Book of Business is a placeholder row that says so");
+  assert.ok(pending(ownerMenu, "/portal/team"), "owner: Team is a placeholder row that says so");
+  // Leadership is live (Dispatch revision 2026-09-02): a plain gated link in
+  // Standing with no placeholder pill, for every role holding the guard.
+  const liveLeadership = (menu) => {
+    const at = menu.indexOf('href="/portal/leadership"');
+    if (at < 0) return false;
+    const row = menu.slice(at, menu.indexOf("</a>", at));
+    return /portal-menu-item-leadership/.test(row) && !/portal-pill-pending|Source not connected/.test(row);
+  };
+  assert.ok(liveLeadership(ownerMenu), "owner: Leadership is a live gated row, not a placeholder");
+  const standing = ownerMenu.slice(ownerMenu.indexOf("portal-menu-group-standing"), ownerMenu.indexOf("portal-menu-group-administration"));
+  assert.match(standing, /href="\/portal\/leadership"/, "owner: Leadership sits inside the Standing group");
+  assert.ok(pending(menuSlice(pages.agent), "/portal/book"), "agent: Book of Business placeholder is offered (book.view.self)");
+  assert.ok(pending(menuSlice(pages.manager), "/portal/team"), "manager: Team placeholder is offered (team.view)");
+  assert.ok(liveLeadership(menuSlice(pages.manager)), "manager: Leadership is offered live (leadership.view.all)");
+  assert.ok(liveLeadership(menuSlice(pages.admin)), "admin: Leadership is offered live (leadership.view.all)");
+  // The row opens the live surface for a holder (200, its own page and
+  // guard, unchanged). What the page says about its OWN data sources is the
+  // page's business and is pinned by its own tests; the correction here is
+  // that the MENU ROW is a normal gated link, not a placeholder row.
+  {
+    const res = await portal.get("/portal/leadership", { subject: "subject-ia-manager", email: "ia-manager@example.com" });
+    assert.equal(res.status, 200, "a manager opens the live Leadership surface");
+    assert.match((await res.text()).replaceAll("<!-- -->", ""), /J\.A\.R\.V\.I\.S\. \/ Leadership/, "the live Leadership surface renders under its own section name");
+  }
+  assert.doesNotMatch(pages.agent, /href="\/portal\/team"|href="\/portal\/leadership"/, "agent holds neither team.view nor leadership.view.all");
+  assert.doesNotMatch(pages.support, /href="\/portal\/leadership"/, "support holds no leadership.view.all");
+  assert.match(menuSlice(pages.support), /href="\/portal\/team"/, "support holds team.view and is offered the Team placeholder");
+
+  // The old footer must be gone from every role's page.
+  for (const role of ROLES) {
+    assert.doesNotMatch(pages[role], /Coming online|portal-menu-coming/, `${role}: the Coming-online footer is retired`);
+  }
+
+  // Marketplace, label-only: the route is /portal/shop and no "Exchange" label survives.
+  assert.match(ownerMenu, /href="\/portal\/shop"[^>]*>[\s\S]*?<span class="portal-menu-label">Marketplace<\/span>/, "the shop row reads Marketplace");
+  assert.doesNotMatch(ownerMenu, />Exchange</, "no menu row reads Exchange");
+  // (The go-row component is not mounted on the rebuilt dashboard; its
+  // label now reads straight from NAV, pinned at source level.)
+
+  // The retired lead portal: no rendered output, for anyone.
+  const needle = new RegExp("re" + "agan", "i");
+  for (const role of ROLES) assert.doesNotMatch(pages[role], needle, `${role}: the retired lead portal renders nothing`);
+
+  // Carrier portals: stable, safe links for every role holding the existing
+  // external-link floor (dashboard.view.self — every role), new tab, noopener.
+  for (const role of ROLES) {
+    const menu = menuSlice(pages[role]);
+    for (const [label, href] of [
+      ["Aetna — carrier portal", "https://www.aetna.com/aimmanageaccount/login"],
+      ["Ethos — carrier portal", "https://agents.ethoslife.com/login"],
+    ]) {
+      assert.match(
+        menu,
+        new RegExp(`<a href="${href.replace(/[./?]/g, "\\$&")}" class="portal-menu-item portal-menu-item-surelc"[^>]*target="_blank" rel="noopener noreferrer">[\\s\\S]*?<span class="portal-menu-label">${label}</span>`),
+        `${role}: ${label} renders as a new-tab noopener anchor to exactly ${href}`,
+      );
+    }
+    assert.doesNotMatch(pages[role], new RegExp("identity" + "Transaction", "i"), `${role}: the long Aetna query URL is not rendered`);
+  }
+
+  // Role-aware home framing: one sentence, keyed by the session's own role.
+  for (const role of ROLES) {
+    // A <span> inside the Day Sheet's welcome line (owner direction 2026-09-02); same class, same role key.
+    assert.match(pages[role], new RegExp(`<span class="portal-home-framing" data-role="${role}">`), `${role}: framing is keyed to the role`);
+  }
+  assert.match(pages.agent, /Answer, log the sale, check in\./, "the agent framing is the agent's");
+  assert.doesNotMatch(pages.agent, /and the roster are all yours/, "the agent is not framed as an owner");
+  assert.match(pages.owner, /and the roster are all yours to open\./, "the owner framing is the owner's");
+});
+
+test("the Script Vault renders all 18 imported sections in order, each a labelled draft, byte-identical to the library", async (t) => {
+  const { CALL_SCRIPTS, SCRIPT_STATUS_LABELS } = await import(new URL("../app/portal/scripts/library.ts", import.meta.url).href);
+  const { plainText } = await import(new URL("../app/portal/scripts/format.ts", import.meta.url).href);
+  assert.equal(CALL_SCRIPTS.length, 18);
+
+  const portal = await startPortal();
+  t.after(portal.dispose);
+  await portal.addMember("vault-owner@example.com", "owner");
+  await portal.addMember("vault-agent@example.com", "agent");
+
+  // Reachability is unchanged: scripts.manage opens it, its absence refuses.
+  const refused = await portal.get("/portal/scripts", { subject: "subject-vault-agent", email: "vault-agent@example.com" });
+  assert.equal(refused.status, 307, "an agent without scripts.manage is refused");
+  assert.match(refused.headers.get("location") ?? "", /\/portal\/no-access/);
+  assert.equal(await refused.text(), "", "the refusal carries no script text");
+
+  const res = await portal.get("/portal/scripts", { subject: "subject-vault-owner", email: "vault-owner@example.com" });
+  assert.equal(res.status, 200);
+  const html = (await res.text()).replaceAll("<!-- -->", "");
+
+  // 18 sections, in the library's (= the document's) order, by id.
+  const sectionIds = [...html.matchAll(/<section class="portal-card script-card" id="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(sectionIds, CALL_SCRIPTS.map((s) => s.id), "every section renders, in source order, none collapsed or dropped");
+
+  // Every section is visibly labelled a draft — the page banner does not
+  // count; the label must sit on each card.
+  const cards = html.split('<section class="portal-card script-card"').slice(1);
+  assert.equal(cards.length, 18);
+  const decode = (s) =>
+    s.replace(/<[^>]+>/g, "").replace(/&quot;/g, '"').replace(/&#x27;/g, "'").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+  cards.forEach((card, index) => {
+    const script = CALL_SCRIPTS[index];
+    assert.ok(card.includes(SCRIPT_STATUS_LABELS.draft_compliance_review), `${script.title}: card carries the DRAFT / review label`);
+    assert.ok(card.includes(`tab “${script.sourceTab}”`), `${script.title}: card names its source tab`);
+    assert.match(card, new RegExp(`<h2><span class="script-vault-order">${script.order}\\.</span> `), `${script.title}: ordered heading`);
+    assert.ok(decode(card).includes(script.title), `${script.title}: title renders`);
+
+    // THE FIDELITY PIN. The rendered <pre>'s text content equals the
+    // library's projection byte for byte: presentation may bold or size,
+    // and cannot add, drop, reorder, or reword a character.
+    const pre = card.match(/<pre class="script-body script-vault-body">([\s\S]*?)<\/pre>/);
+    assert.ok(pre, `${script.title}: the body <pre> renders`);
+    assert.equal(decode(pre[1]), plainText(script.body), `${script.title}: rendered text diverged from the imported body`);
+  });
+
+  // No approval claim anywhere on the page; the drafts stay drafts.
+  assert.doesNotMatch(html, /(?<!Not )compliance-approved|Approved playbooks|Content locked/, "the page must not present imported drafts as approved");
+  assert.match(html, /Not compliance-approved guidance/, "the page says plainly what the drafts are not");
+  // The page's own content offers no way to place a call, sell, file,
+  // replace, or cancel: no form, no submit, no dialer endpoint, no tel: link.
+  // Scoped to <main> — the shared shell around it (presence widget, radio
+  // deck) is not this page's and is pinned by its own tests.
+  const main = html.slice(html.indexOf('<main class="portal-main">'), html.lastIndexOf("</main>"));
+  assert.ok(main.length > 10000, "the vault's main content rendered");
+  assert.doesNotMatch(main, /<form|<button|\/portal\/dialer\/originate|href="tel:/, "the vault is a reading surface only");
+});
+
+test("the Dialer's temporary script bridge is served only to the founder's outbound panel and triggers nothing", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+  for (const s of VOICE_SQL) await portal.db.prepare(s).run();
+  await portal.addMember("btcmao518@gmail.com", "owner");
+  await portal.addMember("bridge-owner@example.com", "owner");
+  await portal.addMember("bridge-agent@example.com", "agent");
+
+  const founder = { subject: "subject-bridge-founder", email: "btcmao518@gmail.com" };
+  const founderRes = await portal.get("/portal/calls?tab=outbound", founder);
+  assert.equal(founderRes.status, 200);
+  const founderHtml = await founderRes.text();
+  const anchor = founderHtml.match(/<a class="dialer-button secondary dialer-script-bridge-link"[^>]*>[^<]*<\/a>/);
+  assert.ok(anchor, "the founder's outbound panel carries the bridge");
+  assert.match(anchor[0], /href="https:\/\/docs\.google\.com\/document\/d\/1vV2_B6xix29g-k-IVpXZR5AcTcyjhjlx4S-tJca97WE"/);
+  assert.match(anchor[0], /target="_blank"/);
+  assert.match(anchor[0], /rel="noopener noreferrer"/);
+  assert.match(anchor[0], /Open Script Library \(Temporary Hybrid\)/);
+  assert.doesNotMatch(anchor[0], /onclick|data-action|type="button"/i, "a plain anchor: no handler, no action");
+  assert.match(founderHtml, /Script library · temporary hybrid/, "the panel is labelled temporary");
+  assert.match(founderHtml, /Temporary; external; stores nothing here\./);
+  // The bridge sits inside the founder-authorized outbound panel, next to
+  // the existing dialer — not in a new place with a new gate.
+  const panel = founderHtml.indexOf('id="calls-panel-outbound"');
+  assert.ok(panel >= 0 && founderHtml.indexOf("dialer-script-bridge-link") > panel, "the bridge renders inside the outbound panel");
+
+  // Anyone the Dialer guard refuses gets no bridge — not hidden, absent.
+  for (const [label, identity, path] of [
+    ["a non-founder owner", { subject: "subject-bridge-owner", email: "bridge-owner@example.com" }, "/portal/calls?tab=outbound"],
+    ["an agent", { subject: "subject-bridge-agent", email: "bridge-agent@example.com" }, "/portal/calls"],
+  ]) {
+    const res = await portal.get(path, identity);
+    assert.equal(res.status, 200, `${label} can open Calls`);
+    const html = await res.text();
+    assert.doesNotMatch(html, /dialer-script-bridge|Temporary Hybrid|1vV2_B6xix29g/, `${label} is served no bridge and no document address`);
+    assert.doesNotMatch(html, />Collab Dialer</, `${label} is still served no dialer`);
+  }
+
+  // Nothing about the bridge reached the telephony tables or the audit log
+  // as a call, dial, or recording: rendering the page wrote no call rows.
+  const calls = await portal.db.prepare("SELECT count(*) AS n FROM inbound_voice_calls").first();
+  assert.equal(calls.n, 0);
+  const dials = await portal.db.prepare("SELECT count(*) AS n FROM outbound_dial_requests").first().catch(() => ({ n: 0 }));
+  assert.equal(dials.n, 0);
+  const rows = await portal.audit();
+  assert.ok(!rows.some((r) => /calls\.dial|recording/.test(r.action) && r.decision === "allow"), "no dial or recording was authorized by rendering the bridge");
+});
+
+
+/* ────────────────────────────────────────────────────────────────────────
+ * Dock & Panels (Dispatch R3, 2026-09-02) — runtime pins. The five dock
+ * destinations are filtered per role like the menu; Calls left the dock but
+ * not the menu; the deferred dialer is inert and founder-only; the Book
+ * drawer opens only for a record in the member's own list; the Inbound and
+ * Team panels render behind their unchanged guards; and the navigation
+ * placement preference cannot reach the server at all.
+ * ──────────────────────────────────────────────────────────────────────── */
+
+function dockSlice(html) {
+  const start = html.indexOf('class="portal-dock"');
+  assert.ok(start >= 0, "no dock rendered");
+  return html.slice(start, html.indexOf("</nav>", start));
+}
+const hrefsIn = (slice) => [...slice.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+
+test("the dock carries the five destinations a role holds — never Calls or Radio — and the menu keeps Calls", async () => {
+  const portal = await startPortal();
+  try {
+    await portal.addMember("agent-dock@example.com", "agent");
+    await portal.addMember("support-dock@example.com", "support");
+    await portal.addMember("manager-dock@example.com", "manager");
+    const cases = [
+      [{ subject: "subject-owner-dock", email: SEEDED_OWNER_EMAIL }, ["/portal", "/portal/book", "/portal/inbound", "/portal/team", "/portal/leadership"]],
+      [{ subject: "subject-manager-dock", email: "manager-dock@example.com" }, ["/portal", "/portal/book", "/portal/inbound", "/portal/team", "/portal/leadership"]],
+      [{ subject: "subject-agent-dock", email: "agent-dock@example.com" }, ["/portal", "/portal/book", "/portal/inbound"]],
+      [{ subject: "subject-support-dock", email: "support-dock@example.com" }, ["/portal", "/portal/inbound", "/portal/team"]],
+    ];
+    for (const [identity, expected] of cases) {
+      const response = await portal.get("/portal", identity);
+      assert.equal(response.status, 200, `${identity.email} opens the dashboard`);
+      const html = await response.text();
+      const dock = dockSlice(html);
+      assert.deepEqual(hrefsIn(dock), expected, `${identity.email}: the dock carries exactly the destinations the role holds`);
+      assert.doesNotMatch(dock, /\/portal\/calls|\/portal\/music|Radio/, `${identity.email}: Calls and Radio must not be dock slots`);
+      // Off-dock access: the guarded live Calls route keeps its menu row.
+      const menu = html.slice(html.indexOf('class="portal-menu"'), html.indexOf('class="portal-dock"'));
+      assert.match(menu, /href="\/portal\/calls"/, `${identity.email}: Calls stays reachable from the menu`);
+      assert.match(menu, /href="\/portal\/inbound"/, `${identity.email}: Inbound Status is a menu row too`);
+      // Active state is text plus colour: aria-current names the current slot.
+      assert.match(dock, /href="\/portal"[^>]*aria-current="page"/, "the current destination is marked aria-current");
+    }
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("the deferred dialer is an inert, founder-only dock slot", async () => {
+  const portal = await startPortal();
+  try {
+    await portal.addMember("btcmao518@gmail.com", "owner");
+    const founder = await portal.get("/portal", { subject: "subject-founder-dock", email: "btcmao518@gmail.com" });
+    assert.equal(founder.status, 200);
+    const founderDock = dockSlice(await founder.text());
+    const slot = founderDock.match(/<span class="portal-dock-deferred"[\s\S]*?<\/span><\/span>/);
+    assert.ok(slot, "the founder's dock carries the deferred dialer slot");
+    assert.match(slot[0], /aria-disabled="true"/);
+    assert.match(slot[0], /Deferred/);
+    assert.doesNotMatch(slot[0], /href=|<a |<button|onclick/i, "the slot must be inert: no link, no button, no handler");
+    assert.doesNotMatch(founderDock, /href="\/portal\/dialer"/, "no dock slot links the dialer route");
+
+    // A second owner who is not the founder has no slot at all — absent, not disabled.
+    const owner = await portal.get("/portal", { subject: "subject-owner-dock2", email: SEEDED_OWNER_EMAIL });
+    assert.equal(owner.status, 200);
+    const ownerHtml = await owner.text();
+    assert.doesNotMatch(dockSlice(ownerHtml), /portal-dock-deferred|Dialer/, "a non-founder owner's dock has no dialer slot");
+    // The dialer route itself is unchanged: still founder-only.
+    const refused = await portal.get("/portal/dialer", { subject: "subject-owner-dock2", email: SEEDED_OWNER_EMAIL });
+    assert.equal(refused.status, 307, "the dialer route still refuses a non-founder owner");
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("the navigation placement preference cannot reach the server or change what it renders", async () => {
+  const portal = await startPortal();
+  try {
+    await portal.addMember("agent-nav@example.com", "agent");
+    const identity = { subject: "subject-agent-nav", email: "agent-nav@example.com" };
+    const plain = await portal.get("/portal", identity);
+    assert.equal(plain.status, 200);
+    const plainHtml = await plain.text();
+
+    // Adversarial: every channel a client could try to push "rail" (or a
+    // widened placement) through — a cookie, a header, a query string.
+    const hostile = await portal.mf.dispatchFetch("http://localhost/portal?nav=rail&portalNav=rail", {
+      redirect: "manual",
+      headers: {
+        accept: "text/html",
+        cookie: `${identityHeaders(identity).cookie}; core-portal-nav=rail; portal-nav=rail`,
+        "x-portal-nav": "rail",
+        "x-nav-placement": "rail",
+      },
+    });
+    assert.equal(hostile.status, 200);
+    const hostileHtml = await hostile.text();
+
+    // The attribute is written only by the boot script in the browser; the
+    // server never emits it, so it cannot be influenced by a request.
+    for (const html of [plainHtml, hostileHtml]) {
+      assert.doesNotMatch(html, /data-portal-nav=/, "the server never renders a placement attribute");
+      assert.match(html, /d\.dataset\.portalNav=n==="rail"\?"rail":"dock"/, "the boot script carries the exact placement rule");
+    }
+    // The dock is byte-identical under attack: same slots, same order.
+    assert.equal(dockSlice(hostileHtml), dockSlice(plainHtml), "the dock markup is unchanged by any placement input");
+    // And the preference is a control in the topbar, never a route or a form.
+    assert.match(plainHtml, /aria-label="Navigation placement \(desktop widths\)"/);
+    assert.doesNotMatch(plainHtml, /action="[^"]*nav/, "no form posts a placement anywhere");
+    assert.equal(
+      (await portal.get("/portal/nav", identity)).status,
+      404,
+      "there is no server route for placement",
+    );
+  } finally {
+    await portal.dispose();
+  }
+});
+
+/** A form POST to a Book route, same-origin, as a browser would send it. */
+function bookPost(portal, identity, path, fields) {
+  return portal.mf.dispatchFetch(`http://localhost${path}`, {
+    method: "POST",
+    redirect: "manual",
+    body: new URLSearchParams(fields).toString(),
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      origin: "http://localhost",
+      ...identityHeaders(identity),
+    },
+  });
+}
+const clean = (html) => html.replaceAll("<!-- -->", "");
+
+test("before 0014 is applied the Book says not provisioned, offers no form, and refuses to write", async () => {
+  const portal = await startPortal();
+  try {
+    for (const s of VOICE_SQL) await portal.db.prepare(s).run();
+    await portal.addMember("book-np@example.com", "agent");
+    const a = { subject: "subject-book-np", email: "book-np@example.com" };
+
+    const html = clean(await (await portal.get("/portal/book?view=customers", a)).text());
+    assert.match(html, /Book of Business is not provisioned/, "the missing table is named as not provisioned, never as empty");
+    assert.doesNotMatch(html, /action="\/portal\/book\/customers"/, "no form is offered whose POST must fail");
+    assert.doesNotMatch(html, /class="portal-drawer"/);
+
+    const res = await bookPost(portal, a, "/portal/book/customers", { display_name: "Pat Example" });
+    assert.equal(res.status, 303);
+    assert.equal(res.headers.get("location"), "/portal/book?view=customers&book=not_provisioned");
+    const policy = await bookPost(portal, a, "/portal/book/policies", { intent: "add", customer_id: "1", carrier: "C", product: "P", status: "applied" });
+    assert.equal(policy.status, 303);
+    assert.equal(policy.headers.get("location"), "/portal/book?view=policies&book=foreign", "no customer can be owned when the table is absent");
+
+    // The home says the same thing in its own words and shows no number.
+    const dash = clean(await (await portal.get("/portal", a)).text());
+    assert.match(dash, /book not provisioned/);
+    assert.match(dash, /Your day/);
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("the Book takes a member's own customers and policies, opens a drawer only for their own record, and never touches another member's", async () => {
+  const portal = await startPortal();
+  try {
+    for (const s of VOICE_SQL) await portal.db.prepare(s).run();
+    for (const s of BOOK_SQL) await portal.db.prepare(s).run();
+    await portal.addMember("book-a@example.com", "agent");
+    await portal.addMember("book-b@example.com", "agent");
+    await portal.addMember("book-support@example.com", "support");
+    const idOf = async (email) => (await portal.db.prepare("SELECT id FROM portal_members WHERE email = ?").bind(email).first()).id;
+    const aId = await idOf("book-a@example.com");
+    const bId = await idOf("book-b@example.com");
+    const a = { subject: "subject-book-a", email: "book-a@example.com" };
+    const b = { subject: "subject-book-b", email: "book-b@example.com" };
+    const support = { subject: "subject-book-support", email: "book-support@example.com" };
+    const count = async (table) => (await portal.db.prepare(`SELECT count(*) AS n FROM ${table}`).first()).n;
+
+    // Refused before parsing: anonymous (401), a signed-in POST with no
+    // Origin (403), and a role that holds no book (403, audited deny).
+    const anon = await bookPost(portal, null, "/portal/book/customers", { display_name: "Nobody" });
+    assert.equal(anon.status, 401);
+    const noOrigin = await portal.mf.dispatchFetch("http://localhost/portal/book/customers", {
+      method: "POST",
+      redirect: "manual",
+      body: "display_name=Nobody",
+      headers: { "content-type": "application/x-www-form-urlencoded", ...identityHeaders(a) },
+    });
+    assert.equal(noOrigin.status, 403, "a cross-origin form post is refused");
+    const denied = await bookPost(portal, support, "/portal/book/customers", { display_name: "Nobody" });
+    assert.equal(denied.status, 403);
+    assert.equal(await count("book_customers"), 0, "nothing was written by any refused post");
+    assert.ok(
+      (await portal.audit()).some((r) => r.action === "book.edit.self" && r.decision === "deny" && r.reason === "capability_not_held"),
+      "the support role's refusal is audited",
+    );
+
+    // A adds a customer. The forged member_id is ignored; the phone is
+    // stored MASKED and as its last four only; the state is normalised.
+    const add = await bookPost(portal, a, "/portal/book/customers", {
+      display_name: "Ada Client",
+      phone: "(555) 010-2299",
+      state: "tx",
+      note: "Prefers mornings",
+      member_id: String(bId),
+    });
+    assert.equal(add.status, 303);
+    const aCustomerId = Number(add.headers.get("location").match(/customer=(\d+)$/)[1]);
+    const stored = await portal.db
+      .prepare("SELECT member_id, display_name, phone_masked, phone_last4, state, note FROM book_customers WHERE id = ?")
+      .bind(aCustomerId)
+      .first();
+    assert.equal(stored.member_id, aId, "the row belongs to the session's own member");
+    assert.equal(stored.phone_masked, "***-***-2299");
+    assert.equal(stored.phone_last4, "2299");
+    assert.equal(stored.state, "TX");
+    assert.equal(stored.note, "Prefers mornings");
+    const customerDump = JSON.stringify((await portal.db.prepare("SELECT * FROM book_customers").all()).results);
+    assert.doesNotMatch(customerDump, /5550102299|010-2299|\(555\)/, "the full phone number is never stored");
+    const addB = await bookPost(portal, b, "/portal/book/customers", { display_name: "Bea Other" });
+    const bCustomerId = Number(addB.headers.get("location").match(/customer=(\d+)$/)[1]);
+
+    // Shapes the table would refuse are refused first, audited, and land
+    // back on the form with the flag — nothing written.
+    for (const bad of [
+      { display_name: "" },
+      { display_name: "x".repeat(81) },
+      { display_name: "Ok", phone: "123" },
+      { display_name: "Ok", state: "Texas" },
+      { display_name: "Ok", note: "n".repeat(501) },
+    ]) {
+      const r = await bookPost(portal, a, "/portal/book/customers", bad);
+      assert.equal(r.status, 303);
+      assert.equal(r.headers.get("location"), "/portal/book?view=customers&book=invalid", `refused: ${JSON.stringify(bad).slice(0, 40)}`);
+    }
+    assert.equal(await count("book_customers"), 2);
+
+    // A policy attaches only to A's own customer: B's id is foreign.
+    const foreign = await bookPost(portal, a, "/portal/book/policies", {
+      intent: "add", customer_id: String(bCustomerId), carrier: "Aetna", product: "Final expense", status: "applied",
+    });
+    assert.equal(foreign.headers.get("location"), "/portal/book?view=policies&book=foreign");
+    assert.equal(await count("book_policies"), 0);
+    const addPolicy = await bookPost(portal, a, "/portal/book/policies", {
+      intent: "add",
+      customer_id: String(aCustomerId),
+      carrier: "Aetna",
+      product: "Final expense",
+      policy_number: "AET-88812207",
+      status: "requirement",
+      premium: "64.50",
+      effective_on: "2026-09-01",
+      next_action: "Med records",
+      next_action_on: "2026-09-06",
+      member_id: String(bId),
+    });
+    assert.equal(addPolicy.status, 303);
+    assert.equal(addPolicy.headers.get("location"), `/portal/book?view=customers&customer=${aCustomerId}`);
+    const policy = await portal.db.prepare("SELECT id, member_id, customer_id, policy_last4, premium_cents, status FROM book_policies").first();
+    assert.equal(policy.member_id, aId);
+    assert.equal(policy.customer_id, aCustomerId);
+    assert.equal(policy.policy_last4, "2207", "only the last four characters of the policy number are kept");
+    assert.equal(policy.premium_cents, 6450, "money is integer cents");
+    assert.doesNotMatch(JSON.stringify((await portal.db.prepare("SELECT * FROM book_policies").all()).results), /88812207/);
+    for (const bad of [{ status: "sold" }, { effective_on: "2026-02-30" }, { premium: "1000000" }, { next_action_on: "tomorrow" }]) {
+      const r = await bookPost(portal, a, "/portal/book/policies", {
+        intent: "add", customer_id: String(aCustomerId), carrier: "C", product: "P", status: "applied", ...bad,
+      });
+      assert.equal(r.headers.get("location"), "/portal/book?view=policies&book=invalid", `refused: ${JSON.stringify(bad)}`);
+    }
+    assert.equal(await count("book_policies"), 1);
+
+    // A status change moves only the member's own policy. B naming A's
+    // policy id changes nothing and is told so.
+    const bMove = await bookPost(portal, b, "/portal/book/policies", { intent: "status", policy_id: String(policy.id), status: "in_force" });
+    assert.equal(bMove.headers.get("location"), "/portal/book?view=policies&book=foreign");
+    assert.equal((await portal.db.prepare("SELECT status FROM book_policies WHERE id = ?").bind(policy.id).first()).status, "requirement");
+    const aMove = await bookPost(portal, a, "/portal/book/policies", {
+      intent: "status", policy_id: String(policy.id), status: "in_force", customer_id: String(aCustomerId),
+    });
+    assert.equal(aMove.headers.get("location"), `/portal/book?view=customers&customer=${aCustomerId}`);
+    assert.equal((await portal.db.prepare("SELECT status FROM book_policies WHERE id = ?").bind(policy.id).first()).status, "in_force");
+
+    // Level one: A's list holds Ada and not Bea, masked, with the form offered.
+    const listHtml = clean(await (await portal.get("/portal/book?view=customers", a)).text());
+    assert.match(listHtml, /Ada Client/);
+    assert.doesNotMatch(listHtml, /Bea Other/, "B's customer is not in A's book");
+    assert.match(listHtml, /action="\/portal\/book\/customers"/, "the add-customer form is offered to a book holder");
+    assert.doesNotMatch(listHtml, /class="portal-drawer"/, "no drawer without a customer id");
+    // Level one carries no contact detail at all — not even the masked number.
+    assert.doesNotMatch(listHtml, /2299/, "the list row shows no phone digits, masked or not");
+
+    // Level two: A's own id opens the drawer — a dialog region with the
+    // policy, its status form, and a close link back to the list.
+    const ownHtml = clean(await (await portal.get(`/portal/book?view=customers&customer=${aCustomerId}`, a)).text());
+    const drawer = ownHtml.match(/<section class="portal-drawer"[\s\S]*?<\/section>/);
+    assert.ok(drawer, "A's own customer opens the drawer");
+    assert.match(drawer[0], /role="dialog"/);
+    assert.match(drawer[0], /aria-labelledby="book-customer-title"/);
+    assert.match(drawer[0], /Ada Client/);
+    assert.match(drawer[0], /•••• 2207/);
+    assert.match(drawer[0], /\$64\.50\/mo/);
+    assert.match(drawer[0], /In force/);
+    assert.match(drawer[0], /Med records/);
+    assert.match(drawer[0], /\*\*\*-\*\*\*-2299/, "level two shows the masked number, which is all that is stored");
+    assert.match(drawer[0], new RegExp(`name="policy_id" value="${policy.id}"`), "the status form names the policy");
+    assert.match(drawer[0], /href="\/portal\/book\?view=customers"[^>]*aria-label="Close"/, "the close control is a link back to the list");
+    assert.doesNotMatch(drawer[0], /88812207|Bea Other|5550102299/);
+
+    // Fail-closed: B's id, a huge id, and hostile shapes open nothing and
+    // leak nothing — same status, same page, no drawer, no B data.
+    for (const probe of [String(bCustomerId), "999999999", "1e3", "-1", "0x10", "../../etc", "1 OR 1=1", "%00", "1234567890"]) {
+      const res = await portal.get(`/portal/book?view=customers&customer=${encodeURIComponent(probe)}`, a);
+      assert.equal(res.status, 200, `probe ${probe} renders the list page`);
+      const html = await res.text();
+      assert.doesNotMatch(html, /class="portal-drawer"/, `probe ${probe} opens no drawer`);
+      assert.doesNotMatch(html, /Bea Other/, `probe ${probe} leaks nothing of B`);
+    }
+    const foreignHtml = await (await portal.get(`/portal/book?view=customers&customer=${bCustomerId}`, a)).text();
+    assert.match(foreignHtml, /not in your book/, "a record outside the book is named as such, not looked up");
+
+    // Views are a closed set: junk is the summary. The policies view lists
+    // A's policy for A and an honest empty state for B.
+    const junk = clean(await (await portal.get("/portal/book?view=%3Cscript%3E", a)).text());
+    assert.match(junk, /<h1 class="portal-panel-title">Book summary<\/h1>/);
+    const policies = clean(await (await portal.get("/portal/book?view=policies", a)).text());
+    assert.match(policies, /Aetna · Final expense/);
+    assert.match(policies, /action="\/portal\/book\/policies"/, "the add-policy form is offered once a customer exists");
+    const bPolicies = clean(await (await portal.get("/portal/book?view=policies", b)).text());
+    assert.match(bPolicies, /No policies yet/);
+    assert.doesNotMatch(bPolicies, /Aetna · Final expense|Ada Client/);
+
+    // The home reads the same book: Ada's next action is today's first card,
+    // and the week's policy count is a real 1.
+    const dash = clean(await (await portal.get("/portal", a)).text());
+    assert.match(dash, /Ada Client/);
+    assert.match(dash, /Med records/);
+    assert.match(dash, /Policies this week/);
+    const bDash = clean(await (await portal.get("/portal", b)).text());
+    assert.doesNotMatch(bDash, /Ada Client|Med records/, "B's home shows nothing of A's book");
+
+    // Self-only: a support member has no book at all (no book.view.self).
+    assert.equal((await portal.get("/portal/book", support)).status, 307);
+
+    // Audit rows name ids only — never a customer's name, note, or number.
+    const trail = (await portal.db.prepare("SELECT action, decision, reason, resource, detail FROM audit_events WHERE action LIKE 'book.%'").all()).results;
+    assert.ok(trail.some((r) => r.action === "book.customer.add" && r.decision === "allow"));
+    assert.ok(trail.some((r) => r.action === "book.policy.add" && r.decision === "allow"));
+    assert.ok(trail.some((r) => r.action === "book.policy.status" && r.decision === "allow" && r.reason === "status_in_force"));
+    assert.ok(trail.some((r) => r.action === "book.policy.status" && r.decision === "deny" && r.reason === "not_in_book"));
+    assert.doesNotMatch(JSON.stringify(trail), /Ada Client|Bea Other|2299|Prefers|88812207/);
+  } finally {
+    await portal.dispose();
+  }
+});
+
+test("Inbound Status and Team render as focused panels behind their unchanged guards, saying Live and Not provisioned apart", async () => {
+  const portal = await startPortal();
+  try {
+    for (const s of VOICE_SQL) await portal.db.prepare(s).run();
+    await portal.addMember("agent-inbound@example.com", "agent");
+    await portal.addMember("support-team@example.com", "support");
+    const agent = { subject: "subject-agent-inbound", email: "agent-inbound@example.com" };
+    const support = { subject: "subject-support-team", email: "support-team@example.com" };
+
+    // Inbound: renders (no longer a redirect), both source states present,
+    // the guarded Calls route offered as the action, no dialer anywhere.
+    const inbound = await portal.get("/portal/inbound", agent);
+    assert.equal(inbound.status, 200, "inbound renders the panel for calls.answer holders");
+    const inboundHtml = await inbound.text();
+    assert.match(inboundHtml, /<h1 class="portal-panel-title">Inbound status<\/h1>/);
+    assert.match(inboundHtml, /portal-pill-live">Live</);
+    assert.match(inboundHtml, /portal-pill-pending">Not provisioned</);
+    assert.match(inboundHtml, /portal-pill-protected">Protected</, "team presence is named protected, not shown");
+    assert.match(inboundHtml, /href="\/portal\/calls\?tab=live"/, "off-dock access to the live Calls route");
+    assert.doesNotMatch(inboundHtml.slice(inboundHtml.indexOf("<main")), /dialer-button|originate/i, "no dialer control on the panel");
+    assert.match(
+      inboundHtml.replaceAll("<!-- -->", ""),
+      /You: Offline/,
+      "presence reads honestly as Offline for a member with no presence row",
+    );
+
+    // Team: renders for team.view (support holds it), refused for an agent.
+    const team = await portal.get("/portal/team", support);
+    assert.equal(team.status, 200);
+    const teamHtml = await team.text();
+    assert.match(teamHtml, /<h1 class="portal-panel-title">Team<\/h1>/);
+    assert.match(teamHtml, /Team operations not connected/);
+    assert.doesNotMatch(teamHtml.slice(teamHtml.indexOf("<main")), /@example\.com|@gmail\.com/, "no member identity is listed on the Team panel");
+    assert.equal((await portal.get("/portal/team", agent)).status, 307, "an agent is still refused Team");
+
+    // Every dock destination a role holds actually opens (no dead slots).
+    for (const [identity, routes] of [
+      [agent, ["/portal", "/portal/book", "/portal/inbound"]],
+      [support, ["/portal", "/portal/inbound", "/portal/team"]],
+    ]) {
+      for (const route of routes) {
+        assert.equal((await portal.get(route, identity)).status, 200, `${identity.email} opens ${route}`);
+      }
+    }
+  } finally {
+    await portal.dispose();
+  }
 });
