@@ -38,9 +38,9 @@ before relying on it later.
   Applying it is the founder's move, never an agent session's.
 - The thirteenth and fourteenth, `book_customers` and `book_policies`
   (`db/sql/0014`, the member's own Book of Business entries, owner direction
-  2026-09-02), are likewise in source and **not applied** (DEPLOYMENT.md).
-  Same rule: the founder applies them. Until then the Book says "not
-  provisioned" and accepts no entry.
+  2026-09-02), **were applied to the live database by the founder on
+  2026-09-02** (DEPLOYMENT.md, bookmark recorded there). On a database
+  without them the Book says "not provisioned" and accepts no entry.
 - Capability `book.edit.self` (2026-09-02, owner direction) is held by exactly
   the roles that hold `book.view.self`; the two Book write routes assert it
   and scope every row to the session's own `member_id`.

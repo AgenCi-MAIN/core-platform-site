@@ -768,7 +768,15 @@ NOT additionally apply the generated `drizzle/0004_*.sql` — same table, no
 `IF NOT EXISTS`, and the two paths must never both touch one database
 (CLAUDE.md rule).
 
-### db/sql/0014 exists and is NOT applied anywhere (2026-09-02, owner direction)
+### db/sql/0014 — APPLIED to the live database by the founder (2026-09-02)
+
+**Applied 2026-09-02 by the founder from Windows** with the command below:
+6 statements executed (two tables, three indexes, one `audit_events` row),
+10 rows read, 12 written, D1 bookmark
+`00000163-00000008-000050da-34fe169b66587e3fca93dc6c64011a7f`. The
+"not applied" paragraphs that follow are kept as the record of how the code
+behaves on a database that lacks the tables (a fresh local D1, for
+instance); they no longer describe the live database.
 
 The Book of Business rebuild added `db/sql/0014_book_of_business.sql` — the
 `book_customers` and `book_policies` tables behind the Book's entry forms
