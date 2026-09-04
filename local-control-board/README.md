@@ -1,14 +1,13 @@
 # Local Vera control board
 
-Static snapshot of worker lanes and the review-first workflow.
-
-Serve (from this directory):
+Small loopback web app for worker lanes and a local assignment queue.
 
 ```
-python -m http.server 5000
+python server.py
 ```
 
-Then open `http://localhost:5000/`.
+Then open `http://localhost:5000/`. Binds `127.0.0.1:5000` only.
 
 This is not the Cloudflare Worker, not a live membership read, and not a
-deploy. Update the HTML when a new verified snapshot exists.
+deploy. Assignments are stored in `data/assignments.json` on this machine
+and default to this Cursor cloud agent.

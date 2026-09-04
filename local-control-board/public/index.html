@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vera local board</title>
+  <link rel="stylesheet" href="/app.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <strong>VERA LOCAL</strong>
+        <span>localhost:5000</span>
+      </div>
+      <div class="note">Snapshot app · not production · loopback only</div>
+    </header>
+
+    <nav class="left" aria-label="Lanes">
+      <p class="rail-label">Lanes</p>
+      <div class="lanes">
+        <button class="lane active" data-panel="status" type="button">Status<small>Relay · Worker D · this run</small></button>
+        <button class="lane" data-panel="workflow" type="button">Workflow<small>Review-first courier path</small></button>
+        <button class="lane" data-panel="tools" type="button">Worker D<small>Six relay tools</small></button>
+        <button class="lane" data-panel="people" type="button">People<small>Vera · A · B · C · D · owner</small></button>
+      </div>
+    </nav>
+
+    <main class="main">
+      <section class="panel active" data-panel="status">
+        <h1>Board status</h1>
+        <p>Local web app for worker lanes and a queue bound to this Cursor cloud agent. Not a live membership or deploy console.</p>
+        <div class="cards">
+          <article class="card">
+            <strong>CORE MCP relay</strong>
+            <p><span class="mono">core-a2a-relay</span> ready · 6 tools. Write tool unused by this board.</p>
+          </article>
+          <article class="card">
+            <strong>Worker D</strong>
+            <p><span class="mono">READY_FOR_BOUNDED_TEST</span> · stdio · app control off · workflow_transition disabled.</p>
+          </article>
+          <article class="card">
+            <strong>This agent</strong>
+            <p>Core mcp relay status discovery · <span class="mono">bc-ba101046-1271-4c57-93d4-ca62046a34f6</span></p>
+          </article>
+          <article class="card">
+            <strong>Linked Claude Code session</strong>
+            <p><a href="https://claude.ai/code/session_01MwGuvK4QLhgygwUe5MLs8P">session_01MwGuvK4QLhgygwUe5MLs8P</a>. This board cannot read that transcript (sign-in required).</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="workflow">
+        <h1>Workflow</h1>
+        <ol>
+          <li>Owner gives direction to Vera.</li>
+          <li>Dispatch (Worker A) writes a bounded work order.</li>
+          <li>Worker B executes on the designated branch and returns evidence.</li>
+          <li>Dispatch reviews: approve, revise, or reject.</li>
+          <li>Worker C may verify independently.</li>
+          <li>Owner (or a single “mi”) may merge. Deploy stays a separate founder action.</li>
+        </ol>
+        <p class="fine">Automatic return without a courier is not proven. This app only records local assignments.</p>
+      </section>
+
+      <section class="panel" data-panel="tools">
+        <h1>Worker D tools</h1>
+        <div class="cards">
+          <article class="card"><span class="mono">worker_d_pilot_status</span> — read</article>
+          <article class="card"><span class="mono">worker_d_evidence_hash_calculate</span> — read</article>
+          <article class="card"><span class="mono">worker_d_artifact_inventory</span> — read</article>
+          <article class="card"><span class="mono">worker_d_evidence_compare</span> — read</article>
+          <article class="card"><span class="mono">worker_d_allowed_app_status</span> — read, no launch</article>
+          <article class="card"><span class="mono">worker_d_sandbox_text_write</span> — bounded write, unused here</article>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="people">
+        <h1>People and lanes</h1>
+        <div class="cards">
+          <article class="card"><strong>Vera</strong><p>Coordinator and courier. No solo merge or deploy.</p></article>
+          <article class="card"><strong>Worker A</strong><p>Dispatch / M Office. Approve, revise, reject.</p></article>
+          <article class="card"><strong>Worker B</strong><p>Builder on vera-central-control-system.</p></article>
+          <article class="card"><strong>Worker C</strong><p>Independent verifier. Reports only.</p></article>
+          <article class="card"><strong>Worker D</strong><p>Local observer via CORE MCP.</p></article>
+          <article class="card"><strong>Shawn</strong><p>Owner. Membership, spend, deploy, governance.</p></article>
+        </div>
+      </section>
+    </main>
+
+    <aside class="right" aria-label="Assign work">
+      <p class="rail-label">This agent</p>
+      <p class="fine">Assignments stay on this machine and bind to the running cloud agent. They do not dispatch Cursor, Claude, or production.</p>
+      <form id="assign-form">
+        <input id="title" name="title" required maxlength="200" placeholder="Work title" />
+        <textarea id="detail" name="detail" maxlength="4000" placeholder="What this agent should do"></textarea>
+        <button class="primary" type="submit">Assign to this agent</button>
+        <div id="assign-msg" class="fine"></div>
+      </form>
+      <p class="rail-label" style="margin-top:18px">Queue</p>
+      <div id="jobs"></div>
+    </aside>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
