@@ -2998,6 +2998,30 @@ test("an agent's dashboard shows no admin surface and no other member's data", a
   assert.ok(!html.includes("of 777 calls"), "B's call target must not render on A's dashboard");
 });
 
+test("the weekly commitments migration is fully idempotent", async (t) => {
+  const portal = await startPortal();
+  t.after(portal.dispose);
+
+  for (const s of CHECKIN_SQL) await portal.db.prepare(s).run();
+  for (const s of CHECKIN_SQL) await portal.db.prepare(s).run();
+
+  const table = await portal.db
+    .prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type = 'table' AND name = 'weekly_commitments'")
+    .first();
+  const index = await portal.db
+    .prepare("SELECT COUNT(*) AS count FROM sqlite_master WHERE type = 'index' AND name = 'weekly_commitments_member_week_idx'")
+    .first();
+  const audit = await portal.db
+    .prepare(
+      "SELECT COUNT(*) AS count FROM audit_events WHERE action = 'dashboard.checkin' AND reason = 'weekly_commitments_table_created' AND resource = 'weekly_commitments'",
+    )
+    .first();
+
+  assert.equal(table.count, 1, "rerunning 0013 must keep one commitments table");
+  assert.equal(index.count, 1, "rerunning 0013 must keep one unique index");
+  assert.equal(audit.count, 1, "rerunning 0013 must keep one creation audit marker");
+});
+
 test("the check-in route refuses anonymous and cross-subject writes", async (t) => {
   // The commitment panel is the one member-writable surface on the
   // dashboard, so its route carries the full presence-pattern chain. This

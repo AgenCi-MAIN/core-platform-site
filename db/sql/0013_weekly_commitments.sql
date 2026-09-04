@@ -47,12 +47,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS `weekly_commitments_member_week_idx`
 
 INSERT INTO `audit_events`
   (`actor_email`, `action`, `decision`, `reason`, `resource`, `detail`)
-VALUES
-  (
+SELECT
     'btcmao518@gmail.com',
     'dashboard.checkin',
     'allow',
     'weekly_commitments_table_created',
     'weekly_commitments',
     '{"note":"Weekly plan gains a table so the dashboard commitment panel can render only numbers a member actually stated. Plan data, never production data. One row per member per week, written only by the member''s own session."}'
-  );
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM `audit_events`
+  WHERE `action` = 'dashboard.checkin'
+    AND `reason` = 'weekly_commitments_table_created'
+    AND `resource` = 'weekly_commitments'
+);
