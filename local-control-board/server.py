@@ -171,7 +171,7 @@ def main() -> None:
     if not ASSIGNMENTS.exists():
         save_assignments([])
     httpd = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"Vera local board http://{HOST}:{PORT}/ (loopback only, not production)")
+    print("Vera local board http://localhost:5000/ (also http://127.0.0.1:5000/, loopback only, not production)")
     httpd.serve_forever()
 
 

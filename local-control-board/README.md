@@ -1,13 +1,16 @@
-# Local Vera control board
+# Local five-lane board
 
-Small loopback web app for worker lanes and a local assignment queue.
+One loopback app. Canonical URL:
+
+```
+http://localhost:5000/
+```
+
+`127.0.0.1:5000` is the same process. Bind is `127.0.0.1` only.
 
 ```
 python server.py
 ```
 
-Then open `http://localhost:5000/`. Binds `127.0.0.1:5000` only.
-
-This is not the Cloudflare Worker, not a live membership read, and not a
-deploy. Assignments are stored in `data/assignments.json` on this machine
-and default to this Cursor cloud agent.
+Not the Cloudflare Worker, not live membership, not a deploy. Queue JSON lives in
+`data/assignments.json`. Lane 1 numbers are snapshot facts, not infra gauges.
