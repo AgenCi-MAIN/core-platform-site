@@ -1,14 +1,5 @@
 [
   {
-    "id": "68edd4f6-16da-439d-9ffc-3b632191ac53",
-    "title": "Ping queue",
-    "detail": "Verify assign API",
-    "assignee_id": "bc-ba101046-1271-4c57-93d4-ca62046a34f6",
-    "assignee_name": "Core mcp relay status discovery",
-    "status": "assigned",
-    "created_at": "2026-09-04T19:13:02+00:00"
-  },
-  {
     "id": "seed-web-app-sidebars",
     "title": "Turn the localhost:5000 board into a web app",
     "detail": "Assigned to this Cursor cloud agent (Core mcp relay status discovery). Build an app shell with quieter left lane nav, a useful right assignment rail, and a local work queue bound to this agent id. Do not deploy or touch production.",

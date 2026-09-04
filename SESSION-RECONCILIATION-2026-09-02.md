@@ -174,7 +174,10 @@ This is a snapshot, not a live dashboard feed.
   `workflow_transition` disabled. Label `LOCALLY_GENERATED_UNTRUSTED`.
 - First status call timed out; a retry succeeded. The sandbox write tool was
   not invoked.
-- Local board for this snapshot: `local-control-board/index.html`, intended to
-  be served at `http://localhost:5000/` (`python -m http.server 5000` from that
-  directory). It is not the production Worker and is not a membership or deploy
-  surface.
+- Local board: `local-control-board/` as a loopback web app (`python server.py`
+  → `http://localhost:5000/`). Assignments bind to this Cursor cloud agent.
+  It is not the production Worker and is not a membership or deploy surface.
+- Owner-linked Claude Code session (2026-09-04):
+  `https://claude.ai/code/session_01MwGuvK4QLhgygwUe5MLs8P`. The transcript was
+  not readable from the cloud run (sign-in). The URL is recorded only; it is
+  not merge, deploy, or membership authority.
