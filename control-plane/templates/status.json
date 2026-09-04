@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "jobId": "JOB-YYYY-MM-DD-NNN",
+  "project": "IMO Operating Portal",
+  "repository": "AgenCi-MAIN/core-platform-site",
+  "branch": "vera-central-control-system",
+  "status": "INTAKE",
+  "currentOwner": "Vera",
+  "requiresOwnerApproval": false,
+  "createdAt": "YYYY-MM-DDTHH:MM:SSZ",
+  "updatedAt": "YYYY-MM-DDTHH:MM:SSZ",
+  "blocker": null,
+  "retryCount": 0,
+  "delivery": {
+    "application": "Google Chrome",
+    "profile": "Worker B account",
+    "conversation": "CORE portal repository audit",
+    "acknowledged": false,
+    "deliveredAt": null,
+    "acknowledgedAt": null
+  },
+  "return": {
+    "collected": false,
+    "reviewReady": false,
+    "collectedAt": null
+  }
+}

@@ -10,6 +10,7 @@ import {
 import { PASS_ATTEMPT_LIMIT, PASS_TTL_SECONDS } from "../command-pass";
 import { PortalShell } from "../components";
 import { TELEPHONY_CONFIG } from "../telephony-config";
+import { MCPStatusPanel } from "./mcp-status";
 
 export const dynamic = "force-dynamic";
 
@@ -709,6 +710,26 @@ export default async function FounderCommandCenter({
             <small>Unavailable to this portal</small>
           </article>
         </section>
+
+        <MCPStatusPanel
+          status={{
+            connection: {
+              state: "unknown",
+              label: "Status unavailable to this portal",
+              verified: false,
+            },
+            authentication: {
+              state: "unknown",
+              label: "Status unavailable to this portal",
+              verified: false,
+            },
+            permissions: {
+              readOnly: true,
+              label: "Read-only access configured",
+              verified: false,
+            },
+          }}
+        />
 
         <section className="fcc-layout fcc-layout-primary">
           <article className="fcc-panel" aria-labelledby="workforce-title">

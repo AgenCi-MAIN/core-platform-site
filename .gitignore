@@ -62,3 +62,6 @@ next-env.d.ts
 # Built email output — regenerate with `node outreach/build.mjs`
 outreach/dist/
 
+
+.vercel
+.env*

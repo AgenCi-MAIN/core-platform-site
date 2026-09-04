@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://core.local/schemas/control-plane-job.json",
+  "title": "CORE control-plane job status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "jobId",
+    "project",
+    "repository",
+    "branch",
+    "status",
+    "currentOwner",
+    "requiresOwnerApproval",
+    "createdAt",
+    "updatedAt",
+    "delivery",
+    "return"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "jobId": { "type": "string", "pattern": "^JOB-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{3}$" },
+    "project": { "type": "string", "minLength": 1 },
+    "repository": { "type": "string", "minLength": 1 },
+    "branch": { "type": "string", "minLength": 1 },
+    "status": {
+      "enum": [
+        "INTAKE",
+        "DISPATCH_REVIEW",
+        "READY_FOR_WORKER",
+        "DELIVERED",
+        "WORKING",
+        "RESULT_RETURNED",
+        "FINAL_REVIEW",
+        "APPROVED",
+        "REVISION_REQUIRED",
+        "OWNER_APPROVAL_REQUIRED",
+        "VERIFIED",
+        "COMPLETE",
+        "BLOCKED"
+      ]
+    },
+    "currentOwner": { "enum": ["Shawn", "Vera", "Worker A / Dispatch", "Computer Use", "Worker B"] },
+    "requiresOwnerApproval": { "type": "boolean" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "blocker": { "type": ["string", "null"] },
+    "retryCount": { "type": "integer", "minimum": 0, "default": 0 },
+    "delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["application", "profile", "conversation", "acknowledged"],
+      "properties": {
+        "application": { "type": "string", "minLength": 1 },
+        "profile": { "type": "string", "minLength": 1 },
+        "conversation": { "type": "string", "minLength": 1 },
+        "acknowledged": { "type": "boolean" },
+        "deliveredAt": { "type": ["string", "null"], "format": "date-time" },
+        "acknowledgedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "return": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collected", "reviewReady"],
+      "properties": {
+        "collected": { "type": "boolean" },
+        "reviewReady": { "type": "boolean" },
+        "collectedAt": { "type": ["string", "null"], "format": "date-time" }
+      }
+    }
+  }
+}
