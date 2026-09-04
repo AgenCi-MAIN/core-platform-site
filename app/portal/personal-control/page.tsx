@@ -57,7 +57,7 @@ export default async function PersonalControlPage() {
           <article><span>Active goal</span><strong>Local dashboard consolidation</strong><small>Isolated branch</small></article>
           <article><span>Validation</span><strong>162 tests passed</strong><small>TypeScript clean</small></article>
           <article><span>Worker D</span><strong className={`personal-${workerDashboard.state}`}>{workerDashboard.state}</strong><small>{workerDashboard.detail}</small></article>
-          <article><span>Release gate</span><strong>Held</strong><small>No push, merge, or deploy</small></article>
+          <article><span>Release gate</span><strong>Protected review</strong><small>Merge and deploy not authorized</small></article>
         </section>
 
         <div className="personal-grid">
@@ -88,14 +88,14 @@ export default async function PersonalControlPage() {
               <p><b>PASS</b><span>TypeScript check</span><small>Verified in the isolated checkout</small></p>
               <p><b>PASS</b><span>Full test suite</span><small>162 of 162 tests</small></p>
               <p><b>PASS</b><span>Diff integrity</span><small>No whitespace errors</small></p>
-              <p><b>LOCAL</b><span>Consolidation commit</span><small>Not pushed or landed</small></p>
+              <p><b>PUSHED</b><span>Focused branch</span><small>Published for review; not landed</small></p>
             </div>
           </section>
 
           <section className="personal-lane personal-lane-gates">
             <div className="personal-lane-head"><span>05</span><div><p>Gates</p><h2>Owner-controlled actions</h2></div></div>
             <div className="personal-gates">
-              <article><span>Push</span><strong>Awaiting approval</strong></article><article><span>Protected review</span><strong>Not opened</strong></article>
+              <article><span>Push</span><strong>Complete</strong></article><article><span>Protected review</span><strong>PR open</strong></article>
               <article><span>Merge</span><strong>Not authorized</strong></article><article><span>Deployment</span><strong>Not authorized</strong></article>
               <article><span>Production data</span><strong>Untouched</strong></article>
             </div>
