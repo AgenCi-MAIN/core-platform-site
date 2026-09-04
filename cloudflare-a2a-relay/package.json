@@ -1,0 +1,12 @@
+{
+  "name": "core-worker-d-connector-review",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test --experimental-strip-types test/connector.test.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "ws": "8.18.3"
+  }
+}
