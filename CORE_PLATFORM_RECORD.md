@@ -2900,3 +2900,28 @@ both succeed.
 reuse, production mutation, deployment, migration, or permission expansion.
 
 **Timestamp:** 2026-09-04 (America/Chicago)
+
+---
+
+### D-020. Worker B post-rotation relay verification — 2026-09-04
+
+**Verified state:** The permanent `Worker B(heavy)` Claude Code lane authenticated
+successfully through the canonical `CORE Relay — Worker B` connector on the first
+post-rotation call. The relay returned `READY_FOR_BOUNDED_TEST` from the read-only
+`worker_d_pilot_status` tool.
+
+**Tool contract:** Read-only `tools/list` returned six tools:
+`worker_d_pilot_status`, `worker_d_allowed_app_status`,
+`worker_d_artifact_inventory`, `worker_d_evidence_compare`,
+`worker_d_evidence_hash_calculate`, and the bounded
+`worker_d_sandbox_text_write`. The bounded write tool was not invoked.
+
+**Evidence:** The exact status response SHA-256 is
+`f8a4b6f312b462f61ffa987b4b16598bf0c61ff2a0fc5cb7200f83b6794f3874`.
+Worker B stored the run evidence outside the repository in its scratchpad evidence
+directory. This record contains no replacement token or other credential value.
+
+**Boundaries verified:** No repository, credential, production, deployment,
+permission, migration, or MCP write change occurred during the verification.
+
+**Timestamp:** 2026-09-04 (America/Chicago)
