@@ -18,9 +18,7 @@ import {
 } from "./access";
 import { readRows, type ReadFault } from "./read-guard";
 import { PortalBackControl } from "./back-control";
-import { PortalPerformanceControl } from "../performance-control";
-import { PortalThemeControl } from "../theme-control";
-import { PortalNavControl } from "../nav-control";
+import { PortalDisplayControl } from "../display-control";
 
 type PortalIconName =
   | "dashboard"
@@ -652,9 +650,7 @@ export async function PortalShell({
           <PortalGroupTabs session={session} current={current} currentGroup={currentGroup} visible={visible} pendingRequests={pendingRequests} />
 
           <div className="portal-topbar-end" aria-label={`Signed in as ${session.displayName}`}>
-            <PortalThemeControl />
-            <PortalNavControl />
-            <PortalPerformanceControl />
+            <PortalDisplayControl />
             {commandCenter ? (
               <>
                 <input

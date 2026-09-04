@@ -18,15 +18,17 @@ export const dynamic = "force-dynamic";
  * member's own policies to a new status — the only writer of
  * `book_policies` (owner direction 2026-09-02).
  *
- * Two intents on one endpoint, both plain HTML forms:
+ * Three intents on one endpoint, all plain HTML forms:
  *   intent=add     carrier, product, status, premium, dates, next action
  *   intent=status  policy_id + status
+ *   intent=delete  policy_id — removes the row outright (owner direction
+ *                  2026-09-04: a member may take back an entry they made)
  *
  * Ownership is enforced twice and on the server only: the customer a new
  * policy attaches to must be in the session's own book (one self-scoped
- * query, before any write), and a status change updates only a row whose
- * member_id is the session's own — a foreign id updates nothing and says
- * so. `member_id` in the body is ignored outright.
+ * query, before any write), and a status change or delete touches only a
+ * row whose member_id is the session's own — a foreign id changes nothing
+ * and says so. `member_id` in the body is ignored outright.
  *
  * The policy number is kept as its last four characters only. Money is
  * integer cents; bounds mirror the CHECK constraints in db/sql/0014.
@@ -158,6 +160,33 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const intent = field(form, "intent") ?? "add";
+
+  if (intent === "delete") {
+    const policyId = smallId(field(form, "policy_id"));
+    const returnTo = smallId(field(form, "customer_id"));
+    const back = returnTo ? `${BOOK}?view=customers&customer=${returnTo}` : `${BOOK}?view=policies`;
+    if (policyId === null) {
+      await audit("book.policy.delete", "deny", "invalid_policy");
+      return seeOther(`${back}&book=invalid`);
+    }
+    // Self-scoped delete: a foreign or unknown id matches no row.
+    const outcome = await writeRow("book_policies", () =>
+      getDb()
+        .delete(bookPolicies)
+        .where(and(eq(bookPolicies.id, policyId), eq(bookPolicies.memberId, session.memberId)))
+        .returning({ id: bookPolicies.id }),
+    );
+    if (!outcome.ok) {
+      await audit("book.policy.delete", "deny", `write_${outcome.fault}`, `book_policy:${policyId}`);
+      return seeOther(`${back}&book=${outcome.fault}`);
+    }
+    if (outcome.value.length === 0) {
+      await audit("book.policy.delete", "deny", "not_in_book", `book_policy:${policyId}`);
+      return seeOther(`${back}&book=foreign`);
+    }
+    await audit("book.policy.delete", "allow", "policy_removed", `book_policy:${policyId}`);
+    return seeOther(`${back}&book=removed`);
+  }
 
   if (intent === "status") {
     const policyId = smallId(field(form, "policy_id"));

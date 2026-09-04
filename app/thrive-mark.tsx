@@ -1,11 +1,16 @@
 /**
- * IMO mark — the "V" glyph: a bold left arm, a flame/helix forming the
- * right arm, and a four-point sparkle. Rendered in `currentColor`, so a
- * badge sets the colour (gold on the obsidian marks) and the mark inherits it.
+ * CORE mark — a "C" (owner direction 2026-09-04, replacing the IMO "V").
+ *
+ * A confident open ring with a sheared terminal: the arc runs from the top
+ * terminal around the left to the bottom, and the counter is left open on the
+ * right so it reads as a letter and not a circle at 17px. A small four-point
+ * spark sits in the mouth of the C — the one detail carried over from the
+ * previous mark, so the badge keeps its sparkle. Rendered in `currentColor`,
+ * so a badge sets the colour (gold on the obsidian marks) and the mark
+ * inherits it.
  *
  * One source of truth for every in-app logo (site topbar, portal sidebar,
- * access gate). The favicon and PWA icons carry the same glyph on a navy
- * ground — see public/favicon.svg and the icons rendered from it.
+ * access gate). The favicon and PWA icons carry their own rendering.
  */
 export function ThriveMark({ size = 22 }: { size?: number }) {
   return (
@@ -17,23 +22,16 @@ export function ThriveMark({ size = 22 }: { size?: number }) {
       aria-hidden="true"
       focusable="false"
     >
-      {/* Bold left arm of the V. */}
+      {/* The C: a 270° arc, thick, with round terminals. */}
       <path
-        d="M16 14 L32 50"
+        d="M47.5 19.5 A20.5 20.5 0 1 0 47.5 44.5"
         stroke="currentColor"
         strokeWidth="10"
         strokeLinecap="round"
       />
-      {/* Flame / helix forming the right arm. */}
+      {/* Four-point spark in the mouth of the C. */}
       <path
-        d="M32 50 C 31 42 41 41 39.5 33.5 C 38.2 27.5 31 25.5 34 18.5 C 35.4 15.2 38.8 13.8 42 12.6"
-        stroke="currentColor"
-        strokeWidth="6.2"
-        strokeLinecap="round"
-      />
-      {/* Four-point sparkle. */}
-      <path
-        d="M49 6 C 50 12 51.5 13.5 57.5 14.5 C 51.5 15.5 50 17 49 23 C 48 17 46.5 15.5 40.5 14.5 C 46.5 13.5 48 12 49 6 Z"
+        d="M47 24 C 48 30 49.5 31.5 55.5 32.5 C 49.5 33.5 48 35 47 41 C 46 35 44.5 33.5 38.5 32.5 C 44.5 31.5 46 30 47 24 Z"
         fill="currentColor"
       />
     </svg>

@@ -29,7 +29,7 @@ import {
   type BookData,
   type BookPolicy,
 } from "./data";
-import { CustomerForm, PolicyForm, StatusForm } from "./forms";
+import { CustomerDeleteForm, CustomerForm, PolicyDeleteForm, PolicyForm, StatusForm } from "./forms";
 
 export const dynamic = "force-dynamic";
 
@@ -68,7 +68,7 @@ function customerIdOf(value: string | undefined): number | null {
   return value !== undefined && /^\d{1,9}$/.test(value) ? Number(value) : null;
 }
 
-const FLAGS = ["invalid", "unavailable", "not_provisioned", "foreign"] as const;
+const FLAGS = ["invalid", "unavailable", "not_provisioned", "foreign", "removed"] as const;
 type Flag = (typeof FLAGS)[number];
 function flagOf(value: string | undefined): Flag | null {
   return (FLAGS as readonly string[]).includes(value ?? "") ? (value as Flag) : null;
@@ -80,6 +80,7 @@ const FLAG_COPY: Record<Flag, string> = {
   unavailable: "The book could not be written just now. Nothing was saved — try again in a moment.",
   not_provisioned: "The book's tables are not provisioned on this database yet, so nothing can be saved until the owner applies migration 0014.",
   foreign: "That record is not in your book, so nothing changed.",
+  removed: "Removed from your book.",
 };
 
 function dateLabel(iso: string | null): string {
@@ -196,7 +197,7 @@ export default async function BookPage({
         />
 
         {flag ? (
-          <p className={`portal-panel-note portal-panel-note-${flag === "foreign" ? "quiet" : "error"}`} role="status">
+          <p className={`portal-panel-note portal-panel-note-${flag === "foreign" || flag === "removed" ? "quiet" : "error"}`} role="status">
             {FLAG_COPY[flag]}
           </p>
         ) : null}
@@ -353,12 +354,17 @@ export default async function BookPage({
                       <th scope="col">Status</th>
                       <th scope="col">Premium / mo</th>
                       <th scope="col">Next</th>
+                      {canEdit ? (
+                        <th scope="col">
+                          <span className="sr-only">Actions</span>
+                        </th>
+                      ) : null}
                     </tr>
                   </thead>
                   <tbody>
                     {!provisioned ? (
                       <tr>
-                        <td colSpan={6}>
+                        <td colSpan={canEdit ? 7 : 6}>
                           <EmptyState
                             title="No policy system connected"
                             body="Policies you enter show here once the book's tables are provisioned. Nothing is shown until then."
@@ -367,7 +373,7 @@ export default async function BookPage({
                       </tr>
                     ) : book.kind === "ok" && book.policies.length === 0 ? (
                       <tr>
-                        <td colSpan={6}>
+                        <td colSpan={canEdit ? 7 : 6}>
                           <EmptyState
                             title="No policies yet"
                             body={
@@ -408,6 +414,11 @@ export default async function BookPage({
                                 "—"
                               )}
                             </td>
+                            {canEdit ? (
+                              <td className="portal-cell-actions">
+                                <PolicyDeleteForm policy={policy} />
+                              </td>
+                            ) : null}
                           </tr>
                         );
                       })
@@ -503,7 +514,12 @@ export default async function BookPage({
                     </div>
                     <div className="portal-drawer-policy-side">
                       <PolicyPill policy={policy} />
-                      {canEdit ? <StatusForm policy={policy} customerId={selected.id} /> : null}
+                      {canEdit ? (
+                        <>
+                          <StatusForm policy={policy} customerId={selected.id} />
+                          <PolicyDeleteForm policy={policy} customerId={selected.id} />
+                        </>
+                      ) : null}
                     </div>
                   </li>
                 ))}
@@ -531,6 +547,11 @@ export default async function BookPage({
           <Disclosure title="Persistence &amp; chargebacks" state="pending">
             <p>Not provisioned. No figure is estimated.</p>
           </Disclosure>
+          {canEdit ? (
+            <Disclosure title="Remove from book" state="protected">
+              <CustomerDeleteForm customer={selected} policyCount={policiesOf(book, selected.id).length} />
+            </Disclosure>
+          ) : null}
         </Drawer>
       ) : null}
     </PortalShell>

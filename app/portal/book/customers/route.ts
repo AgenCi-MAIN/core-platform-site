@@ -1,5 +1,6 @@
+import { and, eq } from "drizzle-orm";
 import { getDb } from "../../../../db";
-import { bookCustomers } from "../../../../db/schema";
+import { bookCustomers, bookPolicies } from "../../../../db/schema";
 import {
   assertCapability,
   recordAudit,
@@ -12,8 +13,14 @@ import { writeRow } from "../../read-guard";
 export const dynamic = "force-dynamic";
 
 /**
- * Add a customer to the member's OWN book — the only writer of
- * `book_customers` (owner direction 2026-09-02).
+ * Add a customer to the member's OWN book, or remove one — the only writer
+ * of `book_customers` (owner direction 2026-09-02; delete added 2026-09-04
+ * so a member can take back an entry they made).
+ *
+ *   intent=add     (default) the customer form
+ *   intent=delete  customer_id — removes the customer AND every policy of
+ *                  theirs in this member's book, in one atomic D1 batch,
+ *                  scoped to the session's own member_id on both tables.
  *
  * A plain HTML form on the Book page posts here; no client JS in the loop.
  * The row's owner is decided entirely on the server: member_id is the
@@ -118,6 +125,49 @@ export async function POST(request: Request): Promise<Response> {
     form = await request.formData();
   } catch {
     form = new FormData();
+  }
+
+  if (field(form, "intent") === "delete") {
+    const audit = (decision: "allow" | "deny", reason: string, resource?: string) =>
+      recordAudit({
+        action: "book.customer.delete",
+        decision,
+        reason,
+        actorEmail: session.email,
+        actorSubjectId: session.subjectId,
+        actorRole: session.role,
+        resource,
+        requestPath: path,
+      });
+    const raw = field(form, "customer_id");
+    const customerId = raw !== null && /^\d{1,9}$/.test(raw) ? Number(raw) : null;
+    if (customerId === null || customerId === 0) {
+      await audit("deny", "invalid_customer");
+      return seeOther(`${BOOK}?view=customers&book=invalid`);
+    }
+    // One atomic batch, both statements self-scoped: the policies go first
+    // (they reference the customer), then the customer. D1 runs a batch as a
+    // transaction, so a half-removed customer cannot be left behind.
+    const own = (id: number) => and(eq(bookCustomers.id, id), eq(bookCustomers.memberId, session.memberId));
+    const outcome = await writeRow("book_customers", () => {
+      const db = getDb();
+      return db.batch([
+        db
+          .delete(bookPolicies)
+          .where(and(eq(bookPolicies.customerId, customerId), eq(bookPolicies.memberId, session.memberId))),
+        db.delete(bookCustomers).where(own(customerId)).returning({ id: bookCustomers.id }),
+      ]);
+    });
+    if (!outcome.ok) {
+      await audit("deny", `write_${outcome.fault}`, `book_customer:${customerId}`);
+      return seeOther(`${BOOK}?view=customers&book=${outcome.fault}`);
+    }
+    if (outcome.value[1].length === 0) {
+      await audit("deny", "not_in_book", `book_customer:${customerId}`);
+      return seeOther(`${BOOK}?view=customers&book=foreign`);
+    }
+    await audit("allow", "customer_removed", `book_customer:${customerId}`);
+    return seeOther(`${BOOK}?view=customers&book=removed`);
   }
 
   const customer = parseCustomer(form);

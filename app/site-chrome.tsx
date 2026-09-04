@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ThriveMark } from "./thrive-mark";
-import { PortalThemeControl } from "./theme-control";
+import { PortalDisplayControl } from "./display-control";
 
 /**
  * Topbar for the public, unauthenticated surfaces — the landing page, the
@@ -37,7 +37,7 @@ export function SiteTopbar({
 
       <div className="site-topbar-end">
         <span className="site-section" aria-hidden="true">{section}</span>
-        <PortalThemeControl />
+        <PortalDisplayControl showNav={false} />
         {cta ? (
           <Link className="site-cta" href={cta.href}>
             {cta.label}

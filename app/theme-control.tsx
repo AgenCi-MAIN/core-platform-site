@@ -91,7 +91,13 @@ function applyTheme(themeId: PortalTheme) {
   if (meta) meta.setAttribute("content", theme.chrome);
 }
 
-export function PortalThemeControl() {
+/** The theme currently on screen, with its label and glyph — for the display button. */
+export function useCurrentTheme(): (typeof THEMES)[number] {
+  const id = useSyncExternalStore(subscribe, readTheme, () => "thrive");
+  return THEMES.find((entry) => entry.id === id) ?? DEFAULT_THEME;
+}
+
+export function PortalThemeControl({ onChoose }: { onChoose?: () => void } = {}) {
   // The server snapshot says dark because the boot script paints dark for a
   // first-time visitor before hydration — a "bright" snapshot would flash
   // the Bright pill pressed on a dark page between paint and hydration, and
@@ -106,6 +112,7 @@ export function PortalThemeControl() {
       // The mode still applies for this page when browser storage is unavailable.
     }
     window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
+    onChoose?.();
   }
 
   return (

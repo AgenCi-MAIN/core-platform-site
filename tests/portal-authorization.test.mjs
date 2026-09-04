@@ -4327,12 +4327,58 @@ test("the Book takes a member's own customers and policies, opens a drawer only 
     // Self-only: a support member has no book at all (no book.view.self).
     assert.equal((await portal.get("/portal/book", support)).status, 307);
 
+    // Delete is offered to a book holder — a Remove per policy (drawer and
+    // table) and a Remove-customer form behind its own disclosure.
+    assert.match(drawer[0], new RegExp(`name="intent" value="delete"[^]*?name="policy_id" value="${policy.id}"`), "the drawer offers a policy remove");
+    assert.match(drawer[0], new RegExp(`name="intent" value="delete"[^]*?name="customer_id" value="${aCustomerId}"[^]*?Remove customer`), "the drawer offers a customer remove");
+    assert.match(policies, /name="intent" value="delete"/, "the policies table offers a remove");
+
+    // B naming A's policy removes nothing; A removing their own does. A
+    // second, foreign delete from B is also refused on a customer.
+    const bDel = await bookPost(portal, b, "/portal/book/policies", { intent: "delete", policy_id: String(policy.id) });
+    assert.equal(bDel.headers.get("location"), "/portal/book?view=policies&book=foreign");
+    assert.equal(await count("book_policies"), 1, "a foreign delete removes nothing");
+    const bDelCustomer = await bookPost(portal, b, "/portal/book/customers", { intent: "delete", customer_id: String(aCustomerId) });
+    assert.equal(bDelCustomer.headers.get("location"), "/portal/book?view=customers&book=foreign");
+    assert.equal(await count("book_customers"), 2, "a foreign customer delete removes nothing");
+    for (const bad of [{ intent: "delete" }, { intent: "delete", policy_id: "abc" }, { intent: "delete", policy_id: "-1" }]) {
+      const r = await bookPost(portal, a, "/portal/book/policies", bad);
+      assert.equal(r.headers.get("location"), "/portal/book?view=policies&book=invalid", `refused: ${JSON.stringify(bad)}`);
+    }
+    const aDel = await bookPost(portal, a, "/portal/book/policies", { intent: "delete", policy_id: String(policy.id), customer_id: String(aCustomerId) });
+    assert.equal(aDel.status, 303);
+    assert.equal(aDel.headers.get("location"), `/portal/book?view=customers&customer=${aCustomerId}&book=removed`);
+    assert.equal(await count("book_policies"), 0, "the member's own policy is removed");
+
+    // Removing a customer takes their policies with them, atomically, and
+    // only within the member's own book: B's customer is untouched.
+    await bookPost(portal, a, "/portal/book/policies", {
+      intent: "add", customer_id: String(aCustomerId), carrier: "Aetna", product: "Final expense", status: "applied",
+    });
+    await bookPost(portal, a, "/portal/book/policies", {
+      intent: "add", customer_id: String(aCustomerId), carrier: "Mutual", product: "Term", status: "in_force",
+    });
+    assert.equal(await count("book_policies"), 2);
+    const aDelCustomer = await bookPost(portal, a, "/portal/book/customers", { intent: "delete", customer_id: String(aCustomerId) });
+    assert.equal(aDelCustomer.status, 303);
+    assert.equal(aDelCustomer.headers.get("location"), "/portal/book?view=customers&book=removed");
+    assert.equal(await count("book_customers"), 1, "A's customer is gone, B's stays");
+    assert.equal(await count("book_policies"), 0, "A's policies went with the customer");
+    assert.equal((await portal.db.prepare("SELECT id FROM book_customers").first()).id, bCustomerId);
+    const afterHtml = clean(await (await portal.get("/portal/book?view=customers&book=removed", a)).text());
+    assert.match(afterHtml, /Removed from your book/);
+    assert.doesNotMatch(afterHtml, /Ada Client/);
+
     // Audit rows name ids only — never a customer's name, note, or number.
     const trail = (await portal.db.prepare("SELECT action, decision, reason, resource, detail FROM audit_events WHERE action LIKE 'book.%'").all()).results;
     assert.ok(trail.some((r) => r.action === "book.customer.add" && r.decision === "allow"));
     assert.ok(trail.some((r) => r.action === "book.policy.add" && r.decision === "allow"));
     assert.ok(trail.some((r) => r.action === "book.policy.status" && r.decision === "allow" && r.reason === "status_in_force"));
     assert.ok(trail.some((r) => r.action === "book.policy.status" && r.decision === "deny" && r.reason === "not_in_book"));
+    assert.ok(trail.some((r) => r.action === "book.policy.delete" && r.decision === "allow" && r.reason === "policy_removed"));
+    assert.ok(trail.some((r) => r.action === "book.policy.delete" && r.decision === "deny" && r.reason === "not_in_book"));
+    assert.ok(trail.some((r) => r.action === "book.customer.delete" && r.decision === "allow" && r.reason === "customer_removed"));
+    assert.ok(trail.some((r) => r.action === "book.customer.delete" && r.decision === "deny" && r.reason === "not_in_book"));
     assert.doesNotMatch(JSON.stringify(trail), /Ada Client|Bea Other|2299|Prefers|88812207/);
   } finally {
     await portal.dispose();

@@ -157,3 +157,42 @@ export function StatusForm({ policy, customerId }: { policy: BookPolicy; custome
     </form>
   );
 }
+
+/**
+ * Remove one policy. A single POST with no confirm step: the row is the
+ * member's own entry and the route refuses any other. `customerId` decides
+ * where the 303 lands (the drawer or the Policies table).
+ */
+export function PolicyDeleteForm({ policy, customerId }: { policy: BookPolicy; customerId?: number }) {
+  return (
+    <form className="portal-book-delete" method="post" action="/portal/book/policies" aria-label={`Remove policy ${policy.policyLast4 ?? policy.id}`}>
+      <input type="hidden" name="intent" value="delete" />
+      <input type="hidden" name="policy_id" value={policy.id} />
+      {customerId !== undefined ? <input type="hidden" name="customer_id" value={customerId} /> : null}
+      <button className="portal-button portal-button-quiet portal-button-danger" type="submit">
+        Remove
+      </button>
+    </form>
+  );
+}
+
+/**
+ * Remove a customer and every policy of theirs. Sits behind a disclosure in
+ * the drawer so the destructive button is never one stray tap away.
+ */
+export function CustomerDeleteForm({ customer, policyCount }: { customer: BookCustomer; policyCount: number }) {
+  return (
+    <form className="portal-book-delete portal-book-delete-customer" method="post" action="/portal/book/customers">
+      <input type="hidden" name="intent" value="delete" />
+      <input type="hidden" name="customer_id" value={customer.id} />
+      <p>
+        Removes {customer.displayName} from your book
+        {policyCount > 0 ? ` along with ${policyCount === 1 ? "their 1 policy" : `all ${policyCount} of their policies`}` : ""}. This cannot
+        be undone.
+      </p>
+      <button className="portal-button portal-button-danger" type="submit">
+        Remove customer{policyCount > 0 ? ` and ${policyCount === 1 ? "policy" : "policies"}` : ""}
+      </button>
+    </form>
+  );
+}

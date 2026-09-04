@@ -7419,6 +7419,72 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   }
 }
 
+/* --- Display control: one topbar button, one popover -------------------
+   Colour mode, navigation placement and performance boost live together
+   behind a single round button that never leaves the topbar (owner
+   direction 2026-09-04). The pills inside keep their own classes and
+   behaviour; only their home moved. */
+.portal-display-control { position: relative; display: inline-flex; align-items: center; }
+.portal-display-button {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--portal-line-strong);
+  border-radius: 999px;
+  background: var(--portal-panel);
+  color: var(--portal-text);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.portal-display-button:hover { background: var(--portal-hover); border-color: var(--portal-accent); }
+.portal-display-button:focus-visible { outline: 2px solid var(--portal-accent); outline-offset: 2px; }
+.portal-display-control[data-open="true"] .portal-display-button {
+  background: var(--portal-accent-soft);
+  border-color: var(--portal-accent);
+  color: var(--portal-accent-strong);
+}
+.portal-display-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 50;
+  display: grid;
+  gap: 10px;
+  min-width: 232px;
+  padding: 12px;
+  border: 1px solid var(--portal-line-strong);
+  border-radius: 12px;
+  background: var(--portal-panel);
+  box-shadow: var(--portal-dock-shadow, 0 8px 24px rgba(0, 0, 0, .18));
+}
+.portal-display-row { display: grid; gap: 6px; }
+.portal-display-label {
+  font-family: var(--portal-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--portal-subtle);
+}
+/* Inside the popover there is room for every label at every width, and the
+   boost toggle is a preference reachable here on a phone too. */
+.portal-display-panel .portal-theme-label { display: inline; }
+.portal-display-panel .portal-theme-control button { width: auto; padding-inline: 8px; }
+.portal-display-panel .portal-performance-toggle { display: inline-flex; }
+@media (max-width: 959px) {
+  /* The rail cannot render here, so the placement row offers nothing. */
+  .portal-display-row-nav { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portal-display-button { transition: none; }
+}
+@media (pointer: coarse) {
+  .portal-display-button { width: 44px; height: 44px; }
+}
+
 /* === SKY CHROME — dock, menu, pills (2026-08-31 redesign) ===
    Foundation for the rail → dock/menu redesign: serif display type over the
    Inter body, mono micro-labels, and the pill/button/panel primitives the
@@ -8795,6 +8861,11 @@ html[data-portal-performance="boost"] .portal-tab-panel { box-shadow: none; tran
   font-size: 12.5px;
 }
 .portal-book-status .portal-button { min-height: 34px; padding: 0 10px; font-size: 12.5px; }
+.portal-book-delete { display: inline-flex; }
+.portal-book-delete .portal-button { min-height: 34px; padding: 0 10px; font-size: 12.5px; }
+.portal-book-delete-customer { display: grid; gap: 10px; justify-items: start; }
+.portal-book-delete-customer p { margin: 0; }
+.portal-cell-actions { text-align: right; white-space: nowrap; }
 .portal-panel-note-error { border-style: solid; border-color: var(--portal-danger); color: var(--portal-danger); }
 .portal-panel-note-quiet { border-style: solid; }
 .portal-muted { color: var(--portal-muted); }
