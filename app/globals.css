@@ -7327,6 +7327,98 @@ html[data-portal-performance="boost"] .pcc-mobile-dock { backdrop-filter: none; 
   .portal-command-bar-hint { display: none; }
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   COMMAND MENU — relocated to topbar dropdown (Option 3).
+   Same checkbox pattern as the old command bar, but positioned in the
+   topbar-end controls instead of as a sticky top bar.
+   ────────────────────────────────────────────────────────────────────────── */
+
+.portal-command-menu-toggle {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.portal-command-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.portal-command-menu-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 6px;
+  transition: background .15s ease;
+}
+
+.portal-command-menu-button:hover {
+  background: var(--portal-line);
+}
+
+.portal-topbar-end:has(.portal-command-menu-toggle:checked) .portal-command-menu-button {
+  background: var(--portal-accent-soft);
+}
+
+.portal-command-menu-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--portal-accent-soft);
+  color: var(--portal-accent);
+  font-size: 10px;
+  font-weight: 850;
+  cursor: pointer;
+  title: "Ask about this workspace";
+}
+
+/* Dropdown panel: hidden by default, visible when checkbox is checked. */
+.portal-command-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  visibility: hidden;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  background: var(--portal-panel);
+  border: 1px solid var(--portal-line);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  min-width: 280px;
+  z-index: 50;
+  transition: opacity .15s ease, max-height .15s ease, visibility .15s ease;
+}
+
+.portal-topbar-end:has(.portal-command-menu-toggle:checked) .portal-command-menu-panel {
+  visibility: visible;
+  opacity: 1;
+  max-height: 400px;
+  padding: 12px;
+}
+
+.portal-command-menu-toggle:focus-visible + .portal-command-menu .portal-command-menu-button {
+  outline: 2px solid var(--portal-accent);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-command-menu-panel {
+    transition: none;
+  }
+}
+
 /* === SKY CHROME — dock, menu, pills (2026-08-31 redesign) ===
    Foundation for the rail → dock/menu redesign: serif display type over the
    Inter body, mono micro-labels, and the pill/button/panel primitives the

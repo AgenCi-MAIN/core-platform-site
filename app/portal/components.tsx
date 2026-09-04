@@ -644,6 +644,24 @@ export async function PortalShell({
             <PortalThemeControl />
             <PortalNavControl />
             <PortalPerformanceControl />
+            {commandCenter ? (
+              <>
+                <input
+                  className="portal-command-menu-toggle"
+                  id="portal-command-menu-toggle"
+                  type="checkbox"
+                  aria-label="Open command prompt"
+                />
+                <div className="portal-command-menu">
+                  <label className="portal-command-menu-button" htmlFor="portal-command-menu-toggle" title="Ask about this workspace">
+                    <span className="portal-command-menu-mark" aria-hidden="true">J</span>
+                  </label>
+                  <div className="portal-command-menu-panel">
+                    <JarvisCommandPrompt />
+                  </div>
+                </div>
+              </>
+            ) : null}
             <span className="portal-connection">
               {/* Wordless hidden control. For everyone it is just the status
                   light; for the founder alone it is the entrance to
@@ -668,60 +686,13 @@ export async function PortalShell({
           </div>
         </header>
 
-        {/* THE COMMAND BAR — sticky, collapsible, and gated.
-            Founder, 2026-08-27: "i want it on top of the screen constanly."
-            It rides the shell, so it is at the top of every portal surface.
-
-            GATED to Command Center holders, not merely rendered. Showing an
-            agent a command prompt that refuses them is worse than not showing
-            one — it advertises a door and then holds it shut.
-
-            COLLAPSED BY DEFAULT: sticky furniture is permanent furniture, and
-            a phone has little enough height without a text field occupying
-            it on every scroll. Shut, it is one 44px line; open, it is the
-            same prompt as the console.
-
-            CSS-only, via a visually-hidden checkbox + :has(:checked). No
-            client component and no hydration for a disclosure widget. The
-            rail's and the dock's Command controls are second labels for
-            this same checkbox. */}
-        {commandCenter ? (
-          <>
-            <input
-              className="portal-command-bar-toggle"
-              id="portal-command-bar-toggle"
-              type="checkbox"
-              aria-label="Open the command prompt"
-            />
-            <div className="portal-command-bar">
-              <label className="portal-command-bar-tab" htmlFor="portal-command-bar-toggle">
-                <span className="portal-command-bar-mark" aria-hidden="true">J</span>
-                <span className="portal-command-bar-label">Command</span>
-                <span className="portal-command-bar-hint">Ask about this workspace</span>
-                <span className="portal-command-bar-caret" aria-hidden="true" />
-              </label>
-              <div className="portal-command-bar-body">
-                <JarvisCommandPrompt />
-              </div>
-            </div>
-          </>
-        ) : null}
-
         {children}
 
-        {/* THE DOCK — the fixed bottom strip: Command (gated), the five
-            direct destinations, the founder's deferred-dialer marker. The
-            group tabs in the top bar are the menu; the dock carries no
-            menu button of its own. */}
+        {/* THE DOCK — the fixed bottom strip: five direct destinations
+            and the founder's deferred-dialer marker. The group tabs in the
+            top bar are the menu; the dock carries no menu button of its own.
+            Command prompt is now in the topbar dropdown. */}
         <nav className="portal-dock" aria-label="Quick actions">
-          {commandCenter ? (
-            <label className="portal-dock-command" htmlFor="portal-command-bar-toggle">
-              <span className="portal-dock-command-mark" aria-hidden="true">J</span>
-              {/* Wrapped so the compact phone dock can drop the word and keep
-                  the mark, exactly as the destination slots drop theirs. */}
-              <span className="portal-dock-link-text">Command</span>
-            </label>
-          ) : null}
           {/* FIVE STABLE DESTINATIONS (Dispatch R3, from the approved
               Direction B artboards): Today, Book, Inbound, Team, Leadership.
               Each opens exactly one focused panel. Filtered by the same

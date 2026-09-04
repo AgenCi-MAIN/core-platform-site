@@ -44,8 +44,8 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase,
     title: "CORE J.A.R.V.I.S. — The In-House Signal Exchange",
     description: "J.A.R.V.I.S. connects verified in-house opportunity, carrier intelligence, call coaching, scripts, compensation ranks, and accountable outcomes in one CORE operating system.",
-    manifest: "/manifest.webmanifest",
-    applicationName: "IMO",
+    manifest: "/manifest.json",
+    applicationName: "CORE",
     icons: {
       icon: "/favicon.svg",
       shortcut: "/favicon.svg",
