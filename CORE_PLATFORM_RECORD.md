@@ -2879,3 +2879,24 @@ Each entry is dated and cross-references supporting evidence.
 - Drizzle migration 0005 remains on hold pending separate founder decision
 
 **Timestamp:** 2026-09-03, 04:02 UTC
+
+---
+
+### D-019. Canonical CORE A2A relay endpoint recorded — 2026-09-04
+
+**Decision:** The canonical shared MCP gateway for bounded CORE worker access is
+`https://core-a2a-relay.thrive18.workers.dev/mcp`, using remote Streamable HTTP
+transport with the relay's supported OAuth flow. This record contains no client
+secret, bearer token, session cookie, or other credential value.
+
+**Worker B identity:** The owner designated the Claude Code session named
+`Worker B(heavy)` as Worker B's persistent heavy-work lane and authorized adding
+that session to the canonical relay through its own protected identity. The
+identity is not considered provisioned until the Claude connector UI reports the
+relay connected and a read-only `tools/list` plus `worker_d_pilot_status` call
+both succeed.
+
+**Boundaries:** This decision does not authorize a second MCP server, credential
+reuse, production mutation, deployment, migration, or permission expansion.
+
+**Timestamp:** 2026-09-04 (America/Chicago)
