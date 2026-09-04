@@ -1,115 +1,88 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>localhost:5000 — Five-lane board</title>
+  <title>Personal Control · Local AI Operations</title>
   <link rel="stylesheet" href="/app.css" />
 </head>
 <body>
-  <div class="app">
+  <div class="app-shell">
     <header class="topbar">
-      <div class="brand">
-        <div class="mark">5L</div>
-        <div>
-          <strong>Five-lane dashboard</strong>
-          <em>localhost:5000 · Vera local board</em>
-        </div>
-      </div>
-      <div class="note">One loopback app · snapshot facts · not production</div>
+      <div class="brand"><span class="brand-mark">PC</span><div><strong>Personal Control</strong><small>Private AI operations · localhost only</small></div></div>
+      <div class="top-status"><span class="pulse"></span><b id="runtime-chip">Checking</b><small id="generated-at">Waiting for local status</small></div>
     </header>
 
-    <nav class="left" aria-label="Five lanes">
+    <aside class="rail">
       <p class="rail-label">Five lanes</p>
-      <div class="lanes">
-        <button class="lane active" data-panel="status" type="button">Lane 1 · Status<small>Relay, Worker D, this run</small></button>
-        <button class="lane" data-panel="workflow" type="button">Lane 2 · Workflow<small>Review-first courier path</small></button>
-        <button class="lane" data-panel="tools" type="button">Lane 3 · Worker D<small>Six CORE MCP tools</small></button>
-        <button class="lane" data-panel="people" type="button">Lane 4 · People<small>Vera · A · B · C · D · owner</small></button>
-        <button class="lane" data-panel="queue" type="button">Lane 5 · Queue<small>Assign on this machine</small></button>
-      </div>
-    </nav>
+      <button class="lane active" data-panel="overview"><span>01</span><div>Overview<small>Truthful local snapshot</small></div></button>
+      <button class="lane" data-panel="workers"><span>02</span><div>Workers<small>Roles and handoffs</small></div></button>
+      <button class="lane" data-panel="connections"><span>03</span><div>Connections<small>One canonical MCP</small></div></button>
+      <button class="lane" data-panel="usage"><span>04</span><div>Usage<small>Verified values only</small></div></button>
+      <button class="lane" data-panel="evidence"><span>05</span><div>Evidence<small>Checks and gates</small></div></button>
+      <div class="rail-rule"><b>Read-only</b><small>No queue, dispatch, production write, secret, or customer data.</small></div>
+    </aside>
 
-    <main class="main">
-      <section class="panel active" data-panel="status">
-        <div class="kicker">Lane 1 · Realtime snapshot</div>
-        <h1>Status</h1>
-        <p class="fine">These values are last observed facts, not live infra gauges. They are not Cloudflare uptime or request rate.</p>
-        <div class="kpis">
-          <article class="kpi"><span>Relay</span><b>ready</b></article>
-          <article class="kpi"><span>Tools</span><b>6</b></article>
-          <article class="kpi"><span>Worker D</span><b>READY</b></article>
-          <article class="kpi"><span>This host</span><b>localhost</b></article>
+    <main class="workspace">
+      <section class="panel active" data-panel="overview">
+        <div class="eyebrow">Lane 01 · Local snapshot</div>
+        <div class="hero"><div><h1>One desk for the AI workflow.</h1><p>Live probes, last-verified evidence, and unavailable data are labeled separately. Nothing here pretends to be production telemetry.</p></div><span class="scope">PRIVATE · LOCAL · READ-ONLY</span></div>
+        <div class="metric-grid">
+          <article class="metric"><span>Dashboard</span><strong id="runtime-state">Checking</strong><small id="runtime-detail">Local process</small></article>
+          <article class="metric"><span>CORE relay</span><strong id="relay-state">Checking</strong><small id="relay-detail">Reachability only</small></article>
+          <article class="metric"><span>Worker D source</span><strong id="worker-state">Checking</strong><small id="worker-detail">Source presence only</small></article>
+          <article class="metric"><span>Writes</span><strong class="good">Off</strong><small>405 on every write method</small></article>
         </div>
-        <div class="gauges">
-          <article class="gauge"><span>Worker D</span><b class="ok">healthy</b><p class="fine">READY_FOR_BOUNDED_TEST · stdio · app control off</p></article>
-          <article class="gauge"><span>Claude session</span><b class="warn">unreadable</b><p class="fine">Linked pointer only. Sign-in wall from this run.</p></article>
-          <article class="gauge"><span>Assign API</span><b class="ok">local</b><p class="fine">JSON on this machine. Does not dispatch Cursor or Claude.</p></article>
-        </div>
-        <div class="cards">
-          <article class="card">
-            <strong>This agent</strong>
-            <p>Core mcp relay status discovery<br><span class="mono">bc-ba101046-1271-4c57-93d4-ca62046a34f6</span></p>
-          </article>
-          <article class="card">
-            <strong>Linked Claude Code session</strong>
-            <p><a href="https://claude.ai/code/session_01MwGuvK4QLhgygwUe5MLs8P">session_01MwGuvK4QLhgygwUe5MLs8P</a></p>
-          </article>
+        <div class="block-grid two">
+          <article class="block accent"><header><span>Active objective</span><b>Local dashboard consolidation</b></header><p>Combine the useful worker map, connection evidence, health view, and restrained visual system into one personal control surface.</p></article>
+          <article class="block"><header><span>Truth contract</span><b>No invented metrics</b></header><p>No simulated uptime, revenue, token totals, costs, request rates, or database health. Unknown means unavailable.</p></article>
         </div>
       </section>
 
-      <section class="panel" data-panel="workflow">
-        <div class="kicker">Lane 2</div>
-        <h1>Workflow</h1>
-        <ol>
-          <li>Owner gives direction to Vera.</li>
-          <li>Dispatch (Worker A) writes a bounded work order.</li>
-          <li>Worker B executes on the designated branch and returns evidence.</li>
-          <li>Dispatch reviews: approve, revise, or reject.</li>
-          <li>Worker C may verify independently.</li>
-          <li>Owner (or a single “mi”) may merge. Deploy stays a separate founder action.</li>
-        </ol>
+      <section class="panel" data-panel="workers">
+        <div class="eyebrow">Lane 02 · Worker map</div><h1>Defined jobs. Bounded handoffs.</h1>
+        <div class="worker-grid">
+          <article><span>BH</span><div><b>Worker B Heavy</b><p>Separate Claude account and primary cloud heavy-lift lane. Not CORE Agent B.</p></div><em>HEAVY</em></article>
+          <article><span>VA</span><div><b>Vera / Codex</b><p>Coordinates the goal, inspects evidence, and reports truthful state.</p></div><em>CONTROL</em></article>
+          <article><span>0A</span><div><b>Worker A · Dispatch</b><p>Sole order and verdict lane. Defines scope and accepts or revises returns.</p></div><em>ORDER</em></article>
+          <article><span>0B</span><div><b>CORE Agent B · Builder</b><p>Bounded autonomous builder shown in CORE Agents. Separate from Worker B Heavy.</p></div><em>BUILD</em></article>
+          <article><span>0C</span><div><b>Worker C · Review</b><p>Independent verification when the workflow calls for a separate review.</p></div><em>REVIEW</em></article>
+          <article><span>0D</span><div><b>Worker D · Bionic</b><p>Local observer and approved local-model lane through bounded tools.</p></div><em>LOCAL</em></article>
+        </div>
+        <div class="flow"><span>Owner goal</span><i></i><span>Dispatch order</span><i></i><span>Worker B Heavy / Agent B</span><i></i><span>Review</span><i></i><span>Owner gate</span></div>
       </section>
 
-      <section class="panel" data-panel="tools">
-        <div class="kicker">Lane 3</div>
-        <h1>Worker D tools</h1>
-        <div class="cards">
-          <article class="card"><span class="mono">worker_d_pilot_status</span><p>read</p></article>
-          <article class="card"><span class="mono">worker_d_evidence_hash_calculate</span><p>read</p></article>
-          <article class="card"><span class="mono">worker_d_artifact_inventory</span><p>read</p></article>
-          <article class="card"><span class="mono">worker_d_evidence_compare</span><p>read</p></article>
-          <article class="card"><span class="mono">worker_d_allowed_app_status</span><p>read, no launch</p></article>
-          <article class="card"><span class="mono">worker_d_sandbox_text_write</span><p>bounded write, unused here</p></article>
+      <section class="panel" data-panel="connections">
+        <div class="eyebrow">Lane 03 · Connection map</div><h1>One gateway. Separate identities.</h1>
+        <div class="connection-list">
+          <article><div><b>CORE A2A relay</b><small>Canonical MCP gateway</small></div><span id="relay-row-state">Checking</span><p id="relay-row-detail">Live unauthenticated reachability probe</p></article>
+          <article><div><b>Codex</b><small>Dedicated client identity</small></div><span class="evidence" id="codex-row-state">Checking</span><p id="codex-row-detail">Waiting for authenticated relay evidence.</p></article>
+          <article><div><b>Cursor</b><small>Dedicated OAuth client</small></div><span class="evidence">LAST VERIFIED</span><p>Cloud connection was verified; local state is not inferred here.</p></article>
+          <article><div><b>Bionic / Worker D</b><small>Protected local connector</small></div><span class="evidence">LAST VERIFIED</span><p>Source presence is probed; authenticated tool status requires its connector.</p></article>
         </div>
       </section>
 
-      <section class="panel" data-panel="people">
-        <div class="kicker">Lane 4</div>
-        <h1>People</h1>
-        <div class="cards">
-          <article class="card"><strong>Vera</strong><p>Coordinator and courier.</p></article>
-          <article class="card"><strong>Worker A</strong><p>Dispatch / M Office.</p></article>
-          <article class="card"><strong>Worker B</strong><p>Builder on vera-central-control-system.</p></article>
-          <article class="card"><strong>Worker C</strong><p>Independent verifier.</p></article>
-          <article class="card"><strong>Worker D</strong><p>Local observer via CORE MCP.</p></article>
-          <article class="card"><strong>Shawn</strong><p>Owner. Membership, spend, deploy, governance.</p></article>
+      <section class="panel" data-panel="usage">
+        <div class="eyebrow">Lane 04 · Usage</div><h1>Only trusted measurements belong here.</h1>
+        <div class="empty-state"><span>—</span><div><b id="usage-state">Usage unavailable</b><p id="usage-detail">No trusted live usage adapter is connected. The dashboard will not estimate tokens, cost, quotas, or reset windows.</p></div></div>
+        <div class="block-grid three">
+          <article class="block"><header><span>Worker B Heavy</span><b>Separate paid account</b></header><p>Preferred for cloud-required, large-context execution. Never conflated with CORE Agent B.</p></article>
+          <article class="block"><header><span>Bionic</span><b>Local first</b></header><p>Preferred for approved offline work when its connector is available.</p></article>
+          <article class="block"><header><span>A · B · C</span><b>Small context</b></header><p>Use scoped briefs and artifacts instead of copied transcripts.</p></article>
         </div>
       </section>
 
-      <section class="panel" data-panel="queue">
-        <div class="kicker">Lane 5</div>
-        <h1>Queue</h1>
-        <p class="fine">Assignments stay on this machine and bind to the running cloud agent. They do not dispatch Cursor, Claude, or production.</p>
-        <div class="queue-layout">
-          <form id="assign-form">
-            <input id="title" name="title" required maxlength="200" placeholder="Work title" />
-            <textarea id="detail" name="detail" maxlength="4000" placeholder="What this agent should do"></textarea>
-            <button class="primary" type="submit">Assign to this agent</button>
-            <div id="assign-msg" class="fine"></div>
-          </form>
-          <div id="jobs"></div>
+      <section class="panel" data-panel="evidence">
+        <div class="eyebrow">Lane 05 · Evidence and gates</div><h1>What is proven—and what is not.</h1>
+        <div class="evidence-grid">
+          <article><span class="neutral-dot"></span><div><b>Worker D artifact inventory</b><p id="inventory-evidence">No inventory observation available.</p><p id="inventory-hash" style="overflow-wrap:anywhere"></p></div><em id="inventory-freshness">UNAVAILABLE</em></article>
+          <article><span class="good-dot"></span><div><b>Loopback boundary</b><p>Server binds to 127.0.0.1 only.</p></div><em>LIVE</em></article>
+          <article><span class="good-dot"></span><div><b>Read-only HTTP contract</b><p>POST, PUT, PATCH, and DELETE return 405.</p></div><em>CODE</em></article>
+          <article><span class="good-dot"></span><div><b>Secrets excluded</b><p>No credential values are rendered or requested.</p></div><em>CODE</em></article>
+          <article><span class="neutral-dot"></span><div><b>Usage evidence</b><p id="usage-evidence">Checking saved account observation.</p></div><em>SNAPSHOT</em></article>
+          <article><span class="neutral-dot"></span><div><b>Production</b><p>No deploy, database mutation, or member access.</p></div><em>UNTOUCHED</em></article>
         </div>
+        <footer><b id="evidence-branch">codex/personal-control-dashboard</b><span id="evidence-source">Loading source evidence</span></footer>
       </section>
     </main>
   </div>
