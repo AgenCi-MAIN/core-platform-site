@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --focus-color: #ff2f2f;
+}
+
+* {
+  border-color: #1a1c20;
+}
+
+html,
+body {
+  @apply bg-command-ink text-command-text antialiased;
+}
+
+body {
+  min-height: 100%;
+}
+
+.focus-ring {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-command-red focus-visible:ring-offset-2 focus-visible:ring-offset-command-ink;
+}
+
+.card {
+  @apply rounded-2xl border border-command-frame bg-command-panel/90 p-6 shadow-panel;
+}
