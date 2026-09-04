@@ -1,0 +1,10 @@
+{
+  "name": "core-platform-site",
+  "install": "export NVM_DIR=\"$HOME/.nvm\"\n. \"$NVM_DIR/nvm.sh\"\nnvm install 22 >/dev/null 2>&1 || true\nnvm alias default 22 >/dev/null 2>&1 || true\nexport PATH=\"$NVM_DIR/versions/node/$(nvm version 22)/bin:$PATH\"\nnode -v\nnpm ci",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "export NVM_DIR=\"$HOME/.nvm\"\n. \"$NVM_DIR/nvm.sh\"\nexport PATH=\"$NVM_DIR/versions/node/$(nvm version 22)/bin:$PATH\"\nnode -v\nnpm run dev"
+    }
+  ]
+}
