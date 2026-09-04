@@ -1,16 +1,30 @@
-# Local five-lane board
+# Personal Control local dashboard
 
-One loopback app. Canonical URL:
+One private, read-only loopback app consolidating the two earlier five-lane
+dashboard concepts into a single truthful AI operations view.
 
+Canonical URL:
+
+```text
+http://127.0.0.1:5001/access
 ```
-http://localhost:5000/
-```
 
-`127.0.0.1:5000` is the same process. Bind is `127.0.0.1` only.
+Start it from this directory:
 
-```
+```powershell
 python server.py
 ```
 
-Not the Cloudflare Worker, not live membership, not a deploy. Queue JSON lives in
-`data/assignments.json`. Lane 1 numbers are snapshot facts, not infra gauges.
+Boundaries:
+
+- Binds only to `127.0.0.1`; it is not a network or production service.
+- Supports status reads only. `POST`, `PUT`, `PATCH`, and `DELETE` return `405`.
+- Displays no credentials, customer data, production membership, or business
+  sales/commission material.
+- Labels live probes, last-verified evidence, and unavailable data separately.
+- Does not invent token usage, cost, uptime, request rates, or infrastructure
+  health when no trusted adapter is connected.
+- Worker B Heavy is the separate Claude account. It is not CORE Agent B, the
+  bounded autonomous builder shown in the CORE Agents list.
+
+This is not the IMO website and does not use the production portal sign-in.
