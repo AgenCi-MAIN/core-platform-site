@@ -28,3 +28,13 @@ Boundaries:
   bounded autonomous builder shown in the CORE Agents list.
 
 This is not the IMO website and does not use the production portal sign-in.
+
+## Saved telemetry
+
+The status endpoint reads optional observations from
+`../.codex-runtime/telemetry.json`, outside the public directory and ignored by
+Git. Codex usage, relay authentication, and inventory each carry their own
+`observed_at` timestamp. The UI marks readings stale after five minutes;
+reloading the page does not refresh the underlying observations. Missing
+timestamps are shown as unavailable. This is not an automatic MCP collector.
+Store only sanitized status data here, never credentials or raw account output.

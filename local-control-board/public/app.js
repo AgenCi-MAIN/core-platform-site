@@ -17,6 +17,12 @@ function setText(id, value) {
   if (element) element.textContent = value;
 }
 
+function observationLabel(record) {
+  const time = Date.parse(record?.observed_at);
+  if (!Number.isFinite(time) || time > Date.now()) return "Observation time unavailable";
+  return `${Date.now() - time > 300000 ? "stale" : "recent snapshot"} · ${new Date(time).toLocaleString()}`;
+}
+
 function applyStatus(data) {
   setText("runtime-chip", "LOCAL ONLINE");
   setText("generated-at", `Updated ${new Date(data.generated_at).toLocaleTimeString()}`);
@@ -30,6 +36,26 @@ function applyStatus(data) {
   setText("relay-row-detail", data.relay.detail);
   setText("usage-state", `Usage ${data.usage.state}`);
   setText("usage-detail", data.usage.detail);
+  const telemetry = data.telemetry || {};
+  const inventory = telemetry.inventory;
+  if (inventory && Number.isFinite(Date.parse(inventory.observed_at))) {
+    const age = Date.now() - Date.parse(inventory.observed_at);
+    setText("inventory-freshness", age > 300000 ? "STALE" : "SNAPSHOT");
+    setText("inventory-evidence", `${inventory.file_count} files · ${inventory.total_bytes} bytes · ${inventory.anomaly_count} reported anomalies. ${inventory.label}. Observed ${new Date(inventory.observed_at).toLocaleString()}. Source: ${inventory.source}.`);
+    setText("inventory-hash", `Inventory SHA-256: ${inventory.inventory_sha256}`);
+  } else {
+    setText("inventory-freshness", "UNAVAILABLE");
+    setText("inventory-evidence", "No inventory observation available.");
+    setText("inventory-hash", "");
+  }
+  const provenance = observationLabel(telemetry.codex);
+  if (telemetry.codex) {
+    setText("usage-state", `Codex: ${telemetry.codex.used_percent}% used · ${telemetry.codex.remaining_percent}% remaining`);
+    setText("usage-detail", `Account-wide ${telemetry.codex.window_minutes / 1440}-day allowance. Resets ${new Date(telemetry.codex.resets_at * 1000).toLocaleString()}. ${provenance}. This is a saved reading, not a continuously connected usage feed.`);
+  }
+  setText("codex-row-state", telemetry.relay_client ? telemetry.relay_client.state.toUpperCase() : "UNAVAILABLE");
+  setText("codex-row-detail", telemetry.relay_client ? `${telemetry.relay_client.detail} ${observationLabel(telemetry.relay_client)}` : "No authenticated relay observation available.");
+  setText("usage-evidence", `Codex account usage: ${provenance}. Worker B Heavy remains a separate, unmeasured account.`);
   setText("evidence-branch", data.evidence.branch);
   setText("evidence-source", data.evidence.contract);
 }

@@ -14,6 +14,7 @@ from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parent
 PUBLIC = ROOT / "public"
+TELEMETRY = ROOT.parent / ".codex-runtime" / "telemetry.json"
 HOST = "127.0.0.1"
 PORT = 5001
 RELAY_URL = "https://core-a2a-relay.thrive18.workers.dev/mcp"
@@ -39,7 +40,15 @@ def probe_relay() -> dict[str, object]:
 
 
 def status_payload() -> dict[str, object]:
+    try:
+        telemetry = json.loads(TELEMETRY.read_text(encoding="utf-8"))
+        observed = datetime.fromisoformat(telemetry["observed_at"])
+        age = max(0, (datetime.now(timezone.utc) - observed).total_seconds())
+        telemetry["freshness"] = "stale" if age > 300 else "recent snapshot"
+    except (OSError, ValueError, KeyError, TypeError):
+        telemetry = {"freshness": "unavailable", "observed_at": None}
     return {
+        "telemetry": telemetry,
         "scope": "private-local-read-only",
         "generated_at": utc_now(),
         "production": False,

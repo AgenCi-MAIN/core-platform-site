@@ -56,7 +56,7 @@
         <div class="eyebrow">Lane 03 · Connection map</div><h1>One gateway. Separate identities.</h1>
         <div class="connection-list">
           <article><div><b>CORE A2A relay</b><small>Canonical MCP gateway</small></div><span id="relay-row-state">Checking</span><p id="relay-row-detail">Live unauthenticated reachability probe</p></article>
-          <article><div><b>Codex</b><small>Dedicated client identity</small></div><span class="evidence">LAST VERIFIED</span><p>Six-tool contract was verified after reload; not re-authenticated by this page.</p></article>
+          <article><div><b>Codex</b><small>Dedicated client identity</small></div><span class="evidence" id="codex-row-state">Checking</span><p id="codex-row-detail">Waiting for authenticated relay evidence.</p></article>
           <article><div><b>Cursor</b><small>Dedicated OAuth client</small></div><span class="evidence">LAST VERIFIED</span><p>Cloud connection was verified; local state is not inferred here.</p></article>
           <article><div><b>Bionic / Worker D</b><small>Protected local connector</small></div><span class="evidence">LAST VERIFIED</span><p>Source presence is probed; authenticated tool status requires its connector.</p></article>
         </div>
@@ -75,10 +75,11 @@
       <section class="panel" data-panel="evidence">
         <div class="eyebrow">Lane 05 · Evidence and gates</div><h1>What is proven—and what is not.</h1>
         <div class="evidence-grid">
+          <article><span class="neutral-dot"></span><div><b>Worker D artifact inventory</b><p id="inventory-evidence">No inventory observation available.</p><p id="inventory-hash" style="overflow-wrap:anywhere"></p></div><em id="inventory-freshness">UNAVAILABLE</em></article>
           <article><span class="good-dot"></span><div><b>Loopback boundary</b><p>Server binds to 127.0.0.1 only.</p></div><em>LIVE</em></article>
           <article><span class="good-dot"></span><div><b>Read-only HTTP contract</b><p>POST, PUT, PATCH, and DELETE return 405.</p></div><em>CODE</em></article>
           <article><span class="good-dot"></span><div><b>Secrets excluded</b><p>No credential values are rendered or requested.</p></div><em>CODE</em></article>
-          <article><span class="neutral-dot"></span><div><b>Usage adapter</b><p>No trusted adapter connected yet.</p></div><em>UNAVAILABLE</em></article>
+          <article><span class="neutral-dot"></span><div><b>Usage evidence</b><p id="usage-evidence">Checking saved account observation.</p></div><em>SNAPSHOT</em></article>
           <article><span class="neutral-dot"></span><div><b>Production</b><p>No deploy, database mutation, or member access.</p></div><em>UNTOUCHED</em></article>
         </div>
         <footer><b id="evidence-branch">codex/personal-control-dashboard</b><span id="evidence-source">Loading source evidence</span></footer>
