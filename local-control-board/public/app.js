@@ -62,14 +62,21 @@ function applyStatus(data) {
 
 async function refreshStatus() {
   try {
-    const response = await fetch("/api/status", { cache: "no-store" });
+    const response = await fetch("/api/status", { cache: "no-store", signal: AbortSignal.timeout(5000) });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     applyStatus(await response.json());
   } catch {
     setText("runtime-chip", "STATUS ERROR");
     setText("generated-at", "Local status endpoint unavailable");
+    ["runtime-state", "relay-state", "worker-state", "relay-row-state", "codex-row-state", "inventory-freshness"].forEach((id) => setText(id, "UNAVAILABLE"));
+    ["runtime-detail", "relay-detail", "worker-detail", "relay-row-detail", "codex-row-detail", "usage-detail", "usage-evidence", "inventory-evidence"].forEach((id) => setText(id, "Status refresh failed; previous reading cleared."));
+    setText("usage-state", "Usage unavailable");
+    setText("inventory-hash", "");
   }
 }
 
-refreshStatus();
-setInterval(refreshStatus, 30000);
+async function pollStatus() {
+  await refreshStatus();
+  setTimeout(pollStatus, 30000);
+}
+pollStatus();

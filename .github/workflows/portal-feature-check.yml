@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - vera-central-control-system
 
 permissions:
   contents: read
@@ -27,6 +28,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Check local dashboard telemetry
+        run: |
+          python3 -m unittest discover -s local-control-board -p "test_*.py"
+          node --test local-control-board/tests/*.test.mjs
 
       - name: Typecheck
         run: npm run typecheck

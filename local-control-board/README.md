@@ -38,3 +38,19 @@ Git. Codex usage, relay authentication, and inventory each carry their own
 reloading the page does not refresh the underlying observations. Missing
 timestamps are shown as unavailable. This is not an automatic MCP collector.
 Store only sanitized status data here, never credentials or raw account output.
+
+The server exposes only validated numeric measurements, timestamps, known relay
+states, and inventory hashes. Free-form input fields are replaced with fixed
+descriptions. Invalid or oversized snapshots are unavailable. Refresh requests
+time out after five seconds and clear old readings on failure.
+
+Run dashboard regression checks with:
+
+```text
+python -m unittest discover -s local-control-board -p "test_*.py"
+node --test local-control-board/tests/*.test.mjs
+```
+
+These commands run from the repository root and are included in the portal CI
+workflow for pull requests targeting main or vera-central-control-system.
+CI coverage does not itself enable branch protection or require reviews.

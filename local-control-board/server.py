@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import math
+import re
 import socket
 from datetime import datetime, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -39,16 +41,61 @@ def probe_relay() -> dict[str, object]:
     return {"state": "reachable", "detail": f"HTTP {status}; authentication not tested"}
 
 
-def status_payload() -> dict[str, object]:
+def sanitize_telemetry(raw: object) -> dict[str, object]:
+    """Project only typed measurements; never relay arbitrary file contents."""
+    result = {}
+    if not isinstance(raw, dict):
+        return result
+
+    def timestamp(record):
+        try:
+            value = record.get("observed_at")
+            observed = datetime.fromisoformat(value)
+            if observed.tzinfo is None or observed > datetime.now(timezone.utc):
+                return None
+            return observed.isoformat()
+        except (ValueError, TypeError, AttributeError):
+            return None
+
+    def number(value, maximum):
+        return type(value) in (int, float) and 0 <= value <= maximum and math.isfinite(value)
+
+    codex = raw.get("codex")
+    if isinstance(codex, dict) and timestamp(codex):
+        used, window, reset = (codex.get(k) for k in ("used_percent", "window_minutes", "resets_at"))
+        if number(used, 100) and number(window, 525600) and window > 0 and number(reset, 253402300799):
+            result["codex"] = {"observed_at": timestamp(codex), "used_percent": used,
+                               "remaining_percent": 100 - used, "window_minutes": window, "resets_at": reset}
+    relay = raw.get("relay_client")
+    details = {"authenticated": "Authenticated relay check succeeded; saved worker-reported result.",
+               "authorization required": "Relay reauthorization required at last check.",
+               "unavailable": "Relay health unavailable at last check."}
+    if isinstance(relay, dict) and timestamp(relay) and isinstance(relay.get("state"), str) and relay["state"] in details:
+        result["relay_client"] = {"observed_at": timestamp(relay), "state": relay["state"], "detail": details[relay["state"]]}
+    inventory = raw.get("inventory")
+    if isinstance(inventory, dict) and timestamp(inventory):
+        keys = ("file_count", "total_bytes", "anomaly_count")
+        digest = inventory.get("inventory_sha256")
+        if all(type(inventory.get(k)) is int and 0 <= inventory[k] <= 2**53 - 1 for k in keys) and isinstance(digest, str) and re.fullmatch(r"[a-f0-9]{64}", digest):
+            result["inventory"] = {k: inventory[k] for k in keys}
+            result["inventory"].update(observed_at=timestamp(inventory), inventory_sha256=digest,
+                                       source="worker_d_artifact_inventory via CORE relay",
+                                       label="worker-reported; contents not reviewed")
+    return result
+
+
+def read_telemetry() -> dict[str, object]:
     try:
-        telemetry = json.loads(TELEMETRY.read_text(encoding="utf-8"))
-        observed = datetime.fromisoformat(telemetry["observed_at"])
-        age = max(0, (datetime.now(timezone.utc) - observed).total_seconds())
-        telemetry["freshness"] = "stale" if age > 300 else "recent snapshot"
-    except (OSError, ValueError, KeyError, TypeError):
-        telemetry = {"freshness": "unavailable", "observed_at": None}
+        if TELEMETRY.stat().st_size > 65536:
+            return {}
+        return sanitize_telemetry(json.loads(TELEMETRY.read_text(encoding="utf-8")))
+    except (OSError, ValueError, TypeError):
+        return {}
+
+
+def status_payload() -> dict[str, object]:
     return {
-        "telemetry": telemetry,
+        "telemetry": read_telemetry(),
         "scope": "private-local-read-only",
         "generated_at": utc_now(),
         "production": False,
