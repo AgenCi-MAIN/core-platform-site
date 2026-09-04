@@ -15,6 +15,13 @@ Start it from this directory:
 python server.py
 ```
 
+On Windows, use `start-personal-control.ps1` to verify an existing instance or
+start a hidden Python process and open the dashboard in your default browser.
+It requires Python on PATH. A different or unhealthy app on port 5001 produces
+an error; the launcher does not stop it. Use `-NoBrowser` for a readiness check
+without opening another tab. Startup logs go to the ignored `.codex-runtime`
+directory. This is an on-demand launcher, not a login/startup scheduled task.
+
 Boundaries:
 
 - Binds only to `127.0.0.1`; it is not a network or production service.
