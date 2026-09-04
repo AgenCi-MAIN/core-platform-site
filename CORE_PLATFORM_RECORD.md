@@ -2903,6 +2903,31 @@ reuse, production mutation, deployment, migration, or permission expansion.
 
 ---
 
+### D-021. Worker B allowlist-status 502 repaired — 2026-09-04
+
+**Root cause:** The relay advertised `worker_d_allowed_app_status`, but the local
+Worker D connector's permitted-tool set omitted that name. The connector therefore
+returned `Invalid invocation`, surfaced by the relay as `502 origin_bad_gateway`.
+
+**Fix and verification:** Added the missing tool to the connector allowlist and
+added a regression test covering every advertised tool. The relay package test suite
+passes 7/7 and TypeScript typecheck passes. The connector was restarted from its
+protected launcher. Worker B's first post-fix call for `Cursor` returned
+`READY_OWNER_GATE` with `control_enabled: false`; the prior 502 is resolved.
+
+**Evidence:** Post-fix response SHA-256:
+`f93ae75cf82b5391485a28c463cbe7ef81f032dbcb2dd90383cc094c76a401e7`.
+No secret value is recorded. No write tool, credential, permission, repository,
+deployment, migration, or production change occurred during verification.
+
+**Remaining audit items:** Worker B's bounded write-tool exposure, PowerShell's
+presence in the future allowlist, broader non-relay connector permissions, and
+connector-URL owner confirmation remain open and require separate review.
+
+**Timestamp:** 2026-09-04 (America/Chicago)
+
+---
+
 ### D-020. Worker B post-rotation relay verification — 2026-09-04
 
 **Verified state:** The permanent `Worker B(heavy)` Claude Code lane authenticated
