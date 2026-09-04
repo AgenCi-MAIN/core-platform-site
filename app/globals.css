@@ -8438,8 +8438,8 @@ html[data-portal-theme="thrive"] .portal .portal-dock .portal-dock-command-mark 
 /* --- Group tabs ------------------------------------------------------- */
 .portal-menu-group { position: relative; display: grid; align-content: start; }
 .portal-menu-group > summary.portal-tab {
+  display: none;
   list-style: none;
-  display: inline-flex;
   align-items: center;
   gap: 7px;
   min-height: 40px;
