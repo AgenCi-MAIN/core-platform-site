@@ -402,6 +402,17 @@ const NAV: readonly NavItem[] = [
 
   // ── Administration ────────────────────────────────────────────────────
   {
+    href: "/portal/personal-control",
+    label: "Personal Control",
+    capability: "portal.access",
+    icon: "dashboard",
+    group: "Administration",
+    description: "Private AI usage, worker health, MCP state, evidence, and release gates.",
+    state: "live",
+    founderOnly: true,
+    stateLabel: "Founder only",
+  },
+  {
     href: "/portal/pay-rates",
     label: "Pay Rates",
     capability: "leadership.view.all",
