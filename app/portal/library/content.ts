@@ -76,7 +76,7 @@ export const LIBRARY: readonly LibraryDocument[] = [
       { kind: "paragraph", text: "Six roles exist: Owner, Administrator, Manager, Reviewer / Coach, Agent, and Support. Each role holds an exact, listed set of capabilities and nothing else — permissions are deny-by-default, so a page your role does not hold stays shut until an owner or administrator changes your role. A few surfaces are narrower still and answer to a named identity rather than to any role. Rosters follow a separate rule: you see yourself, your peers at the same rank, and the ranks below you — never your upline." },
       { kind: "heading", text: "The portal fails closed" },
       { kind: "paragraph", text: "If the membership database is unreachable, or the deployment has not had its migration applied, the portal refuses access rather than assuming it. You will see a page saying the portal is not provisioned. Nothing is wrong with your account in that case, and there is nothing you can do from your side; an administrator has to fix the deployment." },
-      { kind: "paragraph", text: "Every allow and every deny is written to an append-only audit log. Your refusals are recorded as faithfully as your entries." },
+      { kind: "paragraph", text: "The portal attempts to record both allowed and denied access in an append-only audit log. Logging failures can leave gaps; the log does not guarantee that every request was recorded." },
       { kind: "heading", text: "If a page says you cannot open it" },
       { kind: "paragraph", text: "You will be sent to an explanation page that names the actual reason. Read the heading — it distinguishes between quite different situations, and the right next step depends on which one you got." },
       {
@@ -141,8 +141,8 @@ export const LIBRARY: readonly LibraryDocument[] = [
       { kind: "paragraph", text: "A few surfaces are closed by identity rather than by capability. The audit log, the investigator, and the personal Command Center pages answer only the founder identity — a second owner does not inherit them. The Command Center itself is gated on a named allowlist, and for everyone on that list except the founder a single-use pass is still required to open it. Being named is necessary and not sufficient." },
       { kind: "heading", text: "Adding a capability" },
       { kind: "paragraph", text: "Widening a role is a governance decision, not a convenience fix. The source requires the change to be recorded in CORE_PLATFORM_RECORD.md under Roles and capabilities, and tests pin the identity allowlists so a quiet addition fails in CI rather than shipping. If you are blocked on something you believe you should be able to do, ask for the capability to be granted; do not route around the check." },
-      { kind: "heading", text: "Everything is logged" },
-      { kind: "paragraph", text: "Every allow and every deny is written to the append-only audit_events table: when it happened, the actor's email, subject id and role, the action attempted, the resource, the request path, the decision, and a machine-readable reason such as not_a_member, capability_not_held, or capability_granted. Rows are appended and never edited, which is why the reasons are written honestly — a founder-only refusal is recorded as founder_only, a Command Center refusal as command_only." },
+      { kind: "heading", text: "The access audit trail" },
+      { kind: "paragraph", text: "Access checks attempt to append allowed and denied decisions to the audit_events table: when it happened, the actor's email, subject id and role, the action attempted, the resource, the request path, the decision, and a machine-readable reason such as not_a_member, capability_not_held, or capability_granted. Rows are appended and never edited, which is why the reasons are written honestly — a founder-only refusal is recorded as founder_only, a Command Center refusal as command_only." },
       { kind: "paragraph", text: "The request path on a row is stated by the code that made the decision, never read from a request header, so the log cannot be authored by the person being audited. If the log itself is down, a member entitled to a page still gets it; the gap is surfaced on the server rather than turned into a refusal." },
     ],
   },
@@ -284,7 +284,7 @@ export const LIBRARY: readonly LibraryDocument[] = [
         kind: "list",
         items: [
           "It cannot change your book, log a policy, submit a check-in, dial, edit membership, or open a page for you. It has no write path except the audit log entry for the exchange itself.",
-          "Nothing from the database is put in front of it. It does not see your numbers, your book, your calls, or the roster — its whole context is this Library plus your own name, role and capabilities.",
+          "The model receives your name, role and capabilities from your resolved portal session, plus this Library. It is not given your production figures, book, calls or roster data.",
           "It cannot tell you anything about another member — not their role, not their results. It is instructed to refuse and it has no data to refuse from.",
           "It cannot give legal, tax, or compliance advice, quote a premium, or make a coverage promise. Those go to a human.",
           "It has no microphone. The command prompt is text only.",
@@ -303,7 +303,7 @@ export const LIBRARY: readonly LibraryDocument[] = [
           "If the key is not set on a deployment, you get an honest 503 — 'not connected yet'. It never fakes an answer.",
         ],
       },
-      { kind: "paragraph", text: "Every exchange is written to the append-only audit log: your address, your role, the first part of your question, and the token usage. Every refusal is written too. Ask as if it is on the record, because it is." },
+      { kind: "paragraph", text: "The portal submits model exchanges to the append-only audit log with your address, role, the first part of your question and token usage. Access and provider refusals are also submitted. Some invalid questions return before an audit entry, and logging failures can leave gaps. Treat your questions as recorded." },
       { kind: "heading", text: "How to ask a good question" },
       {
         kind: "numbered",
