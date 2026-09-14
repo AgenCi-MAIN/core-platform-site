@@ -67,3 +67,15 @@ next-env.d.ts
 # Built email output — regenerate with `node outreach/build.mjs`
 outreach/dist/
 
+
+# Local operational exports and audit working files. Existing tracked records
+# remain tracked; these entries prevent new local artifacts being added casually.
+/private-operations/
+/private-audit/
+/session-backups/
+/exports/roster/
+/SESSION-BACKUP-*.md
+/logs/SESSION-BACKUP-*.md
+/SESSION_LOG.local.md
+/privacy-audit*.json
+
