@@ -1,4 +1,29 @@
-# CORE A2A relay
+# CORE A2A relay — historical platform snapshot
+
+## Deployment retirement — September 14, 2026
+
+Active development and deployment belong to
+[AgenCi-MAIN/masterswitch/services/core-a2a-relay](https://github.com/AgenCi-MAIN/masterswitch/tree/main/services/core-a2a-relay),
+as recorded in [SNAPSHOT.md](SNAPSHOT.md) and platform decision D-022.
+This copy does not include later canonical relay changes.
+
+The prior Wrangler config used the production Worker name, allowing this
+snapshot to overwrite the canonical service when used with that account's
+credentials. The default config now has a distinct retired name and a failing
+custom build guard; `npm run deploy` also fails before invoking Wrangler.
+
+For historical local emulation only, run `npm run dev` from this directory.
+It explicitly selects `wrangler.local.toml` with a distinct local Worker name.
+The historical source, tests, Durable Object definitions and release evidence
+remain unchanged. No cloud Worker, route, binding, credential or database is
+changed by these source safeguards.
+
+The record below is historical evidence, not current deployment guidance.
+Existing old checkouts and deliberately supplied alternate configs can bypass
+source safeguards. Any obsolete external build integration must also be removed
+through its own administration controls.
+
+## Historical integration record
 
 Independent Cloudflare service for authenticated CORE MCP access, signed Inkbox email/SMS intake, durable n8n handoff, and the approved Worker D status-only pilot. It is not part of the portal application build.
 
