@@ -39,8 +39,20 @@ Worker lanes: see the Worker roster section, appended as work is dispatched.
 
 ## Worker roster
 
-(appended by the integrator as each worker starts and finishes)
+Coordinator/integrator: this session (configured model `claude-fable-5-1`; the
+serving model can differ). Workers are Agent-tool subagents launched with the
+`sonnet` model alias (the harness resolves the alias; requested: Sonnet 5).
+
+| Worker | Owns | Started (UTC) | Finished | Result |
+|---|---|---|---|---|
+| Foundation (default model) | packages/shared, app shell | 13:37 | stopped by the interruption at ~13:42 with no files written (Observed) | taken over by the integrator; landed as `f680ff3` |
+| W1 theme (sonnet) | apps/live-canvas/src/theme, tests/theme | 13:48 | | |
+| W2 canvas (sonnet) | apps/live-canvas/src/canvas, tests/canvas | 13:48 | | |
+| W3 runtime (sonnet) | apps/live-canvas/src/runtime, tests/runtime | 13:48 | | |
+| W4 state (sonnet) | apps/live-canvas/src/state, tests/state | 13:48 | | |
+| W5 ui (sonnet) | apps/live-canvas/src/ui, tests/ui | 13:48 | | |
 
 ## Milestones
 
-(appended by the integrator)
+- **13:46Z — Foundation landed** (`f680ff3`, Landed on the branch, not merged). Verified: package typecheck clean, root typecheck clean, root eslint config parses, shared contract test passes (5 tests).
+- **13:48Z — Draft PR #164 opened**; five module workers dispatched with disjoint file ownership. Integrator wrote `apps/live-canvas/src/main.ts` (wiring) while they run.
