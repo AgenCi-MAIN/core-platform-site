@@ -46,7 +46,7 @@ serving model can differ). Workers are Agent-tool subagents launched with the
 | Worker | Owns | Started (UTC) | Finished | Result |
 |---|---|---|---|---|
 | Foundation (default model) | packages/shared, app shell | 13:37 | stopped by the interruption at ~13:42 with no files written (Observed) | taken over by the integrator; landed as `f680ff3` |
-| W1 theme (sonnet) | apps/live-canvas/src/theme, tests/theme | 13:48 | | |
+| W1 theme (sonnet) | apps/live-canvas/src/theme, tests/theme | 13:48 | 14:02 | Verified by integrator: 23/23 tests pass, its files typecheck; reference hex values present verbatim in the obsidian theme |
 | W2 canvas (sonnet) | apps/live-canvas/src/canvas, tests/canvas | 13:48 | | |
 | W3 runtime (sonnet) | apps/live-canvas/src/runtime, tests/runtime | 13:48 | | |
 | W4 state (sonnet) | apps/live-canvas/src/state, tests/state | 13:48 | 14:01 | Verified by integrator: 19/19 tests pass, its files typecheck; no denied tool calls (worker report) |

@@ -272,4 +272,4 @@ export interface SeedFactory {
 }
 
 /* ---- misc --------------------------------------------------------------------- */
-export type { Card, Edge, Lane, Workflow, WorkflowEvent, Selection, Viewport, DragState, ThemeTokens, ThemePatch, ThemeIssue, CardId, EdgeId, LaneId, RunId, ThemeId, WorkflowId, AgentId, Clock, Result }
+export type { Card, Edge, Lane, Workflow, WorkflowEvent, Selection, Viewport, DragState, ThemeTokens, ThemePatch, ThemeIssue, CardId, EdgeId, LaneId, RunId, ThemeId, WorkflowId, AgentId, Clock, Result, TaskState, AgentCard, Message }
