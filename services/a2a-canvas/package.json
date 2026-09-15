@@ -1,0 +1,12 @@
+{
+  "name": "@core/a2a-canvas",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "A2A theme maker + multi-lane draggable workflow canvas, built by a lane swarm. Excluded from the portal Worker build.",
+  "scripts": {
+    "typecheck": "../../node_modules/.bin/tsc -p tsconfig.json --noEmit",
+    "test": "node --test \"packages/**/*.test.ts\" \"apps/**/tests/**/*.test.ts\"",
+    "build:canvas": "../../node_modules/.bin/vite build apps/live-canvas && node apps/live-canvas/scripts/inline.mjs"
+  }
+}

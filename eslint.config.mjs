@@ -18,6 +18,9 @@ const eslintConfig = defineConfig([
     "dist/**",
     ".openai/**",
     ".wrangler/**",
+    // The a2a-canvas swarm package has its own toolchain and is excluded here
+    // the same way `services` is excluded from the root tsconfig.
+    "services/a2a-canvas/**",
   ]),
 ]);
 
