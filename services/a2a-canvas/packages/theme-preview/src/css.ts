@@ -97,7 +97,7 @@ function variableBlock(tokens: ThemeTokens, mode: ThemeMode): string {
 /** Fixed component rules; every colour/size reference goes through the vars above. */
 const COMPONENT_CSS = `
 @media (prefers-reduced-motion: reduce) {
-  :root { --motion-fast: 0ms; --motion-base: 0ms; --lift: 0px; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 * { box-sizing: border-box; }
 body {

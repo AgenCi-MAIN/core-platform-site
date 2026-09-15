@@ -7,7 +7,7 @@ export type Attrs = Record<string, unknown>
 
 const BOOLEAN_PROPS = new Set(['disabled', 'hidden', 'checked', 'required'])
 
-/** Creates an element, applying attrs (class/style/on*/booleans/plain attrs) and children. */
+/** Creates an element, applying attrs (class, style, "on" handlers, booleans, plain attrs) and children. */
 export function h<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   attrs: Attrs = {},

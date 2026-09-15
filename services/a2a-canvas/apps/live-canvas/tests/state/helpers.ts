@@ -1,6 +1,6 @@
 /**
- * Shared fixtures for state tests. Not a *.test.ts file itself, so the
- * `node --test` glob (apps/**/tests/**/*.test.ts) never runs it directly.
+ * Shared fixtures for state tests. Not a test file itself (no .test.ts
+ * suffix), so the node --test glob never runs it directly.
  */
 import type { AppState, CanvasDoc, CanvasWorkflow, CanvasNode, WorkflowId, LaneId, CardId, Edge, Lane } from '../../src/contracts.ts'
 import { EMPTY_SELECTION } from '../../../../packages/shared/src/workflow.ts'
