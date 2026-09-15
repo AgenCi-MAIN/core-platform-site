@@ -4,18 +4,18 @@ rendered node groups=18
 drag: card "Set accent" from "Theme Forge" now in "Workflow Lab" (moved=true)
 undo: back in "Theme Forge"
 edit: first node title now "Edited node"
-run "Theme Forge": run_0777a81e-d8f6-4a1e-9b2b-ae5f2ca14b82 state=completed events=14 
+run "Theme Forge": run_4c7c0f87-7b78-4508-9dcc-11365e89f0b2 state=completed events=14 
    types: run.started,node.started,node.finished,node.started,node.finished,node.started,node.finished,node.started,node.finished,node.started,node.finished,node.started,node.finished,run.finished
-   output: "<pre class=\"node-preview\">{\n  &quot;applied&quot;: null\n}</pre>"
-run "A2A Handoff": run_0e9cdf7d-a36a-44a7-982d-5d9b96190d54 state=completed events=18 
+   output: "<pre class=\"node-preview\">{\n  &quot;applied&quot;: &quot;obsidian-amethyst&quot;,\n  &quot;probePassed&quot;: true\n}</pre>"
+run "A2A Handoff": run_cefdc5f1-facf-410e-8c7e-c16feb63a052 state=completed events=18 
    types: run.started,node.started,node.finished,node.started,a2a.request,a2a.response,node.finished,node.started,a2a.request,a2a.response,node.finished,node.started,a2a.request,a2a.response,node.finished,node.started,node.finished,run.finished
-   a2a: a2a.request:dabb6a58-008d-4f96-b9be-108c350cc455 a2a.response:dabb6a58-008d-4f96-b9be-108c350cc455 a2a.request:05a6efe6-d1ea-4d16-9747-c2270d3bcac7 a2a.response:05a6efe6-d1ea-4d16-9747-c2270d3bcac7 a2a.request:dba799f6-1001-44bb-a8e0-98f9d4ec2aa5 a2a.response:dba799f6-1001-44bb-a8e0-98f9d4ec2aa5
+   a2a: a2a.request:f90a67fe-4193-4a98-9a25-b01eb4818bec a2a.response:f90a67fe-4193-4a98-9a25-b01eb4818bec a2a.request:3a98a61e-306e-4e0d-be37-e3ddd1affc10 a2a.response:3a98a61e-306e-4e0d-be37-e3ddd1affc10 a2a.request:f0103d33-df51-4bac-867d-868bcf287cd0 a2a.response:f0103d33-df51-4bac-867d-868bcf287cd0
    output: {"verified":true,"missing":[]}
-run "Workflow Lab": run_98e93acb-32aa-4140-ad80-1e134393f7ba state=completed events=18 
+run "Workflow Lab": run_cb0a9f38-ea1a-4a3c-b04c-45e6a8f8cca7 state=completed events=18 
    types: run.started,node.started,node.finished,node.started,node.finished,node.started,node.started,node.finished,node.finished,node.started,node.finished,node.started,node.failed,node.started,node.finished,node.started,node.finished,run.finished
    output: ["HELLO LANES",11]
 themes: obsidian-amethyst, daylight-slate, high-contrast-mono
 theme: accent #A78BFA → #3B82F6 (changed=true)
-save: {"ok":true,"value":{"savedAt":"2026-09-15T14:08:53.600Z","bytes":6439}}
+save: {"ok":true,"value":{"savedAt":"2026-09-15T14:25:16.827Z","bytes":6439}}
 reload: themeId=daylight-slate first title="Edited node" workflows=4
 page errors: 0

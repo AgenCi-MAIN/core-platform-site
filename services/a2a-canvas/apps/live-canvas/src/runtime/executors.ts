@@ -59,7 +59,15 @@ function errorMessage(e: unknown): string {
 // and ad hoc runs that want to seed a source without editing the node.
 async function sourceExecutor(ctx: ExecCtx): Promise<unknown> {
   if (ctx.opts.input !== undefined) return ctx.opts.input
-  return ctx.node.config.payload
+  const payload = ctx.node.config.payload
+  // A payload of { themeRef: '<theme id>' } resolves to the referenced theme's
+  // tokens when a theme api is available (the Theme Forge lane starts this way).
+  if (payload && typeof payload === 'object' && typeof (payload as { themeRef?: unknown }).themeRef === 'string' && ctx.opts.themeApi) {
+    const ref = (payload as { themeRef: string }).themeRef
+    const tokens = ctx.opts.themeApi.get(ref as Parameters<typeof ctx.opts.themeApi.get>[0])
+    if (tokens) return tokens
+  }
+  return payload
 }
 
 /* ---- probe ------------------------------------------------------------------ */
@@ -72,9 +80,18 @@ function structuralProbe(input: unknown): { type: string; keys: string[]; size: 
 async function probeExecutor(ctx: ExecCtx): Promise<unknown> {
   const input = ctx.inputs[0]
   if (isThemeLike(input) && ctx.opts.themeApi) {
-    return ctx.opts.themeApi.probe(input)
+    // Carry the tokens through so a downstream apply-theme/preview step still
+    // has them; the probe result is a report about the tokens, not a replacement.
+    return { ...ctx.opts.themeApi.probe(input), tokens: input }
   }
   return structuralProbe(input)
+}
+
+/** Accepts theme tokens directly or an object carrying them under `tokens` (e.g. a probe result). */
+function themeFrom(input: unknown): ThemeTokens | undefined {
+  if (isThemeLike(input)) return input
+  if (input && typeof input === 'object' && isThemeLike((input as { tokens?: unknown }).tokens)) return (input as { tokens: ThemeTokens }).tokens
+  return undefined
 }
 
 /* ---- transform --------------------------------------------------------------- */
@@ -145,12 +162,12 @@ async function retryExecutor(ctx: ExecCtx): Promise<unknown> {
 
 /* ---- apply-theme ----------------------------------------------------------------- */
 async function applyThemeExecutor(ctx: ExecCtx): Promise<unknown> {
-  const input = ctx.inputs[0]
-  const themeId = isThemeLike(input) ? input.meta.id : undefined
-  if (ctx.opts.themeApi && isThemeLike(input)) {
-    ctx.opts.themeApi.apply(input)
+  const tokens = themeFrom(ctx.inputs[0])
+  if (ctx.opts.themeApi && tokens) {
+    ctx.opts.themeApi.apply(tokens)
   }
-  return { applied: themeId ?? null }
+  const probe = ctx.inputs[0] && typeof ctx.inputs[0] === 'object' && 'passed' in (ctx.inputs[0] as object) ? { probePassed: (ctx.inputs[0] as { passed: boolean }).passed } : {}
+  return { applied: tokens ? tokens.meta.id : null, ...probe }
 }
 
 /* ---- preview ----------------------------------------------------------------------- */

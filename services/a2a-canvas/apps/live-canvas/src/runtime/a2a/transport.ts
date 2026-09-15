@@ -56,7 +56,6 @@ function wrapPort(port: MessagePort): Endpoint {
   // being handled); the port is ref()'d while busy>0 and unref()'d at 0.
   const { ref, unref } = refControls(port)
   let busy = 0
-  unref()
   function enter(): void {
     busy += 1
     ref()
@@ -89,6 +88,10 @@ function wrapPort(port: MessagePort): Endpoint {
     // shape.
     entry.resolve(data)
   }
+  // Assigning `onmessage` itself (re-)refs the port (Node treats it like
+  // attaching a 'message' listener), so the idle unref() has to come AFTER
+  // that assignment or it's immediately undone.
+  unref()
 
   return {
     send(request, timeoutMs) {
