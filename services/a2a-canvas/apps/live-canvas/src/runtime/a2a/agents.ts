@@ -10,10 +10,11 @@
  */
 import type {
   AgentCard, AgentId, Clock, DataPart, IdFactory, JsonRpcError, JsonRpcRequest, JsonRpcResponse,
-  Message, Part, Task, TaskId, ThemeApi, ThemeIssue,
+  Message, Part, Task, TaskId, ThemeIssue,
 } from '../../../../../packages/shared/src/index.ts'
 import { JSON_RPC_ERRORS, asId, createIdFactory, isoAt, systemClock } from '../../../../../packages/shared/src/index.ts'
 import type { Endpoint } from './transport.ts'
+import type { ThemeApi } from '../../contracts.ts'
 
 export const PALETTE_AGENT_ID: AgentId = asId('palette-agent')
 export const CONTRAST_CRITIC_ID: AgentId = asId('contrast-critic')

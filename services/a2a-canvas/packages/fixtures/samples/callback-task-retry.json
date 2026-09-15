@@ -1,0 +1,157 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "wf_000101a54d",
+      "name": "Callback Task Retry",
+      "summary": "A missed-call callback, retried until reached.",
+      "lanes": [
+        {
+          "id": "lane_0002ab0ba5",
+          "workflowId": "wf_000101a54d",
+          "title": "Callback",
+          "order": 0,
+          "collapsed": false
+        }
+      ],
+      "cards": [
+        {
+          "id": "card_0003294e8d",
+          "laneId": "lane_0002ab0ba5",
+          "order": 0,
+          "title": "Callback Task Due",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "voiceCallId": 5521,
+            "dueAt": "2026-09-16T18:00:00.000Z",
+            "status": "open"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0004e457b3",
+          "laneId": "lane_0002ab0ba5",
+          "order": 1,
+          "title": "Attempt Dial",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "hexagon",
+          "kind": "a2a-handoff",
+          "config": {
+            "to": "agent.dialer",
+            "timeoutMs": 15000,
+            "skill": "callback.dial"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0005480530",
+          "laneId": "lane_0002ab0ba5",
+          "order": 2,
+          "title": "Retry On No-Answer",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rounded",
+          "kind": "retry",
+          "config": {
+            "maxAttempts": 4,
+            "backoffMs": 30000
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00062a01c0",
+          "laneId": "lane_0002ab0ba5",
+          "order": 3,
+          "title": "Confirm Reached",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "disposition == 'reached'"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000753fea7",
+          "laneId": "lane_0002ab0ba5",
+          "order": 4,
+          "title": "Callback Closed",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "status": "completed"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_0008678cce",
+          "from": "card_0003294e8d",
+          "to": "card_0004e457b3"
+        },
+        {
+          "id": "edge_0009351062",
+          "from": "card_0004e457b3",
+          "to": "card_0005480530"
+        },
+        {
+          "id": "edge_000a102cf1",
+          "from": "card_0005480530",
+          "to": "card_00062a01c0"
+        },
+        {
+          "id": "edge_000b4df584",
+          "from": "card_00062a01c0",
+          "to": "card_000753fea7"
+        }
+      ],
+      "version": 1,
+      "updatedAt": "2026-09-02T15:00:00.000Z"
+    }
+  ],
+  "themeId": "theme.obsidian-amethyst",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "savedAt": "2026-09-02T15:00:00.000Z"
+}

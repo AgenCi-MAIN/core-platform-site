@@ -9,16 +9,22 @@
  * (see a2a/agents.ts) over an in-page simulated transport (see
  * a2a/transport.ts) — no network, no model call, no credential.
  */
-import type { CanvasNode, NodeKind, RunEvent, RunOptions } from '../contracts.ts'
-import type { AgentId, DataPart, Part, Task, TaskId, ThemeApi, ThemeTokens } from '../../../../packages/shared/src/index.ts'
+import type { CanvasNode, NodeKind, RunEvent, RunOptions, ThemeApi } from '../contracts.ts'
+import type { AgentId, DataPart, Part, Task, TaskId, ThemeTokens } from '../../../../packages/shared/src/index.ts'
 import { isoAt, systemClock } from '../../../../packages/shared/src/index.ts'
 import type { Endpoint } from './a2a/transport.ts'
 import { sendTask } from './a2a/client.ts'
 import { JSON_RPC_ERRORS } from '../../../../packages/shared/src/index.ts'
 
+/** Omit that distributes over a union instead of collapsing it — plain
+ * Omit<RunEvent, ...> would flatten the RunEvent union down to only the
+ * fields common to every variant, dropping cardId (present on most, not
+ * run.started/run.canceled) entirely. */
+type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : never
+
 /** ctx.emit() only ever needs to add the a2a.* / node.* payload — the
  * runner stamps runId/workflowId/at/seq before it reaches the event log. */
-export type EmitInput = Omit<RunEvent, 'runId' | 'workflowId' | 'at' | 'seq'>
+export type EmitInput = DistributiveOmit<RunEvent, 'runId' | 'workflowId' | 'at' | 'seq'>
 
 export interface ExecCtx {
   node: CanvasNode

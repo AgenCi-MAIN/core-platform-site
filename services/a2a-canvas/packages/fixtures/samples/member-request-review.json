@@ -1,0 +1,207 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "wf_00010194cc",
+      "name": "Member Request Review",
+      "summary": "A pending member_requests row moving through two parallel checks and a retried approval hand-off.",
+      "lanes": [
+        {
+          "id": "lane_00029b088d",
+          "workflowId": "wf_00010194cc",
+          "title": "Review",
+          "order": 0,
+          "collapsed": false
+        }
+      ],
+      "cards": [
+        {
+          "id": "card_0003dc1c5d",
+          "laneId": "lane_00029b088d",
+          "order": 0,
+          "title": "New Request",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "requestedRole": "manager",
+            "kind": "role_change",
+            "summary": "Promote to manager",
+            "quantity": 1
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0004ad8405",
+          "laneId": "lane_00029b088d",
+          "order": 1,
+          "title": "Fan Out Checks",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "diamond",
+          "kind": "branch",
+          "config": {},
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00058435eb",
+          "laneId": "lane_00029b088d",
+          "order": 2,
+          "title": "Tenure Check",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "tenure_months >= 6"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0006119050",
+          "laneId": "lane_00029b088d",
+          "order": 3,
+          "title": "Standing Check",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "no_open_audit_flags"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000769fcc7",
+          "laneId": "lane_00029b088d",
+          "order": 4,
+          "title": "Merge Checks",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "diamond",
+          "kind": "join",
+          "config": {},
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0008d1d154",
+          "laneId": "lane_00029b088d",
+          "order": 5,
+          "title": "Approval Handoff",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rounded",
+          "kind": "retry",
+          "config": {
+            "maxAttempts": 3,
+            "onFailure": "requeue"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 920,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0009959e58",
+          "laneId": "lane_00029b088d",
+          "order": 6,
+          "title": "Decision Recorded",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "status": "approved"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1104,
+            "y": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_000a8b41ac",
+          "from": "card_0003dc1c5d",
+          "to": "card_0004ad8405"
+        },
+        {
+          "id": "edge_000b62245b",
+          "from": "card_0004ad8405",
+          "to": "card_00058435eb"
+        },
+        {
+          "id": "edge_000cc2e842",
+          "from": "card_0004ad8405",
+          "to": "card_0006119050"
+        },
+        {
+          "id": "edge_000d9b00aa",
+          "from": "card_00058435eb",
+          "to": "card_000769fcc7"
+        },
+        {
+          "id": "edge_000e45d1d4",
+          "from": "card_0006119050",
+          "to": "card_000769fcc7"
+        },
+        {
+          "id": "edge_000f9755cd",
+          "from": "card_000769fcc7",
+          "to": "card_0008d1d154"
+        },
+        {
+          "id": "edge_000gfd8bbc",
+          "from": "card_0008d1d154",
+          "to": "card_0009959e58"
+        }
+      ],
+      "version": 1,
+      "updatedAt": "2026-09-02T15:00:00.000Z"
+    }
+  ],
+  "themeId": "theme.obsidian-amethyst",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "savedAt": "2026-09-02T15:00:00.000Z"
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "dialer-transfer-handoff",
+    "title": "Dialer Transfer Handoff",
+    "description": "Linear chain: an inbound carrier transfer is checked against a redeemed command pass, handed to an A2A verifier agent, and turned into an outbound dial confirmation. Demonstrates the plainest shape — one lane, one path, no branching.",
+    "file": "dialer-transfer-handoff.json"
+  },
+  {
+    "id": "member-request-review",
+    "title": "Member Request Review",
+    "description": "Branch/join with a retry: a role-change request fans out to two independent checks (tenure, standing), joins, then retries the approval hand-off up to 3 times before recording a decision. Demonstrates parallel fan-out reconverging, plus a retry step.",
+    "file": "member-request-review.json"
+  },
+  {
+    "id": "weekly-commitments-rollup",
+    "title": "Weekly Commitment Rollup",
+    "description": "Long single-lane chain: one member’s weekly check-in (lead budget + call target) is range-checked, turned into a pace figure, compared against actual dialer activity, and rendered onto the dashboard’s dashed PLAN panel. Demonstrates a longer sequential pipeline than the linear example, with no branching.",
+    "file": "weekly-commitments-rollup.json"
+  },
+  {
+    "id": "book-of-business-entry",
+    "title": "Book Of Business Entry",
+    "description": "Diamond: a member’s new customer + policy entry splits into two independent validations (customer fields, policy fields) that reconverge before the row is written self-scoped to the member. Demonstrates a minimal branch-then-join diamond distinct from the larger branch/join/retry example.",
+    "file": "book-of-business-entry.json"
+  },
+  {
+    "id": "voice-presence-monitor",
+    "title": "Voice Presence Monitor",
+    "description": "Star: one presence heartbeat radiates out to four independent, terminal probes (available / busy / offline / expiry) with nothing downstream of them. Demonstrates a hub-and-spoke shape distinct from every chain-shaped fixture here.",
+    "file": "voice-presence-monitor.json"
+  },
+  {
+    "id": "callback-task-retry",
+    "title": "Callback Task Retry",
+    "description": "Retry-centred chain: a due voice_callback_tasks row is dialed by an A2A agent, retried on no-answer up to 4 times with backoff, then confirmed reached and closed. The retry is a single node carrying maxAttempts/backoffMs — the canvas renders looping-on-failure without a literal graph cycle.",
+    "file": "callback-task-retry.json"
+  },
+  {
+    "id": "theme-forge-variants",
+    "title": "Theme Forge Variants",
+    "description": "Multi-lane A2A handoff: a base-proposal lane probes contrast and hands off (one A2A message, two recipients) to two sibling lanes that each preview their own variant. Demonstrates edges crossing from one lane into two different lanes, not just within one.",
+    "file": "theme-forge-variants.json"
+  },
+  {
+    "id": "cross-lane-drag-scenario",
+    "title": "Cross-Lane Drag Scenario",
+    "description": "\"Escalate To Command\" is drawn in the Frontline lane but both its edges point into Command Center — it is meant to be dragged across the lane boundary (config.suggestedLaneTitle names the target). Exercises the canvas’s card.moved event and cross-lane edge rendering before the drag happens.",
+    "file": "cross-lane-drag-scenario.json"
+  },
+  {
+    "id": "command-pass-escalation",
+    "title": "Command Pass Escalation",
+    "description": "Fan-in: three independent command_passes signals (near expiry, too many failed attempts, revoked early) join into one founder review before a single reconciliation sink. The mirror image of the star fixture — many sources, one path out.",
+    "file": "command-pass-escalation.json"
+  },
+  {
+    "id": "layout-stress-4-lane",
+    "title": "Layout Stress (4 Lanes)",
+    "description": "44 nodes across 4 lanes (a per-lane chain, plus one bridging edge lane-to-lane), for exercising the canvas’s auto-layout, drag performance and viewport panning at scale rather than demonstrating a real pipeline.",
+    "file": "layout-stress-4-lane.json"
+  }
+]

@@ -16,7 +16,8 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import type { ThemeTokens } from '../../shared/src/theme-tokens.ts'
 import { createIdFactory, fixedClock, isoAt } from '../../shared/src/ids.ts'
-import { buildThemeSet } from '../src/generate.ts'
+import { FAMILIES, VARIANTS } from '../src/families.ts'
+import { buildTheme, findDuplicates, distance, DEDUPE_THRESHOLD } from '../src/generate.ts'
 import { validateTheme } from '../src/validate.ts'
 import type { ThemeIndex, ThemeIndexEntry } from '../src/index.ts'
 
@@ -26,17 +27,6 @@ export const BUILD_CLOCK_ISO = '2026-09-15T14:00:00.000Z'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 export const DEFAULT_THEMES_DIR = join(__dirname, '..', 'themes')
-
-function themePath(theme: ThemeTokens): string {
-  return `${theme.meta.family}/${themeVariantSlug(theme)}.json`
-}
-
-/** `meta.name` is "Family — Variant"; recover the variant slug from it. */
-function themeVariantSlug(theme: ThemeTokens): string {
-  const parts = theme.meta.name.split('—')
-  const variantName = (parts[parts.length - 1] ?? '').trim()
-  return variantName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-}
 
 export interface BuildResult {
   count: number
@@ -48,7 +38,26 @@ export interface BuildResult {
 export async function buildPacks(outDir: string = DEFAULT_THEMES_DIR): Promise<BuildResult> {
   const ids = createIdFactory(BUILD_SEED)
   const clock = fixedClock(Date.parse(BUILD_CLOCK_ISO))
-  const themes = buildThemeSet(ids, clock)
+
+  // Built directly over FAMILIES x VARIANTS (fixed order) rather than via
+  // buildThemeSet, so each theme's on-disk path comes straight from the
+  // family/variant keys that produced it instead of being reverse-parsed
+  // out of a display name.
+  const built: Array<{ familyKey: string; variantKey: string; theme: ThemeTokens }> = []
+  for (const family of FAMILIES) {
+    for (const variant of VARIANTS) {
+      built.push({ familyKey: family.key, variantKey: variant.key, theme: buildTheme(family, variant, ids, clock) })
+    }
+  }
+  const themes = built.map((b) => b.theme)
+
+  const dupes = findDuplicates(themes, DEDUPE_THRESHOLD)
+  if (dupes.length > 0) {
+    const detail = dupes
+      .map(([i, j]) => `${themes[i]!.meta.name} ~ ${themes[j]!.meta.name} (d=${distance(themes[i]!, themes[j]!).toFixed(4)})`)
+      .join('; ')
+    throw new Error(`theme-packs build: near-duplicate themes below threshold ${DEDUPE_THRESHOLD}: ${detail}`)
+  }
 
   const invalid: string[] = []
   for (const theme of themes) {
@@ -62,16 +71,16 @@ export async function buildPacks(outDir: string = DEFAULT_THEMES_DIR): Promise<B
   }
 
   const entries: ThemeIndexEntry[] = []
-  for (const theme of themes) {
-    const relPath = themePath(theme)
+  for (const { familyKey, variantKey, theme } of built) {
+    const relPath = `${familyKey}/${variantKey}.json`
     const absPath = join(outDir, relPath)
     await mkdir(dirname(absPath), { recursive: true })
     await writeFile(absPath, `${JSON.stringify(theme, null, 2)}\n`, 'utf8')
     entries.push({
       id: theme.meta.id,
       name: theme.meta.name,
-      family: theme.meta.family,
-      variant: themeVariantSlug(theme),
+      family: familyKey,
+      variant: variantKey,
       provenance: theme.meta.provenance,
       path: relPath,
     })

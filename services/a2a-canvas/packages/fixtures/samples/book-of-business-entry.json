@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "wf_000101ad0d",
+      "name": "Book Of Business Entry",
+      "summary": "book_customers + book_policies self-scoped write, validated on two independent paths.",
+      "lanes": [
+        {
+          "id": "lane_0002a30b29",
+          "workflowId": "wf_000101ad0d",
+          "title": "Book Entry",
+          "order": 0,
+          "collapsed": false
+        }
+      ],
+      "cards": [
+        {
+          "id": "card_000300d655",
+          "laneId": "lane_0002a30b29",
+          "order": 0,
+          "title": "New Customer + Policy",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "displayName": "J. Alvarez",
+            "phoneLast4": "4471",
+            "carrier": "Acme Mutual",
+            "product": "Term Life"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000487cf0c",
+          "laneId": "lane_0002a30b29",
+          "order": 1,
+          "title": "Split Validation",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "diamond",
+          "kind": "branch",
+          "config": {},
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0005abb518",
+          "laneId": "lane_0002a30b29",
+          "order": 2,
+          "title": "Validate Customer",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "displayName.length in [1,80]"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00061ad1b3",
+          "laneId": "lane_0002a30b29",
+          "order": 3,
+          "title": "Validate Policy",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "premiumCents in [0,100000000]"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0007bbcb23",
+          "laneId": "lane_0002a30b29",
+          "order": 4,
+          "title": "Merge Validated",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "diamond",
+          "kind": "join",
+          "config": {},
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00083403ae",
+          "laneId": "lane_0002a30b29",
+          "order": 5,
+          "title": "Row Written",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "status": "in_force"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 920,
+            "y": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_00097d9651",
+          "from": "card_000300d655",
+          "to": "card_000487cf0c"
+        },
+        {
+          "id": "edge_000a42a94e",
+          "from": "card_000487cf0c",
+          "to": "card_0005abb518"
+        },
+        {
+          "id": "edge_000b04c298",
+          "from": "card_000487cf0c",
+          "to": "card_00061ad1b3"
+        },
+        {
+          "id": "edge_000caef783",
+          "from": "card_0005abb518",
+          "to": "card_0007bbcb23"
+        },
+        {
+          "id": "edge_000d917502",
+          "from": "card_00061ad1b3",
+          "to": "card_0007bbcb23"
+        },
+        {
+          "id": "edge_000e13be2a",
+          "from": "card_0007bbcb23",
+          "to": "card_00083403ae"
+        }
+      ],
+      "version": 1,
+      "updatedAt": "2026-09-02T15:00:00.000Z"
+    }
+  ],
+  "themeId": "theme.obsidian-amethyst",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "savedAt": "2026-09-02T15:00:00.000Z"
+}

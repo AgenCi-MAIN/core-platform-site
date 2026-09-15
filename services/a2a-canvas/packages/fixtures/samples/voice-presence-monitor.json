@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "wf_000101a92d",
+      "name": "Voice Presence Monitor",
+      "summary": "One voice_presence row, checked four independent ways.",
+      "lanes": [
+        {
+          "id": "lane_0002a7032f",
+          "workflowId": "wf_000101a92d",
+          "title": "Presence",
+          "order": 0,
+          "collapsed": false
+        }
+      ],
+      "cards": [
+        {
+          "id": "card_00039d1afc",
+          "laneId": "lane_0002a7032f",
+          "order": 0,
+          "title": "Presence Heartbeat",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "memberId": 4821,
+            "readyState": "available",
+            "browserSessionId": "sess_9e1f"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0004959a93",
+          "laneId": "lane_0002a7032f",
+          "order": 1,
+          "title": "Available Check",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "readyState == 'available'"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0005254c0e",
+          "laneId": "lane_0002a7032f",
+          "order": 2,
+          "title": "Busy Check",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "readyState == 'busy'"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000636bee8",
+          "laneId": "lane_0002a7032f",
+          "order": 3,
+          "title": "Offline Check",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "readyState == 'offline'"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00079e7916",
+          "laneId": "lane_0002a7032f",
+          "order": 4,
+          "title": "Expiry Check",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "expiresAt > now"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_00082dfab3",
+          "from": "card_00039d1afc",
+          "to": "card_0004959a93"
+        },
+        {
+          "id": "edge_00090a1120",
+          "from": "card_00039d1afc",
+          "to": "card_0005254c0e"
+        },
+        {
+          "id": "edge_000aef796c",
+          "from": "card_00039d1afc",
+          "to": "card_000636bee8"
+        },
+        {
+          "id": "edge_000b9aa299",
+          "from": "card_00039d1afc",
+          "to": "card_00079e7916"
+        }
+      ],
+      "version": 1,
+      "updatedAt": "2026-09-02T15:00:00.000Z"
+    }
+  ],
+  "themeId": "theme.obsidian-amethyst",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "savedAt": "2026-09-02T15:00:00.000Z"
+}
