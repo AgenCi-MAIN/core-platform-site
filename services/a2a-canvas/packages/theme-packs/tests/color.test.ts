@@ -88,7 +88,7 @@ test('generateScale: luminance strictly decreases from step 50 to step 950', () 
   ]
   for (const [hue, sat] of cases) {
     const scale = generateScale(hue, sat) as unknown as Record<string, string>
-    const luminances = SCALE_STEPS.map((s) => relativeLuminance(parseHex(scale[String(s)])))
+    const luminances = SCALE_STEPS.map((s) => relativeLuminance(parseHex(scale[String(s)]!)))
     for (let i = 1; i < luminances.length; i += 1) {
       assert.ok(
         luminances[i]! < luminances[i - 1]!,
@@ -100,5 +100,5 @@ test('generateScale: luminance strictly decreases from step 50 to step 950', () 
 
 test('colorDistance: 0 for identical colours, 1 for black vs white', () => {
   assert.equal(colorDistance('#A78BFA', '#A78BFA'), 0)
-  assert.equal(colorDistance('#000000', '#FFFFFF'), 1)
+  assert.ok(Math.abs(colorDistance('#000000', '#FFFFFF') - 1) < 1e-9)
 })

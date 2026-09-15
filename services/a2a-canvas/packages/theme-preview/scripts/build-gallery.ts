@@ -72,6 +72,11 @@ function loadPackThemes(): ThemeTokens[] {
     console.warn(`[theme-preview] could not parse ${themePacksIndex}: ${(error as Error).message}`)
     return []
   }
+  // The theme-packs index is an object { generatedAt, count, themes: [...] };
+  // a bare array is accepted too.
+  if (entries && typeof entries === 'object' && !Array.isArray(entries) && Array.isArray((entries as { themes?: unknown }).themes)) {
+    entries = (entries as { themes: unknown[] }).themes
+  }
   if (!Array.isArray(entries)) {
     console.warn(`[theme-preview] ${themePacksIndex} is not an array; ignoring.`)
     return []

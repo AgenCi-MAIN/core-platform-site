@@ -1,0 +1,276 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "id": "theme_000af43a95",
+    "name": "Sea Glass — Base",
+    "family": "sea-glass",
+    "version": "1.0.0",
+    "description": "Muted teal and aqua, low-saturation and coastal, easy on long sessions. The balanced default expression of the family.",
+    "tags": [
+      "proposed",
+      "calm",
+      "coastal",
+      "muted",
+      "base"
+    ],
+    "author": "theme-packs generator",
+    "createdAt": "2026-09-15T14:00:00.000Z",
+    "generated": true,
+    "provenance": "proposed"
+  },
+  "palette": {
+    "primary": {
+      "50": "#F4FBF7",
+      "100": "#E6F5ED",
+      "200": "#C5E7D6",
+      "300": "#A1D9BD",
+      "400": "#75C79E",
+      "500": "#4AB580",
+      "600": "#3E986C",
+      "700": "#317754",
+      "800": "#24573D",
+      "900": "#163626",
+      "950": "#0C1D14"
+    },
+    "secondary": {
+      "50": "#F4FBF6",
+      "100": "#E6F5EB",
+      "200": "#C5E7D2",
+      "300": "#A1D9B5",
+      "400": "#75C793",
+      "500": "#4AB571",
+      "600": "#3E985F",
+      "700": "#31774B",
+      "800": "#245736",
+      "900": "#163622",
+      "950": "#0C1D12"
+    },
+    "accent": {
+      "50": "#F4FBFA",
+      "100": "#E6F5F3",
+      "200": "#C5E7E3",
+      "300": "#A1D9D1",
+      "400": "#75C7BC",
+      "500": "#4AB5A7",
+      "600": "#3E988C",
+      "700": "#31776E",
+      "800": "#245750",
+      "900": "#163632",
+      "950": "#0C1D1B"
+    },
+    "neutral": {
+      "50": "#F6F8F8",
+      "100": "#EBEFEF",
+      "200": "#D1DBDB",
+      "300": "#B5C5C5",
+      "400": "#92AAAA",
+      "500": "#708F8F",
+      "600": "#5E7878",
+      "700": "#4A5E5E",
+      "800": "#364545",
+      "900": "#222B2B",
+      "950": "#121717"
+    },
+    "success": {
+      "50": "#F3FCF7",
+      "100": "#E2F8ED",
+      "200": "#BDF0D6",
+      "300": "#93E6BD",
+      "400": "#62DB9E",
+      "500": "#30CF80",
+      "600": "#28AE6C",
+      "700": "#208954",
+      "800": "#17633D",
+      "900": "#0E3E26",
+      "950": "#082114"
+    },
+    "warning": {
+      "50": "#FCFAF3",
+      "100": "#F8F2E2",
+      "200": "#F0E2BD",
+      "300": "#E6D093",
+      "400": "#DBBA62",
+      "500": "#CFA430",
+      "600": "#AE8A28",
+      "700": "#896C20",
+      "800": "#634F17",
+      "900": "#3E310E",
+      "950": "#211A08"
+    },
+    "danger": {
+      "50": "#FCF4F3",
+      "100": "#F8E5E2",
+      "200": "#F0C4BD",
+      "300": "#E69F93",
+      "400": "#DB7262",
+      "500": "#CF4630",
+      "600": "#AE3B28",
+      "700": "#892E20",
+      "800": "#632217",
+      "900": "#3E150E",
+      "950": "#210B08"
+    },
+    "info": {
+      "50": "#F3F9FC",
+      "100": "#E2F2F8",
+      "200": "#BDE0F0",
+      "300": "#93CDE6",
+      "400": "#62B6DB",
+      "500": "#309FCF",
+      "600": "#2886AE",
+      "700": "#206989",
+      "800": "#174C63",
+      "900": "#0E303E",
+      "950": "#081921"
+    }
+  },
+  "modes": {
+    "light": {
+      "bg": "#F5F8F8",
+      "bgElevated": "#FBFCFC",
+      "bgSunken": "#E1E4E4",
+      "surface": "#E6F5F3",
+      "surfaceAlpha": 0.96,
+      "surfaceHover": "#D8E6E4",
+      "border": "#D8E1E1",
+      "borderStrong": "#BDCCCC",
+      "text": "#121717",
+      "textMuted": "#708F8F",
+      "textInverse": "#F6F8F8",
+      "link": "#31776E",
+      "focusRing": "#C115C1",
+      "accent": "#3E988C",
+      "success": "#28AE6C",
+      "warning": "#AE8A28",
+      "danger": "#AE3B28",
+      "info": "#2886AE"
+    },
+    "dark": {
+      "bg": "#121818",
+      "bgElevated": "#252A2A",
+      "bgSunken": "#0C1010",
+      "surface": "#163632",
+      "surfaceAlpha": 0.82,
+      "surfaceHover": "#324E4B",
+      "border": "#2C3939",
+      "borderStrong": "#415454",
+      "text": "#F6F8F8",
+      "textMuted": "#B5C5C5",
+      "textInverse": "#121717",
+      "link": "#A1D9D1",
+      "focusRing": "#F471F4",
+      "accent": "#75C7BC",
+      "success": "#62DB9E",
+      "warning": "#DBBA62",
+      "danger": "#DB7262",
+      "info": "#62B6DB"
+    }
+  },
+  "typography": {
+    "fontFamilies": {
+      "sans": "\"Helvetica Neue\", Arial, sans-serif",
+      "serif": "\"Palatino Linotype\", Georgia, serif",
+      "mono": "Menlo, Consolas, monospace"
+    },
+    "sizes": {
+      "xs": 0.75,
+      "sm": 0.8125,
+      "md": 0.9375,
+      "lg": 1.125,
+      "xl": 1.25,
+      "2xl": 1.5,
+      "3xl": 1.875,
+      "4xl": 2.25,
+      "5xl": 3
+    },
+    "lineHeights": {
+      "tight": 1.15,
+      "normal": 1.45,
+      "relaxed": 1.7
+    },
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "letterSpacing": {
+      "tight": "-0.01em",
+      "normal": "0em",
+      "wide": "0.02em"
+    }
+  },
+  "spacing": {
+    "0": 0,
+    "1": 0.25,
+    "2": 0.5,
+    "3": 0.75,
+    "4": 1,
+    "5": 1.25,
+    "6": 1.5,
+    "8": 2,
+    "10": 2.5,
+    "12": 3,
+    "16": 4,
+    "20": 5,
+    "24": 6
+  },
+  "radius": {
+    "none": 0,
+    "sm": 10,
+    "md": 16,
+    "lg": 22,
+    "xl": 30,
+    "full": 9999
+  },
+  "shadow": {
+    "sm": "0 1px 3px rgb(0 0 0 / 0.25)",
+    "md": "0 6px 16px rgb(0 0 0 / 0.3)",
+    "lg": "0 10px 30px rgb(0 0 0 / 0.35)",
+    "focus": "0 0 0 3px rgb(242 90 242 / 0.35)"
+  },
+  "motion": {
+    "durations": {
+      "fast": 120,
+      "base": 200,
+      "slow": 320
+    },
+    "easings": {
+      "standard": "cubic-bezier(0.2, 0.7, 0.2, 1)",
+      "enter": "cubic-bezier(0, 0, 0.2, 1)",
+      "exit": "cubic-bezier(0.4, 0, 1, 1)"
+    },
+    "reducedMotionScale": 0
+  },
+  "components": {
+    "button": {
+      "bg": "accent",
+      "text": "textInverse",
+      "border": "accent",
+      "hoverLiftPx": 2
+    },
+    "card": {
+      "bg": "surface",
+      "border": "border",
+      "radius": "lg",
+      "shadow": "md"
+    },
+    "input": {
+      "bg": "bgElevated",
+      "border": "border",
+      "text": "text",
+      "focus": "focusRing"
+    },
+    "lane": {
+      "rail": "surface",
+      "title": "text",
+      "border": "border"
+    },
+    "workflowCard": {
+      "bg": "surface",
+      "border": "border",
+      "selectedRing": "accent",
+      "keyline": "focusRing"
+    }
+  }
+}

@@ -1,0 +1,276 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "id": "theme_0005cdf6f1",
+    "name": "Daylight Slate — Soft",
+    "family": "daylight-slate",
+    "version": "1.0.0",
+    "description": "A cool, neutral workday palette: slate blue on paper-white, restrained accents. Desaturated, lighter glass, gentler accents — a quieter read of the family.",
+    "tags": [
+      "proposed",
+      "crisp",
+      "neutral",
+      "daylight office",
+      "soft"
+    ],
+    "author": "theme-packs generator",
+    "createdAt": "2026-09-15T14:00:00.000Z",
+    "generated": true,
+    "provenance": "proposed"
+  },
+  "palette": {
+    "primary": {
+      "50": "#F5F9FA",
+      "100": "#E8F0F3",
+      "200": "#CADCE3",
+      "300": "#A8C7D1",
+      "400": "#80ADBC",
+      "500": "#5893A7",
+      "600": "#4A7B8C",
+      "700": "#3A616E",
+      "800": "#2A4750",
+      "900": "#1A2C32",
+      "950": "#0E181B"
+    },
+    "secondary": {
+      "50": "#F5FAF9",
+      "100": "#E8F3F0",
+      "200": "#CAE3DE",
+      "300": "#A8D1C9",
+      "400": "#80BCB0",
+      "500": "#58A797",
+      "600": "#4A8C7F",
+      "700": "#3A6E64",
+      "800": "#2A5048",
+      "900": "#1A322D",
+      "950": "#0E1B18"
+    },
+    "accent": {
+      "50": "#F5F9FA",
+      "100": "#E8F1F3",
+      "200": "#CADFE3",
+      "300": "#A8CAD1",
+      "400": "#80B2BC",
+      "500": "#589AA7",
+      "600": "#4A818C",
+      "700": "#3A666E",
+      "800": "#2A4A50",
+      "900": "#1A2E32",
+      "950": "#0E191B"
+    },
+    "neutral": {
+      "50": "#F7F8F8",
+      "100": "#ECEEEE",
+      "200": "#D3D7D9",
+      "300": "#B8BFC1",
+      "400": "#98A1A5",
+      "500": "#778388",
+      "600": "#646E72",
+      "700": "#4F565A",
+      "800": "#393F41",
+      "900": "#242729",
+      "950": "#131516"
+    },
+    "success": {
+      "50": "#F4FBF8",
+      "100": "#E6F5EE",
+      "200": "#C5E7D7",
+      "300": "#A1D9BF",
+      "400": "#75C7A1",
+      "500": "#4AB583",
+      "600": "#3E986E",
+      "700": "#317756",
+      "800": "#24573F",
+      "900": "#163627",
+      "950": "#0C1D15"
+    },
+    "warning": {
+      "50": "#FBF8F4",
+      "100": "#F5EFE6",
+      "200": "#E7DBC5",
+      "300": "#D9C4A1",
+      "400": "#C7A975",
+      "500": "#B58E4A",
+      "600": "#98773E",
+      "700": "#775E31",
+      "800": "#574424",
+      "900": "#362B16",
+      "950": "#1D170C"
+    },
+    "danger": {
+      "50": "#FBF4F5",
+      "100": "#F5E6E8",
+      "200": "#E7C5CB",
+      "300": "#D9A1AA",
+      "400": "#C77583",
+      "500": "#B54A5C",
+      "600": "#983E4D",
+      "700": "#77313D",
+      "800": "#57242C",
+      "900": "#36161C",
+      "950": "#1D0C0F"
+    },
+    "info": {
+      "50": "#F4F8FB",
+      "100": "#E6EEF5",
+      "200": "#C5D9E7",
+      "300": "#A1C1D9",
+      "400": "#75A5C7",
+      "500": "#4A88B5",
+      "600": "#3E7298",
+      "700": "#315A77",
+      "800": "#244157",
+      "900": "#162936",
+      "950": "#0C161D"
+    }
+  },
+  "modes": {
+    "light": {
+      "bg": "#ECEEEE",
+      "bgElevated": "#F7F8F8",
+      "bgSunken": "#D9DBDB",
+      "surface": "#F5F9FA",
+      "surfaceAlpha": 0.9,
+      "surfaceHover": "#E6EAEB",
+      "border": "#D2D6D8",
+      "borderStrong": "#BBC1C3",
+      "text": "#131516",
+      "textMuted": "#778388",
+      "textInverse": "#F7F8F8",
+      "link": "#4A818C",
+      "focusRing": "#31A59E",
+      "accent": "#589AA7",
+      "success": "#4AB583",
+      "warning": "#B58E4A",
+      "danger": "#B54A5C",
+      "info": "#4A88B5"
+    },
+    "dark": {
+      "bg": "#242729",
+      "bgElevated": "#36383A",
+      "bgSunken": "#17191B",
+      "surface": "#2A4A50",
+      "surfaceAlpha": 0.7,
+      "surfaceHover": "#446065",
+      "border": "#3B4144",
+      "borderStrong": "#4E5559",
+      "text": "#F7F8F8",
+      "textMuted": "#B8BFC1",
+      "textInverse": "#131516",
+      "link": "#CADFE3",
+      "focusRing": "#86DFD9",
+      "accent": "#A8CAD1",
+      "success": "#A1D9BF",
+      "warning": "#D9C4A1",
+      "danger": "#D9A1AA",
+      "info": "#A1C1D9"
+    }
+  },
+  "typography": {
+    "fontFamilies": {
+      "sans": "\"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
+      "serif": "Georgia, \"Times New Roman\", serif",
+      "mono": "\"Cascadia Code\", Consolas, monospace"
+    },
+    "sizes": {
+      "xs": 0.75,
+      "sm": 0.8125,
+      "md": 0.9375,
+      "lg": 1.125,
+      "xl": 1.25,
+      "2xl": 1.5,
+      "3xl": 1.875,
+      "4xl": 2.25,
+      "5xl": 3
+    },
+    "lineHeights": {
+      "tight": 1.15,
+      "normal": 1.45,
+      "relaxed": 1.7
+    },
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "letterSpacing": {
+      "tight": "-0.01em",
+      "normal": "0em",
+      "wide": "0.02em"
+    }
+  },
+  "spacing": {
+    "0": 0,
+    "1": 0.25,
+    "2": 0.5,
+    "3": 0.75,
+    "4": 1,
+    "5": 1.25,
+    "6": 1.5,
+    "8": 2,
+    "10": 2.5,
+    "12": 3,
+    "16": 4,
+    "20": 5,
+    "24": 6
+  },
+  "radius": {
+    "none": 0,
+    "sm": 2,
+    "md": 4,
+    "lg": 6,
+    "xl": 10,
+    "full": 9999
+  },
+  "shadow": {
+    "sm": "0 1px 3px rgb(0 0 0 / 0.25)",
+    "md": "0 6px 16px rgb(0 0 0 / 0.3)",
+    "lg": "0 10px 30px rgb(0 0 0 / 0.35)",
+    "focus": "0 0 0 3px rgb(90 242 231 / 0.35)"
+  },
+  "motion": {
+    "durations": {
+      "fast": 120,
+      "base": 200,
+      "slow": 320
+    },
+    "easings": {
+      "standard": "cubic-bezier(0.2, 0.7, 0.2, 1)",
+      "enter": "cubic-bezier(0, 0, 0.2, 1)",
+      "exit": "cubic-bezier(0.4, 0, 1, 1)"
+    },
+    "reducedMotionScale": 0
+  },
+  "components": {
+    "button": {
+      "bg": "accent",
+      "text": "textInverse",
+      "border": "accent",
+      "hoverLiftPx": 2
+    },
+    "card": {
+      "bg": "surface",
+      "border": "border",
+      "radius": "lg",
+      "shadow": "md"
+    },
+    "input": {
+      "bg": "bgElevated",
+      "border": "border",
+      "text": "text",
+      "focus": "focusRing"
+    },
+    "lane": {
+      "rail": "surface",
+      "title": "text",
+      "border": "border"
+    },
+    "workflowCard": {
+      "bg": "surface",
+      "border": "border",
+      "selectedRing": "accent",
+      "keyline": "focusRing"
+    }
+  }
+}

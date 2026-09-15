@@ -1,0 +1,222 @@
+{
+  "generatedAt": "2026-09-15T14:00:00.000Z",
+  "count": 27,
+  "themes": [
+    {
+      "id": "theme_000122505f",
+      "name": "Obsidian / Amethyst — Base",
+      "family": "obsidian-amethyst",
+      "variant": "base",
+      "provenance": "reference",
+      "path": "obsidian-amethyst/base.json"
+    },
+    {
+      "id": "theme_00021e1c7d",
+      "name": "Obsidian / Amethyst — Soft",
+      "family": "obsidian-amethyst",
+      "variant": "soft",
+      "provenance": "reference",
+      "path": "obsidian-amethyst/soft.json"
+    },
+    {
+      "id": "theme_0003a6ec08",
+      "name": "Obsidian / Amethyst — Vivid",
+      "family": "obsidian-amethyst",
+      "variant": "vivid",
+      "provenance": "reference",
+      "path": "obsidian-amethyst/vivid.json"
+    },
+    {
+      "id": "theme_0004d9525c",
+      "name": "Daylight Slate — Base",
+      "family": "daylight-slate",
+      "variant": "base",
+      "provenance": "proposed",
+      "path": "daylight-slate/base.json"
+    },
+    {
+      "id": "theme_0005cdf6f1",
+      "name": "Daylight Slate — Soft",
+      "family": "daylight-slate",
+      "variant": "soft",
+      "provenance": "proposed",
+      "path": "daylight-slate/soft.json"
+    },
+    {
+      "id": "theme_00066a2c1c",
+      "name": "Daylight Slate — Vivid",
+      "family": "daylight-slate",
+      "variant": "vivid",
+      "provenance": "proposed",
+      "path": "daylight-slate/vivid.json"
+    },
+    {
+      "id": "theme_0007d8a453",
+      "name": "Ember — Base",
+      "family": "ember",
+      "variant": "base",
+      "provenance": "proposed",
+      "path": "ember/base.json"
+    },
+    {
+      "id": "theme_0008171652",
+      "name": "Ember — Soft",
+      "family": "ember",
+      "variant": "soft",
+      "provenance": "proposed",
+      "path": "ember/soft.json"
+    },
+    {
+      "id": "theme_0009767ea5",
+      "name": "Ember — Vivid",
+      "family": "ember",
+      "variant": "vivid",
+      "provenance": "proposed",
+      "path": "ember/vivid.json"
+    },
+    {
+      "id": "theme_000af43a95",
+      "name": "Sea Glass — Base",
+      "family": "sea-glass",
+      "variant": "base",
+      "provenance": "proposed",
+      "path": "sea-glass/base.json"
+    },
+    {
+      "id": "theme_000b7a83b1",
+      "name": "Sea Glass — Soft",
+      "family": "sea-glass",
+      "variant": "soft",
+      "provenance": "proposed",
+      "path": "sea-glass/soft.json"
+    },
+    {
+      "id": "theme_000c95c2d2",
+      "name": "Sea Glass — Vivid",
+      "family": "sea-glass",
+      "variant": "vivid",
+      "provenance": "proposed",
+      "path": "sea-glass/vivid.json"
+    },
+    {
+      "id": "theme_000d3a9345",
+      "name": "Graphite Mono — Base",
+      "family": "graphite-mono",
+      "variant": "base",
+      "provenance": "proposed",
+      "path": "graphite-mono/base.json"
+    },
+    {
+      "id": "theme_000e15ef02",
+      "name": "Graphite Mono — Soft",
+      "family": "graphite-mono",
+      "variant": "soft",
+      "provenance": "proposed",
+      "path": "graphite-mono/soft.json"
+    },
+    {
+      "id": "theme_000f418e6c",
+      "name": "Graphite Mono — Vivid",
+      "family": "graphite-mono",
+      "variant": "vivid",
+      "provenance": "proposed",
+      "path": "graphite-mono/vivid.json"
+    },
+    {
+      "id": "theme_000g0f5f7e",
+      "name": "Thrive Sky — Base",
+      "family": "thrive-sky",
+      "variant": "base",
+      "provenance": "proposed",
+      "path": "thrive-sky/base.json"
+    },
+    {
+      "id": "theme_000hf76b44",
+      "name": "Thrive Sky — Soft",
+      "family": "thrive-sky",
+      "variant": "soft",
+      "provenance": "proposed",
+      "path": "thrive-sky/soft.json"
+    },
+    {
+      "id": "theme_000i66e013",
+      "name": "Thrive Sky — Vivid",
+      "family": "thrive-sky",
+      "variant": "vivid",
+      "provenance": "proposed",
+      "path": "thrive-sky/vivid.json"
+    },
+    {
+      "id": "theme_000je8ba25",
+      "name": "Sunset — Base",
+      "family": "sunset",
+      "variant": "base",
+      "provenance": "proposed",
+      "path": "sunset/base.json"
+    },
+    {
+      "id": "theme_000k21b4c2",
+      "name": "Sunset — Soft",
+      "family": "sunset",
+      "variant": "soft",
+      "provenance": "proposed",
+      "path": "sunset/soft.json"
+    },
+    {
+      "id": "theme_000l84351a",
+      "name": "Sunset — Vivid",
+      "family": "sunset",
+      "variant": "vivid",
+      "provenance": "proposed",
+      "path": "sunset/vivid.json"
+    },
+    {
+      "id": "theme_000mcbd08f",
+      "name": "Forest — Base",
+      "family": "forest",
+      "variant": "base",
+      "provenance": "proposed",
+      "path": "forest/base.json"
+    },
+    {
+      "id": "theme_000n9f6a59",
+      "name": "Forest — Soft",
+      "family": "forest",
+      "variant": "soft",
+      "provenance": "proposed",
+      "path": "forest/soft.json"
+    },
+    {
+      "id": "theme_000o537463",
+      "name": "Forest — Vivid",
+      "family": "forest",
+      "variant": "vivid",
+      "provenance": "proposed",
+      "path": "forest/vivid.json"
+    },
+    {
+      "id": "theme_000p3c6672",
+      "name": "High Contrast — Base",
+      "family": "high-contrast",
+      "variant": "base",
+      "provenance": "proposed",
+      "path": "high-contrast/base.json"
+    },
+    {
+      "id": "theme_000qb4393e",
+      "name": "High Contrast — Soft",
+      "family": "high-contrast",
+      "variant": "soft",
+      "provenance": "proposed",
+      "path": "high-contrast/soft.json"
+    },
+    {
+      "id": "theme_000ref62d3",
+      "name": "High Contrast — Vivid",
+      "family": "high-contrast",
+      "variant": "vivid",
+      "provenance": "proposed",
+      "path": "high-contrast/vivid.json"
+    }
+  ]
+}

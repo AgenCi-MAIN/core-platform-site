@@ -1,0 +1,276 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "id": "theme_000o537463",
+    "name": "Forest — Vivid",
+    "family": "forest",
+    "version": "1.0.0",
+    "description": "Deep greens and moss over warm-gray, grounded and low-glare. Saturated, denser glass, punchier accents — the family turned up.",
+    "tags": [
+      "proposed",
+      "grounded",
+      "natural",
+      "calm-productive",
+      "vivid"
+    ],
+    "author": "theme-packs generator",
+    "createdAt": "2026-09-15T14:00:00.000Z",
+    "generated": true,
+    "provenance": "proposed"
+  },
+  "palette": {
+    "primary": {
+      "50": "#F2FCF6",
+      "100": "#E2F9EA",
+      "200": "#BCF1CF",
+      "300": "#92E8B2",
+      "400": "#5FDD8E",
+      "500": "#2DD26A",
+      "600": "#26B059",
+      "700": "#1E8B46",
+      "800": "#166533",
+      "900": "#0E3F20",
+      "950": "#072211"
+    },
+    "secondary": {
+      "50": "#F8FCF2",
+      "100": "#EEF9E2",
+      "200": "#D8F1BC",
+      "300": "#C0E892",
+      "400": "#A2DD5F",
+      "500": "#85D22D",
+      "600": "#70B026",
+      "700": "#588B1E",
+      "800": "#406516",
+      "900": "#283F0E",
+      "950": "#152207"
+    },
+    "accent": {
+      "50": "#F2FCF9",
+      "100": "#E2F9F2",
+      "200": "#BCF1E1",
+      "300": "#92E8CE",
+      "400": "#5FDDB7",
+      "500": "#2DD2A0",
+      "600": "#26B086",
+      "700": "#1E8B6A",
+      "800": "#16654D",
+      "900": "#0E3F30",
+      "950": "#07221A"
+    },
+    "neutral": {
+      "50": "#F7F9F6",
+      "100": "#ECF0EA",
+      "200": "#D3DCD0",
+      "300": "#B7C7B3",
+      "400": "#95AD8F",
+      "500": "#74936C",
+      "600": "#617B5B",
+      "700": "#4D6147",
+      "800": "#384734",
+      "900": "#232C20",
+      "950": "#131811"
+    },
+    "success": {
+      "50": "#F1FEF6",
+      "100": "#DEFDEB",
+      "200": "#B3FAD2",
+      "300": "#83F6B5",
+      "400": "#4AF293",
+      "500": "#11EE71",
+      "600": "#0EC85F",
+      "700": "#0B9D4B",
+      "800": "#087236",
+      "900": "#054722",
+      "950": "#032612"
+    },
+    "warning": {
+      "50": "#FEFAF1",
+      "100": "#FDF3DE",
+      "200": "#FAE4B3",
+      "300": "#F6D483",
+      "400": "#F2C04A",
+      "500": "#EEAC11",
+      "600": "#C8900E",
+      "700": "#9D720B",
+      "800": "#725308",
+      "900": "#473405",
+      "950": "#261C03"
+    },
+    "danger": {
+      "50": "#FEF3F1",
+      "100": "#FDE4DE",
+      "200": "#FAC1B3",
+      "300": "#F69A83",
+      "400": "#F26C4A",
+      "500": "#EE3D11",
+      "600": "#C8330E",
+      "700": "#9D280B",
+      "800": "#721D08",
+      "900": "#471205",
+      "950": "#260A03"
+    },
+    "info": {
+      "50": "#F1FEFE",
+      "100": "#DEFDFC",
+      "200": "#B3FAF7",
+      "300": "#83F6F3",
+      "400": "#4AF2ED",
+      "500": "#11EEE7",
+      "600": "#0EC8C2",
+      "700": "#0B9D98",
+      "800": "#08726F",
+      "900": "#054745",
+      "950": "#032625"
+    }
+  },
+  "modes": {
+    "light": {
+      "bg": "#F2F8F4",
+      "bgElevated": "#FAFCFB",
+      "bgSunken": "#DFE4E0",
+      "surface": "#BCF1E1",
+      "surfaceAlpha": 0.99,
+      "surfaceHover": "#B1E3D4",
+      "border": "#D6E2D6",
+      "borderStrong": "#BDCEBB",
+      "text": "#131811",
+      "textMuted": "#74936C",
+      "textInverse": "#F7F9F6",
+      "link": "#16654D",
+      "focusRing": "#96D600",
+      "accent": "#1E8B6A",
+      "success": "#0B9D4B",
+      "warning": "#9D720B",
+      "danger": "#9D280B",
+      "info": "#0B9D98"
+    },
+    "dark": {
+      "bg": "#121912",
+      "bgElevated": "#252B25",
+      "bgSunken": "#0C100C",
+      "surface": "#07221A",
+      "surfaceAlpha": 0.9,
+      "surfaceHover": "#253D35",
+      "border": "#2D3B2B",
+      "borderStrong": "#43563F",
+      "text": "#F7F9F6",
+      "textMuted": "#B7C7B3",
+      "textInverse": "#131811",
+      "link": "#5FDDB7",
+      "focusRing": "#D1FF66",
+      "accent": "#2DD2A0",
+      "success": "#11EE71",
+      "warning": "#EEAC11",
+      "danger": "#EE3D11",
+      "info": "#11EEE7"
+    }
+  },
+  "typography": {
+    "fontFamilies": {
+      "sans": "Optima, \"Segoe UI\", sans-serif",
+      "serif": "\"Hoefler Text\", Georgia, serif",
+      "mono": "Menlo, Consolas, monospace"
+    },
+    "sizes": {
+      "xs": 0.75,
+      "sm": 0.8125,
+      "md": 0.9375,
+      "lg": 1.125,
+      "xl": 1.25,
+      "2xl": 1.5,
+      "3xl": 1.875,
+      "4xl": 2.25,
+      "5xl": 3
+    },
+    "lineHeights": {
+      "tight": 1.15,
+      "normal": 1.45,
+      "relaxed": 1.7
+    },
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "letterSpacing": {
+      "tight": "-0.01em",
+      "normal": "0em",
+      "wide": "0.02em"
+    }
+  },
+  "spacing": {
+    "0": 0,
+    "1": 0.25,
+    "2": 0.5,
+    "3": 0.75,
+    "4": 1,
+    "5": 1.25,
+    "6": 1.5,
+    "8": 2,
+    "10": 2.5,
+    "12": 3,
+    "16": 4,
+    "20": 5,
+    "24": 6
+  },
+  "radius": {
+    "none": 0,
+    "sm": 10,
+    "md": 16,
+    "lg": 22,
+    "xl": 30,
+    "full": 9999
+  },
+  "shadow": {
+    "sm": "0 1px 3px rgb(0 0 0 / 0.25)",
+    "md": "0 6px 16px rgb(0 0 0 / 0.3)",
+    "lg": "0 10px 30px rgb(0 0 0 / 0.35)",
+    "focus": "0 0 0 3px rgb(196 242 90 / 0.35)"
+  },
+  "motion": {
+    "durations": {
+      "fast": 120,
+      "base": 200,
+      "slow": 320
+    },
+    "easings": {
+      "standard": "cubic-bezier(0.2, 0.7, 0.2, 1)",
+      "enter": "cubic-bezier(0, 0, 0.2, 1)",
+      "exit": "cubic-bezier(0.4, 0, 1, 1)"
+    },
+    "reducedMotionScale": 0
+  },
+  "components": {
+    "button": {
+      "bg": "accent",
+      "text": "textInverse",
+      "border": "accent",
+      "hoverLiftPx": 2
+    },
+    "card": {
+      "bg": "surface",
+      "border": "border",
+      "radius": "lg",
+      "shadow": "md"
+    },
+    "input": {
+      "bg": "bgElevated",
+      "border": "border",
+      "text": "text",
+      "focus": "focusRing"
+    },
+    "lane": {
+      "rail": "surface",
+      "title": "text",
+      "border": "border"
+    },
+    "workflowCard": {
+      "bg": "surface",
+      "border": "border",
+      "selectedRing": "accent",
+      "keyline": "focusRing"
+    }
+  }
+}

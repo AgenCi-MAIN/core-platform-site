@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en" data-preview-mode="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Forest — Base — preview</title>
+<style>:root {
+  --c-bg: #131813;
+  --c-surface-rgb: 21 56 45;
+  --surface-alpha: 0.82;
+  --c-surface: rgb(var(--c-surface-rgb) / var(--surface-alpha));
+  --c-accent: #72CBB0;
+  --c-focus: #CDF471;
+  --c-text: #F7F8F6;
+  --c-muted: #B8C4B5;
+  --c-success: #62DB96;
+  --c-warning: #DBB662;
+  --c-danger: #DB7A62;
+  --c-border: #2F392D;
+  --sp-1: 0.5rem;
+  --sp-2: 1rem;
+  --sp-3: 1.5rem;
+  --sp-4: 2rem;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 6px 16px rgb(0 0 0 / 0.3);
+  --lift: -2px;
+  --font-sans: Optima, "Segoe UI", sans-serif;
+  --font-mono: Menlo, Consolas, monospace;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.9375rem;
+  --fs-lg: 1.125rem;
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --touch: 44px;
+  color-scheme: dark;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font: var(--fs-md) / 1.45 var(--font-sans);
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+.glass {
+  background: var(--c-surface);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.btn {
+  min-height: var(--touch);
+  min-width: var(--touch);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: rgb(var(--c-surface-rgb) / 0.6);
+  color: var(--c-text);
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
+}
+.btn:hover:not(:disabled), .btn[data-state="hover"] { transform: translateY(var(--lift)); background: rgb(var(--c-surface-rgb) / 0.95); }
+.btn.primary { background: var(--c-accent); color: var(--c-bg); border-color: transparent; }
+.btn:disabled, .btn[data-state="disabled"] { opacity: 0.72; cursor: not-allowed; color: var(--c-muted); }
+.btn[data-state="focus"] { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field > label { font-size: var(--fs-sm); color: var(--c-muted); }
+.field input, .field select {
+  min-height: var(--touch);
+  padding: var(--sp-1);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: rgb(0 0 0 / 0.25);
+  color: var(--c-text);
+}
+.section { display: flex; flex-direction: column; gap: var(--sp-1); }
+.section > h2 { margin: 0; font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-muted); }
+.row { display: flex; gap: var(--sp-1); flex-wrap: wrap; align-items: center; }
+.muted { color: var(--c-muted); }
+.mono { font-family: var(--font-mono); }
+.lane-rail { fill: rgb(var(--c-surface-rgb) / 0.35); stroke: var(--c-border); }
+.lane-title { fill: var(--c-muted); font: 600 var(--fs-sm) var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; }
+.node-shape { fill: var(--c-surface); stroke: var(--c-border); stroke-width: 1; }
+.node.selected .node-shape { stroke: var(--c-accent); stroke-width: 2; }
+.node.selected .node-keyline { stroke: var(--c-focus); stroke-width: 1; fill: none; }
+.node-label { fill: var(--c-text); font: 500 var(--fs-md) var(--font-sans); }
+.node-sub { fill: var(--c-muted); font: var(--fs-sm) var(--font-sans); }
+.node[data-status="running"] .node-shape { stroke: var(--c-focus); }
+.node[data-status="done"] .node-shape { stroke: var(--c-success); }
+.node[data-status="failed"] .node-shape { stroke: var(--c-danger); }
+.node[data-status="blocked"] .node-shape { stroke: var(--c-warning); }
+.connector { fill: none; stroke: var(--c-muted); stroke-width: 1.5; }
+.connector.active { stroke: var(--c-focus); }
+.connector-arrow { fill: var(--c-muted); }
+.status {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  color: var(--c-muted);
+  font-size: var(--fs-sm);
+}
+.status[data-kind="ok"] { color: var(--c-success); }
+.status[data-kind="error"] { color: var(--c-danger); }
+.toast {
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+}
+.badge {
+  display: inline-block;
+  padding: 2px var(--sp-1);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  font-size: var(--fs-sm);
+  color: var(--c-muted);
+}
+</style>
+</head>
+<body>
+<div class="preview" style="max-width:960px;margin:0 auto;padding:var(--sp-3);display:flex;flex-direction:column;gap:var(--sp-3);">
+  <header class="row" style="justify-content:space-between;">
+    <h1 style="margin:0;font-size:var(--fs-lg);">Forest — Base</h1>
+    <span class="badge">proposed · dark</span>
+  </header>
+  <section class="section">
+    <h2>Workflow Lab</h2>
+    <svg viewBox="0 0 960 220" width="100%" height="220" role="img" aria-label="Sample workflow lane with every node shape">
+      <rect class="lane-rail" x="1" y="1" width="958" height="218" rx="14" />
+      <text class="lane-title" x="24" y="28">shawn-runtime</text>
+      <path class="connector" d="M 112 124 Q 147.2 148.64 182.4 124" /><polygon class="connector-arrow" points="182.4,124 179.29,130.27 175.44,124.77" />
+    <path class="connector active" d="M 278.4 124 Q 313.6 148.64 348.8 124" /><polygon class="connector-arrow" points="348.8,124 345.69,130.27 341.84,124.77" />
+    <path class="connector" d="M 444.8 124 Q 480 148.64 515.2 124" /><polygon class="connector-arrow" points="515.2,124 512.09,130.27 508.24,124.77" />
+    <path class="connector" d="M 611.2 124 Q 646.4 148.64 681.6 124" /><polygon class="connector-arrow" points="681.6,124 678.49,130.27 674.64,124.77" />
+    <path class="connector" d="M 777.6 124 Q 812.8 148.64 848 124" /><polygon class="connector-arrow" points="848,124 844.89,130.27 841.04,124.77" />
+      <g class="node" data-shape="rect">
+      <rect class="node-shape" x="16" y="92" width="96" height="64" />
+      
+      <text class="node-label" x="64" y="174" text-anchor="middle">Rect</text>
+      <text class="node-sub" x="64" y="190" text-anchor="middle">idle</text>
+    </g>
+    <g class="node selected" data-shape="rounded" data-status="running">
+      <rect class="node-shape" x="182.4" y="92" width="96" height="64" rx="14.08" ry="14.08" />
+      <rect class="node-keyline" x="174.72" y="86.88" width="111.36" height="74.24" rx="16.33" ry="16.33" />
+      <text class="node-label" x="230.4" y="174" text-anchor="middle">Rounded</text>
+      <text class="node-sub" x="230.4" y="190" text-anchor="middle">running</text>
+    </g>
+    <g class="node" data-shape="circle" data-status="done">
+      <circle class="node-shape" cx="396.8" cy="124" r="32" />
+      
+      <text class="node-label" x="396.8" y="174" text-anchor="middle">Circle</text>
+      <text class="node-sub" x="396.8" y="190" text-anchor="middle">done</text>
+    </g>
+    <g class="node" data-shape="diamond" data-status="blocked">
+      <polygon class="node-shape" points="563.2,87.2 618.4,124 563.2,160.8 508,124" />
+      
+      <text class="node-label" x="563.2" y="174" text-anchor="middle">Diamond</text>
+      <text class="node-sub" x="563.2" y="190" text-anchor="middle">blocked</text>
+    </g>
+    <g class="node" data-shape="pentagon" data-status="failed">
+      <polygon class="node-shape" points="729.6,92 760.03,114.11 748.41,149.89 710.79,149.89 699.17,114.11" />
+      
+      <text class="node-label" x="729.6" y="174" text-anchor="middle">Pentagon</text>
+      <text class="node-sub" x="729.6" y="190" text-anchor="middle">failed</text>
+    </g>
+    <g class="node" data-shape="hexagon">
+      <polygon class="node-shape" points="896,92 923.71,108 923.71,140 896,156 868.29,140 868.29,108" />
+      
+      <text class="node-label" x="896" y="174" text-anchor="middle">Hexagon</text>
+      <text class="node-sub" x="896" y="190" text-anchor="middle">idle</text>
+    </g>
+    </svg>
+  </section>
+  <div class="row" style="align-items:flex-start;">
+    <section class="glass" style="flex:1 1 280px;padding:var(--sp-2);display:flex;flex-direction:column;gap:var(--sp-2);">
+    <div class="section">
+      <h2>Inspector</h2>
+      <div class="field">
+        <label for="preview-node-name">Name</label>
+        <input id="preview-node-name" type="text" value="lane-3 / step-2" readonly />
+      </div>
+      <div class="field">
+        <label for="preview-node-status">Status</label>
+        <select id="preview-node-status">
+          <option>queued</option>
+          <option selected>running</option>
+          <option>done</option>
+        </select>
+      </div>
+    </div>
+  </section>
+    <aside class="glass" style="flex:1 1 240px;padding:var(--sp-2);display:flex;flex-direction:column;gap:var(--sp-2);">
+    <div class="section">
+      <h2>Actions</h2>
+      <div class="row">
+        <button class="btn" type="button">Default</button>
+        <button class="btn" type="button" data-state="hover">Hover</button>
+        <button class="btn primary" type="button">Primary</button>
+        <button class="btn" type="button" data-state="focus">Focus</button>
+        <button class="btn" type="button" disabled>Disabled</button>
+      </div>
+    </div>
+  </aside>
+  </div>
+  <div class="row">
+    <span class="status" data-kind="ok">Saved</span>
+    <span class="status">Autosaving…</span>
+    <span class="status" data-kind="error">Sync failed</span>
+  </div>
+  <div class="toast">Theme applied — <span class="mono">dark</span> mode</div>
+</div>
+</body>
+</html>

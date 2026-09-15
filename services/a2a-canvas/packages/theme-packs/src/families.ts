@@ -59,6 +59,15 @@ export interface ThemeVariant {
   lightSurfaceStep: 50 | 100 | 200
   lightSurfaceAlpha: number
   lightAccentStep: 500 | 600 | 700
+  /**
+   * How strongly the bg is tinted with the surface's accent hue before use
+   * (0..1, composited on top of the plain neutral bg step). Without this,
+   * two variants that happen to pick the same neutral bg step — or a
+   * near-desaturated family where every step is already close to gray —
+   * can produce identical or near-identical backgrounds; the tint keeps
+   * "vivid" reading more saturated and "soft" reading plainer even then.
+   */
+  bgAccentTint: number
 }
 
 const SYSTEM_SANS = 'ui-sans-serif, -apple-system, "SF Pro Text", "Segoe UI", Inter, system-ui, sans-serif'
@@ -84,10 +93,10 @@ export const FAMILIES: ColorFamily[] = [
     description: 'A cool, neutral workday palette: slate blue on paper-white, restrained accents.',
     mood: 'crisp, neutral, daylight office',
     provenance: 'proposed',
-    hues: { primary: 222, secondary: 176, accent: 217, neutral: 222, success: 152, warning: 38, danger: 350, info: 205 },
-    saturation: 42,
+    hues: { primary: 195, secondary: 168, accent: 190, neutral: 197, success: 152, warning: 38, danger: 350, info: 205 },
+    saturation: 46,
     neutralSaturation: 10,
-    focusHue: 205,
+    focusHue: 176,
     radiusStyle: 'sharp',
     fontStack: {
       sans: '"Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -118,8 +127,8 @@ export const FAMILIES: ColorFamily[] = [
     description: 'Muted teal and aqua, low-saturation and coastal, easy on long sessions.',
     mood: 'calm, coastal, muted',
     provenance: 'proposed',
-    hues: { primary: 174, secondary: 165, accent: 186, neutral: 195, success: 150, warning: 44, danger: 8, info: 198 },
-    saturation: 38,
+    hues: { primary: 150, secondary: 142, accent: 172, neutral: 180, success: 150, warning: 44, danger: 8, info: 198 },
+    saturation: 42,
     neutralSaturation: 12,
     focusHue: 300,
     radiusStyle: 'round',
@@ -135,10 +144,10 @@ export const FAMILIES: ColorFamily[] = [
     description: 'Near-grayscale with a single cool-blue accent; a technical, minimal instrument panel.',
     mood: 'minimal, monochrome, technical',
     provenance: 'proposed',
-    hues: { primary: 220, secondary: 220, accent: 220, neutral: 222, success: 150, warning: 46, danger: 4, info: 210 },
-    saturation: 10,
-    neutralSaturation: 4,
-    focusHue: 210,
+    hues: { primary: 235, secondary: 235, accent: 235, neutral: 235, success: 150, warning: 46, danger: 4, info: 235 },
+    saturation: 28,
+    neutralSaturation: 12,
+    focusHue: 262,
     radiusStyle: 'sharp',
     fontStack: {
       sans: '"IBM Plex Sans", "Segoe UI", sans-serif',
@@ -152,7 +161,7 @@ export const FAMILIES: ColorFamily[] = [
     description: 'Blue-and-white insurance-agency trust palette: clean, legible, conservative.',
     mood: 'trustworthy, professional, clean',
     provenance: 'proposed',
-    hues: { primary: 211, secondary: 96, accent: 205, neutral: 214, success: 152, warning: 40, danger: 354, info: 199 },
+    hues: { primary: 218, secondary: 222, accent: 205, neutral: 214, success: 152, warning: 40, danger: 354, info: 199 },
     saturation: 58,
     neutralSaturation: 9,
     focusHue: 231,
@@ -205,7 +214,7 @@ export const FAMILIES: ColorFamily[] = [
     provenance: 'proposed',
     hues: { primary: 48, secondary: 0, accent: 48, neutral: 0, success: 132, warning: 48, danger: 0, info: 220 },
     saturation: 92,
-    neutralSaturation: 0,
+    neutralSaturation: 3,
     focusHue: 190,
     radiusStyle: 'sharp',
     fontStack: { sans: 'Arial, Helvetica, sans-serif', serif: 'Georgia, serif', mono: 'Consolas, monospace' },
@@ -227,12 +236,13 @@ export const VARIANTS: ThemeVariant[] = [
     lightSurfaceStep: 100,
     lightSurfaceAlpha: 0.96,
     lightAccentStep: 600,
+    bgAccentTint: 0.04,
   },
   {
     key: 'soft',
     name: 'Soft',
     description: 'Desaturated, lighter glass, gentler accents — a quieter read of the family.',
-    saturationMultiplier: 0.55,
+    saturationMultiplier: 0.68,
     darkBgStep: 900,
     darkSurfaceStep: 800,
     darkAccentStep: 300,
@@ -241,6 +251,7 @@ export const VARIANTS: ThemeVariant[] = [
     lightSurfaceStep: 50,
     lightSurfaceAlpha: 0.9,
     lightAccentStep: 500,
+    bgAccentTint: 0,
   },
   {
     key: 'vivid',
@@ -255,5 +266,6 @@ export const VARIANTS: ThemeVariant[] = [
     lightSurfaceStep: 200,
     lightSurfaceAlpha: 0.99,
     lightAccentStep: 700,
+    bgAccentTint: 0.08,
   },
 ]

@@ -1,0 +1,275 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "id": "theme_000p3c6672",
+    "name": "High Contrast — Base",
+    "family": "high-contrast",
+    "version": "1.0.0",
+    "description": "True black/white with one bold amber accent, tuned for AAA (7:1) legibility. The balanced default expression of the family.",
+    "tags": [
+      "proposed",
+      "accessibility-first",
+      "maximum legibility",
+      "base"
+    ],
+    "author": "theme-packs generator",
+    "createdAt": "2026-09-15T14:00:00.000Z",
+    "generated": true,
+    "provenance": "proposed"
+  },
+  "palette": {
+    "primary": {
+      "50": "#FEFCF0",
+      "100": "#FEF7DD",
+      "200": "#FCEDB1",
+      "300": "#FAE180",
+      "400": "#F7D445",
+      "500": "#F5C60A",
+      "600": "#CEA608",
+      "700": "#A28307",
+      "800": "#765F05",
+      "900": "#4A3B03",
+      "950": "#272002"
+    },
+    "secondary": {
+      "50": "#FEF0F0",
+      "100": "#FEDDDD",
+      "200": "#FCB1B1",
+      "300": "#FA8080",
+      "400": "#F74545",
+      "500": "#F50A0A",
+      "600": "#CE0808",
+      "700": "#A20707",
+      "800": "#760505",
+      "900": "#4A0303",
+      "950": "#270202"
+    },
+    "accent": {
+      "50": "#FEFCF0",
+      "100": "#FEF7DD",
+      "200": "#FCEDB1",
+      "300": "#FAE180",
+      "400": "#F7D445",
+      "500": "#F5C60A",
+      "600": "#CEA608",
+      "700": "#A28307",
+      "800": "#765F05",
+      "900": "#4A3B03",
+      "950": "#272002"
+    },
+    "neutral": {
+      "50": "#F8F7F7",
+      "100": "#EEEDED",
+      "200": "#D7D5D5",
+      "300": "#BFBBBB",
+      "400": "#A19B9B",
+      "500": "#837C7C",
+      "600": "#6E6868",
+      "700": "#565252",
+      "800": "#3F3C3C",
+      "900": "#272525",
+      "950": "#151414"
+    },
+    "success": {
+      "50": "#F3FCF5",
+      "100": "#E2F8E7",
+      "200": "#BDF0C7",
+      "300": "#93E6A4",
+      "400": "#62DB7A",
+      "500": "#30CF50",
+      "600": "#28AE43",
+      "700": "#208935",
+      "800": "#176326",
+      "900": "#0E3E18",
+      "950": "#08210D"
+    },
+    "warning": {
+      "50": "#FCFAF3",
+      "100": "#F8F4E2",
+      "200": "#F0E5BD",
+      "300": "#E6D593",
+      "400": "#DBC262",
+      "500": "#CFAF30",
+      "600": "#AE9328",
+      "700": "#897420",
+      "800": "#635417",
+      "900": "#3E350E",
+      "950": "#211C08"
+    },
+    "danger": {
+      "50": "#FCF3F3",
+      "100": "#F8E2E2",
+      "200": "#F0BDBD",
+      "300": "#E69393",
+      "400": "#DB6262",
+      "500": "#CF3030",
+      "600": "#AE2828",
+      "700": "#892020",
+      "800": "#631717",
+      "900": "#3E0E0E",
+      "950": "#210808"
+    },
+    "info": {
+      "50": "#F3F6FC",
+      "100": "#E2E9F8",
+      "200": "#BDCEF0",
+      "300": "#93AFE6",
+      "400": "#628ADB",
+      "500": "#3065CF",
+      "600": "#2855AE",
+      "700": "#204389",
+      "800": "#173063",
+      "900": "#0E1E3E",
+      "950": "#081021"
+    }
+  },
+  "modes": {
+    "light": {
+      "bg": "#F8F7F6",
+      "bgElevated": "#FCFCFB",
+      "bgSunken": "#E4E3E2",
+      "surface": "#FEF7DD",
+      "surfaceAlpha": 0.96,
+      "surfaceHover": "#EFE8D0",
+      "border": "#DEDCDB",
+      "borderStrong": "#C7C3C3",
+      "text": "#151414",
+      "textMuted": "#837C7C",
+      "textInverse": "#F8F7F7",
+      "link": "#A28307",
+      "focusRing": "#15A4C1",
+      "accent": "#CEA608",
+      "success": "#28AE43",
+      "warning": "#AE9328",
+      "danger": "#AE2828",
+      "info": "#2855AE"
+    },
+    "dark": {
+      "bg": "#171613",
+      "bgElevated": "#2A2926",
+      "bgSunken": "#0F0E0C",
+      "surface": "#4A3B03",
+      "surfaceAlpha": 0.82,
+      "surfaceHover": "#605321",
+      "border": "#353330",
+      "borderStrong": "#4D4948",
+      "text": "#F8F7F7",
+      "textMuted": "#BFBBBB",
+      "textInverse": "#151414",
+      "link": "#FAE180",
+      "focusRing": "#71DEF4",
+      "accent": "#F7D445",
+      "success": "#62DB7A",
+      "warning": "#DBC262",
+      "danger": "#DB6262",
+      "info": "#628ADB"
+    }
+  },
+  "typography": {
+    "fontFamilies": {
+      "sans": "Arial, Helvetica, sans-serif",
+      "serif": "Georgia, serif",
+      "mono": "Consolas, monospace"
+    },
+    "sizes": {
+      "xs": 0.75,
+      "sm": 0.8125,
+      "md": 0.9375,
+      "lg": 1.125,
+      "xl": 1.25,
+      "2xl": 1.5,
+      "3xl": 1.875,
+      "4xl": 2.25,
+      "5xl": 3
+    },
+    "lineHeights": {
+      "tight": 1.15,
+      "normal": 1.45,
+      "relaxed": 1.7
+    },
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "letterSpacing": {
+      "tight": "-0.01em",
+      "normal": "0em",
+      "wide": "0.02em"
+    }
+  },
+  "spacing": {
+    "0": 0,
+    "1": 0.25,
+    "2": 0.5,
+    "3": 0.75,
+    "4": 1,
+    "5": 1.25,
+    "6": 1.5,
+    "8": 2,
+    "10": 2.5,
+    "12": 3,
+    "16": 4,
+    "20": 5,
+    "24": 6
+  },
+  "radius": {
+    "none": 0,
+    "sm": 2,
+    "md": 4,
+    "lg": 6,
+    "xl": 10,
+    "full": 9999
+  },
+  "shadow": {
+    "sm": "0 1px 3px rgb(0 0 0 / 0.25)",
+    "md": "0 6px 16px rgb(0 0 0 / 0.3)",
+    "lg": "0 10px 30px rgb(0 0 0 / 0.35)",
+    "focus": "0 0 0 3px rgb(90 216 242 / 0.35)"
+  },
+  "motion": {
+    "durations": {
+      "fast": 120,
+      "base": 200,
+      "slow": 320
+    },
+    "easings": {
+      "standard": "cubic-bezier(0.2, 0.7, 0.2, 1)",
+      "enter": "cubic-bezier(0, 0, 0.2, 1)",
+      "exit": "cubic-bezier(0.4, 0, 1, 1)"
+    },
+    "reducedMotionScale": 0
+  },
+  "components": {
+    "button": {
+      "bg": "accent",
+      "text": "textInverse",
+      "border": "accent",
+      "hoverLiftPx": 2
+    },
+    "card": {
+      "bg": "surface",
+      "border": "border",
+      "radius": "lg",
+      "shadow": "md"
+    },
+    "input": {
+      "bg": "bgElevated",
+      "border": "border",
+      "text": "text",
+      "focus": "focusRing"
+    },
+    "lane": {
+      "rail": "surface",
+      "title": "text",
+      "border": "border"
+    },
+    "workflowCard": {
+      "bg": "surface",
+      "border": "border",
+      "selectedRing": "accent",
+      "keyline": "focusRing"
+    }
+  }
+}

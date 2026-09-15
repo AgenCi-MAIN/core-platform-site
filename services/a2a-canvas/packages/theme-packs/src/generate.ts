@@ -91,10 +91,14 @@ function adjustTextForContrast(startHex: HexColor, mode: ThemeMode, bg: HexColor
 function buildDarkMode(family: ColorFamily, variant: ThemeVariant, palette: PaletteTokens, target: number): SemanticColors {
   const neutral = palette.neutral
   const accent = palette.accent
-  const bg = step(neutral, variant.darkBgStep)
-  const bgElevated = step(neutral, adjacentStep(variant.darkBgStep, -1))
-  const bgSunken = compositeOverBackground('#000000', 0.35, bg)
   const surface = step(accent, variant.darkSurfaceStep)
+  const neutralBg = step(neutral, variant.darkBgStep)
+  // A whisper of the surface's accent hue keeps "soft"/"base"/"vivid" from
+  // converging on the same near-black even when the family's neutral is
+  // low-saturation (or the two variants land on the same neutral step).
+  const bg = variant.bgAccentTint > 0 ? compositeOverBackground(surface, variant.bgAccentTint, neutralBg) : neutralBg
+  const bgElevated = compositeOverBackground('#FFFFFF', 0.08, bg)
+  const bgSunken = compositeOverBackground('#000000', 0.35, bg)
   const surfaceAlpha = variant.darkSurfaceAlpha
   const compositedSurface = compositeOverBackground(surface, surfaceAlpha, bg)
   const surfaceHover = compositeOverBackground('#FFFFFF', 0.12, surface)
@@ -105,7 +109,10 @@ function buildDarkMode(family: ColorFamily, variant: ThemeVariant, palette: Pale
   const textInverse = step(neutral, 950)
   const accentColor = step(accent, variant.darkAccentStep)
   const link = step(accent, adjacentStep(variant.darkAccentStep, -1))
-  const focusRing = formatHex(hslToRgb({ h: family.focusHue, s: 85, l: 70 }))
+  // Saturation (not just hue) is tied to the variant so the focus ring —
+  // otherwise the one semantic colour with no variant input at all — still
+  // separates "soft" from "vivid" within a family.
+  const focusRing = formatHex(hslToRgb({ h: family.focusHue, s: clamp(85 * variant.saturationMultiplier, 35, 100), l: 70 }))
   return {
     bg,
     bgElevated,
@@ -131,10 +138,11 @@ function buildDarkMode(family: ColorFamily, variant: ThemeVariant, palette: Pale
 function buildLightMode(family: ColorFamily, variant: ThemeVariant, palette: PaletteTokens, target: number): SemanticColors {
   const neutral = palette.neutral
   const accent = palette.accent
-  const bg = step(neutral, variant.lightBgStep)
-  const bgElevated = compositeOverBackground('#FFFFFF', 0.6, bg)
-  const bgSunken = step(neutral, adjacentStep(variant.lightBgStep, 1))
   const surface = step(accent, variant.lightSurfaceStep)
+  const neutralBg = step(neutral, variant.lightBgStep)
+  const bg = variant.bgAccentTint > 0 ? compositeOverBackground(surface, variant.bgAccentTint, neutralBg) : neutralBg
+  const bgElevated = compositeOverBackground('#FFFFFF', 0.6, bg)
+  const bgSunken = compositeOverBackground('#000000', 0.08, bg)
   const surfaceAlpha = variant.lightSurfaceAlpha
   const compositedSurface = compositeOverBackground(surface, surfaceAlpha, bg)
   const surfaceHover = compositeOverBackground('#000000', 0.06, surface)
@@ -145,7 +153,7 @@ function buildLightMode(family: ColorFamily, variant: ThemeVariant, palette: Pal
   const textInverse = step(neutral, 50)
   const accentColor = step(accent, variant.lightAccentStep)
   const link = step(accent, adjacentStep(variant.lightAccentStep, 1))
-  const focusRing = formatHex(hslToRgb({ h: family.focusHue, s: 80, l: 42 }))
+  const focusRing = formatHex(hslToRgb({ h: family.focusHue, s: clamp(80 * variant.saturationMultiplier, 35, 100), l: 42 }))
   return {
     bg,
     bgElevated,

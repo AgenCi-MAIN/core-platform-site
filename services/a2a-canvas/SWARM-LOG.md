@@ -50,7 +50,7 @@ serving model can differ). Workers are Agent-tool subagents launched with the
 | W2 canvas (sonnet) | apps/live-canvas/src/canvas, tests/canvas | 13:48 | 14:06 | Verified by integrator: 19/19 tests pass, its files typecheck; integrator patched double-click (synthetic double-tap, geometric hit-test, robust SVG clear) after browser evidence showed the native dblclick never fired on rebuilt nodes |
 | W3 runtime (sonnet) | apps/live-canvas/src/runtime, tests/runtime | 13:48 | | |
 | W4 state (sonnet) | apps/live-canvas/src/state, tests/state | 13:48 | 14:01 | Verified by integrator: 19/19 tests pass, its files typecheck; no denied tool calls (worker report) |
-| W6 theme-packs (sonnet) | packages/theme-packs | 13:51 | | |
+| W6 theme-packs (sonnet) | packages/theme-packs | 13:51 | 14:09 | Verified by integrator: 39/39 tests pass, tsc clean; 27 themes (9 families × 3 variants), dedupe threshold 0.05; 1,988 source/test lines + 7,671 generated theme lines |
 | W7 fixtures (sonnet) | packages/fixtures | 13:51 | 14:07 | Verified by integrator: 48/48 tests pass, tsc clean; 10 workflow fixtures + 3 A2A transcripts; 1,863 source/test lines + 2,955 generated sample lines |
 | W8 theme-preview (sonnet) | packages/theme-preview | 13:51 | 14:04 | Verified by integrator: 26/26 tests pass, tsc clean; 1,271 source/test lines + 997 generated preview lines |
 | W5 ui (sonnet) | apps/live-canvas/src/ui, tests/ui | 13:48 | 14:00 | Verified by integrator: 30/30 tests pass, its files typecheck; 1,244 lines; worker reported 152k tokens, 37 tool uses, 10.5 min |
