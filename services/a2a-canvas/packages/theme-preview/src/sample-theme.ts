@@ -75,7 +75,7 @@ function scaleFrom(baseHex: string): ColorScale {
 export const SAMPLE_THEME: ThemeTokens = {
   schemaVersion: THEME_SCHEMA_VERSION,
   meta: {
-    id: asId('theme_sample_obsidian_amethyst'),
+    id: asId<'ThemeId'>('theme_sample_obsidian_amethyst'),
     name: 'Obsidian Amethyst (Reference)',
     family: 'obsidian-amethyst',
     version: '1.0.0',
