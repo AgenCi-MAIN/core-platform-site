@@ -34,7 +34,7 @@ function arrowMarker(doc: Document): SVGMarkerElement {
   const marker = el(doc, 'marker')
   marker.setAttribute('id', 'canvas-arrow')
   marker.setAttribute('viewBox', '0 0 10 10')
-  marker.setAttribute('refX', '8.5')
+  marker.setAttribute('refX', '9')
   marker.setAttribute('refY', '5')
   marker.setAttribute('markerWidth', '8')
   marker.setAttribute('markerHeight', '8')
@@ -79,7 +79,7 @@ export function render(svg: SVGSVGElement, state: AppState, layout: CanvasLayout
     active instanceof Element && svg.contains(active) ? active.closest('[data-card-id]')?.getAttribute('data-card-id') ?? null : null
   const focusCardId = opts.focusCardId !== undefined ? opts.focusCardId : activeCardId
 
-  while (svg.firstChild) svg.removeChild(svg.firstChild)
+  svg.replaceChildren() // robust to a blur handler removing the inline editor mid-loop
 
   const defs = el(doc, 'defs')
   defs.appendChild(arrowMarker(doc))

@@ -47,15 +47,17 @@ serving model can differ). Workers are Agent-tool subagents launched with the
 |---|---|---|---|---|
 | Foundation (default model) | packages/shared, app shell | 13:37 | stopped by the interruption at ~13:42 with no files written (Observed) | taken over by the integrator; landed as `f680ff3` |
 | W1 theme (sonnet) | apps/live-canvas/src/theme, tests/theme | 13:48 | 14:02 | Verified by integrator: 23/23 tests pass, its files typecheck; reference hex values present verbatim in the obsidian theme |
-| W2 canvas (sonnet) | apps/live-canvas/src/canvas, tests/canvas | 13:48 | | |
+| W2 canvas (sonnet) | apps/live-canvas/src/canvas, tests/canvas | 13:48 | 14:06 | Verified by integrator: 19/19 tests pass, its files typecheck; integrator patched double-click (synthetic double-tap, geometric hit-test, robust SVG clear) after browser evidence showed the native dblclick never fired on rebuilt nodes |
 | W3 runtime (sonnet) | apps/live-canvas/src/runtime, tests/runtime | 13:48 | | |
 | W4 state (sonnet) | apps/live-canvas/src/state, tests/state | 13:48 | 14:01 | Verified by integrator: 19/19 tests pass, its files typecheck; no denied tool calls (worker report) |
 | W6 theme-packs (sonnet) | packages/theme-packs | 13:51 | | |
-| W7 fixtures (sonnet) | packages/fixtures | 13:51 | | |
+| W7 fixtures (sonnet) | packages/fixtures | 13:51 | 14:07 | Verified by integrator: 48/48 tests pass, tsc clean; 10 workflow fixtures + 3 A2A transcripts; 1,863 source/test lines + 2,955 generated sample lines |
 | W8 theme-preview (sonnet) | packages/theme-preview | 13:51 | 14:04 | Verified by integrator: 26/26 tests pass, tsc clean; 1,271 source/test lines + 997 generated preview lines |
 | W5 ui (sonnet) | apps/live-canvas/src/ui, tests/ui | 13:48 | 14:00 | Verified by integrator: 30/30 tests pass, its files typecheck; 1,244 lines; worker reported 152k tokens, 37 tool uses, 10.5 min |
 
 ## Milestones
+
+- **14:08Z — Full vertical slice verified in Chromium, zero page errors** (`apps/live-canvas/evidence/log.txt` + four screenshots): double-click label edit now commits ("Edited node") and survives save + reload; everything from the 14:04Z run still holds. Root cause of the edit defect: the canvas rebuilds its SVG on every render, so the browser never saw the same target twice; the native dblclick then fired on the root and created a node instead. Known remaining defect: the Theme Forge lane's apply step reports `applied: null` because the source node carries a theme reference the runtime does not yet resolve (W3 still landing).
 
 - **14:04Z — Vertical slice verified in Chromium** (Playwright against the built single-file page, evidence in the integrator's scratchpad, summarised in the PR): 4 lanes / 18 nodes / 16 connectors rendered; node dragged from Theme Forge into Workflow Lab and undone; three runs completed with run ids; A2A Handoff produced three request/response pairs sharing correlation ids and output `{verified:true}`; Workflow Lab emitted node.failed then recovered via retry, output `["HELLO LANES",11]`; theme apply changed --c-accent; save wrote 6,434 bytes; reload restored theme and layout. Defects found: inline label edit did not commit (under investigation); artifact fragment lacked its script (fixed).
 

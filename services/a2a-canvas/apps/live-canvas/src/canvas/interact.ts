@@ -126,6 +126,8 @@ export function bindInteractions(svg: SVGSVGElement, callbacks: CanvasCallbacks,
     input.select()
   }
 
+  let lastTap: { cardId: CardId; at: number } | null = null
+
   function onPointerDown(e: PointerEvent): void {
     if (!state || e.button !== 0) return
     if (editor) return // let the inline editor's own input handle its events
@@ -140,6 +142,24 @@ export function bindInteractions(svg: SVGSVGElement, callbacks: CanvasCallbacks,
       e.preventDefault()
       return
     }
+    // Synthetic double-click: render.ts rebuilds the SVG on every render, so the
+    // browser's native dblclick (which requires the same target twice) never
+    // fires on a node once the first click has selected it. Two pointerdowns on
+    // the same card within 400ms open the inline editor instead.
+    const tapAt = performance.now()
+    if (nodeCardId && lastTap && lastTap.cardId === nodeCardId && tapAt - lastTap.at < 400) {
+      lastTap = null
+      try {
+        svg.releasePointerCapture(e.pointerId)
+      } catch {
+        /* not captured */
+      }
+      openEditor(nodeCardId)
+      e.preventDefault()
+      return
+    }
+    lastTap = nodeCardId ? { cardId: nodeCardId, at: tapAt } : null
+
     if (nodeCardId) {
       const node = layout.nodes.find((n) => n.cardId === nodeCardId)
       const offset = node ? { x: canvasPoint.x - node.x, y: canvasPoint.y - node.y } : { x: 0, y: 0 }
@@ -283,13 +303,16 @@ export function bindInteractions(svg: SVGSVGElement, callbacks: CanvasCallbacks,
 
   function onDblClick(e: MouseEvent): void {
     if (!state) return
-    const cardId = closestCardId(e.target)
+    if (editor) return // the synthetic double-tap in onPointerDown already opened it
+    const rect = svg.getBoundingClientRect()
+    const canvasPoint = screenToCanvas(e.clientX - rect.left, e.clientY - rect.top, viewport())
+    // The SVG is rebuilt between the two clicks, so e.target may be the root
+    // rather than the node; fall back to geometric hit-testing.
+    const cardId = closestCardId(e.target) ?? nodeAt(layout, canvasPoint)
     if (cardId) {
       openEditor(cardId)
       return
     }
-    const rect = svg.getBoundingClientRect()
-    const canvasPoint = screenToCanvas(e.clientX - rect.left, e.clientY - rect.top, viewport())
     const laneId = laneAt(layout, canvasPoint)
     if (laneId) callbacks.onCreateNode(laneId, canvasPoint)
   }

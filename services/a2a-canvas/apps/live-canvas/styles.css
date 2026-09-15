@@ -79,7 +79,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   display: flex; flex-direction: column; gap: var(--sp-2);
 }
 .panel { position: absolute; padding: var(--sp-2); overflow: auto; }
-.inspector { left: var(--sp-2); top: var(--sp-2); width: 340px; max-width: calc(100% - var(--sp-4)); max-height: 60%; }
+.inspector { right: calc(var(--rail-w) + var(--sp-3)); top: var(--sp-2); width: 340px; max-width: calc(100% - var(--rail-w) - var(--sp-4)); max-height: 60%; }
 .runlog { left: var(--sp-2); bottom: var(--sp-2); width: 420px; max-width: calc(100% - var(--sp-4)); max-height: 34%; font-family: var(--font-mono); font-size: var(--fs-sm); }
 .status {
   position: absolute; left: 50%; bottom: var(--sp-2); transform: translateX(-50%);
@@ -91,7 +91,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .status[data-kind="ok"] { color: var(--c-success); }
 .status[data-kind="error"] { color: var(--c-danger); }
 .status:empty { display: none; }
-.toasts { position: absolute; right: calc(var(--rail-w) + var(--sp-3)); top: var(--sp-2); display: flex; flex-direction: column; gap: var(--sp-1); }
+.toasts { position: absolute; left: 50%; transform: translateX(-50%); top: var(--sp-2); display: flex; flex-direction: column; gap: var(--sp-1); pointer-events: none; }
 .toast { padding: var(--sp-1) var(--sp-2); border-radius: var(--radius-sm); background: var(--c-surface); border: 1px solid var(--c-border); }
 
 /* ---- controls: 44px targets, hover lift, readable disabled ---------------- */
@@ -144,6 +144,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 @media (max-width: 720px) {
   :root { --rail-w: 100%; }
   .rail { left: var(--sp-2); right: var(--sp-2); top: auto; bottom: var(--sp-2); height: 46%; }
-  .inspector { max-height: 40%; }
+  .inspector { left: var(--sp-2); right: var(--sp-2); width: auto; max-width: none; max-height: 40%; }
   .runlog { display: none; }
 }
