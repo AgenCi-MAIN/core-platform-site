@@ -12,10 +12,12 @@ import type {
 } from '../contracts.ts'
 
 const ALPHA_MIN = 0.6
-const ALPHA_MAX = 0.95
+const ALPHA_MAX = 1
 const ALPHA_STEP = 0.01
-const ALPHA_REFERENCE_MIN = 0.78
-const ALPHA_REFERENCE_MAX = 0.86
+// The owner's current source of truth uses opaque surfaces (no glass): the
+// reference band is 100%. Lower values are allowed for experiments.
+const ALPHA_REFERENCE_MIN = 1
+const ALPHA_REFERENCE_MAX = 1
 
 function sameOverrides(a: ThemePatch | undefined, b: ThemePatch | undefined): boolean {
   return JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
@@ -163,7 +165,7 @@ export const mountThemePanel: MountThemePanel = (container, deps) => {
     alphaReadout.textContent = `${Math.round(v * 100)}%`
     const inBand = v >= ALPHA_REFERENCE_MIN && v <= ALPHA_REFERENCE_MAX
     alphaNote.hidden = inBand
-    alphaNote.textContent = inBand ? '' : `Outside the ${Math.round(ALPHA_REFERENCE_MIN * 100)}–${Math.round(ALPHA_REFERENCE_MAX * 100)}% reference glass band.`
+    alphaNote.textContent = inBand ? '' : `Below ${Math.round(ALPHA_REFERENCE_MAX * 100)}%: the source of truth uses opaque surfaces (no glass).`
   }
 
   function setAccentAlphaDisplay(sem: SemanticColors): void {

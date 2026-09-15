@@ -3,19 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="color-scheme" content="dark light" />
+  <meta name="color-scheme" content="dark" />
   <link rel="icon" href="data:," />
   <title>A2A Canvas</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div id="app" class="app" data-theme-id="">
-    <svg id="canvas" class="canvas" role="application" aria-label="Workflow canvas" tabindex="0" xmlns="http://www.w3.org/2000/svg"></svg>
-    <aside id="rail" class="rail glass" aria-label="Control rail"></aside>
-    <section id="inspector" class="panel glass inspector" aria-label="Inspector" hidden></section>
-    <section id="runlog" class="panel glass runlog" aria-label="Run log"></section>
-    <div id="status" class="status" role="status" aria-live="polite"></div>
-    <div id="toasts" class="toasts" aria-live="assertive"></div>
+    <div class="board">
+      <svg id="canvas" class="canvas" role="application" aria-label="Workflow canvas" tabindex="0" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="status" class="status" role="status" aria-live="polite"></div>
+      <div id="toasts" class="toasts" aria-live="assertive"></div>
+    </div>
+    <div class="column">
+      <aside id="rail" class="rail" aria-label="Control rail"></aside>
+      <details class="drawer" open>
+        <summary>Inspector</summary>
+        <section id="inspector" class="panel inspector" aria-label="Inspector" hidden></section>
+      </details>
+      <details class="drawer">
+        <summary>Run log</summary>
+        <section id="runlog" class="panel runlog" aria-label="Run log"></section>
+      </details>
+    </div>
   </div>
   <script type="module" src="./src/main.ts"></script>
 </body>

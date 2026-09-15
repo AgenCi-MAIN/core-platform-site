@@ -67,3 +67,39 @@ serving model can differ). Workers are Agent-tool subagents launched with the
 
 - **13:46Z — Foundation landed** (`f680ff3`, Landed on the branch, not merged). Verified: package typecheck clean, root typecheck clean, root eslint config parses, shared contract test passes (5 tests).
 - **13:48Z — Draft PR #164 opened**; five module workers dispatched with disjoint file ownership. Integrator wrote `apps/live-canvas/src/main.ts` (wiring) while they run.
+
+## Visual pass — owner's new visual source of truth (2026-09-15, after 14:30Z)
+
+Baseline for this pass: `6ee0396` (all lanes landed, 246 tests). Scope: visual and
+interaction refinement only; every behaviour (drag between lanes, connect, inline
+edit, keyboard, save/undo/redo, runs and their evidence, preview publishing) is
+preserved and re-verified.
+
+Source of truth (owner's words; replaces the earlier purple/amethyst glass treatment):
+- Sparse full-bleed charcoal field `#1F1F1F`/`#202020` with generous open space.
+- Cyan only: primary `#08B9D5`, active `#22CBE2`, subdued `rgba(8,185,213,.55)`;
+  labels 13–15px semibold pale cyan, sparse.
+- Nodes and connectors are transparent-fill SVG outlines at 7–9px, round caps
+  and joins, slight deterministic hand-drawn irregularity; loose outlined
+  geometry (loops, capsules, triangles, polygons, glyph-like forms), not cards.
+- Connectors: visible cyan curved or angled routes with rounded ends and
+  outlined rings or hooks.
+- Removed: purple, gradients, translucent glass, opaque panels, drop shadows,
+  label pills, dense chrome. Controls small and outlined. Inspector outside the
+  board so it never covers a workflow object.
+- Hover brightens/widens an outline by ~1px; selection = second cyan outline or
+  quiet halo.
+
+Work split:
+- Integrator: `index.html` (board + control column, inspector and run log as
+  collapsible drawers outside the board), `styles.css` (new tokens and outline
+  classes), `contracts.ts` (`capsule` and `triangle` shape kinds; transform and
+  branch defaults), browser verification, screenshots, publish.
+- Workflow lane `canvas-outlines` (sonnet): shapes, connectors, renderer, canvas tests.
+- Workflow lane `theme-and-libraries` (sonnet): `charcoal-cyan` reference theme,
+  theme tests, seed themeRef, theme-packs reference family, theme-preview sample
+  and stylesheet, regenerated packs and gallery.
+- Independent verifier (sonnet): typecheck, full suite, remnant grep, build; one
+  correction round if needed.
+
+(Results appended below when verified.)

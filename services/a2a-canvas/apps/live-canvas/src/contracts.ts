@@ -14,7 +14,7 @@ import type {
 } from '../../../packages/shared/src/index.ts'
 
 /* ---- shapes & node kinds -------------------------------------------------- */
-export const SHAPE_KINDS = ['rect', 'rounded', 'circle', 'diamond', 'pentagon', 'hexagon'] as const
+export const SHAPE_KINDS = ['rect', 'rounded', 'circle', 'diamond', 'pentagon', 'hexagon', 'capsule', 'triangle'] as const
 export type ShapeKind = (typeof SHAPE_KINDS)[number]
 
 export const NODE_KINDS = ['source', 'probe', 'transform', 'a2a-handoff', 'branch', 'join', 'retry', 'apply-theme', 'preview', 'sink'] as const
@@ -23,9 +23,9 @@ export type NodeKind = (typeof NODE_KINDS)[number]
 export const NODE_KIND_META: Record<NodeKind, { label: string; defaultShape: ShapeKind; description: string }> = {
   source: { label: 'Source', defaultShape: 'circle', description: 'Starts a run with a payload from its config.' },
   probe: { label: 'Probe', defaultShape: 'pentagon', description: 'Inspects its input and reports checks (e.g. contrast probe on a theme).' },
-  transform: { label: 'Transform', defaultShape: 'rounded', description: 'Maps input to output with a named transform from its config.' },
+  transform: { label: 'Transform', defaultShape: 'capsule', description: 'Maps input to output with a named transform from its config.' },
   'a2a-handoff': { label: 'A2A Handoff', defaultShape: 'hexagon', description: 'Sends the input to an in-page agent over the A2A transport and waits for the correlated reply.' },
-  branch: { label: 'Branch', defaultShape: 'diamond', description: 'Fans its input out to every outgoing edge.' },
+  branch: { label: 'Branch', defaultShape: 'triangle', description: 'Fans its input out to every outgoing edge.' },
   join: { label: 'Join', defaultShape: 'diamond', description: 'Waits for every incoming edge and merges their outputs.' },
   retry: { label: 'Retry', defaultShape: 'rounded', description: 'Re-runs its upstream step on failure up to config.maxAttempts.' },
   'apply-theme': { label: 'Apply theme', defaultShape: 'rect', description: 'Applies theme tokens from its input to the page (preview until Save).' },
