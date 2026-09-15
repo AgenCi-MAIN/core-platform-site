@@ -8,10 +8,10 @@ const HEX7 = /^#[0-9A-F]{6}$/
 
 test('THEMES has exactly the three required packs with the right provenance', () => {
   assert.equal(THEMES.length, 3)
-  const byId = new Map(THEMES.map((t) => [t.meta.id, t]))
-  assert.equal(byId.get('obsidian-amethyst')?.meta.provenance, 'reference')
-  assert.equal(byId.get('daylight-slate')?.meta.provenance, 'proposed')
-  assert.equal(byId.get('high-contrast-mono')?.meta.provenance, 'proposed')
+  const find = (id: string) => THEMES.find((t) => t.meta.id === id)
+  assert.equal(find('obsidian-amethyst')?.meta.provenance, 'reference')
+  assert.equal(find('daylight-slate')?.meta.provenance, 'proposed')
+  assert.equal(find('high-contrast-mono')?.meta.provenance, 'proposed')
   assert.equal(DEFAULT_THEME_ID, 'obsidian-amethyst')
 })
 

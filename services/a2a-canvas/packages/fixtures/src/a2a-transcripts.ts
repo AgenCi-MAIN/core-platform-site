@@ -49,8 +49,8 @@ export interface A2ATranscript {
 function buildHandoffSuccess(): A2ATranscript {
   const ids = createIdFactory(301)
   const clock = steppingClock(Date.parse('2026-09-15T13:00:00.000Z'), 1000)
-  const dispatcher: AgentId = asId('agent.dispatcher')
-  const verifier: AgentId = asId('agent.verifier')
+  const dispatcher: AgentId = asId<'AgentId'>('agent.dispatcher')
+  const verifier: AgentId = asId<'AgentId'>('agent.verifier')
   const taskId = ids.task()
   const correlationId = ids.next('corr')
 
@@ -117,8 +117,8 @@ function buildHandoffSuccess(): A2ATranscript {
 function buildTimeoutThenRetry(): A2ATranscript {
   const ids = createIdFactory(302)
   const clock = steppingClock(Date.parse('2026-09-15T14:00:00.000Z'), 1000)
-  const dispatcher: AgentId = asId('agent.dispatcher')
-  const dialerAgent: AgentId = asId('agent.dialer')
+  const dispatcher: AgentId = asId<'AgentId'>('agent.dispatcher')
+  const dialerAgent: AgentId = asId<'AgentId'>('agent.dialer')
   const taskId = ids.task()
   const correlationId = ids.next('corr')
 
@@ -217,11 +217,11 @@ function buildTimeoutThenRetry(): A2ATranscript {
 function buildDeclinedVote(): A2ATranscript {
   const ids = createIdFactory(303)
   const clock = steppingClock(Date.parse('2026-09-15T15:00:00.000Z'), 1000)
-  const proposer: AgentId = asId('agent.theme-proposer')
-  const chair: AgentId = asId('agent.theme-chair')
-  const reviewer1: AgentId = asId('agent.reviewer-1')
-  const reviewer2: AgentId = asId('agent.reviewer-2')
-  const reviewer3: AgentId = asId('agent.reviewer-3')
+  const proposer: AgentId = asId<'AgentId'>('agent.theme-proposer')
+  const chair: AgentId = asId<'AgentId'>('agent.theme-chair')
+  const reviewer1: AgentId = asId<'AgentId'>('agent.reviewer-1')
+  const reviewer2: AgentId = asId<'AgentId'>('agent.reviewer-2')
+  const reviewer3: AgentId = asId<'AgentId'>('agent.reviewer-3')
   const taskId = ids.task()
   const correlationId = ids.next('corr')
   const proposalId = ids.next('proposal')
