@@ -10,8 +10,8 @@
  * a2a/transport.ts) — no network, no model call, no credential.
  */
 import type { CanvasNode, NodeKind, RunEvent, RunOptions, ThemeApi } from '../contracts.ts'
-import type { AgentId, DataPart, Part, Task, TaskId, ThemeTokens } from '../../../../packages/shared/src/index.ts'
-import { isoAt, systemClock } from '../../../../packages/shared/src/index.ts'
+import type { AgentId, DataPart, Message, Part, Task, TaskId, ThemeTokens } from '../../../../packages/shared/src/index.ts'
+import { asId, isoAt, systemClock } from '../../../../packages/shared/src/index.ts'
 import type { Endpoint } from './a2a/transport.ts'
 import { sendTask } from './a2a/client.ts'
 import { JSON_RPC_ERRORS } from '../../../../packages/shared/src/index.ts'
@@ -187,14 +187,14 @@ async function a2aHandoffExecutor(ctx: ExecCtx): Promise<unknown> {
   }
   const clock = ctx.opts.clock ?? systemClock
   const correlationId = globalThis.crypto.randomUUID()
-  const taskId = globalThis.crypto.randomUUID() as unknown as TaskId
+  const taskId: TaskId = asId(globalThis.crypto.randomUUID())
   const toAgent = to as AgentId
   const input = ctx.inputs[0]
   const parts: Part[] = [{ kind: 'data', data: { payload: input, config: ctx.node.config } }]
-  const requestMessage = {
-    id: globalThis.crypto.randomUUID(),
+  const requestMessage: Message = {
+    id: asId(globalThis.crypto.randomUUID()),
     taskId,
-    role: 'user' as const,
+    role: 'user',
     from: ctx.a2a.from,
     to: toAgent,
     parts,

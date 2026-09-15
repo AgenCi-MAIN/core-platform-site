@@ -7,10 +7,10 @@
  * across every run() it executes.
  */
 import type {
-  AgentCard, CanvasWorkflow, CreateRuntime, NodeRunSummary,
+  CanvasWorkflow, CreateRuntime, NodeRunSummary,
   RunEvent, RunHandle, RunOptions, RunRecord, Runtime,
 } from '../contracts.ts'
-import type { CardId, Clock, RunId, TaskState } from '../../../../packages/shared/src/index.ts'
+import type { AgentCard, CardId, Clock, RunId, TaskState } from '../../../../packages/shared/src/index.ts'
 import { asId, createIdFactory, isoAt, systemClock } from '../../../../packages/shared/src/index.ts'
 import { predecessors, topologicalOrder, validate } from './graph.ts'
 import type { ExecCtx } from './executors.ts'
@@ -131,13 +131,18 @@ export const createRuntime: CreateRuntime = (deps = {}) => {
       const preds = predecessors(workflow)
       const cardsById = new Map(workflow.cards.map((c) => [c.id, c] as const))
       const outputs = new Map<CardId, unknown>()
-      let failure: { cardId: CardId; error: string } | null = null
+      // A mutable box, not a plain `let`: TS's control-flow narrowing across
+      // the for-of loop's `break` collapses a captured-and-reassigned `let`
+      // down to its initializer's type (null) by the time we read it after
+      // the loop, even though the closure really can set it. Reading through
+      // a property sidesteps that (properties aren't narrowed the same way).
+      const box: { failure: { cardId: CardId; error: string } | null } = { failure: null }
 
       for (const layer of topo.value) {
         if (controller.signal.aborted) break
         await Promise.all(
           layer.map(async (cardId) => {
-            if (controller.signal.aborted || failure) return
+            if (controller.signal.aborted || box.failure) return
             const node = cardsById.get(cardId)
             if (!node) return
             const inputs = (preds.get(cardId) ?? []).map((id) => outputs.get(id))
@@ -174,26 +179,27 @@ export const createRuntime: CreateRuntime = (deps = {}) => {
                 push({ type: 'node.failed', cardId, error: message, willRetry, ...stamp() })
                 if (!willRetry) {
                   touchSummary(cardId, { state: 'failed', error: message, finishedAt: isoAt(runClock) })
-                  failure = { cardId, error: message }
+                  box.failure = { cardId, error: message }
                   return
                 }
               }
             }
           }),
         )
-        if (failure) break
+        if (box.failure) break
       }
 
+      const finalFailure = box.failure
       if (controller.signal.aborted) {
         for (const [cardId, summary] of summaries) {
           if (summary.state === 'working') summaries.set(cardId, { ...summary, state: 'canceled', finishedAt: isoAt(runClock) })
         }
         push({ type: 'run.canceled', ...stamp() })
         record.state = 'canceled'
-      } else if (failure) {
-        push({ type: 'run.failed', error: failure.error, cardId: failure.cardId, ...stamp() })
+      } else if (finalFailure) {
+        push({ type: 'run.failed', error: finalFailure.error, cardId: finalFailure.cardId, ...stamp() })
         record.state = 'failed'
-        record.error = failure.error
+        record.error = finalFailure.error
       } else {
         const output = computeFinalOutput(workflow, outputs)
         const durationMs = runClock.now() - startedAtMs

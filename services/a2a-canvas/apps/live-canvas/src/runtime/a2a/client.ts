@@ -6,7 +6,7 @@
  * network.
  */
 import type { AgentId, Clock, JsonRpcError, JsonRpcRequest, Message, Part, Result, Task, TaskId } from '../../../../../packages/shared/src/index.ts'
-import { err, isoAt, ok, systemClock } from '../../../../../packages/shared/src/index.ts'
+import { asId, err, isoAt, ok, systemClock } from '../../../../../packages/shared/src/index.ts'
 import type { Endpoint } from './transport.ts'
 import type { TaskSendParams } from './agents.ts'
 
@@ -35,7 +35,7 @@ function newError(e: unknown): JsonRpcError {
 export async function sendTask(args: SendTaskArgs): Promise<Result<Task, JsonRpcError>> {
   const clock = args.clock ?? systemClock
   const message: Message = {
-    id: globalThis.crypto.randomUUID(),
+    id: asId(globalThis.crypto.randomUUID()),
     taskId: args.taskId,
     role: 'user',
     from: args.from,
