@@ -13,9 +13,10 @@ import type { IdFactory } from '../../../../packages/shared/src/ids.ts'
 
 const NODE_W = 160
 const NODE_H = 72
-const GAP = 24
-const COL_STEP = NODE_W + GAP
-const ROW_STEP = NODE_H + GAP
+const COL_GAP = 104 // open space for a visible route between nodes
+const ROW_GAP = 32
+const COL_STEP = NODE_W + COL_GAP
+const ROW_STEP = NODE_H + ROW_GAP
 
 export function createSeedFactory(ids: IdFactory = createIdFactory(1), clock: Clock = systemClock): SeedFactory {
   function mkLane(workflowId: WorkflowId, title: string): Lane {
@@ -47,8 +48,8 @@ export function createSeedFactory(ids: IdFactory = createIdFactory(1), clock: Cl
   function themeForge(): CanvasWorkflow {
     const workflowId = ids.workflow()
     const lane = mkLane(workflowId, 'Theme Forge')
-    const tokens = mkNode(lane.id, 'source', 'Tokens', { payload: { themeRef: 'obsidian-amethyst' } }, 0, 0)
-    const setAccent = mkNode(lane.id, 'transform', 'Set accent', { transform: 'setAccent', accent: '#A78BFA' }, 1, 1)
+    const tokens = mkNode(lane.id, 'source', 'Tokens', { payload: { themeRef: 'charcoal-cyan' } }, 0, 0)
+    const setAccent = mkNode(lane.id, 'transform', 'Set accent', { transform: 'setAccent', accent: '#08B9D5' }, 1, 1)
     const probe = mkNode(lane.id, 'probe', 'Contrast probe', {}, 2, 2)
     const apply = mkNode(lane.id, 'apply-theme', 'Apply', {}, 3, 3)
     const preview = mkNode(lane.id, 'preview', 'Preview', {}, 4, 4)
@@ -76,7 +77,7 @@ export function createSeedFactory(ids: IdFactory = createIdFactory(1), clock: Cl
   function a2aHandoff(): CanvasWorkflow {
     const workflowId = ids.workflow()
     const lane = mkLane(workflowId, 'A2A Handoff')
-    const task = mkNode(lane.id, 'source', 'Task', { payload: { task: 'propose accent', accent: '#A78BFA' } }, 0, 0)
+    const task = mkNode(lane.id, 'source', 'Task', { payload: { task: 'propose accent', accent: '#08B9D5' } }, 0, 0)
     const paletteAgent = mkNode(lane.id, 'a2a-handoff', 'Palette agent', { to: 'palette-agent', timeoutMs: 2000 }, 1, 1)
     const contrastCritic = mkNode(lane.id, 'a2a-handoff', 'Contrast critic', { to: 'contrast-critic' }, 2, 2)
     const verifier = mkNode(lane.id, 'a2a-handoff', 'Verifier', { to: 'verifier-agent', required: ['score'] }, 3, 3)

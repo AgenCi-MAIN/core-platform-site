@@ -5,14 +5,14 @@ import { compositeOver } from '../../src/theme/color.ts'
 import { THEMES } from '../../src/theme/themes.ts'
 import type { ThemeTokens } from '../../src/contracts.ts'
 
-function obsidian(): ThemeTokens {
-  const t = THEMES.find((x) => x.meta.id === 'obsidian-amethyst')
-  if (!t) throw new Error('missing obsidian-amethyst fixture')
+function charcoalCyan(): ThemeTokens {
+  const t = THEMES.find((x) => x.meta.id === 'charcoal-cyan')
+  if (!t) throw new Error('missing charcoal-cyan fixture')
   return t
 }
 
 test('each check\'s background is the colour actually painted', () => {
-  const theme = obsidian()
+  const theme = charcoalCyan()
   const result = probe(theme, 'dark')
   const expectedSurface = compositeOver(theme.modes.dark.surface, theme.modes.dark.surfaceAlpha, theme.modes.dark.bg)
 
@@ -28,12 +28,12 @@ test('each check\'s background is the colour actually painted', () => {
 })
 
 test('a check in the 3-4.5 warning band is reported as a warning, not an error', () => {
-  const theme = obsidian()
+  const theme = charcoalCyan()
   // Force textMuted to a mid-gray that sits in the 3-4.5 band against the
   // composited dark surface, everything else left alone.
   const patched: ThemeTokens = {
     ...theme,
-    modes: { ...theme.modes, dark: { ...theme.modes.dark, textMuted: '#7A7285' } },
+    modes: { ...theme.modes, dark: { ...theme.modes.dark, textMuted: '#5A6E70' } },
   }
   const result = probe(patched, 'dark')
   const mutedCheck = result.checks.find((c) => c.name === 'muted on surface')
@@ -48,7 +48,7 @@ test('a check in the 3-4.5 warning band is reported as a warning, not an error',
 })
 
 test('a check below the warning band is reported as an error and fails the probe', () => {
-  const theme = obsidian()
+  const theme = charcoalCyan()
   const patched: ThemeTokens = {
     ...theme,
     modes: { ...theme.modes, dark: { ...theme.modes.dark, textMuted: theme.modes.dark.bg } },
@@ -61,7 +61,7 @@ test('a check below the warning band is reported as an error and fails the probe
 })
 
 test('probe defaults to dark mode and stamps the theme id', () => {
-  const theme = obsidian()
+  const theme = charcoalCyan()
   const result = probe(theme)
   assert.equal(result.mode, 'dark')
   assert.equal(result.themeId, theme.meta.id)

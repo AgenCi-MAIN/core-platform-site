@@ -32,8 +32,8 @@ export interface CanvasLayout {
 /* ---- tunables (deliverable-required exports) -------------------------- */
 export const PADDING = 24
 export const LANE_GAP = 16
-export const NODE_GAP = 24
-export const LANE_MIN_H = 180
+export const NODE_GAP = 96 // open space between auto-placed nodes so routes stay visible
+export const LANE_MIN_H = 240 // fits two node rows (seeds place parallel steps 96px apart) plus padding
 
 /* ---- internal-only tunables -------------------------------------------- */
 const WORKFLOW_TITLE_H = 32
@@ -213,4 +213,27 @@ export function screenToCanvas(screenX: number, screenY: number, viewport: Viewp
 /** Canvas point → screen-relative point (inverse of screenToCanvas). */
 export function canvasToScreen(x: number, y: number, viewport: Viewport): Point {
   return { x: x * viewport.zoom + viewport.x, y: y * viewport.zoom + viewport.y }
+}
+
+/**
+ * Seed and fixture documents express node positions relative to their lane's
+ * content origin, while the canvas stores absolute canvas-space positions
+ * (what drags and double-click creation produce). This maps a lane-relative
+ * document to absolute positions using the same geometry as computeLayout.
+ * Apply it once, to a freshly seeded document — never to a restored one.
+ */
+export function absolutizePositions(doc: CanvasDoc): CanvasDoc {
+  const layout = computeLayout(doc)
+  const laneOrigin = new Map<string, { x: number; y: number }>()
+  for (const lane of layout.lanes) laneOrigin.set(lane.laneId, { x: lane.x + PADDING, y: lane.y + LANE_TITLE_H + PADDING })
+  return {
+    ...doc,
+    workflows: doc.workflows.map((wf) => ({
+      ...wf,
+      cards: wf.cards.map((card) => {
+        const origin = card.position ? laneOrigin.get(card.laneId) : undefined
+        return origin && card.position ? { ...card, position: { x: origin.x + card.position.x, y: origin.y + card.position.y } } : card
+      }),
+    })),
+  }
 }

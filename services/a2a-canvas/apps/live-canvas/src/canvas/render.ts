@@ -14,7 +14,7 @@
 import type { AppState, CanvasNode, CardId, LaneId, ShapeKind } from '../contracts.ts'
 import { NODE_KIND_META } from '../contracts.ts'
 import type { CanvasLayout } from './layout.ts'
-import { shapePath, keylinePath } from './shapes.ts'
+import { shapePath, keylinePath, haloPath } from './shapes.ts'
 import { connectorPath, midpoint, type ConnectorRoute } from './connectors.ts'
 
 const SVG_NS = 'http://www.w3.org/2000/svg'
@@ -30,19 +30,24 @@ function el<K extends keyof SVGElementTagNameMap>(doc: Document, tag: K): SVGEle
   return doc.createElementNS(SVG_NS, tag) as SVGElementTagNameMap[K]
 }
 
-function arrowMarker(doc: Document): SVGMarkerElement {
+function ringMarker(doc: Document): SVGMarkerElement {
   const marker = el(doc, 'marker')
-  marker.setAttribute('id', 'canvas-arrow')
-  marker.setAttribute('viewBox', '0 0 10 10')
-  marker.setAttribute('refX', '9')
-  marker.setAttribute('refY', '5')
-  marker.setAttribute('markerWidth', '8')
-  marker.setAttribute('markerHeight', '8')
+  marker.setAttribute('id', 'canvas-ring')
+  marker.setAttribute('viewBox', '0 0 16 16')
+  marker.setAttribute('refX', '8')
+  marker.setAttribute('refY', '8')
+  marker.setAttribute('markerWidth', '16')
+  marker.setAttribute('markerHeight', '16')
   marker.setAttribute('orient', 'auto-start-reverse')
-  const path = el(doc, 'path')
-  path.setAttribute('d', 'M0,0 L10,5 L0,10 Z')
-  path.setAttribute('class', 'connector-arrow')
-  marker.appendChild(path)
+  // Size the ring in canvas units; the default (strokeWidth units) would scale
+  // the 16px marker by the 7px connector stroke into a ~110px circle.
+  marker.setAttribute('markerUnits', 'userSpaceOnUse')
+  const circle = el(doc, 'circle')
+  circle.setAttribute('cx', '8')
+  circle.setAttribute('cy', '8')
+  circle.setAttribute('r', '6')
+  circle.setAttribute('class', 'connector-ring')
+  marker.appendChild(circle)
   return marker
 }
 
@@ -82,7 +87,7 @@ export function render(svg: SVGSVGElement, state: AppState, layout: CanvasLayout
   svg.replaceChildren() // robust to a blur handler removing the inline editor mid-loop
 
   const defs = el(doc, 'defs')
-  defs.appendChild(arrowMarker(doc))
+  defs.appendChild(ringMarker(doc))
   svg.appendChild(defs)
 
   const root = el(doc, 'g')
@@ -115,8 +120,6 @@ export function render(svg: SVGSVGElement, state: AppState, layout: CanvasLayout
     title.setAttribute('class', 'workflow-title')
     title.setAttribute('x', String(wfLayout.x + 4))
     title.setAttribute('y', String(wfLayout.y + 20))
-    title.setAttribute('fill', 'var(--c-text)')
-    title.setAttribute('style', 'font:600 var(--fs-lg)/1 var(--font-sans)')
     title.textContent = wfLayout.title
     wfG.appendChild(title)
 
@@ -137,7 +140,8 @@ export function render(svg: SVGSVGElement, state: AppState, layout: CanvasLayout
       laneTitle.setAttribute('class', 'lane-title')
       laneTitle.setAttribute('x', String(lane.x + 12))
       laneTitle.setAttribute('y', String(lane.y + 18))
-      laneTitle.textContent = laneData?.title ?? ''
+      // A lane that carries the same name as its workflow shows one title, not two.
+      laneTitle.textContent = laneData && laneData.title !== wf.name ? laneData.title : ''
       laneG.append(rect, laneTitle)
       wfG.appendChild(laneG)
     }
@@ -160,7 +164,7 @@ export function render(svg: SVGSVGElement, state: AppState, layout: CanvasLayout
       const active2 = fromCard?.status === 'running' || toCard?.status === 'running'
       path.setAttribute('class', active2 ? 'connector active' : 'connector')
       path.setAttribute('d', d)
-      path.setAttribute('marker-end', 'url(#canvas-arrow)')
+      path.setAttribute('marker-end', 'url(#canvas-ring)')
       path.setAttribute('data-edge-id', edge.id)
       edgesG.appendChild(path)
       if (edge.label) {
@@ -170,8 +174,6 @@ export function render(svg: SVGSVGElement, state: AppState, layout: CanvasLayout
         label.setAttribute('x', String(p.x))
         label.setAttribute('y', String(p.y - 6))
         label.setAttribute('text-anchor', 'middle')
-        label.setAttribute('fill', 'var(--c-muted)')
-        label.setAttribute('style', 'font: var(--fs-sm) var(--font-sans)')
         label.textContent = edge.label
         edgesG.appendChild(label)
       }
@@ -206,20 +208,25 @@ export function render(svg: SVGSVGElement, state: AppState, layout: CanvasLayout
     const meta = NODE_KIND_META[card.kind]
     g.setAttribute('aria-label', `${meta.label} node: ${card.title || 'untitled'}`)
 
+    const halo = el(doc, 'path')
+    halo.setAttribute('class', 'node-halo')
+    halo.setAttribute('d', haloPath(card.shape as ShapeKind, node.w, node.h, card.id))
+    g.appendChild(halo)
+
     const shape = el(doc, 'path')
     shape.setAttribute('class', 'node-shape')
-    shape.setAttribute('d', shapePath(card.shape as ShapeKind, node.w, node.h))
+    shape.setAttribute('d', shapePath(card.shape as ShapeKind, node.w, node.h, card.id))
     g.appendChild(shape)
 
     const keyline = el(doc, 'path')
     keyline.setAttribute('class', 'node-keyline')
-    keyline.setAttribute('d', keylinePath(card.shape as ShapeKind, node.w, node.h))
-    keyline.setAttribute('fill', 'none')
+    keyline.setAttribute('d', keylinePath(card.shape as ShapeKind, node.w, node.h, card.id))
     g.appendChild(keyline)
 
     const label = el(doc, 'text')
     label.setAttribute('class', 'node-label')
-    label.setAttribute('x', String(node.w / 2))
+    // A right-pointing triangle is widest on the left, so its label sits left of centre.
+    label.setAttribute('x', String(card.shape === 'triangle' ? node.w * 0.4 : node.w / 2))
     label.setAttribute('y', String(node.h / 2 - 4))
     label.setAttribute('text-anchor', 'middle')
     g.appendChild(label)
@@ -244,10 +251,9 @@ export function render(svg: SVGSVGElement, state: AppState, layout: CanvasLayout
 
     const handle = el(doc, 'circle')
     handle.setAttribute('class', 'connector-handle')
-    handle.setAttribute('r', '8')
+    handle.setAttribute('r', '6')
     handle.setAttribute('cx', String(node.w))
     handle.setAttribute('cy', String(node.h / 2))
-    handle.setAttribute('fill', 'var(--c-accent)')
     handle.setAttribute('pointer-events', 'none')
     g.appendChild(handle)
 

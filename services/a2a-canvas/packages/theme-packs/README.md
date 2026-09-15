@@ -1,6 +1,6 @@
 # @core/theme-packs
 
-A curated, loadable theme library for the A2A canvas: 27 complete
+A curated, loadable theme library for the A2A canvas: 30 complete
 `ThemeTokens` (see `packages/shared/src/theme-tokens.ts`), one JSON file
 each, generated deterministically and checked for accessibility and
 distinctness before they ever hit disk. The theme maker's picker lists
@@ -9,16 +9,16 @@ theme JSON by the `path` an index entry names.
 
 ## How it is generated
 
-Nine **families** (`src/families.ts`) — `obsidian-amethyst`, `daylight-slate`,
-`ember`, `sea-glass`, `graphite-mono`, `thrive-sky`, `sunset`, `forest`,
-`high-contrast` — each define a hue per palette role, a base saturation, a
-focus-ring hue kept deliberately separate from the accent hue, a radius
-style and a font stack. Three **variants** (`base`, `soft`, `vivid`) apply
-on top of every family: different saturation multipliers, different scale
-steps for backgrounds/surfaces/accents, different glass alpha, and a small
-accent-hue "tint" blended into the background so even a near-desaturated
-family (`graphite-mono`, `high-contrast`) still reads as visibly different
-across its own variants. 9 families × 3 variants = **27 themes**.
+Ten **families** (`src/families.ts`) — `charcoal-cyan`, `obsidian-amethyst`,
+`daylight-slate`, `ember`, `sea-glass`, `graphite-mono`, `thrive-sky`,
+`sunset`, `forest`, `high-contrast` — each define a hue per palette role, a
+base saturation, a focus-ring hue, a radius style and a font stack. Three
+**variants** (`base`, `soft`, `vivid`) apply on top of every family:
+different saturation multipliers, different scale steps for
+backgrounds/surfaces/accents, different glass alpha, and a small accent-hue
+"tint" blended into the background so even a near-desaturated family
+(`graphite-mono`, `high-contrast`) still reads as visibly different across
+its own variants. 10 families × 3 variants = **30 themes**.
 
 `src/color.ts` holds the colour math (hex ↔ RGB ↔ HSL, an 11-step scale
 generator that is monotonic in luminance by construction, WCAG luminance
@@ -31,7 +31,7 @@ alpha-blended once over `bg`, per the schema's comment on `surfaceAlpha`) —
 so a theme this generator returns can never fail its own contrast rule.
 `high-contrast` targets **7:1** (AAA) instead of the 4.5 floor.
 
-`scripts/build-packs.ts` builds all 27 themes with a **seeded id factory**
+`scripts/build-packs.ts` builds all 30 themes with a **seeded id factory**
 and a **fixed clock**, validates every one (`src/validate.ts`), checks the
 whole set pairwise for near-duplicates, and only then writes
 `themes/<family>/<variant>.json` and `themes/index.json`. Because the seed,
@@ -49,18 +49,21 @@ node packages/theme-packs/scripts/build-packs.ts
 
 Every theme's `meta.provenance` is one of:
 
-- **`reference`** — taken from the owner's Freeform board. Only
-  `obsidian-amethyst`'s `base` variant carries this, and its dark mode is
-  pinned to the literal reference hexes after the formula runs (`bg`
-  `#11121A`, `surface` `#24193A` at 0.82 alpha, `accent` `#A78BFA`, `focus`
-  `#67E8F9`, `text` `#F5F3FF`, `muted` `#C4B5FD`) rather than trusting the
-  generator to reproduce them exactly. `obsidian-amethyst`'s `soft` and
-  `vivid` variants are generated normally and do **not** carry the verbatim
-  reference — they're this family's own proposed range.
-- **`proposed`** — this swarm's own design choice; every other family.
+- **`reference`** — taken from the owner's visual source of truth
+  (2026-09-15, styles.css). Only `charcoal-cyan`'s `base` variant carries
+  this, and its dark mode is pinned to the literal reference hexes after the
+  formula runs (`bg` `#1F1F1F`, `surface` `#1F1F1F` at full opacity — no
+  glass, `accent` `#08B9D5`, `focus` `#22CBE2`, `text` `#D9F7FB`, `muted`
+  `#A7C6CB`) rather than trusting the generator to reproduce them exactly.
+  `charcoal-cyan`'s `soft` and `vivid` variants are generated normally and do
+  **not** carry the verbatim reference — they're this family's own proposed
+  range. `obsidian-amethyst` was the earlier purple/glass reference; it is
+  now a `proposed` family, generated normally like every other one.
+- **`proposed`** — this swarm's own design choice; every other family,
+  `obsidian-amethyst` included.
 
 `meta.generated` is always `true`: nothing in this package is hand-authored
-JSON, all 27 files come out of `buildTheme`.
+JSON, all 30 files come out of `buildTheme`.
 
 ## The dedupe threshold
 
@@ -71,8 +74,8 @@ and returns the mean normalized Euclidean RGB distance across them — `0`
 for identical colours, `1` for black vs. white on every swatch.
 `DEDUPE_THRESHOLD = 0.05`: two themes closer than that are near-duplicates,
 and `buildThemeSet`/`build-packs.ts` throw rather than write a set that
-contains a pair like that. Across the full 27-theme, 351-pair set the
-closest pair sits at `~0.054`, comfortably clear of the threshold; nothing
+contains a pair like that. Across the full 30-theme, 435-pair set the
+closest pair sits at `~0.0536`, comfortably clear of the threshold; nothing
 here is a coin-flip pass.
 
 ## Public surface (`src/index.ts`)
@@ -91,9 +94,9 @@ here is a coin-flip pass.
 scale luminance strictly monotonic (including a fully desaturated case).
 `tests/generate.test.ts` — every family × variant validates, text contrast
 holds in both modes for every theme (7:1 for `high-contrast`), no pair is
-within the dedupe threshold, the `obsidian-amethyst` base's dark mode
-matches the reference hexes verbatim (and its `soft`/`vivid` siblings do
-not). `tests/validate.test.ts` — structural/format/contrast rejections.
+within the dedupe threshold, the `charcoal-cyan` base's dark mode matches
+the reference hexes verbatim (and its `soft`/`vivid` siblings do not).
+`tests/validate.test.ts` — structural/format/contrast rejections.
 `tests/build-packs.test.ts` — two builds into two temp dirs are
 byte-identical, a rebuild into the same dir is idempotent, and
 `index.json`'s `count` matches the number of theme files actually written.

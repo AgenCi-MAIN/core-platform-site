@@ -41,7 +41,7 @@
           "kind": "source",
           "config": {
             "paletteRole": "accent",
-            "hex": "#A78BFA"
+            "hex": "#08B9D5"
           },
           "w": 160,
           "h": 64,
@@ -100,7 +100,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "focusRing": "#67E8F9"
@@ -160,10 +160,10 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
-            "accent": "#A78BFA"
+            "accent": "#08B9D5"
           },
           "w": 160,
           "h": 64,

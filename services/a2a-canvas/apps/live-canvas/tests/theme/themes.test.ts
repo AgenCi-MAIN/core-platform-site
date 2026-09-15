@@ -9,41 +9,66 @@ const HEX7 = /^#[0-9A-F]{6}$/
 test('THEMES has exactly the three required packs with the right provenance', () => {
   assert.equal(THEMES.length, 3)
   const find = (id: string) => THEMES.find((t) => t.meta.id === id)
-  assert.equal(find('obsidian-amethyst')?.meta.provenance, 'reference')
+  assert.equal(find('charcoal-cyan')?.meta.provenance, 'reference')
   assert.equal(find('daylight-slate')?.meta.provenance, 'proposed')
   assert.equal(find('high-contrast-mono')?.meta.provenance, 'proposed')
-  assert.equal(DEFAULT_THEME_ID, 'obsidian-amethyst')
+  assert.equal(DEFAULT_THEME_ID, 'charcoal-cyan')
 })
 
-test('the obsidian reference values are verbatim in dark mode', () => {
-  const obsidian = THEMES.find((t) => t.meta.id === 'obsidian-amethyst')
-  assert.ok(obsidian)
-  const dark = obsidian.modes.dark
-  assert.equal(dark.bg, '#11121A')
-  assert.equal(dark.surface, '#24193A')
-  assert.equal(dark.surfaceAlpha, 0.82)
-  assert.equal(dark.accent, '#A78BFA')
-  assert.equal(dark.focusRing, '#67E8F9')
-  assert.equal(dark.text, '#F5F3FF')
-  assert.equal(dark.textMuted, '#C4B5FD')
-  assert.equal(obsidian.components.button.hoverLiftPx, 2)
-  assert.equal(obsidian.components.workflowCard.selectedRing, 'accent')
-  assert.equal(obsidian.components.workflowCard.keyline, 'focusRing')
+test('the charcoal-cyan reference values are verbatim in dark mode', () => {
+  const charcoal = THEMES.find((t) => t.meta.id === 'charcoal-cyan')
+  assert.ok(charcoal)
+  const dark = charcoal.modes.dark
+  assert.equal(dark.bg, '#1F1F1F')
+  assert.equal(dark.surface, '#1F1F1F')
+  assert.equal(dark.surfaceAlpha, 1)
+  assert.equal(dark.accent, '#08B9D5')
+  assert.equal(dark.focusRing, '#22CBE2')
+  assert.equal(dark.text, '#D9F7FB')
+  assert.equal(charcoal.components.button.hoverLiftPx, 0)
+  assert.equal(charcoal.components.workflowCard.selectedRing, 'focusRing')
+  assert.equal(charcoal.components.workflowCard.keyline, 'focusRing')
   // spacing 8/16/24/32px live at the 2/4/6/8 steps (0.25rem per step)
-  assert.equal(obsidian.spacing['2'], 0.5)
-  assert.equal(obsidian.spacing['4'], 1)
-  assert.equal(obsidian.spacing['6'], 1.5)
-  assert.equal(obsidian.spacing['8'], 2)
+  assert.equal(charcoal.spacing['2'], 0.5)
+  assert.equal(charcoal.spacing['4'], 1)
+  assert.equal(charcoal.spacing['6'], 1.5)
+  assert.equal(charcoal.spacing['8'], 2)
 })
 
-test('the obsidian reference theme passes the probe in dark mode with zero error-severity issues', () => {
-  const obsidian = THEMES.find((t) => t.meta.id === 'obsidian-amethyst')
-  assert.ok(obsidian)
-  const result = probe(obsidian, 'dark')
-  const errors = result.issues.filter((i) => i.severity === 'error')
-  assert.deepEqual(errors, [])
-  assert.equal(result.passed, true)
-  assert.equal(result.checks.length, 7)
+test('the charcoal-cyan textMuted keeps >=4.5:1 contrast on the charcoal bg', () => {
+  const charcoal = THEMES.find((t) => t.meta.id === 'charcoal-cyan')
+  assert.ok(charcoal)
+  const dark = charcoal.modes.dark
+  const check = probe(charcoal, 'dark').checks.find((c) => c.name === 'muted on surface')
+  assert.ok(check)
+  assert.ok(check.ratio >= 4.5, `expected textMuted ${dark.textMuted} to be >=4.5:1 on bg, got ${check.ratio}`)
+})
+
+test('the charcoal-cyan reference has no shadow and a small radius', () => {
+  const charcoal = THEMES.find((t) => t.meta.id === 'charcoal-cyan')
+  assert.ok(charcoal)
+  assert.equal(charcoal.shadow.sm, 'none')
+  assert.equal(charcoal.shadow.md, 'none')
+  assert.equal(charcoal.shadow.lg, 'none')
+  assert.equal(charcoal.shadow.focus, 'none')
+  assert.ok(charcoal.radius.sm <= charcoal.radius.md)
+  assert.ok(charcoal.radius.md < charcoal.radius.lg)
+})
+
+test('every theme passes the probe in dark mode with zero error-severity issues', () => {
+  for (const t of THEMES) {
+    const result = probe(t, 'dark')
+    const errors = result.issues.filter((i) => i.severity === 'error')
+    assert.deepEqual(errors, [], `theme ${t.meta.id} dark mode should have no contrast errors`)
+    assert.equal(result.passed, true, `theme ${t.meta.id} dark mode should pass the probe`)
+    assert.equal(result.checks.length, 7)
+  }
+})
+
+test('the charcoal-cyan reference theme passes every check in dark mode', () => {
+  const charcoal = THEMES.find((t) => t.meta.id === 'charcoal-cyan')
+  assert.ok(charcoal)
+  const result = probe(charcoal, 'dark')
   for (const check of result.checks) {
     assert.ok(check.passed, `expected "${check.name}" to pass (ratio ${check.ratio}, needs ${check.required})`)
   }

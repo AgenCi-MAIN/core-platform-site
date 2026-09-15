@@ -28,7 +28,7 @@ theme can be judged before it's applied.
   the preview's own components.
 - `src/render.ts` — `renderPreview` and `renderGallery`.
 - `src/sample-theme.ts` — `SAMPLE_THEME`, a built-in fixture theme filled out
-  from the owner's obsidian/amethyst reference values, used whenever
+  from the owner's charcoal/cyan reference values, used whenever
   `packages/theme-packs/themes/index.json` isn't available yet (or fails to
   parse) and as a test fixture.
 - `src/index.ts` — public exports.

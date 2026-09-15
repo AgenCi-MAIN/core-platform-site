@@ -94,9 +94,7 @@ export function bindInteractions(svg: SVGSVGElement, callbacks: CanvasCallbacks,
     const input = doc.createElementNS('http://www.w3.org/1999/xhtml', 'input') as HTMLInputElement
     input.type = 'text'
     input.value = card.title
-    input.style.width = '100%'
-    input.style.height = '100%'
-    input.style.boxSizing = 'border-box'
+    input.className = 'editor-input'
     fo.appendChild(input)
     svg.appendChild(fo)
     editor = { cardId, foreignObject: fo, committed: false }

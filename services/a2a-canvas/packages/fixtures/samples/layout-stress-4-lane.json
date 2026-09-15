@@ -86,7 +86,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "seq": 2,
@@ -128,7 +128,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "diamond",
+          "shape": "triangle",
           "kind": "branch",
           "config": {
             "seq": 4,
@@ -254,7 +254,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "seq": 10,
@@ -317,7 +317,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "seq": 2,
@@ -359,7 +359,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "diamond",
+          "shape": "triangle",
           "kind": "branch",
           "config": {
             "seq": 4,
@@ -485,7 +485,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "seq": 10,
@@ -548,7 +548,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "seq": 2,
@@ -590,7 +590,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "diamond",
+          "shape": "triangle",
           "kind": "branch",
           "config": {
             "seq": 4,
@@ -716,7 +716,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "seq": 10,
@@ -779,7 +779,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "seq": 2,
@@ -821,7 +821,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "diamond",
+          "shape": "triangle",
           "kind": "branch",
           "config": {
             "seq": 4,
@@ -947,7 +947,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "seq": 10,

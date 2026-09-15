@@ -95,7 +95,11 @@ function variableBlock(tokens: ThemeTokens, mode: ThemeMode): string {
   return `:root {\n  ${lines.join('\n  ')}\n}`
 }
 
-/** Fixed component rules; every colour/size reference goes through the vars above. */
+/**
+ * Fixed component rules — outline language: transparent fills, cyan strokes
+ * with round caps/joins, no shadows, no glass, no gradients. Every
+ * colour/size reference goes through the vars above.
+ */
 const COMPONENT_CSS = `
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
@@ -110,12 +114,10 @@ body {
 button, input, select, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
 .glass {
-  background: var(--c-surface);
-  backdrop-filter: blur(18px) saturate(1.2);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  background: transparent;
   border: 1px solid var(--c-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 .btn {
   min-height: var(--touch);
@@ -123,14 +125,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: var(--sp-1) var(--sp-2);
   border-radius: var(--radius-sm);
   border: 1px solid var(--c-border);
-  background: rgb(var(--c-surface-rgb) / 0.6);
+  background: transparent;
   color: var(--c-text);
   cursor: pointer;
-  transition: transform var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
+  transition: border-color var(--motion-fast) var(--ease), color var(--motion-fast) var(--ease);
 }
-.btn:hover:not(:disabled), .btn[data-state="hover"] { transform: translateY(var(--lift)); background: rgb(var(--c-surface-rgb) / 0.95); }
-.btn.primary { background: var(--c-accent); color: var(--c-bg); border-color: transparent; }
-.btn:disabled, .btn[data-state="disabled"] { opacity: 0.72; cursor: not-allowed; color: var(--c-muted); }
+.btn:hover:not(:disabled), .btn[data-state="hover"] { border-color: var(--c-focus); color: var(--c-focus); }
+.btn.primary { background: transparent; color: var(--c-accent); border-color: var(--c-accent); }
+.btn:disabled, .btn[data-state="disabled"] { opacity: 0.55; cursor: not-allowed; color: var(--c-muted); }
 .btn[data-state="focus"] { outline: 2px solid var(--c-focus); outline-offset: 2px; }
 .field { display: flex; flex-direction: column; gap: 4px; }
 .field > label { font-size: var(--fs-sm); color: var(--c-muted); }
@@ -139,7 +141,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: var(--sp-1);
   border-radius: var(--radius-sm);
   border: 1px solid var(--c-border);
-  background: rgb(0 0 0 / 0.25);
+  background: transparent;
   color: var(--c-text);
 }
 .section { display: flex; flex-direction: column; gap: var(--sp-1); }
@@ -147,27 +149,27 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .row { display: flex; gap: var(--sp-1); flex-wrap: wrap; align-items: center; }
 .muted { color: var(--c-muted); }
 .mono { font-family: var(--font-mono); }
-.lane-rail { fill: rgb(var(--c-surface-rgb) / 0.35); stroke: var(--c-border); }
+.lane-rail { fill: none; stroke: var(--c-border); stroke-dasharray: 2 10; stroke-linecap: round; }
 .lane-title { fill: var(--c-muted); font: 600 var(--fs-sm) var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; }
-.node-shape { fill: var(--c-surface); stroke: var(--c-border); stroke-width: 1; }
-.node.selected .node-shape { stroke: var(--c-accent); stroke-width: 2; }
-.node.selected .node-keyline { stroke: var(--c-focus); stroke-width: 1; fill: none; }
+.node-shape { fill: none; stroke: var(--c-accent); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+.node.selected .node-shape { stroke: var(--c-focus); stroke-width: 9; }
+.node.selected .node-keyline { stroke: var(--c-focus); stroke-width: 2; fill: none; }
 .node-label { fill: var(--c-text); font: 500 var(--fs-md) var(--font-sans); }
 .node-sub { fill: var(--c-muted); font: var(--fs-sm) var(--font-sans); }
 .node[data-status="running"] .node-shape { stroke: var(--c-focus); }
 .node[data-status="done"] .node-shape { stroke: var(--c-success); }
 .node[data-status="failed"] .node-shape { stroke: var(--c-danger); }
 .node[data-status="blocked"] .node-shape { stroke: var(--c-warning); }
-.connector { fill: none; stroke: var(--c-muted); stroke-width: 1.5; }
+.connector { fill: none; stroke: var(--c-accent); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
 .connector.active { stroke: var(--c-focus); }
-.connector-arrow { fill: var(--c-muted); }
+.connector-arrow { fill: none; stroke: var(--c-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .status {
   display: inline-flex;
   align-items: center;
   min-height: var(--touch);
   padding: var(--sp-1) var(--sp-2);
   border-radius: var(--radius-sm);
-  background: var(--c-surface);
+  background: transparent;
   border: 1px solid var(--c-border);
   color: var(--c-muted);
   font-size: var(--fs-sm);
@@ -177,7 +179,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .toast {
   padding: var(--sp-1) var(--sp-2);
   border-radius: var(--radius-sm);
-  background: var(--c-surface);
+  background: transparent;
   border: 1px solid var(--c-border);
 }
 .badge {

@@ -71,7 +71,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "note": "Drag this card from Frontline into Command Center — both its edges already point there.",

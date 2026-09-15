@@ -1,0 +1,276 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "id": "theme_0003a6ec08",
+    "name": "Charcoal / Cyan — Vivid",
+    "family": "charcoal-cyan",
+    "version": "1.0.0",
+    "description": "The owner's visual source of truth: a sparse charcoal field with cyan freehand outlines, no glass or shadow. Saturated, denser glass, punchier accents — the family turned up.",
+    "tags": [
+      "reference",
+      "sparse",
+      "focused",
+      "monoline",
+      "vivid"
+    ],
+    "author": "theme-packs generator",
+    "createdAt": "2026-09-15T14:00:00.000Z",
+    "generated": true,
+    "provenance": "reference"
+  },
+  "palette": {
+    "primary": {
+      "50": "#F0FDFF",
+      "100": "#DBFAFF",
+      "200": "#ADF4FF",
+      "300": "#7AEDFF",
+      "400": "#3DE5FF",
+      "500": "#00DDFF",
+      "600": "#00BAD6",
+      "700": "#0092A8",
+      "800": "#006A7A",
+      "900": "#00424D",
+      "950": "#002329"
+    },
+    "secondary": {
+      "50": "#F0FDFF",
+      "100": "#DBFAFF",
+      "200": "#ADF4FF",
+      "300": "#7AEDFF",
+      "400": "#3DE5FF",
+      "500": "#00DDFF",
+      "600": "#00BAD6",
+      "700": "#0092A8",
+      "800": "#006A7A",
+      "900": "#00424D",
+      "950": "#002329"
+    },
+    "accent": {
+      "50": "#F0FDFF",
+      "100": "#DBFAFF",
+      "200": "#ADF4FF",
+      "300": "#7AEDFF",
+      "400": "#3DE5FF",
+      "500": "#00DDFF",
+      "600": "#00BAD6",
+      "700": "#0092A8",
+      "800": "#006A7A",
+      "900": "#00424D",
+      "950": "#002329"
+    },
+    "neutral": {
+      "50": "#F6F8F9",
+      "100": "#EAF0F0",
+      "200": "#CFDCDE",
+      "300": "#B0C6C9",
+      "400": "#8CABB0",
+      "500": "#689197",
+      "600": "#577A7F",
+      "700": "#456064",
+      "800": "#324648",
+      "900": "#1F2C2D",
+      "950": "#111718"
+    },
+    "success": {
+      "50": "#F1FCFE",
+      "100": "#DEF9FD",
+      "200": "#B3F0FA",
+      "300": "#83E7F6",
+      "400": "#4ADCF2",
+      "500": "#11D1EE",
+      "600": "#0EB0C8",
+      "700": "#0B8A9D",
+      "800": "#086472",
+      "900": "#053F47",
+      "950": "#032126"
+    },
+    "warning": {
+      "50": "#FEF9F1",
+      "100": "#FDF1DE",
+      "200": "#FADEB3",
+      "300": "#F6CA83",
+      "400": "#F2B14A",
+      "500": "#EE9911",
+      "600": "#C8810E",
+      "700": "#9D650B",
+      "800": "#724908",
+      "900": "#472E05",
+      "950": "#261803"
+    },
+    "danger": {
+      "50": "#FEF9F1",
+      "100": "#FDF1DE",
+      "200": "#FADEB3",
+      "300": "#F6CA83",
+      "400": "#F2B14A",
+      "500": "#EE9911",
+      "600": "#C8810E",
+      "700": "#9D650B",
+      "800": "#724908",
+      "900": "#472E05",
+      "950": "#261803"
+    },
+    "info": {
+      "50": "#F1FCFE",
+      "100": "#DEF9FD",
+      "200": "#B3F0FA",
+      "300": "#83E7F6",
+      "400": "#4ADCF2",
+      "500": "#11D1EE",
+      "600": "#0EB0C8",
+      "700": "#0B8A9D",
+      "800": "#086472",
+      "900": "#053F47",
+      "950": "#032126"
+    }
+  },
+  "modes": {
+    "light": {
+      "bg": "#F0F8F9",
+      "bgElevated": "#F9FCFD",
+      "bgSunken": "#DDE4E5",
+      "surface": "#ADF4FF",
+      "surfaceAlpha": 0.99,
+      "surfaceHover": "#A3E5F0",
+      "border": "#D2E1E3",
+      "borderStrong": "#B7CDD0",
+      "text": "#111718",
+      "textMuted": "#689197",
+      "textInverse": "#F6F8F9",
+      "link": "#006A7A",
+      "focusRing": "#00BAD6",
+      "accent": "#0092A8",
+      "success": "#0B8A9D",
+      "warning": "#9D650B",
+      "danger": "#9D650B",
+      "info": "#0B8A9D"
+    },
+    "dark": {
+      "bg": "#101819",
+      "bgElevated": "#232A2B",
+      "bgSunken": "#0A1010",
+      "surface": "#002329",
+      "surfaceAlpha": 0.9,
+      "surfaceHover": "#1F3D43",
+      "border": "#293A3C",
+      "borderStrong": "#3C5558",
+      "text": "#F6F8F9",
+      "textMuted": "#B0C6C9",
+      "textInverse": "#111718",
+      "link": "#3DE5FF",
+      "focusRing": "#66EBFF",
+      "accent": "#00DDFF",
+      "success": "#11D1EE",
+      "warning": "#EE9911",
+      "danger": "#EE9911",
+      "info": "#11D1EE"
+    }
+  },
+  "typography": {
+    "fontFamilies": {
+      "sans": "ui-sans-serif, -apple-system, \"SF Pro Text\", \"Segoe UI\", Inter, system-ui, sans-serif",
+      "serif": "ui-serif, Georgia, \"Times New Roman\", serif",
+      "mono": "ui-monospace, \"SF Mono\", Menlo, Consolas, monospace"
+    },
+    "sizes": {
+      "xs": 0.75,
+      "sm": 0.8125,
+      "md": 0.9375,
+      "lg": 1.125,
+      "xl": 1.25,
+      "2xl": 1.5,
+      "3xl": 1.875,
+      "4xl": 2.25,
+      "5xl": 3
+    },
+    "lineHeights": {
+      "tight": 1.15,
+      "normal": 1.45,
+      "relaxed": 1.7
+    },
+    "weights": {
+      "regular": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    },
+    "letterSpacing": {
+      "tight": "-0.01em",
+      "normal": "0em",
+      "wide": "0.02em"
+    }
+  },
+  "spacing": {
+    "0": 0,
+    "1": 0.25,
+    "2": 0.5,
+    "3": 0.75,
+    "4": 1,
+    "5": 1.25,
+    "6": 1.5,
+    "8": 2,
+    "10": 2.5,
+    "12": 3,
+    "16": 4,
+    "20": 5,
+    "24": 6
+  },
+  "radius": {
+    "none": 0,
+    "sm": 2,
+    "md": 4,
+    "lg": 6,
+    "xl": 10,
+    "full": 9999
+  },
+  "shadow": {
+    "sm": "0 1px 3px rgb(0 0 0 / 0.25)",
+    "md": "0 6px 16px rgb(0 0 0 / 0.3)",
+    "lg": "0 10px 30px rgb(0 0 0 / 0.35)",
+    "focus": "0 0 0 3px rgb(90 221 242 / 0.35)"
+  },
+  "motion": {
+    "durations": {
+      "fast": 120,
+      "base": 200,
+      "slow": 320
+    },
+    "easings": {
+      "standard": "cubic-bezier(0.2, 0.7, 0.2, 1)",
+      "enter": "cubic-bezier(0, 0, 0.2, 1)",
+      "exit": "cubic-bezier(0.4, 0, 1, 1)"
+    },
+    "reducedMotionScale": 0
+  },
+  "components": {
+    "button": {
+      "bg": "accent",
+      "text": "textInverse",
+      "border": "accent",
+      "hoverLiftPx": 2
+    },
+    "card": {
+      "bg": "surface",
+      "border": "border",
+      "radius": "lg",
+      "shadow": "md"
+    },
+    "input": {
+      "bg": "bgElevated",
+      "border": "border",
+      "text": "text",
+      "focus": "focusRing"
+    },
+    "lane": {
+      "rail": "surface",
+      "title": "text",
+      "border": "border"
+    },
+    "workflowCard": {
+      "bg": "surface",
+      "border": "border",
+      "selectedRing": "accent",
+      "keyline": "focusRing"
+    }
+  }
+}

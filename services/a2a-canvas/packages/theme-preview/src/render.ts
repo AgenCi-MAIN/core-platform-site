@@ -232,7 +232,7 @@ function renderGalleryCard(tokens: ThemeTokens, mode: ThemeMode): string {
 }
 
 const FALLBACK_CHROME_CSS = `
-:root { --c-bg:#11121A; --c-text:#F5F3FF; --c-muted:#C4B5FD; --c-border:rgb(196 181 253 / .22); --c-surface-rgb:36 25 58; --surface-alpha:.82; --c-surface: rgb(var(--c-surface-rgb) / var(--surface-alpha)); --radius:14px; --radius-sm:8px; --sp-1:.5rem; --sp-2:1rem; --sp-3:1.5rem; --font-sans:ui-sans-serif,system-ui,sans-serif; --font-mono:ui-monospace,monospace; --fs-sm:.8125rem; --fs-md:.9375rem; --fs-lg:1.125rem; }
+:root { --c-bg:#1F1F1F; --c-text:#D9F7FB; --c-muted:#A7C6CB; --c-border:#1A4147; --c-surface-rgb:31 31 31; --surface-alpha:1; --c-surface: rgb(var(--c-surface-rgb) / var(--surface-alpha)); --radius:4px; --radius-sm:4px; --sp-1:.5rem; --sp-2:1rem; --sp-3:1.5rem; --font-sans:ui-sans-serif,system-ui,sans-serif; --font-mono:ui-monospace,monospace; --fs-sm:.8125rem; --fs-md:.9375rem; --fs-lg:1.125rem; }
 body { margin:0; background:var(--c-bg); color:var(--c-text); font:var(--fs-md)/1.45 var(--font-sans); }
 `.trim()
 
@@ -243,8 +243,8 @@ const GALLERY_GRID_CSS = `
 .mini-preview { width: 100%; height: 260px; border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-bg); }
 table.contrast { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
 table.contrast td, table.contrast th { padding: 4px 8px; border-bottom: 1px solid var(--c-border); text-align: left; }
-.pass { color: var(--c-success, #6EE7B7); }
-.fail { color: var(--c-danger, #FCA5A5); }
+.pass { color: var(--c-success, #08B9D5); }
+.fail { color: var(--c-danger, #E8B86D); }
 `.trim()
 
 /** One HTML page listing every theme's preview and contrast ratios for a single mode. */

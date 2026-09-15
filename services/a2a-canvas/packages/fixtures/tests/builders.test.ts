@@ -113,7 +113,7 @@ test('edges may cross lanes within the same workflow', () => {
 test('node kind defaults to its NODE_KIND_META shape when none is given, and an explicit shape overrides it', () => {
   const d = doc(THEME, { seed: 5 }).workflow('W').lane('L').node('branch', 'Br').node('branch', 'Br2', {}, 'rect').build()
   const cards = d.workflows[0]?.cards ?? []
-  assert.equal(cards[0]?.shape, 'diamond') // NODE_KIND_META.branch.defaultShape
+  assert.equal(cards[0]?.shape, 'triangle') // NODE_KIND_META.branch.defaultShape
   assert.equal(cards[1]?.shape, 'rect')
 })
 

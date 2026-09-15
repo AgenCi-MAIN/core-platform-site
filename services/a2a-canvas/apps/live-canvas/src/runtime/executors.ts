@@ -112,7 +112,7 @@ const TRANSFORMS: Record<string, TransformFn> = {
     return { ...extra }
   },
   setAccent: (input, config, themeApi) => {
-    const accent = typeof config.accent === 'string' ? config.accent : '#A78BFA'
+    const accent = typeof config.accent === 'string' ? config.accent : '#08B9D5'
     if (isThemeLike(input) && themeApi) {
       return themeApi.withOverrides(input, { modes: { light: { accent }, dark: { accent } } })
     }

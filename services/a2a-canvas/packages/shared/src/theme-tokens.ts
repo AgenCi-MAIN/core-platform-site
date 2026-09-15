@@ -14,7 +14,7 @@ export const THEME_SCHEMA_VERSION = '1.0.0'
 export const THEME_MODES = ['light', 'dark'] as const
 export type ThemeMode = (typeof THEME_MODES)[number]
 
-/** Hex colour like "#A78BFA" (6 digits) — alpha is expressed separately. */
+/** Hex colour like "#08B9D5" (6 digits) — alpha is expressed separately. */
 export type HexColor = string
 
 export const SCALE_STEPS = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const

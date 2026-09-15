@@ -1,13 +1,13 @@
 {
   "schemaVersion": "1.0.0",
   "meta": {
-    "id": "theme_0003a6ec08",
+    "id": "theme_00066a2c1c",
     "name": "Obsidian / Amethyst — Vivid",
     "family": "obsidian-amethyst",
     "version": "1.0.0",
-    "description": "The owner’s Freeform reference: violet glass over near-black, cyan focus. Saturated, denser glass, punchier accents — the family turned up.",
+    "description": "A superseded reference: violet glass over near-black, cyan focus. Saturated, denser glass, punchier accents — the family turned up.",
     "tags": [
-      "reference",
+      "proposed",
       "moody",
       "focused",
       "after-hours",
@@ -16,7 +16,7 @@
     "author": "theme-packs generator",
     "createdAt": "2026-09-15T14:00:00.000Z",
     "generated": true,
-    "provenance": "reference"
+    "provenance": "proposed"
   },
   "palette": {
     "primary": {

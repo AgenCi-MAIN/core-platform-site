@@ -45,7 +45,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "round": "nearest_dollar"
@@ -105,7 +105,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "basis": "business_days_elapsed"
@@ -125,7 +125,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "source": "dialer_transfers"

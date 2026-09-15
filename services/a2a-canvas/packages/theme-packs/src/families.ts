@@ -6,12 +6,14 @@
  * non-colour knobs (font stack, radius style) that give its variants a
  * describable identity beyond "different hue".
  *
- * `obsidian-amethyst` is the one 'reference' family: its hues/saturation
- * are tuned so the *generated* base-variant palette lands close to the
- * owner's Freeform board, and `generate.ts` additionally pins its dark-mode
- * base variant to the reference hexes verbatim (bg/surface/accent/focus/
- * text/muted) rather than trusting the formula to reproduce them exactly.
- * Every other family is 'proposed': this swarm's own design choice.
+ * `charcoal-cyan` is the one 'reference' family: its hues/saturation are
+ * tuned so the *generated* base-variant palette lands close to the owner's
+ * visual source of truth (2026-09-15, styles.css), and `generate.ts`
+ * additionally pins its dark-mode base variant to the reference hexes
+ * verbatim (bg/surface/accent/focus/text/muted) rather than trusting the
+ * formula to reproduce them exactly. `obsidian-amethyst` — the earlier
+ * purple/glass reference, since replaced — is kept on as a 'proposed'
+ * family. Every other family is 'proposed': this swarm's own design choice.
  */
 import type { PaletteRole } from '../../shared/src/theme-tokens.ts'
 
@@ -75,11 +77,24 @@ const SYSTEM_MONO = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace'
 
 export const FAMILIES: ColorFamily[] = [
   {
+    key: 'charcoal-cyan',
+    name: 'Charcoal / Cyan',
+    description: "The owner's visual source of truth: a sparse charcoal field with cyan freehand outlines, no glass or shadow.",
+    mood: 'sparse, focused, monoline',
+    provenance: 'reference',
+    hues: { primary: 188, secondary: 188, accent: 188, neutral: 188, success: 188, warning: 37, danger: 37, info: 188 },
+    saturation: 90,
+    neutralSaturation: 13,
+    focusHue: 188,
+    radiusStyle: 'sharp',
+    fontStack: { sans: SYSTEM_SANS, serif: 'ui-serif, Georgia, "Times New Roman", serif', mono: SYSTEM_MONO },
+  },
+  {
     key: 'obsidian-amethyst',
     name: 'Obsidian / Amethyst',
-    description: 'The owner’s Freeform reference: violet glass over near-black, cyan focus.',
+    description: 'A superseded reference: violet glass over near-black, cyan focus.',
     mood: 'moody, focused, after-hours',
-    provenance: 'reference',
+    provenance: 'proposed',
     hues: { primary: 258, secondary: 189, accent: 258, neutral: 260, success: 158, warning: 45, danger: 2, info: 199 },
     saturation: 68,
     neutralSaturation: 18,

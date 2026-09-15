@@ -1,10 +1,14 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { SHAPE_KINDS } from '../../src/contracts.ts'
-import { shapePath, keylinePath, anchors } from '../../src/canvas/shapes.ts'
+import { shapePath, keylinePath, haloPath, anchors, hashSeed, jitter } from '../../src/canvas/shapes.ts'
 
 const W = 140
 const H = 90
+
+function nums(d: string): number[] {
+  return (d.match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number)
+}
 
 test('shapePath produces a closed, non-empty path for every SHAPE_KINDS entry', () => {
   for (const kind of SHAPE_KINDS) {
@@ -29,7 +33,7 @@ test('keylinePath is also closed and finite, inset from shapePath', () => {
 
 test('keylinePath degrades gracefully for tiny boxes (no negative size)', () => {
   for (const kind of SHAPE_KINDS) {
-    const d = keylinePath(kind, 4, 4) // smaller than the 3px*2 inset
+    const d = keylinePath(kind, 4, 4) // smaller than the 10px*2 inset
     assert.match(d.trim(), /^M/, `${kind}: still produces a path`)
   }
 })
@@ -52,5 +56,50 @@ test('anchors land on the bounding box edges for every SHAPE_KINDS entry', () =>
 test('shapePath is deterministic', () => {
   for (const kind of SHAPE_KINDS) {
     assert.equal(shapePath(kind, W, H), shapePath(kind, W, H))
+  }
+})
+
+test('haloPath is the same geometry as shapePath (CSS gives it the wide stroke)', () => {
+  for (const kind of SHAPE_KINDS) {
+    assert.equal(haloPath(kind, W, H), shapePath(kind, W, H))
+    assert.equal(haloPath(kind, W, H, 'node-1'), shapePath(kind, W, H, 'node-1'))
+  }
+})
+
+test('hashSeed is deterministic and sensitive to its input', () => {
+  assert.equal(hashSeed('node-a'), hashSeed('node-a'))
+  assert.notEqual(hashSeed('node-a'), hashSeed('node-b'))
+})
+
+test('jitter is deterministic per (seed, index), bounded, and off without a seed', () => {
+  for (let i = 0; i < 24; i += 1) {
+    assert.equal(jitter('node-a', i), jitter('node-a', i), `index ${i} not stable`)
+    assert.ok(Math.abs(jitter('node-a', i)) <= 2, `index ${i} exceeded the 2px bound`)
+    assert.equal(jitter(undefined, i), 0, `index ${i}: no seed must mean no jitter`)
+  }
+})
+
+test('shapePath jitter is deterministic per seed, differs across seeds, and stays within 2px of the unjittered path', () => {
+  for (const kind of SHAPE_KINDS) {
+    const base = shapePath(kind, W, H) // no seed -> exact geometry
+    const a1 = shapePath(kind, W, H, 'node-a')
+    const a2 = shapePath(kind, W, H, 'node-a')
+    const b1 = shapePath(kind, W, H, 'node-b')
+    assert.equal(a1, a2, `${kind}: same seed must produce an identical path`)
+    assert.notEqual(a1, b1, `${kind}: different seeds must produce different paths`)
+    assert.notEqual(a1, base, `${kind}: a seeded path must differ from the unjittered one`)
+
+    // Jitter only ever perturbs coordinates, never the path's command
+    // structure, so the two paths must carry the same count of numbers,
+    // each within JITTER_MAX (2px) of its unjittered counterpart. (Some of
+    // those numbers are constants like an arc's radius/flags, which simply
+    // have a diff of 0 — still within bound.)
+    const baseNums = nums(base)
+    const jitteredNums = nums(a1)
+    assert.equal(baseNums.length, jitteredNums.length, `${kind}: jitter changed the path structure`)
+    for (let i = 0; i < baseNums.length; i += 1) {
+      const diff = Math.abs((baseNums[i] as number) - (jitteredNums[i] as number))
+      assert.ok(diff <= 2 + 1e-6, `${kind}: coordinate ${i} moved ${diff}px, more than the 2px bound`)
+    }
   }
 })

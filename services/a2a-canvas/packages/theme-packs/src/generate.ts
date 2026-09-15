@@ -7,7 +7,7 @@
  * until it clears the contrast floor against both the flat bg and the
  * *composited* surface (surface alpha applied once, per the schema
  * comment) — so a theme this module returns never fails its own contrast
- * rule. `obsidian-amethyst`'s base variant is the one exception: its dark
+ * rule. `charcoal-cyan`'s base variant is the one exception: its dark
  * mode is pinned to the reference hexes verbatim after the formula runs.
  */
 import type {
@@ -236,15 +236,15 @@ function buildShadow(family: ColorFamily): ShadowTokens {
   }
 }
 
-/** Reference values from the owner's Freeform board (obsidian-amethyst, base, dark mode). */
-export const OBSIDIAN_AMETHYST_REFERENCE = {
-  bg: '#11121A' as HexColor,
-  surface: '#24193A' as HexColor,
-  surfaceAlpha: 0.82,
-  accent: '#A78BFA' as HexColor,
-  focusRing: '#67E8F9' as HexColor,
-  text: '#F5F3FF' as HexColor,
-  textMuted: '#C4B5FD' as HexColor,
+/** Reference values from the owner's visual source of truth (charcoal-cyan, base, dark mode). */
+export const CHARCOAL_CYAN_REFERENCE = {
+  bg: '#1F1F1F' as HexColor,
+  surface: '#1F1F1F' as HexColor,
+  surfaceAlpha: 1,
+  accent: '#08B9D5' as HexColor,
+  focusRing: '#22CBE2' as HexColor,
+  text: '#D9F7FB' as HexColor,
+  textMuted: '#A7C6CB' as HexColor,
 }
 
 /** Builds one complete ThemeTokens for a (family, variant) pair. Pure given `ids`/`clock`. */
@@ -254,9 +254,9 @@ export function buildTheme(family: ColorFamily, variant: ThemeVariant, ids: IdFa
   let dark = buildDarkMode(family, variant, palette, target)
   const light = buildLightMode(family, variant, palette, target)
 
-  const isReferenceBase = family.key === 'obsidian-amethyst' && variant.key === 'base'
+  const isReferenceBase = family.key === 'charcoal-cyan' && variant.key === 'base'
   if (isReferenceBase) {
-    dark = { ...dark, ...OBSIDIAN_AMETHYST_REFERENCE }
+    dark = { ...dark, ...CHARCOAL_CYAN_REFERENCE }
   }
 
   const id = ids.theme()

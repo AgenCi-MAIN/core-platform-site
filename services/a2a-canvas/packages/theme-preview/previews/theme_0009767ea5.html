@@ -3,20 +3,20 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Ember — Vivid — preview</title>
+<title>Daylight Slate — Vivid — preview</title>
 <style>:root {
-  --c-bg: #19120F;
-  --c-surface-rgb: 41 6 0;
+  --c-bg: #111718;
+  --c-surface-rgb: 7 29 34;
   --surface-alpha: 0.9;
   --c-surface: rgb(var(--c-surface-rgb) / var(--surface-alpha));
-  --c-accent: #FF2600;
-  --c-focus: #FFCC66;
-  --c-text: #F9F7F6;
-  --c-muted: #C9B8B0;
-  --c-success: #11EE80;
-  --c-warning: #EEA411;
-  --c-danger: #EE1123;
-  --c-border: #3D2E28;
+  --c-accent: #2DB6D2;
+  --c-focus: #66FFF5;
+  --c-text: #F6F8F8;
+  --c-muted: #B4C1C6;
+  --c-success: #11EE87;
+  --c-warning: #EE9D11;
+  --c-danger: #EE1136;
+  --c-border: #2B363A;
   --sp-1: 0.5rem;
   --sp-2: 1rem;
   --sp-3: 1.5rem;
@@ -25,8 +25,8 @@
   --radius-sm: 2px;
   --shadow: 0 6px 16px rgb(0 0 0 / 0.3);
   --lift: -2px;
-  --font-sans: "Avenir Next", "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", Consolas, monospace;
+  --font-sans: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Cascadia Code", Consolas, monospace;
   --fs-sm: 0.8125rem;
   --fs-md: 0.9375rem;
   --fs-lg: 1.125rem;
@@ -49,12 +49,10 @@ body {
 button, input, select, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
 .glass {
-  background: var(--c-surface);
-  backdrop-filter: blur(18px) saturate(1.2);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  background: transparent;
   border: 1px solid var(--c-border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: none;
 }
 .btn {
   min-height: var(--touch);
@@ -62,14 +60,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: var(--sp-1) var(--sp-2);
   border-radius: var(--radius-sm);
   border: 1px solid var(--c-border);
-  background: rgb(var(--c-surface-rgb) / 0.6);
+  background: transparent;
   color: var(--c-text);
   cursor: pointer;
-  transition: transform var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
+  transition: border-color var(--motion-fast) var(--ease), color var(--motion-fast) var(--ease);
 }
-.btn:hover:not(:disabled), .btn[data-state="hover"] { transform: translateY(var(--lift)); background: rgb(var(--c-surface-rgb) / 0.95); }
-.btn.primary { background: var(--c-accent); color: var(--c-bg); border-color: transparent; }
-.btn:disabled, .btn[data-state="disabled"] { opacity: 0.72; cursor: not-allowed; color: var(--c-muted); }
+.btn:hover:not(:disabled), .btn[data-state="hover"] { border-color: var(--c-focus); color: var(--c-focus); }
+.btn.primary { background: transparent; color: var(--c-accent); border-color: var(--c-accent); }
+.btn:disabled, .btn[data-state="disabled"] { opacity: 0.55; cursor: not-allowed; color: var(--c-muted); }
 .btn[data-state="focus"] { outline: 2px solid var(--c-focus); outline-offset: 2px; }
 .field { display: flex; flex-direction: column; gap: 4px; }
 .field > label { font-size: var(--fs-sm); color: var(--c-muted); }
@@ -78,7 +76,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   padding: var(--sp-1);
   border-radius: var(--radius-sm);
   border: 1px solid var(--c-border);
-  background: rgb(0 0 0 / 0.25);
+  background: transparent;
   color: var(--c-text);
 }
 .section { display: flex; flex-direction: column; gap: var(--sp-1); }
@@ -86,27 +84,27 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .row { display: flex; gap: var(--sp-1); flex-wrap: wrap; align-items: center; }
 .muted { color: var(--c-muted); }
 .mono { font-family: var(--font-mono); }
-.lane-rail { fill: rgb(var(--c-surface-rgb) / 0.35); stroke: var(--c-border); }
+.lane-rail { fill: none; stroke: var(--c-border); stroke-dasharray: 2 10; stroke-linecap: round; }
 .lane-title { fill: var(--c-muted); font: 600 var(--fs-sm) var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; }
-.node-shape { fill: var(--c-surface); stroke: var(--c-border); stroke-width: 1; }
-.node.selected .node-shape { stroke: var(--c-accent); stroke-width: 2; }
-.node.selected .node-keyline { stroke: var(--c-focus); stroke-width: 1; fill: none; }
+.node-shape { fill: none; stroke: var(--c-accent); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; }
+.node.selected .node-shape { stroke: var(--c-focus); stroke-width: 9; }
+.node.selected .node-keyline { stroke: var(--c-focus); stroke-width: 2; fill: none; }
 .node-label { fill: var(--c-text); font: 500 var(--fs-md) var(--font-sans); }
 .node-sub { fill: var(--c-muted); font: var(--fs-sm) var(--font-sans); }
 .node[data-status="running"] .node-shape { stroke: var(--c-focus); }
 .node[data-status="done"] .node-shape { stroke: var(--c-success); }
 .node[data-status="failed"] .node-shape { stroke: var(--c-danger); }
 .node[data-status="blocked"] .node-shape { stroke: var(--c-warning); }
-.connector { fill: none; stroke: var(--c-muted); stroke-width: 1.5; }
+.connector { fill: none; stroke: var(--c-accent); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
 .connector.active { stroke: var(--c-focus); }
-.connector-arrow { fill: var(--c-muted); }
+.connector-arrow { fill: none; stroke: var(--c-accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .status {
   display: inline-flex;
   align-items: center;
   min-height: var(--touch);
   padding: var(--sp-1) var(--sp-2);
   border-radius: var(--radius-sm);
-  background: var(--c-surface);
+  background: transparent;
   border: 1px solid var(--c-border);
   color: var(--c-muted);
   font-size: var(--fs-sm);
@@ -116,7 +114,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .toast {
   padding: var(--sp-1) var(--sp-2);
   border-radius: var(--radius-sm);
-  background: var(--c-surface);
+  background: transparent;
   border: 1px solid var(--c-border);
 }
 .badge {
@@ -132,7 +130,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 <body>
 <div class="preview" style="max-width:960px;margin:0 auto;padding:var(--sp-3);display:flex;flex-direction:column;gap:var(--sp-3);">
   <header class="row" style="justify-content:space-between;">
-    <h1 style="margin:0;font-size:var(--fs-lg);">Ember — Vivid</h1>
+    <h1 style="margin:0;font-size:var(--fs-lg);">Daylight Slate — Vivid</h1>
     <span class="badge">proposed · dark</span>
   </header>
   <section class="section">

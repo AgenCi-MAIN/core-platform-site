@@ -8,6 +8,7 @@
  */
 import { createThemeApi, mountThemePanel } from './theme/index.ts'
 import { mountCanvas } from './canvas/index.ts'
+import { absolutizePositions, computeLayout } from './canvas/layout.ts'
 import { createRuntime } from './runtime/index.ts'
 import { createStore, createLocalStoragePersistence, createMemoryPersistence, createSeedFactory } from './state/index.ts'
 import { mountShell } from './ui/index.ts'
@@ -42,7 +43,8 @@ export function boot(): void {
 
   const loaded = persistence.load()
   const restored = loaded.ok && loaded.value ? loaded.value : null
-  const doc: CanvasDoc = restored ?? seeds.defaultDoc(defaultThemeId)
+  // Seed positions are lane-relative; the canvas stores absolute positions.
+  const doc: CanvasDoc = restored ?? absolutizePositions(seeds.defaultDoc(defaultThemeId))
 
   const store = createStore(doc)
   const runtime = createRuntime({})
@@ -86,6 +88,14 @@ export function boot(): void {
     shell.update(state)
   }
   store.subscribe((state) => render(state))
+  // Fresh documents open fitted to the board's width; restored ones keep their saved viewport.
+  if (!restored) {
+    const layout = computeLayout(doc)
+    const contentW = layout.workflows.reduce((m, wf) => Math.max(m, wf.x + wf.w), 0)
+    const boardW = byId<SVGSVGElement>('canvas').clientWidth || contentW
+    const zoom = Math.min(1, Math.max(0.5, (boardW - 32) / Math.max(contentW, 1)))
+    store.dispatch({ type: 'viewport.set', viewport: { x: 0, y: 0, zoom } })
+  }
   render(store.getState())
 
   if (!loaded.ok) shell.notify('error', `Saved canvas ignored: ${loaded.error}`)

@@ -47,7 +47,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "checks": [
@@ -92,7 +92,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "rounded",
+          "shape": "capsule",
           "kind": "transform",
           "config": {
             "requestId": "dial_2201",

@@ -166,7 +166,7 @@ function extractBaseAccent(payload: unknown): string {
       return normalizeHex(modes.light.accent)
     }
   }
-  return '#A78BFA' // the reference accent from the owner's board, used as a sane default
+  return '#08B9D5' // the primary cyan from the owner's visual source of truth, used as a sane default
 }
 function proposePalette(payload: unknown, ids: IdFactory): Record<string, unknown> {
   const base = extractBaseAccent(payload)

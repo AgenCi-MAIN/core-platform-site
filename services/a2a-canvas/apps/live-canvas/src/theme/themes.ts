@@ -1,20 +1,24 @@
 /**
  * The three built-in theme packs.
  *
- * `obsidian-amethyst` is the reference: every value under its dark mode's
- * `bg`, `surface`, `surfaceAlpha`, `accent`, `focusRing`, `text` and
- * `textMuted` is taken verbatim from the owner's Freeform board (see the
- * comment block at the top of styles.css, which this file must stay in
- * step with). Everything else — palette scales, the light mode, and the
- * two proposed themes — is derived programmatically from a handful of
- * base hues using the helpers in color.ts.
+ * `charcoal-cyan` is the reference: every value under its dark mode's
+ * `bg`, `bgElevated`, `bgSunken`, `surface`, `surfaceAlpha`, `accent`,
+ * `focusRing`, `text`, `link`, `textMuted`, `border`, `success`,
+ * `warning`/`danger` and `textInverse` is taken verbatim from the owner's
+ * visual source of truth, 2026-09-15 (see the comment block at the top of
+ * styles.css, which this file must stay in step with): a sparse full-bleed
+ * charcoal field with cyan freehand outlines, replacing the earlier
+ * purple/amethyst glass treatment entirely. Everything else — palette
+ * scales, the light mode, and the two proposed themes — is derived
+ * programmatically from a handful of base hues using the helpers in
+ * color.ts.
  */
-import { mix, lighten, darken } from './color.ts'
+import { mix } from './color.ts'
 import { asId } from '../../../../packages/shared/src/ids.ts'
 import { THEME_SCHEMA_VERSION } from '../../../../packages/shared/src/theme-tokens.ts'
 import type {
   ThemeTokens, PaletteTokens, ColorScale, SemanticColors,
-  TypographyTokens, SpacingTokens, RadiusTokens, ShadowTokens, MotionTokens, ComponentTokens,
+  TypographyTokens, SpacingTokens, RadiusTokens, ShadowTokens, MotionTokens, ComponentTokens, SemanticRef,
 } from '../../../../packages/shared/src/theme-tokens.ts'
 import type { ThemeId } from '../contracts.ts'
 
@@ -108,91 +112,103 @@ function makeMotion(): MotionTokens {
   }
 }
 
-function makeComponents(hoverLiftPx: number): ComponentTokens {
+function makeComponents(hoverLiftPx: number, selectedRing: SemanticRef = 'accent'): ComponentTokens {
   return {
     button: { bg: 'accent', text: 'textInverse', border: 'accent', hoverLiftPx },
     card: { bg: 'surface', border: 'border', radius: 'md', shadow: 'md' },
     input: { bg: 'surface', border: 'border', text: 'text', focus: 'focusRing' },
     lane: { rail: 'surface', title: 'textMuted', border: 'border' },
-    workflowCard: { bg: 'surface', border: 'border', selectedRing: 'accent', keyline: 'focusRing' },
+    workflowCard: { bg: 'surface', border: 'border', selectedRing, keyline: 'focusRing' },
   }
 }
 
-/* ---- obsidian-amethyst (reference) --------------------------------------- */
+/** Small radius + no shadow, matching the sparse charcoal-field outline treatment. */
+function makeFlatRadius(): RadiusTokens {
+  return { none: 0, sm: 0.25, md: 0.25, lg: 0.5, xl: 0.75, full: 999 }
+}
 
-const OBSIDIAN_ID: ThemeId = asId<'ThemeId'>('obsidian-amethyst')
+function makeFlatShadow(): ShadowTokens {
+  return { sm: 'none', md: 'none', lg: 'none', focus: 'none' }
+}
 
-function obsidianDark(): SemanticColors {
-  const bg = '#11121A'
-  const surface = '#24193A'
-  const accent = '#A78BFA'
-  const focusRing = '#67E8F9'
-  const text = '#F5F3FF'
-  const textMuted = '#C4B5FD'
+/* ---- charcoal-cyan (reference) --------------------------------------- */
+
+const CHARCOAL_ID: ThemeId = asId<'ThemeId'>('charcoal-cyan')
+
+function charcoalCyanDark(): SemanticColors {
+  const bg = '#1F1F1F'
+  const accent = '#08B9D5'
+  const focusRing = '#22CBE2'
+  const text = '#D9F7FB'
+  const textMuted = '#A7C6CB'
+  const warningDanger = '#E8B86D'
   return {
     bg,
-    bgElevated: lighten(bg, 0.06),
-    bgSunken: darken(bg, 0.45),
-    surface,
-    surfaceAlpha: 0.82,
-    surfaceHover: lighten(surface, 0.1),
-    border: mix(surface, textMuted, 0.35),
-    borderStrong: mix(surface, textMuted, 0.6),
+    bgElevated: '#202020',
+    bgSunken: '#1A1A1A',
+    // No glass: surface is the bg itself, painted at full opacity.
+    surface: bg,
+    surfaceAlpha: 1,
+    surfaceHover: '#2A2A2A',
+    // Cyan at low alpha (0.22, matching styles.css's --c-border default),
+    // composited over bg into a solid hex.
+    border: '#1A4147',
+    borderStrong: '#165D68',
     text,
     textMuted,
-    textInverse: '#14101F',
-    link: mix(focusRing, accent, 0.4),
+    textInverse: bg,
+    link: focusRing,
     focusRing,
     accent,
-    success: '#6EE7B7',
-    warning: '#FCD34D',
-    danger: '#FCA5A5',
-    info: '#67E8F9',
+    success: accent,
+    warning: warningDanger,
+    danger: warningDanger,
+    info: focusRing,
   }
 }
 
-function obsidianLight(): SemanticColors {
-  const bg = '#F7F5FC'
-  const surface = '#FFFFFF'
-  const accent = '#7C3AED'
-  const focusRing = '#0E7490'
-  const text = '#1E1533'
-  const textMuted = '#5B4B82'
+function charcoalCyanLight(): SemanticColors {
+  const bg = '#F4FBFC'
+  const accent = '#05788A'
+  const focusRing = '#147A88'
+  const text = '#14282B'
+  const textMuted = '#355257'
+  const warningDanger = '#8B6E41'
   return {
     bg,
     bgElevated: '#FFFFFF',
-    bgSunken: darken(bg, 0.04),
-    surface,
-    surfaceAlpha: 0.82,
-    surfaceHover: darken(surface, 0.04),
-    border: mix(surface, textMuted, 0.28),
-    borderStrong: mix(surface, textMuted, 0.5),
+    bgSunken: '#EDF3F4',
+    surface: bg,
+    surfaceAlpha: 1,
+    surfaceHover: '#EAF1F2',
+    border: '#BFDEE3',
+    borderStrong: '#94C7CE',
     text,
     textMuted,
-    textInverse: '#FFFFFF',
-    link: '#6D28D9',
+    textInverse: bg,
+    link: focusRing,
     focusRing,
     accent,
-    success: '#059669',
-    warning: '#B45309',
-    danger: '#DC2626',
-    info: '#0E7490',
+    success: accent,
+    warning: warningDanger,
+    danger: warningDanger,
+    info: focusRing,
   }
 }
 
-function obsidianAmethyst(): ThemeTokens {
-  const dark = obsidianDark()
+function charcoalCyan(): ThemeTokens {
+  const dark = charcoalCyanDark()
   return {
     schemaVersion: THEME_SCHEMA_VERSION,
     meta: {
-      id: OBSIDIAN_ID,
-      name: 'Obsidian / Amethyst',
-      family: 'obsidian',
+      id: CHARCOAL_ID,
+      name: 'Charcoal / Cyan',
+      family: 'charcoal',
       version: '1.0.0',
-      description: "The owner's Freeform reference: violet glass over near-black, cyan focus.",
-      tags: ['dark', 'violet', 'reference', 'glass'],
-      author: 'owner-freeform-board',
-      createdAt: '2026-09-02T00:00:00.000Z',
+      description: "The owner's visual source of truth: a sparse charcoal field with cyan freehand outlines, no glass or shadow.",
+      tags: ['dark', 'cyan', 'reference', 'outline'],
+      author: 'owner-canvas-brief',
+      createdAt: '2026-09-15T00:00:00.000Z',
       generated: false,
       provenance: 'reference',
     },
@@ -200,19 +216,19 @@ function obsidianAmethyst(): ThemeTokens {
       primary: dark.accent,
       secondary: dark.focusRing,
       accent: dark.accent,
-      neutral: '#8B85A0',
+      neutral: '#6E8A8E',
       success: dark.success,
       warning: dark.warning,
       danger: dark.danger,
       info: dark.info,
     }),
-    modes: { dark, light: obsidianLight() },
+    modes: { dark, light: charcoalCyanLight() },
     typography: makeTypography(),
     spacing: makeSpacing(),
-    radius: makeRadius(),
-    shadow: makeShadow(dark.focusRing),
+    radius: makeFlatRadius(),
+    shadow: makeFlatShadow(),
     motion: makeMotion(),
-    components: makeComponents(2),
+    components: makeComponents(0, 'focusRing'),
   }
 }
 
@@ -404,5 +420,5 @@ function highContrastMono(): ThemeTokens {
 
 /* ---- exports -------------------------------------------------------------- */
 
-export const THEMES: ThemeTokens[] = [obsidianAmethyst(), daylightSlate(), highContrastMono()]
-export const DEFAULT_THEME_ID: ThemeId = OBSIDIAN_ID
+export const THEMES: ThemeTokens[] = [charcoalCyan(), daylightSlate(), highContrastMono()]
+export const DEFAULT_THEME_ID: ThemeId = CHARCOAL_ID

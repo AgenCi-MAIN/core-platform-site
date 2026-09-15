@@ -46,7 +46,7 @@
           "body": "",
           "tags": [],
           "status": "idle",
-          "shape": "diamond",
+          "shape": "triangle",
           "kind": "branch",
           "config": {},
           "w": 160,

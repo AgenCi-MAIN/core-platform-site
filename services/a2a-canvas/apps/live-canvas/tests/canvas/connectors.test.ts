@@ -21,35 +21,46 @@ function allFinite(d: string): boolean {
 
 const routes: ConnectorRoute[] = ['curved', 'angled']
 
-test('connectorPath starts at from.right and ends at to.left (forward edge)', () => {
+// The route is deliberately shortened: it starts exactly START_GAP px past
+// the source anchor and ends exactly END_GAP px short of the target anchor
+// (leaving room for the outlined ring marker there). `ringAt` still carries
+// the true, unshortened target anchor.
+const START_GAP = 4
+const END_GAP = 9
+
+test('connectorPath starts ~4px after from.right and ends ~9px before to.left (forward edge)', () => {
   const from = node('a', 0, 0)
   const to = node('b', 400, 40)
   const expectedStart = { x: from.x + from.w, y: from.y + from.h / 2 }
   const expectedEnd = { x: to.x, y: to.y + to.h / 2 }
   for (const route of routes) {
-    const { d, arrowAt } = connectorPath(from, to, route)
+    const { d, arrowAt, ringAt } = connectorPath(from, to, route)
     const start = startOf(d)
-    assert.equal(start.x, expectedStart.x, `${route}: start x`)
-    assert.equal(start.y, expectedStart.y, `${route}: start y`)
-    assert.equal(arrowAt.x, expectedEnd.x, `${route}: end x`)
-    assert.equal(arrowAt.y, expectedEnd.y, `${route}: end y`)
+    const startDist = Math.hypot(start.x - expectedStart.x, start.y - expectedStart.y)
+    const endDist = Math.hypot(arrowAt.x - expectedEnd.x, arrowAt.y - expectedEnd.y)
+    assert.ok(Math.abs(startDist - START_GAP) < 0.01, `${route}: start should be ${START_GAP}px from the source anchor, was ${startDist}`)
+    assert.ok(Math.abs(endDist - END_GAP) < 0.01, `${route}: end should be ${END_GAP}px from the target anchor, was ${endDist}`)
+    assert.equal(ringAt.x, expectedEnd.x, `${route}: ringAt x must equal the true target anchor`)
+    assert.equal(ringAt.y, expectedEnd.y, `${route}: ringAt y must equal the true target anchor`)
     assert.ok(Number.isFinite(arrowAt.angle), `${route}: angle must be finite`)
   }
 })
 
-test('backwards edges (to left of from) still start/end correctly and stay finite', () => {
+test('backwards edges (to left of from) still start/end near the anchors and stay finite', () => {
   const from = node('a', 400, 0)
   const to = node('b', 0, 200) // well to the left, and lower
   const expectedStart = { x: from.x + from.w, y: from.y + from.h / 2 }
   const expectedEnd = { x: to.x, y: to.y + to.h / 2 }
   for (const route of routes) {
-    const { d, arrowAt } = connectorPath(from, to, route)
+    const { d, arrowAt, ringAt } = connectorPath(from, to, route)
     assert.ok(allFinite(d), `${route}: path has a non-finite coordinate: ${d}`)
     const start = startOf(d)
-    assert.equal(start.x, expectedStart.x, `${route}: start x`)
-    assert.equal(start.y, expectedStart.y, `${route}: start y`)
-    assert.equal(arrowAt.x, expectedEnd.x, `${route}: end x`)
-    assert.equal(arrowAt.y, expectedEnd.y, `${route}: end y`)
+    const startDist = Math.hypot(start.x - expectedStart.x, start.y - expectedStart.y)
+    const endDist = Math.hypot(arrowAt.x - expectedEnd.x, arrowAt.y - expectedEnd.y)
+    assert.ok(Math.abs(startDist - START_GAP) < 0.01, `${route}: start should be ${START_GAP}px from the source anchor, was ${startDist}`)
+    assert.ok(Math.abs(endDist - END_GAP) < 0.01, `${route}: end should be ${END_GAP}px from the target anchor, was ${endDist}`)
+    assert.equal(ringAt.x, expectedEnd.x, `${route}: ringAt x must equal the true target anchor`)
+    assert.equal(ringAt.y, expectedEnd.y, `${route}: ringAt y must equal the true target anchor`)
     assert.ok(Number.isFinite(arrowAt.angle), `${route}: angle must be finite`)
   }
 })
@@ -81,5 +92,18 @@ test('connectorPath is deterministic', () => {
   const to = node('b', 300, 60)
   for (const route of routes) {
     assert.deepEqual(connectorPath(from, to, route), connectorPath(from, to, route))
+  }
+})
+
+test('waviness is deterministic per card-id pair and differs for a different pair', () => {
+  const from = node('a', 0, 0)
+  const to = node('b', 400, 200)
+  const otherTo = node('c', 400, 200)
+  for (const route of routes) {
+    const r1 = connectorPath(from, to, route)
+    const r2 = connectorPath(from, to, route)
+    const r3 = connectorPath(from, otherTo, route)
+    assert.equal(r1.d, r2.d, `${route}: same pair of cards must draw the same wavy path`)
+    assert.notEqual(r1.d, r3.d, `${route}: a different pair of cards must draw a differently wavy path`)
   }
 })

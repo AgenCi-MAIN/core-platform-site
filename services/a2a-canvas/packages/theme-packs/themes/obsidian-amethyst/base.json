@@ -1,13 +1,13 @@
 {
   "schemaVersion": "1.0.0",
   "meta": {
-    "id": "theme_000122505f",
+    "id": "theme_0004d9525c",
     "name": "Obsidian / Amethyst — Base",
     "family": "obsidian-amethyst",
     "version": "1.0.0",
-    "description": "The owner’s Freeform reference: violet glass over near-black, cyan focus. The balanced default expression of the family.",
+    "description": "A superseded reference: violet glass over near-black, cyan focus. The balanced default expression of the family.",
     "tags": [
-      "reference",
+      "proposed",
       "moody",
       "focused",
       "after-hours",
@@ -16,7 +16,7 @@
     "author": "theme-packs generator",
     "createdAt": "2026-09-15T14:00:00.000Z",
     "generated": true,
-    "provenance": "reference"
+    "provenance": "proposed"
   },
   "palette": {
     "primary": {
@@ -146,20 +146,20 @@
       "info": "#2883AE"
     },
     "dark": {
-      "bg": "#11121A",
+      "bg": "#13111A",
       "bgElevated": "#26242C",
       "bgSunken": "#0C0B11",
-      "surface": "#24193A",
+      "surface": "#1C0C40",
       "surfaceAlpha": 0.82,
       "surfaceHover": "#372957",
       "border": "#2F2A3D",
       "borderStrong": "#463D58",
-      "text": "#F5F3FF",
-      "textMuted": "#C4B5FD",
+      "text": "#F7F6F9",
+      "textMuted": "#B9B1C8",
       "textInverse": "#131118",
       "link": "#AB90EA",
-      "focusRing": "#67E8F9",
-      "accent": "#A78BFA",
+      "focusRing": "#71E0F4",
+      "accent": "#845CE0",
       "success": "#62DBAE",
       "warning": "#DBBC62",
       "danger": "#DB6662",
