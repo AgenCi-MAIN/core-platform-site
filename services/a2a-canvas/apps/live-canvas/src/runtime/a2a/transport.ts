@@ -25,6 +25,19 @@ function isRequest(data: JsonRpcRequest | JsonRpcResponse): data is JsonRpcReque
   return typeof (data as { method?: unknown }).method === 'string'
 }
 
+/** MessagePort.ref()/unref() are a Node (worker_threads) extension, not part
+ * of the Web MessagePort API — guard every call so this still runs unchanged
+ * in a browser, where these are simply absent and the port has no notion of
+ * "keeping the process alive" to begin with. */
+function refControls(port: MessagePort): { ref(): void; unref(): void } {
+  const maybeRef = (port as unknown as { ref?: () => void }).ref
+  const maybeUnref = (port as unknown as { unref?: () => void }).unref
+  return {
+    ref: () => maybeRef?.call(port),
+    unref: () => maybeUnref?.call(port),
+  }
+}
+
 function wrapPort(port: MessagePort): Endpoint {
   interface Pending {
     resolve(response: JsonRpcResponse): void
@@ -35,12 +48,32 @@ function wrapPort(port: MessagePort): Endpoint {
   let handler: ((request: JsonRpcRequest) => Promise<JsonRpcResponse> | JsonRpcResponse) | null = null
   let closed = false
 
+  // In Node, an open MessagePort keeps the process alive even while wholly
+  // idle. A runtime has no explicit shutdown (Runtime carries no dispose
+  // method), so without this a Node host — including these very tests —
+  // would never exit once a runtime has been created. `busy` counts every
+  // outstanding reason to stay alive (a send() awaiting its reply, a request
+  // being handled); the port is ref()'d while busy>0 and unref()'d at 0.
+  const { ref, unref } = refControls(port)
+  let busy = 0
+  unref()
+  function enter(): void {
+    busy += 1
+    ref()
+  }
+  function leave(): void {
+    busy = Math.max(0, busy - 1)
+    if (busy === 0) unref()
+  }
+
   port.onmessage = (ev: MessageEvent) => {
     const data = ev.data as JsonRpcRequest | JsonRpcResponse
     if (isRequest(data)) {
       if (!handler) return
+      enter()
       Promise.resolve(handler(data)).then((response) => {
         if (!closed) port.postMessage(response)
+        leave()
       })
       return
     }
@@ -48,8 +81,13 @@ function wrapPort(port: MessagePort): Endpoint {
     if (!entry) return
     pending.delete(data.id)
     if (entry.timer !== undefined) clearTimeout(entry.timer)
-    if ('error' in data) entry.reject(data.error)
-    else entry.resolve(data)
+    leave()
+    // A response — even one carrying a business-level JSON-RPC `error` — is
+    // a successful round trip and resolves send(); reject() is reserved for
+    // transport-level failure (timeout, closed transport). Callers check
+    // `'error' in response`, matching JsonRpcResponse's own {result}|{error}
+    // shape.
+    entry.resolve(data)
   }
 
   return {
@@ -59,10 +97,12 @@ function wrapPort(port: MessagePort): Endpoint {
           reject({ code: JSON_RPC_ERRORS.transportUnavailable, message: 'network transport not available in this build' })
           return
         }
+        enter()
         const entry: Pending = { resolve, reject }
         if (timeoutMs !== undefined) {
           entry.timer = setTimeout(() => {
             pending.delete(request.id)
+            leave()
             reject({ code: JSON_RPC_ERRORS.timeout, message: `A2A request timed out after ${timeoutMs}ms` })
           }, timeoutMs)
         }
@@ -81,7 +121,9 @@ function wrapPort(port: MessagePort): Endpoint {
         entry.reject({ code: JSON_RPC_ERRORS.internal, message: 'transport closed' })
       }
       pending.clear()
+      busy = 0
       handler = null
+      unref()
       port.close()
     },
   }
