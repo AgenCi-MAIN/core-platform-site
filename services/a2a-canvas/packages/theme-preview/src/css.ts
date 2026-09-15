@@ -46,7 +46,8 @@ function rgbTriplet(hex: string): string {
 }
 
 export function resolveSemanticRef(colors: SemanticColors, ref: SemanticRef): string {
-  return colors[ref]
+  const value = colors[ref]
+  return typeof value === 'number' ? String(value) : value
 }
 
 export function resolveRadiusRef(radius: RadiusTokens, ref: keyof RadiusTokens): number {

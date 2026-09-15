@@ -50,9 +50,14 @@ serving model can differ). Workers are Agent-tool subagents launched with the
 | W2 canvas (sonnet) | apps/live-canvas/src/canvas, tests/canvas | 13:48 | | |
 | W3 runtime (sonnet) | apps/live-canvas/src/runtime, tests/runtime | 13:48 | | |
 | W4 state (sonnet) | apps/live-canvas/src/state, tests/state | 13:48 | 14:01 | Verified by integrator: 19/19 tests pass, its files typecheck; no denied tool calls (worker report) |
+| W6 theme-packs (sonnet) | packages/theme-packs | 13:51 | | |
+| W7 fixtures (sonnet) | packages/fixtures | 13:51 | | |
+| W8 theme-preview (sonnet) | packages/theme-preview | 13:51 | 14:04 | Verified by integrator: 26/26 tests pass, tsc clean; 1,271 source/test lines + 997 generated preview lines |
 | W5 ui (sonnet) | apps/live-canvas/src/ui, tests/ui | 13:48 | 14:00 | Verified by integrator: 30/30 tests pass, its files typecheck; 1,244 lines; worker reported 152k tokens, 37 tool uses, 10.5 min |
 
 ## Milestones
+
+- **14:04Z — Vertical slice verified in Chromium** (Playwright against the built single-file page, evidence in the integrator's scratchpad, summarised in the PR): 4 lanes / 18 nodes / 16 connectors rendered; node dragged from Theme Forge into Workflow Lab and undone; three runs completed with run ids; A2A Handoff produced three request/response pairs sharing correlation ids and output `{verified:true}`; Workflow Lab emitted node.failed then recovered via retry, output `["HELLO LANES",11]`; theme apply changed --c-accent; save wrote 6,434 bytes; reload restored theme and layout. Defects found: inline label edit did not commit (under investigation); artifact fragment lacked its script (fixed).
 
 - **13:46Z — Foundation landed** (`f680ff3`, Landed on the branch, not merged). Verified: package typecheck clean, root typecheck clean, root eslint config parses, shared contract test passes (5 tests).
 - **13:48Z — Draft PR #164 opened**; five module workers dispatched with disjoint file ownership. Integrator wrote `apps/live-canvas/src/main.ts` (wiring) while they run.

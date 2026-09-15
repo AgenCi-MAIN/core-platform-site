@@ -3,7 +3,7 @@
 //   dist/artifact.html — body fragment (title + style + markup + inline script),
 //                        the shape the claude.ai Artifact publisher expects.
 // Run after `vite build`: node scripts/inline.mjs
-import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, readdirSync, existsSync, rmSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -14,22 +14,24 @@ if (!existsSync(htmlPath)) throw new Error('dist/index.html missing — run vite
 let html = readFileSync(htmlPath, 'utf8')
 const assets = join(dist, 'assets')
 const files = existsSync(assets) ? readdirSync(assets) : []
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 for (const f of files) {
   const body = readFileSync(join(assets, f), 'utf8')
   if (f.endsWith('.js')) {
-    const re = new RegExp(`<script[^>]*src="\\./assets/${f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*></script>`)
-    html = html.replace(re, () => `<script type="module">\n${body.replace(/<\/script/g, '<\\/script')}\n</script>`)
+    html = html.replace(new RegExp(`<script[^>]*src="\\./assets/${esc(f)}"[^>]*></script>`), () => `<script type="module">\n${body.replace(/<\/script/g, '<\\/script')}\n</script>`)
   } else if (f.endsWith('.css')) {
-    const re = new RegExp(`<link[^>]*href="\\./assets/${f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`)
-    html = html.replace(re, () => `<style>\n${body}\n</style>`)
+    html = html.replace(new RegExp(`<link[^>]*href="\\./assets/${esc(f)}"[^>]*>`), () => `<style>\n${body}\n</style>`)
   }
 }
 writeFileSync(htmlPath, html)
+if (files.length) rmSync(assets, { recursive: true, force: true })
 
-// Artifact fragment: strip the document skeleton, keep <title>, <style>, markup, scripts.
+// Artifact fragment: <title>, every <style>, the body markup, then every inline module script
+// (Vite places the script in <head>, so it is collected from the whole document).
 const title = (html.match(/<title>[\s\S]*?<\/title>/) || [''])[0]
 const styles = [...html.matchAll(/<style>[\s\S]*?<\/style>/g)].map((m) => m[0]).join('\n')
-const bodyInner = (html.match(/<body[^>]*>([\s\S]*)<\/body>/) || ['', ''])[1]
-writeFileSync(join(dist, 'artifact.html'), `${title}\n${styles}\n${bodyInner.trim()}\n`)
-console.log(`inlined ${files.length} asset(s) → dist/index.html, dist/artifact.html`)
+const scripts = [...html.matchAll(/<script type="module">[\s\S]*?<\/script>/g)].map((m) => m[0]).join('\n')
+const bodyInner = ((html.match(/<body[^>]*>([\s\S]*)<\/body>/) || ['', ''])[1]).replace(/<script type="module">[\s\S]*?<\/script>/g, '').trim()
+writeFileSync(join(dist, 'artifact.html'), `${title}\n${styles}\n${bodyInner}\n${scripts}\n`)
+console.log(`inlined ${files.length} asset(s) → dist/index.html (${html.length} bytes), dist/artifact.html`)

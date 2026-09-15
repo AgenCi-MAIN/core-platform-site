@@ -17,16 +17,16 @@ test('NODE_SHAPE_KINDS lists exactly the six required shapes', () => {
 
 test('pentagon has 5 points and hexagon has 6', () => {
   const countPoints = (markup: string): number => {
-    const match = /points="([^"]*)"/.exec(markup)
-    return match ? match[1].trim().split(/\s+/).length : 0
+    const value = /points="([^"]*)"/.exec(markup)?.[1]
+    return value ? value.trim().split(/\s+/).length : 0
   }
   assert.equal(countPoints(pentagonShape(0, 0, 10)), 5)
   assert.equal(countPoints(hexagonShape(0, 0, 10)), 6)
 })
 
 test('diamond has 4 points', () => {
-  const match = /points="([^"]*)"/.exec(diamondShape(0, 0, 20, 20))
-  assert.equal(match?.[1].trim().split(/\s+/).length, 4)
+  const value = /points="([^"]*)"/.exec(diamondShape(0, 0, 20, 20))?.[1] ?? ''
+  assert.equal(value.trim().split(/\s+/).length, 4)
 })
 
 test('curvedConnector returns a curved path and an arrowhead polygon', () => {

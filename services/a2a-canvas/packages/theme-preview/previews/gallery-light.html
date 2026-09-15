@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en" data-preview-mode="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Theme gallery — light</title>
+<style>:root {
+  --c-bg: #F5F3FF;
+  --c-surface-rgb: 255 255 255;
+  --surface-alpha: 0.86;
+  --c-surface: rgb(var(--c-surface-rgb) / var(--surface-alpha));
+  --c-accent: #7C3AED;
+  --c-focus: #0E7C90;
+  --c-text: #1C1730;
+  --c-muted: #5B5178;
+  --c-success: #047857;
+  --c-warning: #92400E;
+  --c-danger: #B91C1C;
+  --c-border: #D8D0F5;
+  --sp-1: 0.5rem;
+  --sp-2: 1rem;
+  --sp-3: 1.5rem;
+  --sp-4: 2rem;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+  --lift: -2px;
+  --font-sans: ui-sans-serif, -apple-system, "SF Pro Text", "Segoe UI", Inter, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.9375rem;
+  --fs-lg: 1.125rem;
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --touch: 44px;
+  color-scheme: light;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font: var(--fs-md) / 1.45 var(--font-sans);
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+.glass {
+  background: var(--c-surface);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.btn {
+  min-height: var(--touch);
+  min-width: var(--touch);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: rgb(var(--c-surface-rgb) / 0.6);
+  color: var(--c-text);
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
+}
+.btn:hover:not(:disabled), .btn[data-state="hover"] { transform: translateY(var(--lift)); background: rgb(var(--c-surface-rgb) / 0.95); }
+.btn.primary { background: var(--c-accent); color: var(--c-bg); border-color: transparent; }
+.btn:disabled, .btn[data-state="disabled"] { opacity: 0.72; cursor: not-allowed; color: var(--c-muted); }
+.btn[data-state="focus"] { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field > label { font-size: var(--fs-sm); color: var(--c-muted); }
+.field input, .field select {
+  min-height: var(--touch);
+  padding: var(--sp-1);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: rgb(0 0 0 / 0.25);
+  color: var(--c-text);
+}
+.section { display: flex; flex-direction: column; gap: var(--sp-1); }
+.section > h2 { margin: 0; font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-muted); }
+.row { display: flex; gap: var(--sp-1); flex-wrap: wrap; align-items: center; }
+.muted { color: var(--c-muted); }
+.mono { font-family: var(--font-mono); }
+.lane-rail { fill: rgb(var(--c-surface-rgb) / 0.35); stroke: var(--c-border); }
+.lane-title { fill: var(--c-muted); font: 600 var(--fs-sm) var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; }
+.node-shape { fill: var(--c-surface); stroke: var(--c-border); stroke-width: 1; }
+.node.selected .node-shape { stroke: var(--c-accent); stroke-width: 2; }
+.node.selected .node-keyline { stroke: var(--c-focus); stroke-width: 1; fill: none; }
+.node-label { fill: var(--c-text); font: 500 var(--fs-md) var(--font-sans); }
+.node-sub { fill: var(--c-muted); font: var(--fs-sm) var(--font-sans); }
+.node[data-status="running"] .node-shape { stroke: var(--c-focus); }
+.node[data-status="done"] .node-shape { stroke: var(--c-success); }
+.node[data-status="failed"] .node-shape { stroke: var(--c-danger); }
+.node[data-status="blocked"] .node-shape { stroke: var(--c-warning); }
+.connector { fill: none; stroke: var(--c-muted); stroke-width: 1.5; }
+.connector.active { stroke: var(--c-focus); }
+.connector-arrow { fill: var(--c-muted); }
+.status {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  color: var(--c-muted);
+  font-size: var(--fs-sm);
+}
+.status[data-kind="ok"] { color: var(--c-success); }
+.status[data-kind="error"] { color: var(--c-danger); }
+.toast {
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+}
+.badge {
+  display: inline-block;
+  padding: 2px var(--sp-1);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  font-size: var(--fs-sm);
+  color: var(--c-muted);
+}
+
+.gallery-page { max-width: 1400px; margin: 0 auto; padding: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-3); }
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: var(--sp-3); }
+.theme-card { padding: var(--sp-2); display: flex; flex-direction: column; gap: var(--sp-2); }
+.mini-preview { width: 100%; height: 260px; border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: var(--c-bg); }
+table.contrast { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+table.contrast td, table.contrast th { padding: 4px 8px; border-bottom: 1px solid var(--c-border); text-align: left; }
+.pass { color: var(--c-success, #6EE7B7); }
+.fail { color: var(--c-danger, #FCA5A5); }</style>
+</head>
+<body>
+<div class="gallery-page">
+  <header>
+    <h1 style="margin:0;">Theme gallery — light mode</h1>
+    <p class="muted">1 theme</p>
+  </header>
+  <div class="gallery-grid">
+    <article class="theme-card glass" data-theme-id="theme_sample_obsidian_amethyst">
+    <header class="row" style="justify-content:space-between;align-items:baseline;">
+      <div>
+        <h3 style="margin:0;">Obsidian Amethyst (Reference)</h3>
+        <div class="muted mono" style="font-size:var(--fs-sm);">obsidian-amethyst · theme_sample_obsidian_amethyst</div>
+      </div>
+      <span class="badge">reference</span>
+    </header>
+    <iframe class="mini-preview" title="Obsidian Amethyst (Reference) preview" srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot; data-preview-mode=&quot;light&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot; /&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot; /&gt;
+&lt;title&gt;Obsidian Amethyst (Reference) — preview&lt;/title&gt;
+&lt;style&gt;:root {
+  --c-bg: #F5F3FF;
+  --c-surface-rgb: 255 255 255;
+  --surface-alpha: 0.86;
+  --c-surface: rgb(var(--c-surface-rgb) / var(--surface-alpha));
+  --c-accent: #7C3AED;
+  --c-focus: #0E7C90;
+  --c-text: #1C1730;
+  --c-muted: #5B5178;
+  --c-success: #047857;
+  --c-warning: #92400E;
+  --c-danger: #B91C1C;
+  --c-border: #D8D0F5;
+  --sp-1: 0.5rem;
+  --sp-2: 1rem;
+  --sp-3: 1.5rem;
+  --sp-4: 2rem;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+  --lift: -2px;
+  --font-sans: ui-sans-serif, -apple-system, &quot;SF Pro Text&quot;, &quot;Segoe UI&quot;, Inter, system-ui, sans-serif;
+  --font-mono: ui-monospace, &quot;SF Mono&quot;, Menlo, Consolas, monospace;
+  --fs-sm: 0.8125rem;
+  --fs-md: 0.9375rem;
+  --fs-lg: 1.125rem;
+  --motion-fast: 120ms;
+  --motion-base: 200ms;
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --touch: 44px;
+  color-scheme: light;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font: var(--fs-md) / 1.45 var(--font-sans);
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+.glass {
+  background: var(--c-surface);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.btn {
+  min-height: var(--touch);
+  min-width: var(--touch);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: rgb(var(--c-surface-rgb) / 0.6);
+  color: var(--c-text);
+  cursor: pointer;
+  transition: transform var(--motion-fast) var(--ease), background var(--motion-fast) var(--ease);
+}
+.btn:hover:not(:disabled), .btn[data-state=&quot;hover&quot;] { transform: translateY(var(--lift)); background: rgb(var(--c-surface-rgb) / 0.95); }
+.btn.primary { background: var(--c-accent); color: var(--c-bg); border-color: transparent; }
+.btn:disabled, .btn[data-state=&quot;disabled&quot;] { opacity: 0.72; cursor: not-allowed; color: var(--c-muted); }
+.btn[data-state=&quot;focus&quot;] { outline: 2px solid var(--c-focus); outline-offset: 2px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field &gt; label { font-size: var(--fs-sm); color: var(--c-muted); }
+.field input, .field select {
+  min-height: var(--touch);
+  padding: var(--sp-1);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  background: rgb(0 0 0 / 0.25);
+  color: var(--c-text);
+}
+.section { display: flex; flex-direction: column; gap: var(--sp-1); }
+.section &gt; h2 { margin: 0; font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: 0.08em; color: var(--c-muted); }
+.row { display: flex; gap: var(--sp-1); flex-wrap: wrap; align-items: center; }
+.muted { color: var(--c-muted); }
+.mono { font-family: var(--font-mono); }
+.lane-rail { fill: rgb(var(--c-surface-rgb) / 0.35); stroke: var(--c-border); }
+.lane-title { fill: var(--c-muted); font: 600 var(--fs-sm) var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; }
+.node-shape { fill: var(--c-surface); stroke: var(--c-border); stroke-width: 1; }
+.node.selected .node-shape { stroke: var(--c-accent); stroke-width: 2; }
+.node.selected .node-keyline { stroke: var(--c-focus); stroke-width: 1; fill: none; }
+.node-label { fill: var(--c-text); font: 500 var(--fs-md) var(--font-sans); }
+.node-sub { fill: var(--c-muted); font: var(--fs-sm) var(--font-sans); }
+.node[data-status=&quot;running&quot;] .node-shape { stroke: var(--c-focus); }
+.node[data-status=&quot;done&quot;] .node-shape { stroke: var(--c-success); }
+.node[data-status=&quot;failed&quot;] .node-shape { stroke: var(--c-danger); }
+.node[data-status=&quot;blocked&quot;] .node-shape { stroke: var(--c-warning); }
+.connector { fill: none; stroke: var(--c-muted); stroke-width: 1.5; }
+.connector.active { stroke: var(--c-focus); }
+.connector-arrow { fill: var(--c-muted); }
+.status {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  color: var(--c-muted);
+  font-size: var(--fs-sm);
+}
+.status[data-kind=&quot;ok&quot;] { color: var(--c-success); }
+.status[data-kind=&quot;error&quot;] { color: var(--c-danger); }
+.toast {
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+}
+.badge {
+  display: inline-block;
+  padding: 2px var(--sp-1);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--c-border);
+  font-size: var(--fs-sm);
+  color: var(--c-muted);
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class=&quot;preview&quot; style=&quot;max-width:480px;margin:0 auto;padding:var(--sp-3);display:flex;flex-direction:column;gap:var(--sp-3);&quot;&gt;
+  &lt;header class=&quot;row&quot; style=&quot;justify-content:space-between;&quot;&gt;
+    &lt;h1 style=&quot;margin:0;font-size:var(--fs-lg);&quot;&gt;Obsidian Amethyst (Reference)&lt;/h1&gt;
+    &lt;span class=&quot;badge&quot;&gt;reference · light&lt;/span&gt;
+  &lt;/header&gt;
+  &lt;section class=&quot;section&quot;&gt;
+    &lt;h2&gt;Workflow Lab&lt;/h2&gt;
+    &lt;svg viewBox=&quot;0 0 480 220&quot; width=&quot;100%&quot; height=&quot;220&quot; role=&quot;img&quot; aria-label=&quot;Sample workflow lane with every node shape&quot;&gt;
+      &lt;rect class=&quot;lane-rail&quot; x=&quot;1&quot; y=&quot;1&quot; width=&quot;478&quot; height=&quot;218&quot; rx=&quot;14&quot; /&gt;
+      &lt;text class=&quot;lane-title&quot; x=&quot;24&quot; y=&quot;28&quot;&gt;shawn-runtime&lt;/text&gt;
+      &lt;path class=&quot;connector&quot; d=&quot;M 112 124 Q 99.2 115.04 86.4 124&quot; /&gt;&lt;polygon class=&quot;connector-arrow&quot; points=&quot;86.4,124 89.51,117.73 93.36,123.23&quot; /&gt;
+    &lt;path class=&quot;connector active&quot; d=&quot;M 182.4 124 Q 169.6 115.04 156.8 124&quot; /&gt;&lt;polygon class=&quot;connector-arrow&quot; points=&quot;156.8,124 159.91,117.73 163.76,123.23&quot; /&gt;
+    &lt;path class=&quot;connector&quot; d=&quot;M 252.8 124 Q 240 115.04 227.2 124&quot; /&gt;&lt;polygon class=&quot;connector-arrow&quot; points=&quot;227.2,124 230.31,117.73 234.16,123.23&quot; /&gt;
+    &lt;path class=&quot;connector&quot; d=&quot;M 323.2 124 Q 310.4 115.04 297.6 124&quot; /&gt;&lt;polygon class=&quot;connector-arrow&quot; points=&quot;297.6,124 300.71,117.73 304.56,123.23&quot; /&gt;
+    &lt;path class=&quot;connector&quot; d=&quot;M 393.6 124 Q 380.8 115.04 368 124&quot; /&gt;&lt;polygon class=&quot;connector-arrow&quot; points=&quot;368,124 371.11,117.73 374.96,123.23&quot; /&gt;
+      &lt;g class=&quot;node&quot; data-shape=&quot;rect&quot;&gt;
+      &lt;rect class=&quot;node-shape&quot; x=&quot;16&quot; y=&quot;92&quot; width=&quot;96&quot; height=&quot;64&quot; /&gt;
+      
+      &lt;text class=&quot;node-label&quot; x=&quot;64&quot; y=&quot;174&quot; text-anchor=&quot;middle&quot;&gt;Rect&lt;/text&gt;
+      &lt;text class=&quot;node-sub&quot; x=&quot;64&quot; y=&quot;190&quot; text-anchor=&quot;middle&quot;&gt;idle&lt;/text&gt;
+    &lt;/g&gt;
+    &lt;g class=&quot;node selected&quot; data-shape=&quot;rounded&quot; data-status=&quot;running&quot;&gt;
+      &lt;rect class=&quot;node-shape&quot; x=&quot;86.4&quot; y=&quot;92&quot; width=&quot;96&quot; height=&quot;64&quot; rx=&quot;14.08&quot; ry=&quot;14.08&quot; /&gt;
+      &lt;rect class=&quot;node-keyline&quot; x=&quot;78.72&quot; y=&quot;86.88&quot; width=&quot;111.36&quot; height=&quot;74.24&quot; rx=&quot;16.33&quot; ry=&quot;16.33&quot; /&gt;
+      &lt;text class=&quot;node-label&quot; x=&quot;134.4&quot; y=&quot;174&quot; text-anchor=&quot;middle&quot;&gt;Rounded&lt;/text&gt;
+      &lt;text class=&quot;node-sub&quot; x=&quot;134.4&quot; y=&quot;190&quot; text-anchor=&quot;middle&quot;&gt;running&lt;/text&gt;
+    &lt;/g&gt;
+    &lt;g class=&quot;node&quot; data-shape=&quot;circle&quot; data-status=&quot;done&quot;&gt;
+      &lt;circle class=&quot;node-shape&quot; cx=&quot;204.8&quot; cy=&quot;124&quot; r=&quot;32&quot; /&gt;
+      
+      &lt;text class=&quot;node-label&quot; x=&quot;204.8&quot; y=&quot;174&quot; text-anchor=&quot;middle&quot;&gt;Circle&lt;/text&gt;
+      &lt;text class=&quot;node-sub&quot; x=&quot;204.8&quot; y=&quot;190&quot; text-anchor=&quot;middle&quot;&gt;done&lt;/text&gt;
+    &lt;/g&gt;
+    &lt;g class=&quot;node&quot; data-shape=&quot;diamond&quot; data-status=&quot;blocked&quot;&gt;
+      &lt;polygon class=&quot;node-shape&quot; points=&quot;275.2,87.2 330.4,124 275.2,160.8 220,124&quot; /&gt;
+      
+      &lt;text class=&quot;node-label&quot; x=&quot;275.20000000000005&quot; y=&quot;174&quot; text-anchor=&quot;middle&quot;&gt;Diamond&lt;/text&gt;
+      &lt;text class=&quot;node-sub&quot; x=&quot;275.20000000000005&quot; y=&quot;190&quot; text-anchor=&quot;middle&quot;&gt;blocked&lt;/text&gt;
+    &lt;/g&gt;
+    &lt;g class=&quot;node&quot; data-shape=&quot;pentagon&quot; data-status=&quot;failed&quot;&gt;
+      &lt;polygon class=&quot;node-shape&quot; points=&quot;345.6,92 376.03,114.11 364.41,149.89 326.79,149.89 315.17,114.11&quot; /&gt;
+      
+      &lt;text class=&quot;node-label&quot; x=&quot;345.6&quot; y=&quot;174&quot; text-anchor=&quot;middle&quot;&gt;Pentagon&lt;/text&gt;
+      &lt;text class=&quot;node-sub&quot; x=&quot;345.6&quot; y=&quot;190&quot; text-anchor=&quot;middle&quot;&gt;failed&lt;/text&gt;
+    &lt;/g&gt;
+    &lt;g class=&quot;node&quot; data-shape=&quot;hexagon&quot;&gt;
+      &lt;polygon class=&quot;node-shape&quot; points=&quot;416,92 443.71,108 443.71,140 416,156 388.29,140 388.29,108&quot; /&gt;
+      
+      &lt;text class=&quot;node-label&quot; x=&quot;416&quot; y=&quot;174&quot; text-anchor=&quot;middle&quot;&gt;Hexagon&lt;/text&gt;
+      &lt;text class=&quot;node-sub&quot; x=&quot;416&quot; y=&quot;190&quot; text-anchor=&quot;middle&quot;&gt;idle&lt;/text&gt;
+    &lt;/g&gt;
+    &lt;/svg&gt;
+  &lt;/section&gt;
+  &lt;div class=&quot;row&quot; style=&quot;align-items:flex-start;&quot;&gt;
+    &lt;section class=&quot;glass&quot; style=&quot;flex:1 1 280px;padding:var(--sp-2);display:flex;flex-direction:column;gap:var(--sp-2);&quot;&gt;
+    &lt;div class=&quot;section&quot;&gt;
+      &lt;h2&gt;Inspector&lt;/h2&gt;
+      &lt;div class=&quot;field&quot;&gt;
+        &lt;label for=&quot;preview-node-name&quot;&gt;Name&lt;/label&gt;
+        &lt;input id=&quot;preview-node-name&quot; type=&quot;text&quot; value=&quot;lane-3 / step-2&quot; readonly /&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;field&quot;&gt;
+        &lt;label for=&quot;preview-node-status&quot;&gt;Status&lt;/label&gt;
+        &lt;select id=&quot;preview-node-status&quot;&gt;
+          &lt;option&gt;queued&lt;/option&gt;
+          &lt;option selected&gt;running&lt;/option&gt;
+          &lt;option&gt;done&lt;/option&gt;
+        &lt;/select&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+    &lt;aside class=&quot;glass&quot; style=&quot;flex:1 1 240px;padding:var(--sp-2);display:flex;flex-direction:column;gap:var(--sp-2);&quot;&gt;
+    &lt;div class=&quot;section&quot;&gt;
+      &lt;h2&gt;Actions&lt;/h2&gt;
+      &lt;div class=&quot;row&quot;&gt;
+        &lt;button class=&quot;btn&quot; type=&quot;button&quot;&gt;Default&lt;/button&gt;
+        &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-state=&quot;hover&quot;&gt;Hover&lt;/button&gt;
+        &lt;button class=&quot;btn primary&quot; type=&quot;button&quot;&gt;Primary&lt;/button&gt;
+        &lt;button class=&quot;btn&quot; type=&quot;button&quot; data-state=&quot;focus&quot;&gt;Focus&lt;/button&gt;
+        &lt;button class=&quot;btn&quot; type=&quot;button&quot; disabled&gt;Disabled&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/aside&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;row&quot;&gt;
+    &lt;span class=&quot;status&quot; data-kind=&quot;ok&quot;&gt;Saved&lt;/span&gt;
+    &lt;span class=&quot;status&quot;&gt;Autosaving…&lt;/span&gt;
+    &lt;span class=&quot;status&quot; data-kind=&quot;error&quot;&gt;Sync failed&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;toast&quot;&gt;Theme applied — &lt;span class=&quot;mono&quot;&gt;light&lt;/span&gt; mode&lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+    <table class="contrast"><thead><tr><th>Pair</th><th>Ratio</th><th>Min</th><th>Result</th></tr></thead><tbody><tr><td>Text on background</td><td class="mono">15.76:1</td><td class="mono">4.5:1</td><td class="pass">PASS</td></tr><tr><td>Text on surface (composited)</td><td class="mono">17.05:1</td><td class="mono">4.5:1</td><td class="pass">PASS</td></tr><tr><td>Muted text on background</td><td class="mono">6.62:1</td><td class="mono">4.5:1</td><td class="pass">PASS</td></tr><tr><td>Link on background</td><td class="mono">6.48:1</td><td class="mono">4.5:1</td><td class="pass">PASS</td></tr><tr><td>Button text on button</td><td class="mono">5.70:1</td><td class="mono">3:1</td><td class="pass">PASS</td></tr><tr><td>Focus ring on background</td><td class="mono">4.45:1</td><td class="mono">3:1</td><td class="pass">PASS</td></tr></tbody></table>
+  </article>
+  </div>
+</div>
+</body>
+</html>
