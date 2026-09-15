@@ -19,7 +19,7 @@ test('stepping clock advances monotonically', () => {
   const c = steppingClock(1_000, 5)
   assert.equal(c.now(), 1_000)
   assert.equal(c.now(), 1_005)
-  assert.match(isoAt(c), /^2?\d{3}-\d{2}-\d{2}T/)
+  assert.match(isoAt(c), /^\d{4}-\d{2}-\d{2}T/)
 })
 
 test('result helpers', () => {

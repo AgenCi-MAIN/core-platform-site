@@ -48,7 +48,7 @@ serving model can differ). Workers are Agent-tool subagents launched with the
 | Foundation (default model) | packages/shared, app shell | 13:37 | stopped by the interruption at ~13:42 with no files written (Observed) | taken over by the integrator; landed as `f680ff3` |
 | W1 theme (sonnet) | apps/live-canvas/src/theme, tests/theme | 13:48 | 14:02 | Verified by integrator: 23/23 tests pass, its files typecheck; reference hex values present verbatim in the obsidian theme |
 | W2 canvas (sonnet) | apps/live-canvas/src/canvas, tests/canvas | 13:48 | 14:06 | Verified by integrator: 19/19 tests pass, its files typecheck; integrator patched double-click (synthetic double-tap, geometric hit-test, robust SVG clear) after browser evidence showed the native dblclick never fired on rebuilt nodes |
-| W3 runtime (sonnet) | apps/live-canvas/src/runtime, tests/runtime | 13:48 | still running at 14:25 (Observed); integrator landed its files at the deadline | Verified by integrator: 37/37 runtime tests pass as a suite (runner.test.ts hangs when run alone — Unresolved), app typecheck clean; integrator patched the source executor to resolve `{ themeRef }` and the probe/apply executors to carry tokens through, so Theme Forge applies a real theme |
+| W3 runtime (sonnet) | apps/live-canvas/src/runtime, tests/runtime | 13:48 | still running at 14:25 (Observed); integrator landed its files at the deadline | Verified by integrator: 37/37 runtime tests pass as a suite (an earlier standalone hang of runner.test.ts is gone after W3's final port-ref fix; Verified 14:26Z), app typecheck clean; integrator patched the source executor to resolve `{ themeRef }` and the probe/apply executors to carry tokens through, so Theme Forge applies a real theme |
 | W4 state (sonnet) | apps/live-canvas/src/state, tests/state | 13:48 | 14:01 | Verified by integrator: 19/19 tests pass, its files typecheck; no denied tool calls (worker report) |
 | W6 theme-packs (sonnet) | packages/theme-packs | 13:51 | 14:09 | Verified by integrator: 39/39 tests pass, tsc clean; 27 themes (9 families × 3 variants), dedupe threshold 0.05; 1,988 source/test lines + 7,671 generated theme lines |
 | W7 fixtures (sonnet) | packages/fixtures | 13:51 | 14:07 | Verified by integrator: 48/48 tests pass, tsc clean; 10 workflow fixtures + 3 A2A transcripts; 1,863 source/test lines + 2,955 generated sample lines |
@@ -56,6 +56,8 @@ serving model can differ). Workers are Agent-tool subagents launched with the
 | W5 ui (sonnet) | apps/live-canvas/src/ui, tests/ui | 13:48 | 14:00 | Verified by integrator: 30/30 tests pass, its files typecheck; 1,244 lines; worker reported 152k tokens, 37 tool uses, 10.5 min |
 
 ## Milestones
+
+- **14:27Z — Closing verification.** Whole package suite: 246 tests, all passing after fixing an integrator-authored regex in the shared contract test (it rejected 1970 timestamps). Package typecheck clean; root typecheck clean. W3 reported at 14:25Z with 323k tokens, 119 tool uses, 36.7 min; its final files were already in the 14:25 landing.
 
 - **14:25Z — Runtime landed; all three product lanes produce correct output** (evidence refreshed under `apps/live-canvas/evidence/`): Theme Forge → `{applied: "obsidian-amethyst", probePassed: true}`; A2A Handoff → `{verified: true}` with three correlated pairs; Workflow Lab → `["HELLO LANES", 11]` after a recovered failure. Zero page errors. W3 had not reported by the 14:22Z decision point, so the integrator verified and landed its files directly.
 
