@@ -1,0 +1,269 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "wf_000101a16d",
+      "name": "Theme Forge Variants",
+      "summary": "One proposal, two variant lanes previewing it in parallel.",
+      "lanes": [
+        {
+          "id": "lane_0002af03a3",
+          "workflowId": "wf_000101a16d",
+          "title": "Base Proposal",
+          "order": 0,
+          "collapsed": false
+        },
+        {
+          "id": "lane_0006066e9b",
+          "workflowId": "wf_000101a16d",
+          "title": "Cyan Variant",
+          "order": 1,
+          "collapsed": false
+        },
+        {
+          "id": "lane_000abdfcd2",
+          "workflowId": "wf_000101a16d",
+          "title": "Violet Variant",
+          "order": 2,
+          "collapsed": false
+        }
+      ],
+      "cards": [
+        {
+          "id": "card_0003b48224",
+          "laneId": "lane_0002af03a3",
+          "order": 0,
+          "title": "Draft Tokens",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "paletteRole": "accent",
+            "hex": "#08B9D5"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0004f6022c",
+          "laneId": "lane_0002af03a3",
+          "order": 1,
+          "title": "Contrast Probe",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "mode": "dark",
+            "required": 4.5
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0005c6fc26",
+          "laneId": "lane_0002af03a3",
+          "order": 2,
+          "title": "Hand To Variant Lanes",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "hexagon",
+          "kind": "a2a-handoff",
+          "config": {
+            "to": "agent.theme-critic",
+            "skill": "theme.critique"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0007764c94",
+          "laneId": "lane_0006066e9b",
+          "order": 0,
+          "title": "Swap Focus Ring",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "focusRing": "#67E8F9"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00087e75d1",
+          "laneId": "lane_0006066e9b",
+          "order": 1,
+          "title": "Preview Cyan",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "apply-theme",
+          "config": {
+            "mode": "dark"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0009429713",
+          "laneId": "lane_0006066e9b",
+          "order": 2,
+          "title": "Cyan Candidate",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "status": "ready"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000bd39585",
+          "laneId": "lane_000abdfcd2",
+          "order": 0,
+          "title": "Swap Accent Scale",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "accent": "#08B9D5"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000c088429",
+          "laneId": "lane_000abdfcd2",
+          "order": 1,
+          "title": "Preview Violet",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "apply-theme",
+          "config": {
+            "mode": "dark"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000d38f71b",
+          "laneId": "lane_000abdfcd2",
+          "order": 2,
+          "title": "Violet Candidate",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "status": "ready"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_000eab6d9d",
+          "from": "card_0003b48224",
+          "to": "card_0004f6022c"
+        },
+        {
+          "id": "edge_000f0d1798",
+          "from": "card_0004f6022c",
+          "to": "card_0005c6fc26"
+        },
+        {
+          "id": "edge_000g3fa19d",
+          "from": "card_0005c6fc26",
+          "to": "card_0007764c94"
+        },
+        {
+          "id": "edge_000h8e68a8",
+          "from": "card_0005c6fc26",
+          "to": "card_000bd39585"
+        },
+        {
+          "id": "edge_000if5872c",
+          "from": "card_0007764c94",
+          "to": "card_00087e75d1"
+        },
+        {
+          "id": "edge_000j15cb8f",
+          "from": "card_00087e75d1",
+          "to": "card_0009429713"
+        },
+        {
+          "id": "edge_000ke396e7",
+          "from": "card_000bd39585",
+          "to": "card_000c088429"
+        },
+        {
+          "id": "edge_000lee7d2d",
+          "from": "card_000c088429",
+          "to": "card_000d38f71b"
+        }
+      ],
+      "version": 1,
+      "updatedAt": "2026-09-02T15:00:00.000Z"
+    }
+  ],
+  "themeId": "theme.forge-base",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "savedAt": "2026-09-02T15:00:00.000Z"
+}

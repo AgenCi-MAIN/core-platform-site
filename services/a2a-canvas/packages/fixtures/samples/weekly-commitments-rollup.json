@@ -1,0 +1,229 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "wf_00010190ec",
+      "name": "Weekly Commitment Rollup",
+      "summary": "weekly_commitments row → pace line, entirely sequential.",
+      "lanes": [
+        {
+          "id": "lane_00029f008b",
+          "workflowId": "wf_00010190ec",
+          "title": "Weekly Plan",
+          "order": 0,
+          "collapsed": false
+        }
+      ],
+      "cards": [
+        {
+          "id": "card_000341d0f6",
+          "laneId": "lane_00029f008b",
+          "order": 0,
+          "title": "Checkin Submitted",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "weekKey": "2026-W36",
+            "leadBudgetCents": 150000,
+            "callTarget": 120
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0004bfd19e",
+          "laneId": "lane_00029f008b",
+          "order": 1,
+          "title": "Normalize Cents",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "round": "nearest_dollar"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00050accfc",
+          "laneId": "lane_00029f008b",
+          "order": 2,
+          "title": "Budget In Range",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "0 <= leadBudgetCents <= 2000000"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00063dff0b",
+          "laneId": "lane_00029f008b",
+          "order": 3,
+          "title": "Call Target In Range",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "0 <= callTarget <= 2000"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00074c4ef4",
+          "laneId": "lane_00029f008b",
+          "order": 4,
+          "title": "Compute Pace",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "basis": "business_days_elapsed"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0008c82848",
+          "laneId": "lane_00029f008b",
+          "order": 5,
+          "title": "Compute Delta Vs Actual",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "source": "dialer_transfers"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 920,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0009e21927",
+          "laneId": "lane_00029f008b",
+          "order": 6,
+          "title": "Render Pace Line",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "preview",
+          "config": {
+            "style": "dashed"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1104,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000a26918e",
+          "laneId": "lane_00029f008b",
+          "order": 7,
+          "title": "Commitment Panel",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "status": "rendered"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1288,
+            "y": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_000bfc4458",
+          "from": "card_000341d0f6",
+          "to": "card_0004bfd19e"
+        },
+        {
+          "id": "edge_000c9bf4d3",
+          "from": "card_0004bfd19e",
+          "to": "card_00050accfc"
+        },
+        {
+          "id": "edge_000d2fb8e1",
+          "from": "card_00050accfc",
+          "to": "card_00063dff0b"
+        },
+        {
+          "id": "edge_000e41322b",
+          "from": "card_00063dff0b",
+          "to": "card_00074c4ef4"
+        },
+        {
+          "id": "edge_000f926361",
+          "from": "card_00074c4ef4",
+          "to": "card_0008c82848"
+        },
+        {
+          "id": "edge_000g344f28",
+          "from": "card_0008c82848",
+          "to": "card_0009e21927"
+        },
+        {
+          "id": "edge_000hf9f1bd",
+          "from": "card_0009e21927",
+          "to": "card_000a26918e"
+        }
+      ],
+      "version": 1,
+      "updatedAt": "2026-09-02T15:00:00.000Z"
+    }
+  ],
+  "themeId": "theme.obsidian-amethyst",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "savedAt": "2026-09-02T15:00:00.000Z"
+}

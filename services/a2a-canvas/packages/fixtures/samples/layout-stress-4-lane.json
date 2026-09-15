@@ -1,0 +1,1192 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "wf_000101b5cd",
+      "name": "Layout Stress",
+      "summary": "Roughly forty nodes across four lanes — not a meaningful pipeline, purely for canvas layout, scroll and zoom performance testing.",
+      "lanes": [
+        {
+          "id": "lane_0002bb0abd",
+          "workflowId": "wf_000101b5cd",
+          "title": "Inbound",
+          "order": 0,
+          "collapsed": false
+        },
+        {
+          "id": "lane_000o4ae79f",
+          "workflowId": "wf_000101b5cd",
+          "title": "Verification",
+          "order": 1,
+          "collapsed": false
+        },
+        {
+          "id": "lane_001af0d671",
+          "workflowId": "wf_000101b5cd",
+          "title": "Dispatch",
+          "order": 2,
+          "collapsed": false
+        },
+        {
+          "id": "lane_001w3d0db4",
+          "workflowId": "wf_000101b5cd",
+          "title": "Book",
+          "order": 3,
+          "collapsed": false
+        }
+      ],
+      "cards": [
+        {
+          "id": "card_00037a7f3b",
+          "laneId": "lane_0002bb0abd",
+          "order": 0,
+          "title": "Inbound Node 1",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "seq": 0,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00042366c5",
+          "laneId": "lane_0002bb0abd",
+          "order": 1,
+          "title": "Inbound Node 2",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "seq": 1,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00064bb1a5",
+          "laneId": "lane_0002bb0abd",
+          "order": 2,
+          "title": "Inbound Node 3",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "seq": 2,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000802a108",
+          "laneId": "lane_0002bb0abd",
+          "order": 3,
+          "title": "Inbound Node 4",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "hexagon",
+          "kind": "a2a-handoff",
+          "config": {
+            "seq": 3,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000afbf64b",
+          "laneId": "lane_0002bb0abd",
+          "order": 4,
+          "title": "Inbound Node 5",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "triangle",
+          "kind": "branch",
+          "config": {
+            "seq": 4,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000cd28fcb",
+          "laneId": "lane_0002bb0abd",
+          "order": 5,
+          "title": "Inbound Node 6",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "diamond",
+          "kind": "join",
+          "config": {
+            "seq": 5,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 920,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000e9dd4b7",
+          "laneId": "lane_0002bb0abd",
+          "order": 6,
+          "title": "Inbound Node 7",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rounded",
+          "kind": "retry",
+          "config": {
+            "seq": 6,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1104,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000g642a5b",
+          "laneId": "lane_0002bb0abd",
+          "order": 7,
+          "title": "Inbound Node 8",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "apply-theme",
+          "config": {
+            "seq": 7,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1288,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000i43fbce",
+          "laneId": "lane_0002bb0abd",
+          "order": 8,
+          "title": "Inbound Node 9",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "preview",
+          "config": {
+            "seq": 8,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1472,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000kb6908f",
+          "laneId": "lane_0002bb0abd",
+          "order": 9,
+          "title": "Inbound Node 10",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "seq": 9,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1656,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000m3e5475",
+          "laneId": "lane_0002bb0abd",
+          "order": 10,
+          "title": "Inbound Node 11",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "seq": 10,
+            "lane": "Inbound"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1840,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000p633538",
+          "laneId": "lane_000o4ae79f",
+          "order": 0,
+          "title": "Verification Node 1",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "seq": 0,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000q4179c7",
+          "laneId": "lane_000o4ae79f",
+          "order": 1,
+          "title": "Verification Node 2",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "seq": 1,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000sef0f2f",
+          "laneId": "lane_000o4ae79f",
+          "order": 2,
+          "title": "Verification Node 3",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "seq": 2,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000ub6cc82",
+          "laneId": "lane_000o4ae79f",
+          "order": 3,
+          "title": "Verification Node 4",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "hexagon",
+          "kind": "a2a-handoff",
+          "config": {
+            "seq": 3,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000w88e79f",
+          "laneId": "lane_000o4ae79f",
+          "order": 4,
+          "title": "Verification Node 5",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "triangle",
+          "kind": "branch",
+          "config": {
+            "seq": 4,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000y14dd04",
+          "laneId": "lane_000o4ae79f",
+          "order": 5,
+          "title": "Verification Node 6",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "diamond",
+          "kind": "join",
+          "config": {
+            "seq": 5,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 920,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001021634e",
+          "laneId": "lane_000o4ae79f",
+          "order": 6,
+          "title": "Verification Node 7",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rounded",
+          "kind": "retry",
+          "config": {
+            "seq": 6,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1104,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0012f84509",
+          "laneId": "lane_000o4ae79f",
+          "order": 7,
+          "title": "Verification Node 8",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "apply-theme",
+          "config": {
+            "seq": 7,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1288,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00147bcc5b",
+          "laneId": "lane_000o4ae79f",
+          "order": 8,
+          "title": "Verification Node 9",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "preview",
+          "config": {
+            "seq": 8,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1472,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001603c0d6",
+          "laneId": "lane_000o4ae79f",
+          "order": 9,
+          "title": "Verification Node 10",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "seq": 9,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1656,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0018a8b00a",
+          "laneId": "lane_000o4ae79f",
+          "order": 10,
+          "title": "Verification Node 11",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "seq": 10,
+            "lane": "Verification"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1840,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001bed91e9",
+          "laneId": "lane_001af0d671",
+          "order": 0,
+          "title": "Dispatch Node 1",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "seq": 0,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001cc8867c",
+          "laneId": "lane_001af0d671",
+          "order": 1,
+          "title": "Dispatch Node 2",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "seq": 1,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001eeb0d2a",
+          "laneId": "lane_001af0d671",
+          "order": 2,
+          "title": "Dispatch Node 3",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "seq": 2,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001gb75c47",
+          "laneId": "lane_001af0d671",
+          "order": 3,
+          "title": "Dispatch Node 4",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "hexagon",
+          "kind": "a2a-handoff",
+          "config": {
+            "seq": 3,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001i81c674",
+          "laneId": "lane_001af0d671",
+          "order": 4,
+          "title": "Dispatch Node 5",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "triangle",
+          "kind": "branch",
+          "config": {
+            "seq": 4,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001k7ff704",
+          "laneId": "lane_001af0d671",
+          "order": 5,
+          "title": "Dispatch Node 6",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "diamond",
+          "kind": "join",
+          "config": {
+            "seq": 5,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 920,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001m72a6dd",
+          "laneId": "lane_001af0d671",
+          "order": 6,
+          "title": "Dispatch Node 7",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rounded",
+          "kind": "retry",
+          "config": {
+            "seq": 6,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1104,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001o3c9ce4",
+          "laneId": "lane_001af0d671",
+          "order": 7,
+          "title": "Dispatch Node 8",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "apply-theme",
+          "config": {
+            "seq": 7,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1288,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001q7f43ea",
+          "laneId": "lane_001af0d671",
+          "order": 8,
+          "title": "Dispatch Node 9",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "preview",
+          "config": {
+            "seq": 8,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1472,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001s7d407c",
+          "laneId": "lane_001af0d671",
+          "order": 9,
+          "title": "Dispatch Node 10",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "seq": 9,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1656,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001ua7ff79",
+          "laneId": "lane_001af0d671",
+          "order": 10,
+          "title": "Dispatch Node 11",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "seq": 10,
+            "lane": "Dispatch"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1840,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001xf95012",
+          "laneId": "lane_001w3d0db4",
+          "order": 0,
+          "title": "Book Node 1",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "seq": 0,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_001y9fff0a",
+          "laneId": "lane_001w3d0db4",
+          "order": 1,
+          "title": "Book Node 2",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "seq": 1,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00205443e3",
+          "laneId": "lane_001w3d0db4",
+          "order": 2,
+          "title": "Book Node 3",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "seq": 2,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0022659530",
+          "laneId": "lane_001w3d0db4",
+          "order": 3,
+          "title": "Book Node 4",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "hexagon",
+          "kind": "a2a-handoff",
+          "config": {
+            "seq": 3,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0024b36f74",
+          "laneId": "lane_001w3d0db4",
+          "order": 4,
+          "title": "Book Node 5",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "triangle",
+          "kind": "branch",
+          "config": {
+            "seq": 4,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_002695dc6c",
+          "laneId": "lane_001w3d0db4",
+          "order": 5,
+          "title": "Book Node 6",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "diamond",
+          "kind": "join",
+          "config": {
+            "seq": 5,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 920,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00281758d2",
+          "laneId": "lane_001w3d0db4",
+          "order": 6,
+          "title": "Book Node 7",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rounded",
+          "kind": "retry",
+          "config": {
+            "seq": 6,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1104,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_002aeb5300",
+          "laneId": "lane_001w3d0db4",
+          "order": 7,
+          "title": "Book Node 8",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "apply-theme",
+          "config": {
+            "seq": 7,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1288,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_002c2af1cd",
+          "laneId": "lane_001w3d0db4",
+          "order": 8,
+          "title": "Book Node 9",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "rect",
+          "kind": "preview",
+          "config": {
+            "seq": 8,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1472,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_002e3edaef",
+          "laneId": "lane_001w3d0db4",
+          "order": 9,
+          "title": "Book Node 10",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "seq": 9,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1656,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_002gb518db",
+          "laneId": "lane_001w3d0db4",
+          "order": 10,
+          "title": "Book Node 11",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "seq": 10,
+            "lane": "Book"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 1840,
+            "y": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_00058f6560",
+          "from": "card_00037a7f3b",
+          "to": "card_00042366c5"
+        },
+        {
+          "id": "edge_000791140b",
+          "from": "card_00042366c5",
+          "to": "card_00064bb1a5"
+        },
+        {
+          "id": "edge_0009540ebe",
+          "from": "card_00064bb1a5",
+          "to": "card_000802a108"
+        },
+        {
+          "id": "edge_000b7fcfa7",
+          "from": "card_000802a108",
+          "to": "card_000afbf64b"
+        },
+        {
+          "id": "edge_000d48555c",
+          "from": "card_000afbf64b",
+          "to": "card_000cd28fcb"
+        },
+        {
+          "id": "edge_000f6ed9fb",
+          "from": "card_000cd28fcb",
+          "to": "card_000e9dd4b7"
+        },
+        {
+          "id": "edge_000hdb8c19",
+          "from": "card_000e9dd4b7",
+          "to": "card_000g642a5b"
+        },
+        {
+          "id": "edge_000j7cd91c",
+          "from": "card_000g642a5b",
+          "to": "card_000i43fbce"
+        },
+        {
+          "id": "edge_000l366bab",
+          "from": "card_000i43fbce",
+          "to": "card_000kb6908f"
+        },
+        {
+          "id": "edge_000naf6909",
+          "from": "card_000kb6908f",
+          "to": "card_000m3e5475"
+        },
+        {
+          "id": "edge_000r489bf2",
+          "from": "card_000p633538",
+          "to": "card_000q4179c7"
+        },
+        {
+          "id": "edge_000t2bd0bb",
+          "from": "card_000q4179c7",
+          "to": "card_000sef0f2f"
+        },
+        {
+          "id": "edge_000vf39fbe",
+          "from": "card_000sef0f2f",
+          "to": "card_000ub6cc82"
+        },
+        {
+          "id": "edge_000xe029b1",
+          "from": "card_000ub6cc82",
+          "to": "card_000w88e79f"
+        },
+        {
+          "id": "edge_000z3fa878",
+          "from": "card_000w88e79f",
+          "to": "card_000y14dd04"
+        },
+        {
+          "id": "edge_00115ea1d1",
+          "from": "card_000y14dd04",
+          "to": "card_001021634e"
+        },
+        {
+          "id": "edge_00137a6b48",
+          "from": "card_001021634e",
+          "to": "card_0012f84509"
+        },
+        {
+          "id": "edge_0015e7531a",
+          "from": "card_0012f84509",
+          "to": "card_00147bcc5b"
+        },
+        {
+          "id": "edge_001739f4cd",
+          "from": "card_00147bcc5b",
+          "to": "card_001603c0d6"
+        },
+        {
+          "id": "edge_0019940cdf",
+          "from": "card_001603c0d6",
+          "to": "card_0018a8b00a"
+        },
+        {
+          "id": "edge_001de21623",
+          "from": "card_001bed91e9",
+          "to": "card_001cc8867c"
+        },
+        {
+          "id": "edge_001f823725",
+          "from": "card_001cc8867c",
+          "to": "card_001eeb0d2a"
+        },
+        {
+          "id": "edge_001hcb863e",
+          "from": "card_001eeb0d2a",
+          "to": "card_001gb75c47"
+        },
+        {
+          "id": "edge_001ja4a19e",
+          "from": "card_001gb75c47",
+          "to": "card_001i81c674"
+        },
+        {
+          "id": "edge_001l738e2c",
+          "from": "card_001i81c674",
+          "to": "card_001k7ff704"
+        },
+        {
+          "id": "edge_001n843fef",
+          "from": "card_001k7ff704",
+          "to": "card_001m72a6dd"
+        },
+        {
+          "id": "edge_001pa1a3e4",
+          "from": "card_001m72a6dd",
+          "to": "card_001o3c9ce4"
+        },
+        {
+          "id": "edge_001r46de8c",
+          "from": "card_001o3c9ce4",
+          "to": "card_001q7f43ea"
+        },
+        {
+          "id": "edge_001t28b3bb",
+          "from": "card_001q7f43ea",
+          "to": "card_001s7d407c"
+        },
+        {
+          "id": "edge_001v5f1af7",
+          "from": "card_001s7d407c",
+          "to": "card_001ua7ff79"
+        },
+        {
+          "id": "edge_001zaadd42",
+          "from": "card_001xf95012",
+          "to": "card_001y9fff0a"
+        },
+        {
+          "id": "edge_00212e7c85",
+          "from": "card_001y9fff0a",
+          "to": "card_00205443e3"
+        },
+        {
+          "id": "edge_0023b4743f",
+          "from": "card_00205443e3",
+          "to": "card_0022659530"
+        },
+        {
+          "id": "edge_0025e4cf3f",
+          "from": "card_0022659530",
+          "to": "card_0024b36f74"
+        },
+        {
+          "id": "edge_0027171b21",
+          "from": "card_0024b36f74",
+          "to": "card_002695dc6c"
+        },
+        {
+          "id": "edge_0029acc8b1",
+          "from": "card_002695dc6c",
+          "to": "card_00281758d2"
+        },
+        {
+          "id": "edge_002be7551f",
+          "from": "card_00281758d2",
+          "to": "card_002aeb5300"
+        },
+        {
+          "id": "edge_002d786578",
+          "from": "card_002aeb5300",
+          "to": "card_002c2af1cd"
+        },
+        {
+          "id": "edge_002f065c7d",
+          "from": "card_002c2af1cd",
+          "to": "card_002e3edaef"
+        },
+        {
+          "id": "edge_002h7fac52",
+          "from": "card_002e3edaef",
+          "to": "card_002gb518db"
+        },
+        {
+          "id": "edge_002i4bd009",
+          "from": "card_000m3e5475",
+          "to": "card_000p633538"
+        },
+        {
+          "id": "edge_002j1857e0",
+          "from": "card_0018a8b00a",
+          "to": "card_001bed91e9"
+        },
+        {
+          "id": "edge_002k6e4a8f",
+          "from": "card_001ua7ff79",
+          "to": "card_001xf95012"
+        }
+      ],
+      "version": 1,
+      "updatedAt": "2026-09-02T15:00:00.000Z"
+    }
+  ],
+  "themeId": "theme.obsidian-amethyst",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "savedAt": "2026-09-02T15:00:00.000Z"
+}

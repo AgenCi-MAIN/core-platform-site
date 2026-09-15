@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "wf_000101b9ad",
+      "name": "Command Pass Escalation",
+      "summary": "Three command-pass signals, one review.",
+      "lanes": [
+        {
+          "id": "lane_0002b70237",
+          "workflowId": "wf_000101b9ad",
+          "title": "Escalation",
+          "order": 0,
+          "collapsed": false
+        }
+      ],
+      "cards": [
+        {
+          "id": "card_0003ce2b4b",
+          "laneId": "lane_0002b70237",
+          "order": 0,
+          "title": "Pass Near Expiry",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "email": "agent1@thrive18.example",
+            "expiresAt": "2026-09-16T00:00:00.000Z"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000452abe5",
+          "laneId": "lane_0002b70237",
+          "order": 1,
+          "title": "Pass Failed Attempts",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "email": "agent2@thrive18.example",
+            "failedAttempts": 4
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0005e22c5d",
+          "laneId": "lane_0002b70237",
+          "order": 2,
+          "title": "Pass Revoked Early",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "email": "agent3@thrive18.example",
+            "revokedAt": "2026-09-15T12:00:00.000Z"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0006570e8e",
+          "laneId": "lane_0002b70237",
+          "order": 3,
+          "title": "Merge Signals",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "diamond",
+          "kind": "join",
+          "config": {},
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00075c93bc",
+          "laneId": "lane_0002b70237",
+          "order": 4,
+          "title": "Founder Review",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "hexagon",
+          "kind": "a2a-handoff",
+          "config": {
+            "to": "agent.founder-proxy",
+            "skill": "command_pass.review"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000848d775",
+          "laneId": "lane_0002b70237",
+          "order": 5,
+          "title": "Passes Reconciled",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "status": "reconciled"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 920,
+            "y": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_00096b0ffc",
+          "from": "card_0003ce2b4b",
+          "to": "card_0006570e8e"
+        },
+        {
+          "id": "edge_000a04a3d0",
+          "from": "card_000452abe5",
+          "to": "card_0006570e8e"
+        },
+        {
+          "id": "edge_000ba898b5",
+          "from": "card_0005e22c5d",
+          "to": "card_0006570e8e"
+        },
+        {
+          "id": "edge_000c74fc61",
+          "from": "card_0006570e8e",
+          "to": "card_00075c93bc"
+        },
+        {
+          "id": "edge_000de1d744",
+          "from": "card_00075c93bc",
+          "to": "card_000848d775"
+        }
+      ],
+      "version": 1,
+      "updatedAt": "2026-09-02T15:00:00.000Z"
+    }
+  ],
+  "themeId": "theme.obsidian-amethyst",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "savedAt": "2026-09-02T15:00:00.000Z"
+}

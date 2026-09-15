@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "wf_000101bd8d",
+      "name": "Cross-Lane Drag Scenario",
+      "summary": "Two lanes; one node currently misplaced relative to its own edges.",
+      "lanes": [
+        {
+          "id": "lane_0002b30a31",
+          "workflowId": "wf_000101bd8d",
+          "title": "Frontline",
+          "order": 0,
+          "collapsed": false
+        },
+        {
+          "id": "lane_00067b61d4",
+          "workflowId": "wf_000101bd8d",
+          "title": "Command Center",
+          "order": 1,
+          "collapsed": false
+        }
+      ],
+      "cards": [
+        {
+          "id": "card_000353e7e4",
+          "laneId": "lane_0002b30a31",
+          "order": 0,
+          "title": "Inbound Escalation",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "queueName": "escalations",
+            "priority": "high"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000440fe7e",
+          "laneId": "lane_0002b30a31",
+          "order": 1,
+          "title": "Needs Command Review",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "pentagon",
+          "kind": "probe",
+          "config": {
+            "rule": "priority == 'high'"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00056cd548",
+          "laneId": "lane_0002b30a31",
+          "order": 2,
+          "title": "Escalate To Command",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "note": "Drag this card from Frontline into Command Center — both its edges already point there.",
+            "suggestedLaneTitle": "Command Center"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_000779218e",
+          "laneId": "lane_00067b61d4",
+          "order": 0,
+          "title": "Command Review",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "hexagon",
+          "kind": "a2a-handoff",
+          "config": {
+            "to": "agent.command-reviewer",
+            "skill": "escalation.review"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0008512e69",
+          "laneId": "lane_00067b61d4",
+          "order": 1,
+          "title": "Escalation Resolved",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "status": "resolved"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_00091c888d",
+          "from": "card_000353e7e4",
+          "to": "card_000440fe7e"
+        },
+        {
+          "id": "edge_000aa973f3",
+          "from": "card_000440fe7e",
+          "to": "card_00056cd548"
+        },
+        {
+          "id": "edge_000b36f8b4",
+          "from": "card_00056cd548",
+          "to": "card_000779218e"
+        },
+        {
+          "id": "edge_000c2de0f6",
+          "from": "card_000779218e",
+          "to": "card_0008512e69"
+        }
+      ],
+      "version": 1,
+      "updatedAt": "2026-09-02T15:00:00.000Z"
+    }
+  ],
+  "themeId": "theme.obsidian-amethyst",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "savedAt": "2026-09-02T15:00:00.000Z"
+}

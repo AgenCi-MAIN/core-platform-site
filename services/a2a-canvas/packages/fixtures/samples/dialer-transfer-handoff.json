@@ -1,0 +1,163 @@
+{
+  "version": 1,
+  "workflows": [
+    {
+      "id": "wf_00010198ac",
+      "name": "Dialer Transfer Handoff",
+      "summary": "One inbound transfer, start to finish, with an agent verification step in the middle.",
+      "lanes": [
+        {
+          "id": "lane_0002970007",
+          "workflowId": "wf_00010198ac",
+          "title": "Dialer Pipeline",
+          "order": 0,
+          "collapsed": false
+        }
+      ],
+      "cards": [
+        {
+          "id": "card_000368482d",
+          "laneId": "lane_0002970007",
+          "order": 0,
+          "title": "Inbound Call",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "source",
+          "config": {
+            "transferId": "xfer_8841",
+            "sourceSystem": "signalwire",
+            "direction": "inbound",
+            "callerNumberMasked": "***-***-4471",
+            "queueName": "main-hunt"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0004dc4925",
+          "laneId": "lane_0002970007",
+          "order": 1,
+          "title": "Command Pass Check",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "checks": [
+              "pass.redeemed",
+              "pass.not_expired"
+            ]
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 184,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0005e97cd3",
+          "laneId": "lane_0002970007",
+          "order": 2,
+          "title": "Verify With Agent",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "hexagon",
+          "kind": "a2a-handoff",
+          "config": {
+            "to": "agent.verifier",
+            "timeoutMs": 8000,
+            "skill": "transfer.verify"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 368,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_00060d2f78",
+          "laneId": "lane_0002970007",
+          "order": 3,
+          "title": "Outbound Dial Request",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "capsule",
+          "kind": "transform",
+          "config": {
+            "requestId": "dial_2201",
+            "mode": "customer",
+            "destinationMasked": "***-***-9002"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 552,
+            "y": 0
+          }
+        },
+        {
+          "id": "card_0007a47b76",
+          "laneId": "lane_0002970007",
+          "order": 4,
+          "title": "Transfer Complete",
+          "body": "",
+          "tags": [],
+          "status": "idle",
+          "shape": "circle",
+          "kind": "sink",
+          "config": {
+            "status": "completed"
+          },
+          "w": 160,
+          "h": 64,
+          "position": {
+            "x": 736,
+            "y": 0
+          }
+        }
+      ],
+      "edges": [
+        {
+          "id": "edge_00089ba727",
+          "from": "card_000368482d",
+          "to": "card_0004dc4925"
+        },
+        {
+          "id": "edge_0009aa9f1a",
+          "from": "card_0004dc4925",
+          "to": "card_0005e97cd3"
+        },
+        {
+          "id": "edge_000a741430",
+          "from": "card_0005e97cd3",
+          "to": "card_00060d2f78"
+        },
+        {
+          "id": "edge_000bb57345",
+          "from": "card_00060d2f78",
+          "to": "card_0007a47b76"
+        }
+      ],
+      "version": 1,
+      "updatedAt": "2026-09-02T15:00:00.000Z"
+    }
+  ],
+  "themeId": "theme.obsidian-amethyst",
+  "viewport": {
+    "x": 0,
+    "y": 0,
+    "zoom": 1
+  },
+  "savedAt": "2026-09-02T15:00:00.000Z"
+}
