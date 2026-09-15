@@ -8,7 +8,7 @@ import { isOk, isErr } from '../../../../packages/shared/src/result.ts'
 test('memory persistence round-trips a valid doc', () => {
   const persistence = createMemoryPersistence()
   const seeds = createSeedFactory()
-  const doc = seeds.defaultDoc(asId('theme-1'))
+  const doc = seeds.defaultDoc(asId<'ThemeId'>('theme-1'))
 
   const empty = persistence.load()
   assert.ok(isOk(empty))
@@ -70,7 +70,7 @@ test('a storage whose setItem throws yields err, not an exception', () => {
   }
   const persistence = createLocalStoragePersistence(throwingStorage)
   const seeds = createSeedFactory()
-  const doc = seeds.defaultDoc(asId('theme-1'))
+  const doc = seeds.defaultDoc(asId<'ThemeId'>('theme-1'))
 
   let threw = false
   let result

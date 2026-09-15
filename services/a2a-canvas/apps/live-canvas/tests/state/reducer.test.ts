@@ -64,20 +64,20 @@ test('edge.added rejects self-edges and duplicates but allows a reverse edge', (
 
   const selfEdge = reduce(state, {
     type: 'workflow.event',
-    event: { type: 'edge.added', edge: { id: asId('e-self'), from: cardIds.a1, to: cardIds.a1 }, at: '2026-01-01T00:00:01.000Z' },
+    event: { type: 'edge.added', edge: { id: asId<'EdgeId'>('e-self'), from: cardIds.a1, to: cardIds.a1 }, at: '2026-01-01T00:00:01.000Z' },
   }, clock)
   assert.equal(selfEdge, state) // no-op: same reference
   assert.equal(selfEdge.doc.workflows.find((w) => w.id === wfAId)!.edges.length, startEdgeCount)
 
   const dupEdge = reduce(state, {
     type: 'workflow.event',
-    event: { type: 'edge.added', edge: { id: asId('e-dup'), from: cardIds.a1, to: cardIds.a2 }, at: '2026-01-01T00:00:01.000Z' },
+    event: { type: 'edge.added', edge: { id: asId<'EdgeId'>('e-dup'), from: cardIds.a1, to: cardIds.a2 }, at: '2026-01-01T00:00:01.000Z' },
   }, clock)
   assert.equal(dupEdge, state)
 
   const reverseEdge = reduce(state, {
     type: 'workflow.event',
-    event: { type: 'edge.added', edge: { id: asId('e-rev'), from: cardIds.a2, to: cardIds.a1 }, at: '2026-01-01T00:00:01.000Z' },
+    event: { type: 'edge.added', edge: { id: asId<'EdgeId'>('e-rev'), from: cardIds.a2, to: cardIds.a1 }, at: '2026-01-01T00:00:01.000Z' },
   }, clock)
   assert.notEqual(reverseEdge, state)
   assert.equal(reverseEdge.doc.workflows.find((w) => w.id === wfAId)!.edges.length, startEdgeCount + 1)
@@ -90,15 +90,15 @@ test('theme.apply marks saveStatus dirty; theme.preview does not', () => {
   const state = stateFor(doc)
   assert.equal(state.saveStatus.kind, 'idle')
 
-  const previewed = reduce(state, { type: 'theme.preview', themeId: asId('theme-2') }, clock)
+  const previewed = reduce(state, { type: 'theme.preview', themeId: asId<'ThemeId'>('theme-2') }, clock)
   assert.equal(previewed.saveStatus.kind, 'idle')
-  assert.equal(previewed.previewThemeId, asId('theme-2'))
+  assert.equal(previewed.previewThemeId, asId<'ThemeId'>('theme-2'))
   assert.equal(previewed.doc.themeId, doc.themeId) // doc itself untouched
 
-  const applied = reduce(previewed, { type: 'theme.apply', themeId: asId('theme-2') }, clock)
+  const applied = reduce(previewed, { type: 'theme.apply', themeId: asId<'ThemeId'>('theme-2') }, clock)
   assert.equal(applied.saveStatus.kind, 'dirty')
-  assert.equal(applied.doc.themeId, asId('theme-2'))
-  assert.equal(applied.previewThemeId, asId('theme-2'))
+  assert.equal(applied.doc.themeId, asId<'ThemeId'>('theme-2'))
+  assert.equal(applied.previewThemeId, asId<'ThemeId'>('theme-2'))
 })
 
 test('run.event sequence builds nodeResults and mirrors node status', () => {
@@ -106,7 +106,7 @@ test('run.event sequence builds nodeResults and mirrors node status', () => {
   const clock = testClock()
   const { doc, wfA, ids: cardIds } = twoWorkflowDoc(ids)
   const state = stateFor(doc)
-  const runId = asId('run-1')
+  const runId = asId<'RunId'>('run-1')
   const cardId: CardId = cardIds.a1
 
   let s = reduce(state, { type: 'run.event', event: { type: 'run.started', runId, workflowId: wfA, at: 't0', seq: 0, nodeCount: 3 } }, clock)

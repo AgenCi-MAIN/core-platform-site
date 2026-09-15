@@ -134,10 +134,13 @@ export function computeLayout(doc: CanvasDoc, viewport?: Viewport): CanvasLayout
         let x: number
         let y: number
         if (card.position) {
+          // `position` is an absolute canvas-space point (the same space
+          // toCanvasPoint/onCreateNode/card.moved deal in) — clamp it to
+          // stay inside this lane's current world-space rectangle.
           const maxX = wfX + wfW - PADDING - w
           const maxY = contentBottom - h
-          x = clamp(wfX + card.position.x, wfX + PADDING, Math.max(wfX + PADDING, maxX))
-          y = clamp(laneY + card.position.y, contentTop, Math.max(contentTop, maxY))
+          x = clamp(card.position.x, wfX + PADDING, Math.max(wfX + PADDING, maxX))
+          y = clamp(card.position.y, contentTop, Math.max(contentTop, maxY))
         } else {
           x = cursorX
           const bandH = Math.max(h, contentBottom - contentTop)

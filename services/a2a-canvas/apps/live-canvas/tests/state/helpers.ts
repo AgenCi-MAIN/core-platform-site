@@ -80,7 +80,7 @@ export function twoWorkflowDoc(ids: IdFactory): { doc: CanvasDoc; wfA: WorkflowI
   const doc: CanvasDoc = {
     version: 1,
     workflows: [workflowA, workflowB],
-    themeId: asId('theme-1'),
+    themeId: asId<'ThemeId'>('theme-1'),
     viewport: { x: 0, y: 0, zoom: 1 },
   }
 

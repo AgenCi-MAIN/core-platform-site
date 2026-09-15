@@ -32,7 +32,7 @@ function hasCycle(wf: CanvasWorkflow): boolean {
 
 test('defaultDoc has exactly four workflows', () => {
   const seeds = createSeedFactory()
-  const doc = seeds.defaultDoc(asId('theme-1'))
+  const doc = seeds.defaultDoc(asId<'ThemeId'>('theme-1'))
   assert.equal(doc.workflows.length, 4)
   assert.deepEqual(doc.workflows.map((w) => w.name), ['Theme Forge', 'A2A Handoff', 'Workflow Lab', 'Scratch'])
   assert.equal(doc.version, 1)
@@ -41,7 +41,7 @@ test('defaultDoc has exactly four workflows', () => {
 
 test('every edge references cards that exist in the same workflow', () => {
   const seeds = createSeedFactory()
-  const doc = seeds.defaultDoc(asId('theme-1'))
+  const doc = seeds.defaultDoc(asId<'ThemeId'>('theme-1'))
   for (const wf of doc.workflows) {
     const ids = new Set(wf.cards.map((c) => c.id))
     for (const e of wf.edges) {
@@ -53,7 +53,7 @@ test('every edge references cards that exist in the same workflow', () => {
 
 test('no seed workflow has a cycle', () => {
   const seeds = createSeedFactory()
-  const doc = seeds.defaultDoc(asId('theme-1'))
+  const doc = seeds.defaultDoc(asId<'ThemeId'>('theme-1'))
   for (const wf of doc.workflows) {
     assert.equal(hasCycle(wf), false, `${wf.name} should be acyclic`)
   }
@@ -61,7 +61,7 @@ test('no seed workflow has a cycle', () => {
 
 test('every node kind used in the seed doc exists in NODE_KIND_META', () => {
   const seeds = createSeedFactory()
-  const doc = seeds.defaultDoc(asId('theme-1'))
+  const doc = seeds.defaultDoc(asId<'ThemeId'>('theme-1'))
   for (const wf of doc.workflows) {
     for (const c of wf.cards) {
       assert.ok(c.kind in NODE_KIND_META, `${wf.name}: unknown kind ${c.kind}`)
@@ -72,7 +72,7 @@ test('every node kind used in the seed doc exists in NODE_KIND_META', () => {
 
 test('every workflow has exactly one lane, and every card belongs to it', () => {
   const seeds = createSeedFactory()
-  const doc = seeds.defaultDoc(asId('theme-1'))
+  const doc = seeds.defaultDoc(asId<'ThemeId'>('theme-1'))
   for (const wf of doc.workflows) {
     assert.equal(wf.lanes.length, 1)
     const laneId = wf.lanes[0]!.id
@@ -82,7 +82,7 @@ test('every workflow has exactly one lane, and every card belongs to it', () => 
 
 test('blankNode uses the kind default shape and the kind label as title', () => {
   const seeds = createSeedFactory()
-  const doc = seeds.defaultDoc(asId('theme-1'))
+  const doc = seeds.defaultDoc(asId<'ThemeId'>('theme-1'))
   const laneId = doc.workflows[3]!.lanes[0]!.id // Scratch
   const node = seeds.blankNode(laneId, 'probe', { x: 10, y: 20 })
   assert.equal(node.kind, 'probe')
@@ -95,8 +95,8 @@ test('blankNode uses the kind default shape and the kind label as title', () => 
 })
 
 test('seed ids are deterministic for a fixed seed', () => {
-  const a = createSeedFactory(undefined, undefined).defaultDoc(asId('theme-1'))
-  const b = createSeedFactory(undefined, undefined).defaultDoc(asId('theme-1'))
+  const a = createSeedFactory(undefined, undefined).defaultDoc(asId<'ThemeId'>('theme-1'))
+  const b = createSeedFactory(undefined, undefined).defaultDoc(asId<'ThemeId'>('theme-1'))
   // default ids() factory seed (1) is fixed, so two independent factories
   // started fresh must line up card-for-card.
   assert.deepEqual(a.workflows.map((w) => w.cards.map((c) => c.id)), b.workflows.map((w) => w.cards.map((c) => c.id)))

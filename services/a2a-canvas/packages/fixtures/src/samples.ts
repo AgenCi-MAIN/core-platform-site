@@ -32,8 +32,8 @@ export interface WorkflowFixture {
   doc: CanvasDoc
 }
 
-const OBSIDIAN_AMETHYST = asId<ThemeId>('theme.obsidian-amethyst')
-const FORGE_BASE = asId<ThemeId>('theme.forge-base')
+const OBSIDIAN_AMETHYST: ThemeId = asId<'ThemeId'>('theme.obsidian-amethyst')
+const FORGE_BASE: ThemeId = asId<'ThemeId'>('theme.forge-base')
 
 /* ---- 1. dialer-transfer-handoff -------------------------------------- */
 const dialerTransferHandoff: WorkflowFixture = {

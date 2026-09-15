@@ -195,5 +195,5 @@ export function validateDoc(input: unknown): Result<CanvasDoc, string[]> {
   }
 
   if (errors.length > 0) return err(errors)
-  return ok(input as CanvasDoc)
+  return ok(input as unknown as CanvasDoc)
 }
