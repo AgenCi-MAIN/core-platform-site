@@ -50,7 +50,7 @@ serving model can differ). Workers are Agent-tool subagents launched with the
 | W2 canvas (sonnet) | apps/live-canvas/src/canvas, tests/canvas | 13:48 | | |
 | W3 runtime (sonnet) | apps/live-canvas/src/runtime, tests/runtime | 13:48 | | |
 | W4 state (sonnet) | apps/live-canvas/src/state, tests/state | 13:48 | | |
-| W5 ui (sonnet) | apps/live-canvas/src/ui, tests/ui | 13:48 | | |
+| W5 ui (sonnet) | apps/live-canvas/src/ui, tests/ui | 13:48 | 14:00 | Verified by integrator: 30/30 tests pass, its files typecheck; 1,244 lines; worker reported 152k tokens, 37 tool uses, 10.5 min |
 
 ## Milestones
 
